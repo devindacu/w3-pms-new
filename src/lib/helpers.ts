@@ -33,16 +33,22 @@ export function getInitials(name: string): string {
     .slice(0, 2)
 }
 
-export function formatDate(timestamp: number): string {
-  return new Date(timestamp).toLocaleDateString('en-US', {
+export function formatDate(timestamp: number | undefined): string {
+  if (!timestamp || isNaN(timestamp)) return 'N/A'
+  const date = new Date(timestamp)
+  if (isNaN(date.getTime())) return 'N/A'
+  return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric'
   })
 }
 
-export function formatDateTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleString('en-US', {
+export function formatDateTime(timestamp: number | undefined): string {
+  if (!timestamp || isNaN(timestamp)) return 'N/A'
+  const date = new Date(timestamp)
+  if (isNaN(date.getTime())) return 'N/A'
+  return date.toLocaleString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -51,8 +57,11 @@ export function formatDateTime(timestamp: number): string {
   })
 }
 
-export function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString('en-US', {
+export function formatTime(timestamp: number | undefined): string {
+  if (!timestamp || isNaN(timestamp)) return 'N/A'
+  const date = new Date(timestamp)
+  if (isNaN(date.getTime())) return 'N/A'
+  return date.toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit'
   })
