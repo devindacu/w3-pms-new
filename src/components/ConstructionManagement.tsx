@@ -256,9 +256,9 @@ export function ConstructionManagement({
             <Users size={20} className="text-secondary" />
           </div>
           <div className="space-y-2">
-            <p className="text-3xl font-semibold">{contractors.length}</p>
+            <p className="text-3xl font-semibold">{contractors?.length || 0}</p>
             <p className="text-sm text-muted-foreground">
-              {contractors.filter(c => c.totalProjects > 0).length} active
+              {contractors?.filter(c => c.totalProjects > 0).length || 0} active
             </p>
           </div>
         </Card>
@@ -603,7 +603,7 @@ export function ConstructionManagement({
                       <Users size={16} className="text-muted-foreground" />
                       <span className="text-muted-foreground">Contractor:</span>
                       <span className="font-medium">
-                        {contractors.find(c => c.id === project.assignedContractor)?.name || 'Unknown'}
+                        {contractors?.find(c => c.id === project.assignedContractor)?.name || 'Unknown'}
                       </span>
                     </div>
                   )}
@@ -668,7 +668,7 @@ export function ConstructionManagement({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {contractors.map(contractor => (
+        {(contractors || []).map(contractor => (
           <Card key={contractor.id} className="p-4">
             <div className="flex items-start justify-between mb-3">
               <div>
@@ -712,7 +712,7 @@ export function ConstructionManagement({
         ))}
       </div>
 
-      {contractors.length === 0 && (
+      {(!contractors || contractors.length === 0) && (
         <Card className="p-12 text-center">
           <Users size={48} className="mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">No Contractors</h3>
