@@ -396,3 +396,82 @@ export function getExpiringFoodItems(items: FoodItem[], daysThreshold: number = 
 export function getExpiredFoodItems(items: FoodItem[]): FoodItem[] {
   return items.filter(i => i.expiryDate && isExpired(i.expiryDate))
 }
+
+export function getAmenityCategoryColor(category: string): string {
+  const colors: Record<string, string> = {
+    'toiletries': 'bg-primary/10 text-primary border-primary/20',
+    'linens': 'bg-accent/10 text-accent border-accent/20',
+    'cleaning-supplies': 'bg-success/10 text-success border-success/20',
+    'beverages': 'bg-secondary/10 text-secondary border-secondary/20',
+    'food-items': 'bg-destructive/10 text-destructive border-destructive/20',
+    'paper-products': 'bg-muted text-muted-foreground border-border',
+    'room-supplies': 'bg-primary/10 text-primary border-primary/20',
+    'public-area-supplies': 'bg-accent/10 text-accent border-accent/20',
+    'laundry-supplies': 'bg-success/10 text-success border-success/20',
+    'guest-amenities': 'bg-secondary/10 text-secondary border-secondary/20'
+  }
+  return colors[category] || 'bg-muted text-muted-foreground'
+}
+
+export function getAmenityStockStatus(amenity: { currentStock: number; reorderLevel: number; parLevel: number }): { status: string; color: string; urgent: boolean } {
+  if (amenity.currentStock === 0) {
+    return { status: 'out-of-stock', color: 'text-destructive', urgent: true }
+  }
+  
+  if (amenity.currentStock <= amenity.reorderLevel) {
+    return { status: 'low-stock', color: 'text-accent', urgent: true }
+  }
+  
+  if (amenity.currentStock < amenity.parLevel * 0.5) {
+    return { status: 'below-par', color: 'text-accent', urgent: false }
+  }
+  
+  return { status: 'in-stock', color: 'text-success', urgent: false }
+}
+
+export function calculateAmenityInventoryValue(items: { currentStock: number; unitCost: number }[]): number {
+  return items.reduce((sum, item) => sum + (item.currentStock * item.unitCost), 0)
+}
+
+export function searchAmenities(items: any[], searchTerm: string): any[] {
+  const term = searchTerm.toLowerCase()
+  return items.filter((i: any) => 
+    i.name.toLowerCase().includes(term) ||
+    i.category.toLowerCase().includes(term) ||
+    i.amenityId.toLowerCase().includes(term) ||
+    (i.department && i.department.some((d: string) => d.toLowerCase().includes(term)))
+  )
+}
+
+export function filterAmenitiesByCategory(items: any[], category?: string): any[] {
+  if (!category) return items
+  return items.filter((i: any) => i.category === category)
+}
+
+export function filterAmenitiesByDepartment(items: any[], department?: string): any[] {
+  if (!department) return items
+  return items.filter((i: any) => i.department.includes(department))
+}
+
+export function filterAmenitiesByStatus(items: any[], status?: string): any[] {
+  if (!status) return items
+  return items.filter((i: any) => {
+    const itemStatus = getAmenityStockStatus(i)
+    return itemStatus.status === status
+  })
+}
+
+export function getUrgentAmenities(items: any[]): any[] {
+  return items.filter((i: any) => getAmenityStockStatus(i).urgent)
+}
+
+export function getDaysUntilReorder(amenity: { currentStock: number; usageRatePerDay: number; reorderLevel: number }): number {
+  if (amenity.usageRatePerDay === 0) return 999
+  const daysToReorder = (amenity.currentStock - amenity.reorderLevel) / amenity.usageRatePerDay
+  return Math.max(0, Math.floor(daysToReorder))
+}
+
+export function calculateAutoReorderQuantity(amenity: { reorderQuantity: number; parLevel: number; currentStock: number }): number {
+  const needed = amenity.parLevel - amenity.currentStock
+  return Math.max(amenity.reorderQuantity, needed)
+}

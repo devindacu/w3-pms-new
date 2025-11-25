@@ -16,6 +16,8 @@ export type UserRole = 'admin' | 'manager' | 'front-desk' | 'housekeeper' | 'che
 export type FoodCategory = 'perishable' | 'non-perishable' | 'frozen' | 'beverage' | 'spices' | 'dairy' | 'meat' | 'vegetables' | 'fruits' | 'bakery' | 'dry-goods'
 export type OrderFrequency = 'daily' | 'weekly' | 'monthly' | 'on-demand'
 export type QualityStatus = 'excellent' | 'good' | 'fair' | 'poor' | 'rejected'
+export type AmenityCategory = 'toiletries' | 'linens' | 'cleaning-supplies' | 'beverages' | 'food-items' | 'paper-products' | 'room-supplies' | 'public-area-supplies' | 'laundry-supplies' | 'guest-amenities'
+export type AmenityDepartment = 'housekeeping' | 'front-office' | 'fnb' | 'public-areas' | 'laundry' | 'spa' | 'gym' | 'pool'
 
 export interface Guest {
   id: string
@@ -407,6 +409,52 @@ export interface QualityCheck {
   overallNotes?: string
   actionTaken?: string
   passed: boolean
+}
+
+export interface Amenity {
+  id: string
+  amenityId: string
+  name: string
+  category: AmenityCategory
+  department: AmenityDepartment[]
+  unit: string
+  currentStock: number
+  reorderLevel: number
+  reorderQuantity: number
+  unitCost: number
+  supplierIds: string[]
+  autoReorder: boolean
+  storeLocation: string
+  parLevel: number
+  usageRatePerDay: number
+  lastOrdered?: number
+  lastRestocked?: number
+  notes?: string
+  lastUpdated: number
+  createdAt: number
+}
+
+export interface AmenityUsageLog {
+  id: string
+  amenityId: string
+  department: AmenityDepartment
+  quantity: number
+  usedBy: string
+  roomNumber?: string
+  purpose?: string
+  timestamp: number
+}
+
+export interface AmenityAutoOrder {
+  id: string
+  amenityId: string
+  supplierId: string
+  orderQuantity: number
+  status: 'pending' | 'ordered' | 'received' | 'cancelled'
+  triggeredAt: number
+  orderedAt?: number
+  receivedAt?: number
+  orderReference?: string
 }
 
 export interface DashboardMetrics {

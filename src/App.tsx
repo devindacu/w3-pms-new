@@ -21,7 +21,8 @@ import {
   ArrowUp,
   ArrowDown,
   Warning,
-  Carrot
+  Carrot,
+  Basket
 } from '@phosphor-icons/react'
 import { 
   type Room, 
@@ -34,7 +35,10 @@ import {
   type Supplier,
   type Employee,
   type MaintenanceRequest,
-  type FoodItem
+  type FoodItem,
+  type Amenity,
+  type AmenityUsageLog,
+  type AmenityAutoOrder
 } from '@/lib/types'
 import { 
   formatCurrency, 
@@ -44,7 +48,8 @@ import {
   getStockStatus,
   generateNumber,
   getUrgentFoodItems,
-  getExpiringFoodItems
+  getExpiringFoodItems,
+  getUrgentAmenities
 } from '@/lib/helpers'
 import {
   sampleGuests,
@@ -56,11 +61,15 @@ import {
   sampleSuppliers,
   sampleEmployees,
   sampleMaintenanceRequests,
-  sampleFoodItems
+  sampleFoodItems,
+  sampleAmenities,
+  sampleAmenityUsageLogs,
+  sampleAmenityAutoOrders
 } from '@/lib/sampleData'
 import { FoodManagement } from '@/components/FoodManagement'
+import { AmenitiesManagement } from '@/components/AmenitiesManagement'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'engineering' | 'analytics' | 'food-management'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'engineering' | 'analytics' | 'food-management' | 'amenities'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -74,6 +83,9 @@ function App() {
   const [employees, setEmployees] = useKV<Employee[]>('w3-hotel-employees', [])
   const [maintenanceRequests, setMaintenanceRequests] = useKV<MaintenanceRequest[]>('w3-hotel-maintenance', [])
   const [foodItems, setFoodItems] = useKV<FoodItem[]>('w3-hotel-food-items', [])
+  const [amenities, setAmenities] = useKV<Amenity[]>('w3-hotel-amenities', [])
+  const [amenityUsageLogs, setAmenityUsageLogs] = useKV<AmenityUsageLog[]>('w3-hotel-amenity-usage', [])
+  const [amenityAutoOrders, setAmenityAutoOrders] = useKV<AmenityAutoOrder[]>('w3-hotel-amenity-auto-orders', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
 
@@ -88,6 +100,9 @@ function App() {
     setEmployees(sampleEmployees)
     setMaintenanceRequests(sampleMaintenanceRequests)
     setFoodItems(sampleFoodItems)
+    setAmenities(sampleAmenities)
+    setAmenityUsageLogs(sampleAmenityUsageLogs)
+    setAmenityAutoOrders(sampleAmenityAutoOrders)
     toast.success('Sample data loaded successfully')
   }
 
@@ -196,8 +211,29 @@ function App() {
 
             <Card className="p-6 border-l-4 border-l-destructive">
               <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-medium text-muted-foreground">Amenities Stock</h3>
+                <Basket size={20} className="text-destructive" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-3xl font-semibold">{getUrgentAmenities(amenities || []).length}</p>
+                <p className="text-sm text-muted-foreground">Urgent items</p>
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  <div className="text-xs">
+                    <span className="text-muted-foreground">Low Stock:</span>
+                    <span className="ml-1 font-medium text-accent">{(amenities || []).filter(a => a.currentStock <= a.reorderLevel).length}</span>
+                  </div>
+                  <div className="text-xs">
+                    <span className="text-muted-foreground">Total:</span>
+                    <span className="ml-1 font-medium">{(amenities || []).length}</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6 border-l-4 border-l-accent">
+              <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-medium text-muted-foreground">Food Inventory</h3>
-                <Carrot size={20} className="text-destructive" />
+                <Carrot size={20} className="text-accent" />
               </div>
               <div className="space-y-2">
                 <p className="text-3xl font-semibold">{getUrgentFoodItems(foodItems || []).length}</p>
@@ -205,7 +241,7 @@ function App() {
                 <div className="grid grid-cols-2 gap-2 pt-2">
                   <div className="text-xs">
                     <span className="text-muted-foreground">Expiring:</span>
-                    <span className="ml-1 font-medium text-accent">{getExpiringFoodItems(foodItems || [], 7).length}</span>
+                    <span className="ml-1 font-medium text-destructive">{getExpiringFoodItems(foodItems || [], 7).length}</span>
                   </div>
                   <div className="text-xs">
                     <span className="text-muted-foreground">Total:</span>
@@ -408,6 +444,15 @@ function App() {
           </Button>
 
           <Button
+            variant={currentModule === 'amenities' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('amenities')}
+          >
+            <Basket size={18} className="mr-2" />
+            Amenities
+          </Button>
+
+          <Button
             variant={currentModule === 'procurement' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('procurement')}
@@ -468,6 +513,17 @@ function App() {
               foodItems={foodItems || []} 
               setFoodItems={setFoodItems}
               suppliers={suppliers || []}
+            />
+          )}
+          {currentModule === 'amenities' && (
+            <AmenitiesManagement 
+              amenities={amenities || []} 
+              setAmenities={setAmenities}
+              suppliers={suppliers || []}
+              usageLogs={amenityUsageLogs || []}
+              setUsageLogs={setAmenityUsageLogs}
+              autoOrders={amenityAutoOrders || []}
+              setAutoOrders={setAmenityAutoOrders}
             />
           )}
           {currentModule === 'procurement' && renderComingSoon('Procurement', <ShoppingCart size={64} />)}
