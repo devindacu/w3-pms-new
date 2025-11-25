@@ -390,6 +390,55 @@ export interface LeaveRequest {
   createdAt: number
 }
 
+export type ShiftType = 'morning' | 'afternoon' | 'evening' | 'night' | 'full-day'
+
+export interface Shift {
+  id: string
+  shiftType: ShiftType
+  startTime: string
+  endTime: string
+  department: Department
+  requiredStaff: number
+  breakDuration: number
+  description?: string
+}
+
+export interface DutyRoster {
+  id: string
+  employeeId: string
+  date: number
+  shiftId: string
+  department: Department
+  status: 'scheduled' | 'completed' | 'missed' | 'swapped'
+  swappedWith?: string
+  notes?: string
+  createdAt: number
+  createdBy: string
+}
+
+export interface PerformanceReview {
+  id: string
+  employeeId: string
+  reviewerId: string
+  reviewPeriodStart: number
+  reviewPeriodEnd: number
+  punctuality: number
+  qualityOfWork: number
+  teamwork: number
+  communication: number
+  initiative: number
+  overallRating: number
+  strengths: string
+  areasForImprovement: string
+  goals: string
+  comments: string
+  status: 'draft' | 'submitted' | 'acknowledged'
+  submittedAt?: number
+  acknowledgedAt?: number
+  createdAt: number
+  updatedAt: number
+}
+
 export interface FoodItem {
   id: string
   foodId: string

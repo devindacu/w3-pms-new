@@ -20,7 +20,12 @@ import {
   type Contractor,
   type GeneralProduct,
   type SystemUser,
-  type ActivityLog
+  type ActivityLog,
+  type Attendance,
+  type LeaveRequest,
+  type Shift,
+  type DutyRoster,
+  type PerformanceReview
 } from './types'
 import { getRolePermissions } from './helpers'
 
@@ -2442,5 +2447,261 @@ export const sampleActivityLogs: ActivityLog[] = [
     resource: 'purchase-orders',
     resourceId: 'PO-2024-002',
     timestamp: Date.now() - 8 * 60 * 60 * 1000
+  }
+]
+
+export const sampleAttendance: Attendance[] = [
+  {
+    id: 'att-1',
+    employeeId: 'emp-1',
+    date: Date.now() - 24 * 60 * 60 * 1000,
+    checkIn: Date.now() - 24 * 60 * 60 * 1000 + 8 * 60 * 60 * 1000,
+    checkOut: Date.now() - 24 * 60 * 60 * 1000 + 17 * 60 * 60 * 1000,
+    status: 'present'
+  },
+  {
+    id: 'att-2',
+    employeeId: 'emp-2',
+    date: Date.now() - 24 * 60 * 60 * 1000,
+    checkIn: Date.now() - 24 * 60 * 60 * 1000 + 9 * 60 * 60 * 1000,
+    checkOut: Date.now() - 24 * 60 * 60 * 1000 + 18 * 60 * 60 * 1000,
+    status: 'present'
+  },
+  {
+    id: 'att-3',
+    employeeId: 'emp-3',
+    date: Date.now() - 24 * 60 * 60 * 1000,
+    checkIn: Date.now() - 24 * 60 * 60 * 1000 + 7 * 60 * 60 * 1000,
+    checkOut: Date.now() - 24 * 60 * 60 * 1000 + 15 * 60 * 60 * 1000,
+    status: 'present'
+  },
+  {
+    id: 'att-4',
+    employeeId: 'emp-1',
+    date: Date.now() - 2 * 24 * 60 * 60 * 1000,
+    status: 'leave',
+    notes: 'Sick leave'
+  }
+]
+
+export const sampleLeaveRequests: LeaveRequest[] = [
+  {
+    id: 'leave-1',
+    employeeId: 'emp-1',
+    leaveType: 'sick',
+    startDate: Date.now() - 2 * 24 * 60 * 60 * 1000,
+    endDate: Date.now() - 2 * 24 * 60 * 60 * 1000,
+    days: 1,
+    reason: 'Flu symptoms',
+    status: 'approved',
+    approvedBy: 'emp-2',
+    approvedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+    createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'leave-2',
+    employeeId: 'emp-2',
+    leaveType: 'annual',
+    startDate: Date.now() + 14 * 24 * 60 * 60 * 1000,
+    endDate: Date.now() + 18 * 24 * 60 * 60 * 1000,
+    days: 5,
+    reason: 'Family vacation',
+    status: 'pending',
+    createdAt: Date.now() - 1 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'leave-3',
+    employeeId: 'emp-3',
+    leaveType: 'casual',
+    startDate: Date.now() + 7 * 24 * 60 * 60 * 1000,
+    endDate: Date.now() + 7 * 24 * 60 * 60 * 1000,
+    days: 1,
+    reason: 'Personal appointment',
+    status: 'approved',
+    approvedBy: 'emp-2',
+    approvedAt: Date.now() - 30 * 60 * 1000,
+    createdAt: Date.now() - 2 * 60 * 60 * 1000
+  }
+]
+
+export const sampleShifts: Shift[] = [
+  {
+    id: 'shift-1',
+    shiftType: 'morning',
+    startTime: '06:00',
+    endTime: '14:00',
+    department: 'housekeeping',
+    requiredStaff: 8,
+    breakDuration: 30,
+    description: 'Morning housekeeping shift for room cleaning'
+  },
+  {
+    id: 'shift-2',
+    shiftType: 'afternoon',
+    startTime: '14:00',
+    endTime: '22:00',
+    department: 'housekeeping',
+    requiredStaff: 5,
+    breakDuration: 30,
+    description: 'Afternoon housekeeping shift'
+  },
+  {
+    id: 'shift-3',
+    shiftType: 'full-day',
+    startTime: '09:00',
+    endTime: '18:00',
+    department: 'front-office',
+    requiredStaff: 3,
+    breakDuration: 60,
+    description: 'Front desk day shift'
+  },
+  {
+    id: 'shift-4',
+    shiftType: 'night',
+    startTime: '22:00',
+    endTime: '06:00',
+    department: 'front-office',
+    requiredStaff: 2,
+    breakDuration: 30,
+    description: 'Night reception shift'
+  },
+  {
+    id: 'shift-5',
+    shiftType: 'morning',
+    startTime: '06:00',
+    endTime: '14:00',
+    department: 'kitchen',
+    requiredStaff: 6,
+    breakDuration: 30,
+    description: 'Breakfast and lunch prep'
+  },
+  {
+    id: 'shift-6',
+    shiftType: 'afternoon',
+    startTime: '14:00',
+    endTime: '22:00',
+    department: 'kitchen',
+    requiredStaff: 7,
+    breakDuration: 30,
+    description: 'Dinner service shift'
+  },
+  {
+    id: 'shift-7',
+    shiftType: 'full-day',
+    startTime: '08:00',
+    endTime: '17:00',
+    department: 'engineering',
+    requiredStaff: 3,
+    breakDuration: 60,
+    description: 'Maintenance and engineering shift'
+  }
+]
+
+export const sampleDutyRosters: DutyRoster[] = [
+  {
+    id: 'roster-1',
+    employeeId: 'emp-1',
+    date: Date.now(),
+    shiftId: 'shift-1',
+    department: 'housekeeping',
+    status: 'scheduled',
+    createdAt: Date.now() - 7 * 24 * 60 * 60 * 1000,
+    createdBy: 'emp-2'
+  },
+  {
+    id: 'roster-2',
+    employeeId: 'emp-2',
+    date: Date.now(),
+    shiftId: 'shift-3',
+    department: 'front-office',
+    status: 'scheduled',
+    createdAt: Date.now() - 7 * 24 * 60 * 60 * 1000,
+    createdBy: 'emp-2'
+  },
+  {
+    id: 'roster-3',
+    employeeId: 'emp-3',
+    date: Date.now(),
+    shiftId: 'shift-5',
+    department: 'kitchen',
+    status: 'scheduled',
+    createdAt: Date.now() - 7 * 24 * 60 * 60 * 1000,
+    createdBy: 'emp-2'
+  },
+  {
+    id: 'roster-4',
+    employeeId: 'emp-1',
+    date: Date.now() - 24 * 60 * 60 * 1000,
+    shiftId: 'shift-1',
+    department: 'housekeeping',
+    status: 'completed',
+    createdAt: Date.now() - 14 * 24 * 60 * 60 * 1000,
+    createdBy: 'emp-2'
+  }
+]
+
+export const samplePerformanceReviews: PerformanceReview[] = [
+  {
+    id: 'review-1',
+    employeeId: 'emp-1',
+    reviewerId: 'emp-2',
+    reviewPeriodStart: Date.now() - 180 * 24 * 60 * 60 * 1000,
+    reviewPeriodEnd: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    punctuality: 5,
+    qualityOfWork: 4,
+    teamwork: 5,
+    communication: 4,
+    initiative: 4,
+    overallRating: 4.4,
+    strengths: 'Excellent time management and reliability. Very thorough in room cleaning. Great team player.',
+    areasForImprovement: 'Could improve communication with front desk regarding room status updates.',
+    goals: 'Complete advanced housekeeping training. Mentor new team members.',
+    comments: 'Maria has been a valuable member of the housekeeping team. Consistently delivers high-quality work.',
+    status: 'acknowledged',
+    submittedAt: Date.now() - 7 * 24 * 60 * 60 * 1000,
+    acknowledgedAt: Date.now() - 5 * 24 * 60 * 60 * 1000,
+    createdAt: Date.now() - 10 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now() - 5 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'review-2',
+    employeeId: 'emp-3',
+    reviewerId: 'emp-2',
+    reviewPeriodStart: Date.now() - 180 * 24 * 60 * 60 * 1000,
+    reviewPeriodEnd: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    punctuality: 5,
+    qualityOfWork: 5,
+    teamwork: 5,
+    communication: 5,
+    initiative: 5,
+    overallRating: 5.0,
+    strengths: 'Outstanding culinary skills and creativity. Excellent leadership in the kitchen. Proactive in menu development.',
+    areasForImprovement: 'None identified this period. Continue excellent work.',
+    goals: 'Develop seasonal menu. Train junior chefs in advanced techniques.',
+    comments: 'Sophie consistently exceeds expectations and is a key asset to our culinary team.',
+    status: 'submitted',
+    submittedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+    createdAt: Date.now() - 8 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now() - 3 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'review-3',
+    employeeId: 'emp-2',
+    reviewerId: 'user-1',
+    reviewPeriodStart: Date.now() - 180 * 24 * 60 * 60 * 1000,
+    reviewPeriodEnd: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    punctuality: 5,
+    qualityOfWork: 4,
+    teamwork: 4,
+    communication: 5,
+    initiative: 4,
+    overallRating: 4.4,
+    strengths: 'Excellent guest relations skills. Professional demeanor. Handles difficult situations well.',
+    areasForImprovement: 'Could improve technical system proficiency with new PMS software.',
+    goals: 'Complete PMS advanced training. Achieve 95% guest satisfaction score.',
+    comments: 'James is professional and reliable. Guests consistently praise his service.',
+    status: 'draft',
+    createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now() - 1 * 24 * 60 * 60 * 1000
   }
 ]

@@ -90,11 +90,11 @@ A comprehensive cloud-based Property Management System integrating Front Office,
 - **Success criteria**: Materials available when needed, projects completed on time and within budget, contractors properly managed, inventory segregated by purpose, emergency stock maintained, material costs tracked accurately
 
 ### HR & Staff Management
-- **Functionality**: Employee profiles, attendance, leave management, shift rosters, performance reviews
-- **Purpose**: Optimizes staff scheduling and maintains employee records
-- **Trigger**: Shift planning period or leave request
-- **Progression**: Create roster → Assign shifts by department → Publish schedule → Track attendance → Process leave → Evaluate performance
-- **Success criteria**: Coverage adequate, attendance accurate, leave approved timely
+- **Functionality**: Employee profiles, attendance, leave management, shift rosters, performance reviews, role-based access control
+- **Purpose**: Optimizes staff scheduling and maintains employee records with comprehensive HR tracking
+- **Trigger**: Shift planning period, leave request, or performance review cycle
+- **Progression**: Create roster → Assign shifts by department → Track attendance → Process leave → Evaluate performance → Generate reports
+- **Success criteria**: Coverage adequate, attendance accurate, leave approved timely, performance reviews completed, shift conflicts prevented
 
 ### Analytics & Reporting
 - **Functionality**: Operational dashboards (occupancy, revenue, food cost, inventory aging), financial reports (P&L, COGS, expense analysis)

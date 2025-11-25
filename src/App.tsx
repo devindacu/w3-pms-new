@@ -48,7 +48,12 @@ import {
   type Contractor,
   type GeneralProduct,
   type SystemUser,
-  type ActivityLog
+  type ActivityLog,
+  type Attendance,
+  type LeaveRequest,
+  type Shift,
+  type DutyRoster,
+  type PerformanceReview
 } from '@/lib/types'
 import { 
   formatCurrency, 
@@ -80,7 +85,12 @@ import {
   sampleContractors,
   sampleGeneralProducts,
   sampleSystemUsers,
-  sampleActivityLogs
+  sampleActivityLogs,
+  sampleAttendance,
+  sampleLeaveRequests,
+  sampleShifts,
+  sampleDutyRosters,
+  samplePerformanceReviews
 } from '@/lib/sampleData'
 import { FoodManagement } from '@/components/FoodManagement'
 import { AmenitiesManagement } from '@/components/AmenitiesManagement'
@@ -89,6 +99,7 @@ import { SupplierManagement } from '@/components/SupplierManagement'
 import { GeneralProductsManagement } from '@/components/GeneralProductsManagement'
 import { InventoryManagement } from '@/components/InventoryManagement'
 import { UserManagement } from '@/components/UserManagement'
+import { HRManagement } from '@/components/HRManagement'
 
 type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction' | 'suppliers' | 'general-products' | 'user-management'
 
@@ -113,6 +124,11 @@ function App() {
   const [generalProducts, setGeneralProducts] = useKV<GeneralProduct[]>('w3-hotel-general-products', [])
   const [systemUsers, setSystemUsers] = useKV<SystemUser[]>('w3-hotel-system-users', [])
   const [activityLogs, setActivityLogs] = useKV<ActivityLog[]>('w3-hotel-activity-logs', [])
+  const [attendance, setAttendance] = useKV<Attendance[]>('w3-hotel-attendance', [])
+  const [leaveRequests, setLeaveRequests] = useKV<LeaveRequest[]>('w3-hotel-leave-requests', [])
+  const [shifts, setShifts] = useKV<Shift[]>('w3-hotel-shifts', [])
+  const [dutyRosters, setDutyRosters] = useKV<DutyRoster[]>('w3-hotel-duty-rosters', [])
+  const [performanceReviews, setPerformanceReviews] = useKV<PerformanceReview[]>('w3-hotel-performance-reviews', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   
@@ -138,6 +154,11 @@ function App() {
     setGeneralProducts(sampleGeneralProducts)
     setSystemUsers(sampleSystemUsers)
     setActivityLogs(sampleActivityLogs)
+    setAttendance(sampleAttendance)
+    setLeaveRequests(sampleLeaveRequests)
+    setShifts(sampleShifts)
+    setDutyRosters(sampleDutyRosters)
+    setPerformanceReviews(samplePerformanceReviews)
     toast.success('Sample data loaded successfully')
   }
 
@@ -632,7 +653,22 @@ function App() {
           )}
           {currentModule === 'procurement' && renderComingSoon('Procurement', <ShoppingCart size={64} />)}
           {currentModule === 'finance' && renderComingSoon('Finance & Accounting', <CurrencyDollar size={64} />)}
-          {currentModule === 'hr' && renderComingSoon('HR & Staff Management', <Users size={64} />)}
+          {currentModule === 'hr' && (
+            <HRManagement
+              employees={employees || []}
+              setEmployees={setEmployees}
+              attendance={attendance || []}
+              setAttendance={setAttendance}
+              leaveRequests={leaveRequests || []}
+              setLeaveRequests={setLeaveRequests}
+              shifts={shifts || []}
+              setShifts={setShifts}
+              dutyRosters={dutyRosters || []}
+              setDutyRosters={setDutyRosters}
+              performanceReviews={performanceReviews || []}
+              setPerformanceReviews={setPerformanceReviews}
+            />
+          )}
           {currentModule === 'user-management' && (
             <UserManagement
               users={systemUsers || []}
