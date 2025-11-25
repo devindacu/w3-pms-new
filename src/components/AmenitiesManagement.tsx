@@ -451,7 +451,7 @@ export function AmenitiesManagement({
                           <div className="flex items-center gap-3 mb-2">
                             <h3 className="text-lg font-semibold">{amenity.name}</h3>
                             <Badge className={getAmenityCategoryColor(amenity.category)}>
-                              {amenityCategories.find(c => c.value === amenity.category)?.label}
+                              {amenityCategories.find(c => c.value === amenity.category)?.label || amenity.category}
                             </Badge>
                             <Badge variant="outline">{amenity.amenityId}</Badge>
                             {amenity.autoReorder && (
@@ -595,7 +595,7 @@ export function AmenitiesManagement({
             <div className="space-y-3">
               {autoOrders.filter(o => o.status === 'pending').map((order) => {
                 const amenity = amenities.find(a => a.id === order.amenityId)
-                const supplier = suppliers.find(s => s.id === order.supplierId)
+                const supplier = (suppliers || []).find(s => s.id === order.supplierId)
                 if (!amenity) return null
 
                 return (
@@ -649,7 +649,7 @@ export function AmenitiesManagement({
                 .slice(0, 10)
                 .map((order) => {
                   const amenity = amenities.find(a => a.id === order.amenityId)
-                  const supplier = suppliers.find(s => s.id === order.supplierId)
+                  const supplier = (suppliers || []).find(s => s.id === order.supplierId)
                   if (!amenity) return null
 
                   return (

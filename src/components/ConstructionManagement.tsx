@@ -603,7 +603,7 @@ export function ConstructionManagement({
                       <Users size={16} className="text-muted-foreground" />
                       <span className="text-muted-foreground">Contractor:</span>
                       <span className="font-medium">
-                        {contractors?.find(c => c.id === project.assignedContractor)?.name || 'Unknown'}
+                        {(contractors || []).find(c => c.id === project.assignedContractor)?.name || 'Unknown'}
                       </span>
                     </div>
                   )}

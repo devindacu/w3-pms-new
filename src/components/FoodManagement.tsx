@@ -349,7 +349,7 @@ export function FoodManagement({ foodItems, setFoodItems, suppliers }: FoodManag
           filteredItems.map((item) => {
             const stockStatus = getFoodStockStatus(item)
             const daysToExpiry = getDaysUntilExpiry(item.expiryDate)
-            const primarySupplier = suppliers?.find(s => item.supplierIds.includes(s.id))
+            const primarySupplier = (suppliers || []).find(s => item.supplierIds.includes(s.id))
 
             return (
               <Card key={item.id} className="p-6">
