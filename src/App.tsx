@@ -264,6 +264,27 @@ function App() {
                 </div>
               </div>
             </Card>
+
+            <Card className="p-6 border-l-4 border-l-primary">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-medium text-muted-foreground">Construction</h3>
+                <Hammer size={20} className="text-primary" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-3xl font-semibold">{(constructionProjects || []).filter(p => p.status === 'in-progress').length}</p>
+                <p className="text-sm text-muted-foreground">Active projects</p>
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  <div className="text-xs">
+                    <span className="text-muted-foreground">Materials:</span>
+                    <span className="ml-1 font-medium">{(constructionMaterials || []).length}</span>
+                  </div>
+                  <div className="text-xs">
+                    <span className="text-muted-foreground">Low Stock:</span>
+                    <span className="ml-1 font-medium text-destructive">{(constructionMaterials || []).filter(m => m.currentStock <= m.reorderLevel).length}</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
