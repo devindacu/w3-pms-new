@@ -77,7 +77,7 @@ import { FoodManagement } from '@/components/FoodManagement'
 import { AmenitiesManagement } from '@/components/AmenitiesManagement'
 import { ConstructionManagement } from '@/components/ConstructionManagement'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'engineering' | 'analytics' | 'food-management' | 'amenities' | 'construction'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -267,7 +267,7 @@ function App() {
 
             <Card className="p-6 border-l-4 border-l-primary">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-muted-foreground">Construction</h3>
+                <h3 className="text-sm font-medium text-muted-foreground">Maintenance & Constructions</h3>
                 <Hammer size={20} className="text-primary" />
               </div>
               <div className="space-y-2">
@@ -517,21 +517,12 @@ function App() {
           </Button>
 
           <Button
-            variant={currentModule === 'engineering' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('engineering')}
-          >
-            <Wrench size={18} className="mr-2" />
-            Engineering
-          </Button>
-
-          <Button
             variant={currentModule === 'construction' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('construction')}
           >
             <Hammer size={18} className="mr-2" />
-            Construction
+            Maintenance & Constructions
           </Button>
 
           <Button
@@ -573,7 +564,6 @@ function App() {
           {currentModule === 'procurement' && renderComingSoon('Procurement', <ShoppingCart size={64} />)}
           {currentModule === 'finance' && renderComingSoon('Finance & Accounting', <CurrencyDollar size={64} />)}
           {currentModule === 'hr' && renderComingSoon('HR & Staff Management', <Users size={64} />)}
-          {currentModule === 'engineering' && renderComingSoon('Engineering & Maintenance', <Wrench size={64} />)}
           {currentModule === 'construction' && (
             <ConstructionManagement
               materials={constructionMaterials || []}

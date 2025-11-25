@@ -729,8 +729,8 @@ export function ConstructionManagement({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-4xl font-semibold">Maintenance & Construction</h1>
-        <p className="text-muted-foreground mt-1">Engineering materials, projects, and contractor management</p>
+        <h1 className="text-4xl font-semibold">Maintenance & Constructions</h1>
+        <p className="text-muted-foreground mt-1">Unified materials, projects, and contractor management</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
