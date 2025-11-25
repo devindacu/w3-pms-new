@@ -26,7 +26,10 @@ import {
   type LeaveRequest,
   type Shift,
   type DutyRoster,
-  type PerformanceReview
+  type PerformanceReview,
+  type Requisition,
+  type PurchaseOrder,
+  type GoodsReceivedNote
 } from './types'
 import { getRolePermissions } from './helpers'
 
@@ -2779,5 +2782,152 @@ export const samplePerformanceReviews: PerformanceReview[] = [
     status: 'draft',
     createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
     updatedAt: Date.now() - 1 * 24 * 60 * 60 * 1000
+  }
+]
+
+export const sampleRequisitions: Requisition[] = [
+  {
+    id: 'req-1',
+    requisitionNumber: 'REQ17345678ABCD',
+    department: 'housekeeping',
+    requestedBy: 'maria_garcia',
+    items: [
+      {
+        id: 'reqitem-1',
+        inventoryItemId: 'amenity-1',
+        name: 'Shampoo Bottles',
+        quantity: 100,
+        unit: 'bottles',
+        estimatedCost: 3.5
+      },
+      {
+        id: 'reqitem-2',
+        inventoryItemId: 'amenity-2',
+        name: 'Bath Towels',
+        quantity: 50,
+        unit: 'pieces',
+        estimatedCost: 12
+      }
+    ],
+    status: 'pending-approval',
+    priority: 'normal',
+    notes: 'Regular monthly restock for guest rooms',
+    createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'req-2',
+    requisitionNumber: 'REQ17345679EFGH',
+    department: 'kitchen',
+    requestedBy: 'sophie_chen',
+    items: [
+      {
+        id: 'reqitem-3',
+        inventoryItemId: 'food-1',
+        name: 'Chicken Breast',
+        quantity: 50,
+        unit: 'kg',
+        estimatedCost: 8
+      },
+      {
+        id: 'reqitem-4',
+        inventoryItemId: 'food-2',
+        name: 'Fresh Vegetables',
+        quantity: 30,
+        unit: 'kg',
+        estimatedCost: 4.5
+      }
+    ],
+    status: 'approved',
+    priority: 'high',
+    notes: 'For weekend banquet event',
+    approvedBy: 'admin',
+    approvedAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000
+  }
+]
+
+export const samplePurchaseOrders: PurchaseOrder[] = [
+  {
+    id: 'po-1',
+    poNumber: 'PO17345680IJKL',
+    supplierId: 'sup-1',
+    items: [
+      {
+        id: 'poitem-1',
+        inventoryItemId: 'food-1',
+        name: 'Chicken Breast',
+        quantity: 50,
+        unit: 'kg',
+        unitPrice: 8.5,
+        total: 425
+      },
+      {
+        id: 'poitem-2',
+        inventoryItemId: 'food-2',
+        name: 'Fresh Vegetables',
+        quantity: 30,
+        unit: 'kg',
+        unitPrice: 4.75,
+        total: 142.5
+      }
+    ],
+    subtotal: 567.5,
+    tax: 56.75,
+    total: 624.25,
+    status: 'confirmed',
+    expectedDelivery: Date.now() + 2 * 24 * 60 * 60 * 1000,
+    notes: 'Deliver to kitchen entrance',
+    createdAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    createdBy: 'admin',
+    approvedBy: 'admin',
+    approvedAt: Date.now() - 1 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'po-2',
+    poNumber: 'PO17345681MNOP',
+    supplierId: 'sup-2',
+    items: [
+      {
+        id: 'poitem-3',
+        inventoryItemId: 'amenity-1',
+        name: 'Shampoo Bottles',
+        quantity: 100,
+        unit: 'bottles',
+        unitPrice: 3.75,
+        total: 375
+      }
+    ],
+    subtotal: 375,
+    tax: 37.5,
+    total: 412.5,
+    status: 'sent',
+    expectedDelivery: Date.now() + 5 * 24 * 60 * 60 * 1000,
+    createdAt: Date.now() - 6 * 60 * 60 * 1000,
+    createdBy: 'admin'
+  }
+]
+
+export const sampleGRNs: GoodsReceivedNote[] = [
+  {
+    id: 'grn-1',
+    grnNumber: 'GRN17345682QRST',
+    purchaseOrderId: 'po-3',
+    supplierId: 'sup-1',
+    items: [
+      {
+        id: 'grnitem-1',
+        inventoryItemId: 'food-3',
+        orderedQuantity: 100,
+        receivedQuantity: 98,
+        damagedQuantity: 2,
+        batchNumber: 'BATCH2024-001',
+        expiryDate: Date.now() + 30 * 24 * 60 * 60 * 1000
+      }
+    ],
+    receivedAt: Date.now() - 12 * 60 * 60 * 1000,
+    receivedBy: 'sophie_chen',
+    invoiceNumber: 'INV-2024-001',
+    invoiceAmount: 450.00,
+    notes: '2 damaged items rejected, credit note requested'
   }
 ]

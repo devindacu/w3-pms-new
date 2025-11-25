@@ -54,7 +54,10 @@ import {
   type LeaveRequest,
   type Shift,
   type DutyRoster,
-  type PerformanceReview
+  type PerformanceReview,
+  type Requisition,
+  type PurchaseOrder,
+  type GoodsReceivedNote
 } from '@/lib/types'
 import { 
   formatCurrency, 
@@ -92,7 +95,10 @@ import {
   sampleLeaveRequests,
   sampleShifts,
   sampleDutyRosters,
-  samplePerformanceReviews
+  samplePerformanceReviews,
+  sampleRequisitions,
+  samplePurchaseOrders,
+  sampleGRNs
 } from '@/lib/sampleData'
 import { FoodManagement } from '@/components/FoodManagement'
 import { AmenitiesManagement } from '@/components/AmenitiesManagement'
@@ -104,6 +110,7 @@ import { UserManagement } from '@/components/UserManagement'
 import { HRManagement } from '@/components/HRManagement'
 import { FrontOffice } from '@/components/FrontOffice'
 import { Housekeeping } from '@/components/Housekeeping'
+import { Procurement } from '@/components/Procurement'
 
 type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction' | 'suppliers' | 'general-products' | 'user-management'
 
@@ -134,6 +141,9 @@ function App() {
   const [shifts, setShifts] = useKV<Shift[]>('w3-hotel-shifts', [])
   const [dutyRosters, setDutyRosters] = useKV<DutyRoster[]>('w3-hotel-duty-rosters', [])
   const [performanceReviews, setPerformanceReviews] = useKV<PerformanceReview[]>('w3-hotel-performance-reviews', [])
+  const [requisitions, setRequisitions] = useKV<Requisition[]>('w3-hotel-requisitions', [])
+  const [purchaseOrders, setPurchaseOrders] = useKV<PurchaseOrder[]>('w3-hotel-purchase-orders', [])
+  const [grns, setGRNs] = useKV<GoodsReceivedNote[]>('w3-hotel-grns', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   
@@ -165,6 +175,9 @@ function App() {
     setShifts(sampleShifts)
     setDutyRosters(sampleDutyRosters)
     setPerformanceReviews(samplePerformanceReviews)
+    setRequisitions(sampleRequisitions)
+    setPurchaseOrders(samplePurchaseOrders)
+    setGRNs(sampleGRNs)
     toast.success('Sample data loaded successfully')
   }
 
@@ -676,7 +689,23 @@ function App() {
               setSuppliers={setSuppliers}
             />
           )}
-          {currentModule === 'procurement' && renderComingSoon('Procurement', <ShoppingCart size={64} />)}
+          {currentModule === 'procurement' && (
+            <Procurement
+              requisitions={requisitions || []}
+              setRequisitions={setRequisitions}
+              purchaseOrders={purchaseOrders || []}
+              setPurchaseOrders={setPurchaseOrders}
+              grns={grns || []}
+              setGRNs={setGRNs}
+              suppliers={suppliers || []}
+              inventory={inventory || []}
+              foodItems={foodItems || []}
+              amenities={amenities || []}
+              constructionMaterials={constructionMaterials || []}
+              generalProducts={generalProducts || []}
+              currentUser={currentUser}
+            />
+          )}
           {currentModule === 'finance' && renderComingSoon('Finance & Accounting', <CurrencyDollar size={64} />)}
           {currentModule === 'hr' && (
             <HRManagement
