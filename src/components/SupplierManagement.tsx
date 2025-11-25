@@ -1,10 +1,18 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { type Supplier } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { toast } from 'sonner'
 import {
   Plus,
@@ -20,7 +28,11 @@ import {
   User,
   Buildings,
   Calendar,
-  Clock
+  Clock,
+  ArrowsDownUp,
+  FunnelSimple,
+  Download,
+  Upload
 } from '@phosphor-icons/react'
 import { SupplierDialog } from '@/components/SupplierDialog'
 import { formatCurrency } from '@/lib/helpers'
@@ -31,27 +43,65 @@ interface SupplierManagementProps {
   setSuppliers: (updater: (current: Supplier[]) => Supplier[]) => void
 }
 
+type SortField = 'name' | 'rating' | 'totalOrders' | 'totalSpent' | 'deliveryTime'
+type SortOrder = 'asc' | 'desc'
+
 export function SupplierManagement({ suppliers, setSuppliers }: SupplierManagementProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [sortField, setSortField] = useState<SortField>('name')
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null)
   const [viewingSupplier, setViewingSupplier] = useState<Supplier | null>(null)
 
-  const allCategories = Array.from(
-    new Set(suppliers.flatMap(s => s.category))
-  ).sort()
+  const allCategories = useMemo(() => 
+    Array.from(new Set(suppliers.flatMap(s => s.category))).sort(),
+    [suppliers]
+  )
 
-  const filteredSuppliers = suppliers.filter(supplier => {
-    const matchesSearch = 
-      supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      supplier.supplierId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      supplier.contactPersons.some(cp => 
-        cp.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    const matchesCategory = selectedCategory === 'all' || supplier.category.includes(selectedCategory)
-    return matchesSearch && matchesCategory
-  })
+  const filteredAndSortedSuppliers = useMemo(() => {
+    let filtered = suppliers.filter(supplier => {
+      const matchesSearch = 
+        supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        supplier.supplierId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        supplier.contactPersons.some(cp => 
+          cp.name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      const matchesCategory = selectedCategory === 'all' || supplier.category.includes(selectedCategory)
+      const matchesStatus = statusFilter === 'all' || 
+        (statusFilter === 'active' && supplier.isActive) ||
+        (statusFilter === 'inactive' && !supplier.isActive)
+      return matchesSearch && matchesCategory && matchesStatus
+    })
+
+    filtered.sort((a, b) => {
+      let comparison = 0
+      switch (sortField) {
+        case 'name':
+          comparison = a.name.localeCompare(b.name)
+          break
+        case 'rating':
+          const aRating = (a.deliveryTimeRating + a.costRating + a.qualityRating) / 3
+          const bRating = (b.deliveryTimeRating + b.costRating + b.qualityRating) / 3
+          comparison = aRating - bRating
+          break
+        case 'totalOrders':
+          comparison = a.totalOrders - b.totalOrders
+          break
+        case 'totalSpent':
+          comparison = a.totalSpent - b.totalSpent
+          break
+        case 'deliveryTime':
+          comparison = a.deliveryTimeDays - b.deliveryTimeDays
+          break
+      }
+      return sortOrder === 'asc' ? comparison : -comparison
+    })
+
+    return filtered
+  }, [suppliers, searchTerm, selectedCategory, statusFilter, sortField, sortOrder])
 
   const handleAddSupplier = (supplier: Supplier) => {
     setSuppliers(current => [...current, supplier])
@@ -76,6 +126,71 @@ export function SupplierManagement({ suppliers, setSuppliers }: SupplierManageme
     return ((supplier.deliveryTimeRating + supplier.costRating + supplier.qualityRating) / 3).toFixed(1)
   }
 
+  const toggleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortOrder('asc')
+    }
+  }
+
+  const exportToCSV = () => {
+    const headers = [
+      'Supplier ID',
+      'Name',
+      'Category',
+      'Phone',
+      'Email',
+      'Payment Terms',
+      'Delivery Days',
+      'Overall Rating',
+      'Delivery Rating',
+      'Cost Rating',
+      'Quality Rating',
+      'Total Orders',
+      'Total Spent',
+      'Status'
+    ]
+    
+    const rows = suppliers.map(s => [
+      s.supplierId,
+      s.name,
+      s.category.join('; '),
+      s.phone,
+      s.email || '',
+      s.paymentTerms,
+      s.deliveryTimeDays,
+      getOverallRating(s),
+      s.deliveryTimeRating,
+      s.costRating,
+      s.qualityRating,
+      s.totalOrders,
+      s.totalSpent,
+      s.isActive ? 'Active' : 'Inactive'
+    ])
+
+    const csv = [headers, ...rows].map(row => row.join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `suppliers-${new Date().toISOString().split('T')[0]}.csv`
+    a.click()
+    toast.success('Supplier data exported successfully')
+  }
+
+  const stats = useMemo(() => ({
+    total: suppliers.length,
+    active: suppliers.filter(s => s.isActive).length,
+    inactive: suppliers.filter(s => !s.isActive).length,
+    averageRating: suppliers.length > 0
+      ? (suppliers.reduce((sum, s) => sum + Number(getOverallRating(s)), 0) / suppliers.length).toFixed(1)
+      : '0.0',
+    totalSpent: suppliers.reduce((sum, s) => sum + s.totalSpent, 0),
+    totalOrders: suppliers.reduce((sum, s) => sum + s.totalOrders, 0)
+  }), [suppliers])
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -83,22 +198,92 @@ export function SupplierManagement({ suppliers, setSuppliers }: SupplierManageme
           <h1 className="text-4xl font-semibold">Supplier Management</h1>
           <p className="text-muted-foreground mt-1">Centralized database for all suppliers</p>
         </div>
-        <Button onClick={() => setDialogOpen(true)} size="lg">
-          <Plus size={20} className="mr-2" />
-          Add Supplier
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={exportToCSV} variant="outline" size="lg">
+            <Download size={20} className="mr-2" />
+            Export
+          </Button>
+          <Button onClick={() => setDialogOpen(true)} size="lg">
+            <Plus size={20} className="mr-2" />
+            Add Supplier
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <Card className="p-4">
+          <div className="text-sm text-muted-foreground">Total Suppliers</div>
+          <div className="text-2xl font-semibold mt-1">{stats.total}</div>
+        </Card>
+        <Card className="p-4">
+          <div className="text-sm text-muted-foreground">Active</div>
+          <div className="text-2xl font-semibold mt-1 text-success">{stats.active}</div>
+        </Card>
+        <Card className="p-4">
+          <div className="text-sm text-muted-foreground">Inactive</div>
+          <div className="text-2xl font-semibold mt-1 text-muted-foreground">{stats.inactive}</div>
+        </Card>
+        <Card className="p-4">
+          <div className="text-sm text-muted-foreground">Avg Rating</div>
+          <div className="text-2xl font-semibold mt-1 flex items-center gap-1">
+            {stats.averageRating}
+            <Star size={16} className="text-accent fill-accent" />
+          </div>
+        </Card>
+        <Card className="p-4">
+          <div className="text-sm text-muted-foreground">Total Orders</div>
+          <div className="text-2xl font-semibold mt-1">{stats.totalOrders}</div>
+        </Card>
+        <Card className="p-4">
+          <div className="text-sm text-muted-foreground">Total Spent</div>
+          <div className="text-2xl font-semibold mt-1">{formatCurrency(stats.totalSpent)}</div>
+        </Card>
       </div>
 
       <Card className="p-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <MagnifyingGlass size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search suppliers by name, ID, or contact person..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+        <div className="space-y-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <MagnifyingGlass size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search suppliers by name, ID, or contact person..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={sortField} onValueChange={(value) => setSortField(value as SortField)}>
+                <SelectTrigger className="w-[160px]">
+                  <ArrowsDownUp size={16} className="mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="rating">Rating</SelectItem>
+                  <SelectItem value="totalOrders">Total Orders</SelectItem>
+                  <SelectItem value="totalSpent">Total Spent</SelectItem>
+                  <SelectItem value="deliveryTime">Delivery Time</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              >
+                <ArrowsDownUp size={20} />
+              </Button>
+            </div>
           </div>
           <div className="flex gap-2 flex-wrap">
             <Button
@@ -123,7 +308,7 @@ export function SupplierManagement({ suppliers, setSuppliers }: SupplierManageme
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredSuppliers.map(supplier => (
+        {filteredAndSortedSuppliers.map(supplier => (
           <Card 
             key={supplier.id} 
             className="p-6 hover:border-primary transition-colors cursor-pointer"
@@ -243,7 +428,7 @@ export function SupplierManagement({ suppliers, setSuppliers }: SupplierManageme
         ))}
       </div>
 
-      {filteredSuppliers.length === 0 && (
+      {filteredAndSortedSuppliers.length === 0 && (
         <Card className="p-16 text-center">
           <Buildings size={64} className="mx-auto text-muted-foreground mb-4" />
           <h3 className="text-2xl font-semibold mb-2">No suppliers found</h3>
@@ -301,8 +486,6 @@ interface SupplierDetailDialogProps {
 }
 
 function SupplierDetailDialog({ supplier, open, onClose, onEdit }: SupplierDetailDialogProps) {
-  const { Dialog, DialogContent, DialogHeader, DialogTitle } = require('@/components/ui/dialog')
-  
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
