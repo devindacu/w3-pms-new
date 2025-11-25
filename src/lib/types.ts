@@ -282,19 +282,48 @@ export interface GRNItem {
   expiryDate?: number
 }
 
-export interface Supplier {
+export interface SupplierContactPerson {
   id: string
   name: string
-  contactPerson?: string
+  role: string
+  email?: string
+  phone: string
+  isPrimary: boolean
+}
+
+export interface Supplier {
+  id: string
+  supplierId: string
+  name: string
+  category: string[]
+  contactPersons: SupplierContactPerson[]
   email?: string
   phone: string
   address?: string
-  category: string[]
-  paymentTerms?: string
+  city?: string
+  state?: string
+  country?: string
+  postalCode?: string
+  taxId?: string
+  businessRegNumber?: string
+  website?: string
+  paymentTerms: string
+  creditLimit?: number
+  deliveryTimeDays: number
+  minimumOrderValue?: number
   rating: number
+  deliveryTimeRating: number
+  costRating: number
+  qualityRating: number
   totalOrders: number
   totalSpent: number
+  bankName?: string
+  bankAccountNumber?: string
+  bankBranch?: string
+  notes?: string
+  isActive: boolean
   createdAt: number
+  updatedAt: number
 }
 
 export interface MaintenanceRequest {
@@ -594,6 +623,33 @@ export interface MaterialUsageLog {
   purpose: string
   location?: string
   timestamp: number
+}
+
+export type GeneralProductCategory = 'office-supplies' | 'cleaning-products' | 'seasonal-items' | 'promotional-materials' | 'uniforms' | 'safety-equipment' | 'technology' | 'furniture' | 'signage' | 'miscellaneous'
+
+export interface GeneralProduct {
+  id: string
+  productId: string
+  name: string
+  category: GeneralProductCategory
+  description?: string
+  unit: string
+  currentStock: number
+  reorderLevel: number
+  reorderQuantity: number
+  unitCost: number
+  supplierIds: string[]
+  department: Department[]
+  storeLocation: string
+  batchNumber?: string
+  warrantyMonths?: number
+  purchaseDate?: number
+  lastOrdered?: number
+  lastRestocked?: number
+  isConsumable: boolean
+  notes?: string
+  lastUpdated: number
+  createdAt: number
 }
 
 export interface DashboardMetrics {

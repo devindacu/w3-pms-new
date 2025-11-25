@@ -23,7 +23,9 @@ import {
   Warning,
   Carrot,
   Basket,
-  Hammer
+  Hammer,
+  Buildings,
+  ClipboardText
 } from '@phosphor-icons/react'
 import { 
   type Room, 
@@ -42,7 +44,8 @@ import {
   type AmenityAutoOrder,
   type ConstructionMaterial,
   type ConstructionProject,
-  type Contractor
+  type Contractor,
+  type GeneralProduct
 } from '@/lib/types'
 import { 
   formatCurrency, 
@@ -71,13 +74,16 @@ import {
   sampleAmenityAutoOrders,
   sampleConstructionMaterials,
   sampleConstructionProjects,
-  sampleContractors
+  sampleContractors,
+  sampleGeneralProducts
 } from '@/lib/sampleData'
 import { FoodManagement } from '@/components/FoodManagement'
 import { AmenitiesManagement } from '@/components/AmenitiesManagement'
 import { ConstructionManagement } from '@/components/ConstructionManagement'
+import { SupplierManagement } from '@/components/SupplierManagement'
+import { GeneralProductsManagement } from '@/components/GeneralProductsManagement'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction' | 'suppliers' | 'general-products'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -97,6 +103,7 @@ function App() {
   const [constructionMaterials, setConstructionMaterials] = useKV<ConstructionMaterial[]>('w3-hotel-construction-materials', [])
   const [constructionProjects, setConstructionProjects] = useKV<ConstructionProject[]>('w3-hotel-construction-projects', [])
   const [contractors, setContractors] = useKV<Contractor[]>('w3-hotel-contractors', [])
+  const [generalProducts, setGeneralProducts] = useKV<GeneralProduct[]>('w3-hotel-general-products', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
 
@@ -117,6 +124,7 @@ function App() {
     setConstructionMaterials(sampleConstructionMaterials)
     setConstructionProjects(sampleConstructionProjects)
     setContractors(sampleContractors)
+    setGeneralProducts(sampleGeneralProducts)
     toast.success('Sample data loaded successfully')
   }
 
@@ -488,6 +496,24 @@ function App() {
           </Button>
 
           <Button
+            variant={currentModule === 'general-products' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('general-products')}
+          >
+            <ClipboardText size={18} className="mr-2" />
+            General Products
+          </Button>
+
+          <Button
+            variant={currentModule === 'suppliers' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('suppliers')}
+          >
+            <Buildings size={18} className="mr-2" />
+            Suppliers
+          </Button>
+
+          <Button
             variant={currentModule === 'procurement' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('procurement')}
@@ -559,6 +585,19 @@ function App() {
               setUsageLogs={setAmenityUsageLogs}
               autoOrders={amenityAutoOrders || []}
               setAutoOrders={setAmenityAutoOrders}
+            />
+          )}
+          {currentModule === 'general-products' && (
+            <GeneralProductsManagement
+              products={generalProducts || []}
+              setProducts={setGeneralProducts}
+              suppliers={suppliers || []}
+            />
+          )}
+          {currentModule === 'suppliers' && (
+            <SupplierManagement
+              suppliers={suppliers || []}
+              setSuppliers={setSuppliers}
             />
           )}
           {currentModule === 'procurement' && renderComingSoon('Procurement', <ShoppingCart size={64} />)}
