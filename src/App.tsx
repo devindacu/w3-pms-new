@@ -20,7 +20,8 @@ import {
   Database,
   ArrowUp,
   ArrowDown,
-  Warning
+  Warning,
+  Carrot
 } from '@phosphor-icons/react'
 import { 
   type Room, 
@@ -32,7 +33,8 @@ import {
   type Order,
   type Supplier,
   type Employee,
-  type MaintenanceRequest
+  type MaintenanceRequest,
+  type FoodItem
 } from '@/lib/types'
 import { 
   formatCurrency, 
@@ -40,7 +42,9 @@ import {
   calculateDashboardMetrics,
   getRoomStatusColor,
   getStockStatus,
-  generateNumber
+  generateNumber,
+  getUrgentFoodItems,
+  getExpiringFoodItems
 } from '@/lib/helpers'
 import {
   sampleGuests,
@@ -51,10 +55,12 @@ import {
   sampleHousekeepingTasks,
   sampleSuppliers,
   sampleEmployees,
-  sampleMaintenanceRequests
+  sampleMaintenanceRequests,
+  sampleFoodItems
 } from '@/lib/sampleData'
+import { FoodManagement } from '@/components/FoodManagement'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'engineering' | 'analytics'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'engineering' | 'analytics' | 'food-management'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -67,6 +73,7 @@ function App() {
   const [suppliers, setSuppliers] = useKV<Supplier[]>('w3-hotel-suppliers', [])
   const [employees, setEmployees] = useKV<Employee[]>('w3-hotel-employees', [])
   const [maintenanceRequests, setMaintenanceRequests] = useKV<MaintenanceRequest[]>('w3-hotel-maintenance', [])
+  const [foodItems, setFoodItems] = useKV<FoodItem[]>('w3-hotel-food-items', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
 
@@ -80,6 +87,7 @@ function App() {
     setSuppliers(sampleSuppliers)
     setEmployees(sampleEmployees)
     setMaintenanceRequests(sampleMaintenanceRequests)
+    setFoodItems(sampleFoodItems)
     toast.success('Sample data loaded successfully')
   }
 
@@ -188,20 +196,20 @@ function App() {
 
             <Card className="p-6 border-l-4 border-l-destructive">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-muted-foreground">Inventory Alerts</h3>
-                <Warning size={20} className="text-destructive" />
+                <h3 className="text-sm font-medium text-muted-foreground">Food Inventory</h3>
+                <Carrot size={20} className="text-destructive" />
               </div>
               <div className="space-y-2">
-                <p className="text-3xl font-semibold">{metrics.inventory.lowStockItems}</p>
-                <p className="text-sm text-muted-foreground">Low stock items</p>
+                <p className="text-3xl font-semibold">{getUrgentFoodItems(foodItems || []).length}</p>
+                <p className="text-sm text-muted-foreground">Urgent items</p>
                 <div className="grid grid-cols-2 gap-2 pt-2">
                   <div className="text-xs">
                     <span className="text-muted-foreground">Expiring:</span>
-                    <span className="ml-1 font-medium text-accent">{metrics.inventory.expiringItems}</span>
+                    <span className="ml-1 font-medium text-accent">{getExpiringFoodItems(foodItems || [], 7).length}</span>
                   </div>
                   <div className="text-xs">
-                    <span className="text-muted-foreground">Value:</span>
-                    <span className="ml-1 font-medium">{formatCurrency(metrics.inventory.totalValue)}</span>
+                    <span className="text-muted-foreground">Total:</span>
+                    <span className="ml-1 font-medium">{(foodItems || []).length}</span>
                   </div>
                 </div>
               </div>
@@ -391,6 +399,15 @@ function App() {
           </Button>
 
           <Button
+            variant={currentModule === 'food-management' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('food-management')}
+          >
+            <Carrot size={18} className="mr-2" />
+            Food Management
+          </Button>
+
+          <Button
             variant={currentModule === 'procurement' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('procurement')}
@@ -446,6 +463,13 @@ function App() {
           {currentModule === 'housekeeping' && renderComingSoon('Housekeeping', <Broom size={64} />)}
           {currentModule === 'fnb' && renderComingSoon('F&B / POS', <ForkKnife size={64} />)}
           {currentModule === 'inventory' && renderComingSoon('Inventory Management', <Package size={64} />)}
+          {currentModule === 'food-management' && (
+            <FoodManagement 
+              foodItems={foodItems || []} 
+              setFoodItems={setFoodItems}
+              suppliers={suppliers || []}
+            />
+          )}
           {currentModule === 'procurement' && renderComingSoon('Procurement', <ShoppingCart size={64} />)}
           {currentModule === 'finance' && renderComingSoon('Finance & Accounting', <CurrencyDollar size={64} />)}
           {currentModule === 'hr' && renderComingSoon('HR & Staff Management', <Users size={64} />)}

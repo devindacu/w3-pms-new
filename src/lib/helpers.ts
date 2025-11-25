@@ -7,7 +7,11 @@ import {
   type HousekeepingTask,
   type Order,
   type MaintenanceRequest,
-  type DashboardMetrics
+  type DashboardMetrics,
+  type FoodItem,
+  type FoodCategory,
+  type OrderFrequency,
+  type QualityStatus
 } from './types'
 
 export function generateId(): string {
@@ -288,4 +292,107 @@ export function calculateDashboardMetrics(
       avgResolutionTime: 0
     }
   }
+}
+
+export function getFoodCategoryColor(category: FoodCategory): string {
+  const colors = {
+    'perishable': 'bg-destructive/10 text-destructive border-destructive/20',
+    'non-perishable': 'bg-success/10 text-success border-success/20',
+    'frozen': 'bg-primary/10 text-primary border-primary/20',
+    'beverage': 'bg-accent/10 text-accent border-accent/20',
+    'spices': 'bg-secondary/10 text-secondary border-secondary/20',
+    'dairy': 'bg-destructive/10 text-destructive border-destructive/20',
+    'meat': 'bg-destructive/10 text-destructive border-destructive/20',
+    'vegetables': 'bg-success/10 text-success border-success/20',
+    'fruits': 'bg-success/10 text-success border-success/20',
+    'bakery': 'bg-accent/10 text-accent border-accent/20',
+    'dry-goods': 'bg-secondary/10 text-secondary border-secondary/20'
+  }
+  return colors[category] || 'bg-muted text-muted-foreground'
+}
+
+export function getOrderFrequencyColor(frequency: OrderFrequency): string {
+  const colors = {
+    'daily': 'bg-destructive text-destructive-foreground',
+    'weekly': 'bg-accent text-accent-foreground',
+    'monthly': 'bg-secondary text-secondary-foreground',
+    'on-demand': 'bg-muted text-muted-foreground'
+  }
+  return colors[frequency]
+}
+
+export function getQualityStatusColor(status: QualityStatus): string {
+  const colors = {
+    'excellent': 'bg-success text-success-foreground',
+    'good': 'bg-primary text-primary-foreground',
+    'fair': 'bg-accent text-accent-foreground',
+    'poor': 'bg-destructive text-destructive-foreground',
+    'rejected': 'bg-destructive text-destructive-foreground'
+  }
+  return colors[status]
+}
+
+export function getFoodStockStatus(item: FoodItem): { status: string; color: string; urgent: boolean } {
+  if (item.currentStock === 0) {
+    return { status: 'out-of-stock', color: 'text-destructive', urgent: true }
+  }
+  
+  if (item.expiryDate && isExpired(item.expiryDate)) {
+    return { status: 'expired', color: 'text-destructive', urgent: true }
+  }
+  
+  if (item.expiryDate && isExpiringSoon(item.expiryDate, 3)) {
+    return { status: 'expiring-soon', color: 'text-destructive', urgent: true }
+  }
+  
+  if (item.currentStock <= item.reorderLevel) {
+    return { status: 'low-stock', color: 'text-accent', urgent: true }
+  }
+  
+  return { status: 'in-stock', color: 'text-success', urgent: false }
+}
+
+export function calculateFoodInventoryValue(items: FoodItem[]): number {
+  return items.reduce((sum, item) => sum + (item.currentStock * item.unitCost), 0)
+}
+
+export function searchFoodItems(items: FoodItem[], searchTerm: string): FoodItem[] {
+  const term = searchTerm.toLowerCase()
+  return items.filter(i => 
+    i.name.toLowerCase().includes(term) ||
+    i.category.toLowerCase().includes(term) ||
+    i.foodId.toLowerCase().includes(term)
+  )
+}
+
+export function filterFoodByCategory(items: FoodItem[], category?: FoodCategory): FoodItem[] {
+  if (!category) return items
+  return items.filter(i => i.category === category)
+}
+
+export function filterFoodByFrequency(items: FoodItem[], frequency?: OrderFrequency): FoodItem[] {
+  if (!frequency) return items
+  return items.filter(i => i.orderFrequency === frequency)
+}
+
+export function filterFoodByStatus(items: FoodItem[], status?: string): FoodItem[] {
+  if (!status) return items
+  return items.filter(i => {
+    const itemStatus = getFoodStockStatus(i)
+    return itemStatus.status === status
+  })
+}
+
+export function getUrgentFoodItems(items: FoodItem[]): FoodItem[] {
+  return items.filter(i => getFoodStockStatus(i).urgent)
+}
+
+export function getExpiringFoodItems(items: FoodItem[], daysThreshold: number = 7): FoodItem[] {
+  return items.filter(i => 
+    i.expiryDate && isExpiringSoon(i.expiryDate, daysThreshold) && !isExpired(i.expiryDate)
+  )
+}
+
+export function getExpiredFoodItems(items: FoodItem[]): FoodItem[] {
+  return items.filter(i => i.expiryDate && isExpired(i.expiryDate))
 }

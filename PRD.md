@@ -47,6 +47,13 @@ A comprehensive cloud-based Property Management System integrating Front Office,
 - **Progression**: Low stock alert → Create requisition → Approve requisition → Generate PO → Send to supplier → Receive goods (GRN) → Update inventory → Match invoice
 - **Success criteria**: Stock-outs prevented, expiry minimized, procurement costs optimized, supplier performance tracked
 
+### Food Management
+- **Functionality**: Dedicated food inventory tracking with category-based organization (perishable, non-perishable, frozen, beverage, spices, etc.), order frequency management (daily, weekly, monthly, on-demand), supplier assignment per food type, quality & expiry tracking for perishables, minimum stock alerts with auto re-order triggers
+- **Purpose**: Maintains precise control over food inventory with emphasis on quality, freshness, and minimizing waste while ensuring adequate stock for kitchen operations
+- **Trigger**: Daily/weekly/monthly ordering cycles, stock below reorder level, or quality check required
+- **Progression**: Monitor food inventory → Quality check on perishables → Stock reaches reorder level → Auto-alert to procurement → Order from assigned supplier → Receive and quality inspect → Update batch and expiry dates → Track usage → Generate waste/expiry reports
+- **Success criteria**: Fresh ingredients always available, minimal spoilage/waste, quality standards maintained, supplier performance tracked, cost variance controlled, expiry tracking prevents usage of expired items
+
 ### Recipe & Menu Management
 - **Functionality**: Recipe builder with ingredient mapping, portion costing, menu management, auto inventory deduction from recipes
 - **Purpose**: Controls food costs and ensures consistent quality
@@ -95,7 +102,8 @@ A comprehensive cloud-based Property Management System integrating Front Office,
 - **Stock Discrepancies**: Variance tracking with adjustment workflows; automatic alerts for significant discrepancies
 - **Payment Failures**: Transaction rollback with retry mechanism; manual reconciliation tools for failed transactions
 - **Guest No-Shows**: Automatic no-show processing with configurable policies and revenue posting
-- **Expired Items**: Automated alerts before expiry; batch tracking prevents expired stock usage
+- **Expired Items**: Automated alerts before expiry; batch tracking prevents expired stock usage; visual warnings for items expiring within 3 days; daily expiry reports
+- **Quality Rejections**: Quality check workflow for incoming food items; rejected items quarantined and supplier notified; alternative supplier auto-suggested
 - **Concurrent Edits**: Optimistic locking with conflict resolution prompts
 - **Network Issues**: Offline mode queues critical operations; sync when connection restored
 - **Missing Permissions**: Graceful denial with clear messaging and request access workflow
@@ -178,7 +186,7 @@ Animations should feel responsive and purposeful, providing immediate feedback f
   - Inventory items: warning state when below reorder point, danger when stock-out, info when near expiry
   
 - **Icon Selection**: 
-  - Gauge (Dashboard), BedDouble (Rooms), Broom (Housekeeping), ForkKnife (F&B), Package (Inventory), ShoppingCart (Procurement), CurrencyDollar (Finance), Users (HR), Wrench (Engineering), ChartBar (Analytics), Bell (Notifications), MagnifyingGlass (Search)
+  - Gauge (Dashboard), BedDouble (Rooms), Broom (Housekeeping), ForkKnife (F&B), Package (Inventory), Carrot (Food Management), ShoppingCart (Procurement), CurrencyDollar (Finance), Users (HR), Wrench (Engineering), ChartBar (Analytics), Bell (Notifications), MagnifyingGlass (Search), Warning (Alerts), Calendar (Expiry), MapPin (Location), Barcode (Item ID)
   
 - **Spacing**: 
   - Module cards: p-6, Dashboard grid: gap-6, Form sections: space-y-4, Page margins: p-6 md:p-8, Dense tables: gap-2

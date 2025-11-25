@@ -13,6 +13,9 @@ export type MaintenanceStatus = 'scheduled' | 'in-progress' | 'completed' | 'can
 export type MaintenancePriority = 'low' | 'medium' | 'high' | 'urgent'
 export type Department = 'front-office' | 'housekeeping' | 'fnb' | 'kitchen' | 'engineering' | 'finance' | 'hr' | 'admin'
 export type UserRole = 'admin' | 'manager' | 'front-desk' | 'housekeeper' | 'chef' | 'waiter' | 'engineer' | 'accountant' | 'hr-staff'
+export type FoodCategory = 'perishable' | 'non-perishable' | 'frozen' | 'beverage' | 'spices' | 'dairy' | 'meat' | 'vegetables' | 'fruits' | 'bakery' | 'dry-goods'
+export type OrderFrequency = 'daily' | 'weekly' | 'monthly' | 'on-demand'
+export type QualityStatus = 'excellent' | 'good' | 'fair' | 'poor' | 'rejected'
 
 export interface Guest {
   id: string
@@ -349,6 +352,61 @@ export interface LeaveRequest {
   approvedBy?: string
   approvedAt?: number
   createdAt: number
+}
+
+export interface FoodItem {
+  id: string
+  foodId: string
+  name: string
+  category: FoodCategory
+  unit: string
+  currentStock: number
+  reorderLevel: number
+  reorderQuantity: number
+  unitCost: number
+  supplierIds: string[]
+  orderFrequency: OrderFrequency
+  storeLocation: string
+  expiryDate?: number
+  batchNumber?: string
+  qualityStatus?: QualityStatus
+  receivedDate?: number
+  qualityCheckedBy?: string
+  qualityNotes?: string
+  isPerishable: boolean
+  shelfLife?: number
+  lastOrdered?: number
+  lastUpdated: number
+  createdAt: number
+}
+
+export interface FoodSupplierMapping {
+  id: string
+  foodItemId: string
+  supplierId: string
+  isPrimary: boolean
+  unitPrice: number
+  minimumOrderQuantity: number
+  leadTimeDays: number
+  qualityRating: number
+  lastSupplyDate?: number
+  createdAt: number
+}
+
+export interface QualityCheck {
+  id: string
+  foodItemId: string
+  batchNumber: string
+  checkDate: number
+  checkedBy: string
+  qualityStatus: QualityStatus
+  temperature?: number
+  appearance?: string
+  smell?: string
+  texture?: string
+  overallNotes?: string
+  actionTaken?: string
+  passed: boolean
 }
 
 export interface DashboardMetrics {
