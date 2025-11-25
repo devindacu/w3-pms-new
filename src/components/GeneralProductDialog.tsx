@@ -267,9 +267,11 @@ export function GeneralProductDialog({ open, onClose, onSave, product, suppliers
                     />
                     <Label htmlFor={`supplier-${supplier.id}`} className="cursor-pointer flex-1">
                       {supplier.name}
-                      <span className="text-xs text-muted-foreground ml-2">
-                        ({supplier.category.join(', ')})
-                      </span>
+                      {supplier.category && supplier.category.length > 0 && (
+                        <span className="text-xs text-muted-foreground ml-2">
+                          ({supplier.category.join(', ')})
+                        </span>
+                      )}
                     </Label>
                   </div>
                 ))
