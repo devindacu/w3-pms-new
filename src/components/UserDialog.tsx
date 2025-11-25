@@ -243,12 +243,12 @@ export function UserDialog({ open, onOpenChange, user, users, setUsers, currentU
 
               <div className="space-y-2">
                 <Label htmlFor="department">Department</Label>
-                <Select value={formData.department} onValueChange={(value) => setFormData({ ...formData, department: value as Department })}>
+                <Select value={formData.department || 'none'} onValueChange={(value) => setFormData({ ...formData, department: value === 'none' ? '' : value as Department })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select department" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     <SelectItem value="front-office">Front Office</SelectItem>
                     <SelectItem value="housekeeping">Housekeeping</SelectItem>
                     <SelectItem value="fnb">F&B</SelectItem>
