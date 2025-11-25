@@ -22,7 +22,8 @@ import {
   ArrowDown,
   Warning,
   Carrot,
-  Basket
+  Basket,
+  Hammer
 } from '@phosphor-icons/react'
 import { 
   type Room, 
@@ -38,7 +39,10 @@ import {
   type FoodItem,
   type Amenity,
   type AmenityUsageLog,
-  type AmenityAutoOrder
+  type AmenityAutoOrder,
+  type ConstructionMaterial,
+  type ConstructionProject,
+  type Contractor
 } from '@/lib/types'
 import { 
   formatCurrency, 
@@ -64,12 +68,16 @@ import {
   sampleFoodItems,
   sampleAmenities,
   sampleAmenityUsageLogs,
-  sampleAmenityAutoOrders
+  sampleAmenityAutoOrders,
+  sampleConstructionMaterials,
+  sampleConstructionProjects,
+  sampleContractors
 } from '@/lib/sampleData'
 import { FoodManagement } from '@/components/FoodManagement'
 import { AmenitiesManagement } from '@/components/AmenitiesManagement'
+import { ConstructionManagement } from '@/components/ConstructionManagement'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'engineering' | 'analytics' | 'food-management' | 'amenities'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'engineering' | 'analytics' | 'food-management' | 'amenities' | 'construction'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -86,6 +94,9 @@ function App() {
   const [amenities, setAmenities] = useKV<Amenity[]>('w3-hotel-amenities', [])
   const [amenityUsageLogs, setAmenityUsageLogs] = useKV<AmenityUsageLog[]>('w3-hotel-amenity-usage', [])
   const [amenityAutoOrders, setAmenityAutoOrders] = useKV<AmenityAutoOrder[]>('w3-hotel-amenity-auto-orders', [])
+  const [constructionMaterials, setConstructionMaterials] = useKV<ConstructionMaterial[]>('w3-hotel-construction-materials', [])
+  const [constructionProjects, setConstructionProjects] = useKV<ConstructionProject[]>('w3-hotel-construction-projects', [])
+  const [contractors, setContractors] = useKV<Contractor[]>('w3-hotel-contractors', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
 
@@ -103,6 +114,9 @@ function App() {
     setAmenities(sampleAmenities)
     setAmenityUsageLogs(sampleAmenityUsageLogs)
     setAmenityAutoOrders(sampleAmenityAutoOrders)
+    setConstructionMaterials(sampleConstructionMaterials)
+    setConstructionProjects(sampleConstructionProjects)
+    setContractors(sampleContractors)
     toast.success('Sample data loaded successfully')
   }
 
@@ -491,6 +505,15 @@ function App() {
           </Button>
 
           <Button
+            variant={currentModule === 'construction' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('construction')}
+          >
+            <Hammer size={18} className="mr-2" />
+            Construction
+          </Button>
+
+          <Button
             variant={currentModule === 'analytics' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('analytics')}
@@ -530,6 +553,17 @@ function App() {
           {currentModule === 'finance' && renderComingSoon('Finance & Accounting', <CurrencyDollar size={64} />)}
           {currentModule === 'hr' && renderComingSoon('HR & Staff Management', <Users size={64} />)}
           {currentModule === 'engineering' && renderComingSoon('Engineering & Maintenance', <Wrench size={64} />)}
+          {currentModule === 'construction' && (
+            <ConstructionManagement
+              materials={constructionMaterials || []}
+              setMaterials={setConstructionMaterials}
+              projects={constructionProjects || []}
+              setProjects={setConstructionProjects}
+              suppliers={suppliers || []}
+              contractors={contractors || []}
+              setContractors={setContractors}
+            />
+          )}
           {currentModule === 'analytics' && renderComingSoon('Analytics & Reports', <ChartBar size={64} />)}
         </div>
       </main>

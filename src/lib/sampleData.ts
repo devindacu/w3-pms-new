@@ -14,7 +14,10 @@ import {
   type QualityCheck,
   type Amenity,
   type AmenityUsageLog,
-  type AmenityAutoOrder
+  type AmenityAutoOrder,
+  type ConstructionMaterial,
+  type ConstructionProject,
+  type Contractor
 } from './types'
 
 export const sampleGuests: Guest[] = [
@@ -1346,3 +1349,482 @@ export const sampleAmenityAutoOrders: AmenityAutoOrder[] = [
     orderReference: 'PO-2024-0542'
   }
 ]
+
+export const sampleConstructionMaterials: ConstructionMaterial[] = [
+  {
+    id: 'mat-1',
+    materialId: 'MAT-001',
+    name: 'LED Bulbs 15W',
+    category: 'electrical',
+    unit: 'pcs',
+    currentStock: 45,
+    reorderLevel: 50,
+    reorderQuantity: 100,
+    unitCost: 5.50,
+    supplierIds: ['sup-3'],
+    segment: 'regular-maintenance',
+    storeLocation: 'Electrical Storage - A1',
+    warrantyMonths: 24,
+    specifications: 'E27 base, warm white 3000K',
+    lastOrdered: Date.now() - 15 * 24 * 60 * 60 * 1000,
+    lastRestocked: Date.now() - 10 * 24 * 60 * 60 * 1000,
+    lastUpdated: Date.now(),
+    createdAt: Date.now() - 180 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'mat-2',
+    materialId: 'MAT-002',
+    name: 'PVC Pipes 2 inch',
+    category: 'plumbing',
+    unit: 'meters',
+    currentStock: 25,
+    reorderLevel: 30,
+    reorderQuantity: 50,
+    unitCost: 12.75,
+    supplierIds: ['sup-4'],
+    segment: 'regular-maintenance',
+    storeLocation: 'Plumbing Yard - B2',
+    specifications: 'Schedule 40, pressure rated',
+    lastOrdered: Date.now() - 20 * 24 * 60 * 60 * 1000,
+    lastRestocked: Date.now() - 15 * 24 * 60 * 60 * 1000,
+    lastUpdated: Date.now(),
+    createdAt: Date.now() - 200 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'mat-3',
+    materialId: 'MAT-003',
+    name: 'Wood Planks - Oak',
+    category: 'carpentry',
+    unit: 'sqft',
+    currentStock: 120,
+    reorderLevel: 100,
+    reorderQuantity: 200,
+    unitCost: 8.50,
+    supplierIds: ['sup-5'],
+    segment: 'project-construction',
+    storeLocation: 'Carpentry Workshop - C1',
+    projectId: 'prj-1',
+    specifications: '1x6 inch, kiln dried',
+    lastOrdered: Date.now() - 5 * 24 * 60 * 60 * 1000,
+    lastRestocked: Date.now() - 3 * 24 * 60 * 60 * 1000,
+    lastUpdated: Date.now(),
+    createdAt: Date.now() - 30 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'mat-4',
+    materialId: 'MAT-004',
+    name: 'Interior Paint - White',
+    category: 'painting',
+    unit: 'gallons',
+    currentStock: 8,
+    reorderLevel: 15,
+    reorderQuantity: 30,
+    unitCost: 35.00,
+    supplierIds: ['sup-6'],
+    segment: 'regular-maintenance',
+    storeLocation: 'Paint Storage - D3',
+    specifications: 'Semi-gloss, washable, low VOC',
+    notes: 'Running low - needs reorder',
+    lastOrdered: Date.now() - 45 * 24 * 60 * 60 * 1000,
+    lastRestocked: Date.now() - 40 * 24 * 60 * 60 * 1000,
+    lastUpdated: Date.now(),
+    createdAt: Date.now() - 365 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'mat-5',
+    materialId: 'MAT-005',
+    name: 'Circuit Breakers 20A',
+    category: 'electrical',
+    unit: 'pcs',
+    currentStock: 0,
+    reorderLevel: 10,
+    reorderQuantity: 25,
+    unitCost: 18.50,
+    supplierIds: ['sup-3'],
+    segment: 'emergency-stock',
+    storeLocation: 'Electrical Storage - A2',
+    warrantyMonths: 60,
+    specifications: 'Single pole, 120V rated',
+    notes: 'URGENT - Out of stock!',
+    lastOrdered: Date.now() - 60 * 24 * 60 * 60 * 1000,
+    lastRestocked: Date.now() - 55 * 24 * 60 * 60 * 1000,
+    lastUpdated: Date.now(),
+    createdAt: Date.now() - 400 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'mat-6',
+    materialId: 'MAT-006',
+    name: 'HVAC Filters 20x20',
+    category: 'hvac',
+    unit: 'pcs',
+    currentStock: 18,
+    reorderLevel: 20,
+    reorderQuantity: 50,
+    unitCost: 22.00,
+    supplierIds: ['sup-7'],
+    segment: 'regular-maintenance',
+    storeLocation: 'HVAC Storage - E1',
+    specifications: 'MERV 13, pleated',
+    lastOrdered: Date.now() - 30 * 24 * 60 * 60 * 1000,
+    lastRestocked: Date.now() - 25 * 24 * 60 * 60 * 1000,
+    lastUpdated: Date.now(),
+    createdAt: Date.now() - 250 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'mat-7',
+    materialId: 'MAT-007',
+    name: 'Cement - Portland',
+    category: 'masonry',
+    unit: 'bags',
+    currentStock: 40,
+    reorderLevel: 20,
+    reorderQuantity: 50,
+    unitCost: 12.00,
+    supplierIds: ['sup-8'],
+    segment: 'project-construction',
+    storeLocation: 'Outdoor Storage - F1',
+    projectId: 'prj-2',
+    specifications: '50kg bags, Type I',
+    lastOrdered: Date.now() - 10 * 24 * 60 * 60 * 1000,
+    lastRestocked: Date.now() - 8 * 24 * 60 * 60 * 1000,
+    lastUpdated: Date.now(),
+    createdAt: Date.now() - 60 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'mat-8',
+    materialId: 'MAT-008',
+    name: 'Safety Goggles',
+    category: 'safety-equipment',
+    unit: 'pcs',
+    currentStock: 25,
+    reorderLevel: 15,
+    reorderQuantity: 30,
+    unitCost: 8.50,
+    supplierIds: ['sup-9'],
+    segment: 'regular-maintenance',
+    storeLocation: 'Safety Equipment - G1',
+    specifications: 'Anti-fog, UV protection, ANSI Z87.1',
+    lastOrdered: Date.now() - 90 * 24 * 60 * 60 * 1000,
+    lastRestocked: Date.now() - 85 * 24 * 60 * 60 * 1000,
+    lastUpdated: Date.now(),
+    createdAt: Date.now() - 500 * 24 * 60 * 60 * 1000
+  }
+]
+
+export const sampleConstructionProjects: ConstructionProject[] = [
+  {
+    id: 'prj-1',
+    projectId: 'PRJ-2024-001',
+    name: 'Presidential Suite Renovation',
+    description: 'Complete renovation of room 303 including flooring, furniture, and bathroom upgrades',
+    type: 'renovation',
+    status: 'in-progress',
+    priority: 'high',
+    location: 'Room 303 - 3rd Floor',
+    startDate: Date.now() - 15 * 24 * 60 * 60 * 1000,
+    endDate: Date.now() + 15 * 24 * 60 * 60 * 1000,
+    estimatedBudget: 45000,
+    actualCost: 28500,
+    completionPercentage: 60,
+    assignedContractor: 'con-1',
+    projectManager: 'emp-1',
+    materials: [
+      {
+        id: 'prm-1',
+        materialId: 'mat-3',
+        materialName: 'Wood Planks - Oak',
+        requiredQuantity: 200,
+        allocatedQuantity: 200,
+        usedQuantity: 120,
+        unit: 'sqft',
+        estimatedCost: 1700,
+        actualCost: 1700
+      },
+      {
+        id: 'prm-2',
+        materialId: 'mat-4',
+        materialName: 'Interior Paint - White',
+        requiredQuantity: 15,
+        allocatedQuantity: 15,
+        usedQuantity: 8,
+        unit: 'gallons',
+        estimatedCost: 525,
+        actualCost: 525
+      }
+    ],
+    tasks: [
+      {
+        id: 'tsk-1',
+        projectId: 'prj-1',
+        taskName: 'Remove old flooring',
+        status: 'completed',
+        priority: 'high',
+        assignedTo: 'con-1',
+        completedAt: Date.now() - 12 * 24 * 60 * 60 * 1000
+      },
+      {
+        id: 'tsk-2',
+        projectId: 'prj-1',
+        taskName: 'Install new oak flooring',
+        status: 'in-progress',
+        priority: 'high',
+        assignedTo: 'con-1',
+        dueDate: Date.now() + 3 * 24 * 60 * 60 * 1000
+      },
+      {
+        id: 'tsk-3',
+        projectId: 'prj-1',
+        taskName: 'Paint walls and ceiling',
+        status: 'not-started',
+        priority: 'medium',
+        assignedTo: 'con-1',
+        dueDate: Date.now() + 8 * 24 * 60 * 60 * 1000
+      },
+      {
+        id: 'tsk-4',
+        projectId: 'prj-1',
+        taskName: 'Install new bathroom fixtures',
+        status: 'not-started',
+        priority: 'high',
+        dueDate: Date.now() + 12 * 24 * 60 * 60 * 1000
+      },
+      {
+        id: 'tsk-5',
+        projectId: 'prj-1',
+        taskName: 'Final inspection and cleanup',
+        status: 'not-started',
+        priority: 'medium',
+        dueDate: Date.now() + 15 * 24 * 60 * 60 * 1000
+      }
+    ],
+    notes: 'High-priority renovation for VIP guests. Ensure premium materials used.',
+    createdAt: Date.now() - 30 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now()
+  },
+  {
+    id: 'prj-2',
+    projectId: 'PRJ-2024-002',
+    name: 'Parking Lot Expansion',
+    description: 'Add 20 additional parking spaces with proper drainage and lighting',
+    type: 'new-construction',
+    status: 'approved',
+    priority: 'medium',
+    location: 'North Parking Area',
+    startDate: Date.now() + 7 * 24 * 60 * 60 * 1000,
+    endDate: Date.now() + 45 * 24 * 60 * 60 * 1000,
+    estimatedBudget: 75000,
+    actualCost: 5000,
+    completionPercentage: 0,
+    assignedContractor: 'con-2',
+    projectManager: 'emp-2',
+    materials: [
+      {
+        id: 'prm-3',
+        materialId: 'mat-7',
+        materialName: 'Cement - Portland',
+        requiredQuantity: 100,
+        allocatedQuantity: 50,
+        usedQuantity: 0,
+        unit: 'bags',
+        estimatedCost: 1200,
+        actualCost: 600
+      }
+    ],
+    tasks: [
+      {
+        id: 'tsk-6',
+        projectId: 'prj-2',
+        taskName: 'Site preparation and excavation',
+        status: 'not-started',
+        priority: 'high',
+        dueDate: Date.now() + 14 * 24 * 60 * 60 * 1000
+      },
+      {
+        id: 'tsk-7',
+        projectId: 'prj-2',
+        taskName: 'Install drainage system',
+        status: 'not-started',
+        priority: 'high',
+        dueDate: Date.now() + 21 * 24 * 60 * 60 * 1000
+      },
+      {
+        id: 'tsk-8',
+        projectId: 'prj-2',
+        taskName: 'Pour concrete base',
+        status: 'not-started',
+        priority: 'high',
+        dueDate: Date.now() + 28 * 24 * 60 * 60 * 1000
+      },
+      {
+        id: 'tsk-9',
+        projectId: 'prj-2',
+        taskName: 'Install lighting',
+        status: 'not-started',
+        priority: 'medium',
+        dueDate: Date.now() + 38 * 24 * 60 * 60 * 1000
+      }
+    ],
+    createdAt: Date.now() - 20 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now()
+  },
+  {
+    id: 'prj-3',
+    projectId: 'PRJ-2024-003',
+    name: 'HVAC System Upgrade',
+    description: 'Replace aging HVAC units on floors 1 and 2 with energy-efficient models',
+    type: 'upgrade',
+    status: 'planning',
+    priority: 'high',
+    location: 'Floors 1 & 2',
+    estimatedBudget: 125000,
+    actualCost: 0,
+    completionPercentage: 0,
+    projectManager: 'emp-3',
+    materials: [],
+    tasks: [
+      {
+        id: 'tsk-10',
+        projectId: 'prj-3',
+        taskName: 'Conduct energy audit',
+        status: 'in-progress',
+        priority: 'high'
+      },
+      {
+        id: 'tsk-11',
+        projectId: 'prj-3',
+        taskName: 'Obtain equipment quotes',
+        status: 'not-started',
+        priority: 'high'
+      },
+      {
+        id: 'tsk-12',
+        projectId: 'prj-3',
+        taskName: 'Schedule installation windows',
+        status: 'not-started',
+        priority: 'medium'
+      }
+    ],
+    notes: 'Need to coordinate with guest occupancy to minimize disruption',
+    createdAt: Date.now() - 10 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now()
+  },
+  {
+    id: 'prj-4',
+    projectId: 'PRJ-2024-004',
+    name: 'Pool Equipment Repair',
+    description: 'Repair filtration system and resurface pool tiles',
+    type: 'repair',
+    status: 'completed',
+    priority: 'urgent',
+    location: 'Pool Area',
+    startDate: Date.now() - 30 * 24 * 60 * 60 * 1000,
+    endDate: Date.now() - 5 * 24 * 60 * 60 * 1000,
+    estimatedBudget: 15000,
+    actualCost: 16200,
+    completionPercentage: 100,
+    assignedContractor: 'con-3',
+    projectManager: 'emp-1',
+    materials: [],
+    tasks: [
+      {
+        id: 'tsk-13',
+        projectId: 'prj-4',
+        taskName: 'Diagnose filtration issue',
+        status: 'completed',
+        priority: 'urgent',
+        completedAt: Date.now() - 28 * 24 * 60 * 60 * 1000
+      },
+      {
+        id: 'tsk-14',
+        projectId: 'prj-4',
+        taskName: 'Replace filtration pump',
+        status: 'completed',
+        priority: 'urgent',
+        completedAt: Date.now() - 20 * 24 * 60 * 60 * 1000
+      },
+      {
+        id: 'tsk-15',
+        projectId: 'prj-4',
+        taskName: 'Resurface damaged tiles',
+        status: 'completed',
+        priority: 'high',
+        completedAt: Date.now() - 10 * 24 * 60 * 60 * 1000
+      }
+    ],
+    notes: 'Project went slightly over budget due to unexpected pump damage',
+    createdAt: Date.now() - 35 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now() - 5 * 24 * 60 * 60 * 1000
+  }
+]
+
+export const sampleContractors: Contractor[] = [
+  {
+    id: 'con-1',
+    contractorId: 'CON-001',
+    name: 'Premier Renovations Inc',
+    contactPerson: 'Robert Martinez',
+    email: 'robert@premierreno.com',
+    phone: '+1-555-0201',
+    address: '456 Construction Ave, Building City, BC 12345',
+    specializations: ['carpentry', 'painting', 'general-building'],
+    licenseNumber: 'LIC-CAR-2024-4567',
+    rating: 4.8,
+    totalProjects: 12,
+    totalSpent: 285000,
+    paymentTerms: 'Net 30',
+    insuranceExpiry: Date.now() + 365 * 24 * 60 * 60 * 1000,
+    createdAt: Date.now() - 730 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'con-2',
+    contractorId: 'CON-002',
+    name: 'BuildRight Construction',
+    contactPerson: 'Lisa Thompson',
+    email: 'lisa@buildr ight.com',
+    phone: '+1-555-0202',
+    address: '789 Builder Lane, Construction Town, CT 67890',
+    specializations: ['masonry', 'general-building'],
+    licenseNumber: 'LIC-MAS-2024-8901',
+    rating: 4.5,
+    totalProjects: 8,
+    totalSpent: 420000,
+    paymentTerms: 'Net 30',
+    insuranceExpiry: Date.now() + 450 * 24 * 60 * 60 * 1000,
+    createdAt: Date.now() - 500 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'con-3',
+    contractorId: 'CON-003',
+    name: 'ElectroTech Solutions',
+    contactPerson: 'David Kim',
+    email: 'david@electrotech.com',
+    phone: '+1-555-0203',
+    address: '321 Electric Blvd, Tech City, TC 11223',
+    specializations: ['electrical', 'hvac'],
+    licenseNumber: 'LIC-ELC-2024-2345',
+    rating: 4.9,
+    totalProjects: 15,
+    totalSpent: 195000,
+    paymentTerms: 'Net 15',
+    insuranceExpiry: Date.now() + 200 * 24 * 60 * 60 * 1000,
+    createdAt: Date.now() - 600 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'con-4',
+    contractorId: 'CON-004',
+    name: 'FlowMaster Plumbing',
+    contactPerson: 'Maria Garcia',
+    email: 'maria@flowmaster.com',
+    phone: '+1-555-0204',
+    address: '654 Pipe Street, Water City, WC 33445',
+    specializations: ['plumbing'],
+    licenseNumber: 'LIC-PLM-2024-6789',
+    rating: 4.7,
+    totalProjects: 10,
+    totalSpent: 125000,
+    paymentTerms: 'Net 30',
+    insuranceExpiry: Date.now() + 300 * 24 * 60 * 60 * 1000,
+    createdAt: Date.now() - 400 * 24 * 60 * 60 * 1000
+  }
+]
+

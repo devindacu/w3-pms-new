@@ -475,3 +475,145 @@ export function calculateAutoReorderQuantity(amenity: { reorderQuantity: number;
   const needed = amenity.parLevel - amenity.currentStock
   return Math.max(amenity.reorderQuantity, needed)
 }
+
+export function getConstructionMaterialCategoryColor(category: string): string {
+  const colors: Record<string, string> = {
+    'electrical': 'bg-accent/10 text-accent border-accent/20',
+    'plumbing': 'bg-primary/10 text-primary border-primary/20',
+    'carpentry': 'bg-secondary/10 text-secondary border-secondary/20',
+    'masonry': 'bg-muted text-muted-foreground border-border',
+    'painting': 'bg-success/10 text-success border-success/20',
+    'hvac': 'bg-accent/10 text-accent border-accent/20',
+    'hardware': 'bg-primary/10 text-primary border-primary/20',
+    'safety-equipment': 'bg-destructive/10 text-destructive border-destructive/20',
+    'tools': 'bg-secondary/10 text-secondary border-secondary/20',
+    'general-building': 'bg-muted text-muted-foreground border-border'
+  }
+  return colors[category] || 'bg-muted text-muted-foreground'
+}
+
+export function getProjectStatusColor(status: string): string {
+  const colors: Record<string, string> = {
+    'planning': 'bg-muted text-muted-foreground',
+    'approved': 'bg-primary text-primary-foreground',
+    'in-progress': 'bg-accent text-accent-foreground',
+    'on-hold': 'bg-secondary text-secondary-foreground',
+    'completed': 'bg-success text-success-foreground',
+    'cancelled': 'bg-destructive text-destructive-foreground'
+  }
+  return colors[status] || 'bg-muted text-muted-foreground'
+}
+
+export function getInventorySegmentColor(segment: string): string {
+  const colors: Record<string, string> = {
+    'regular-maintenance': 'bg-primary/10 text-primary border-primary/20',
+    'project-construction': 'bg-accent/10 text-accent border-accent/20',
+    'emergency-stock': 'bg-destructive/10 text-destructive border-destructive/20'
+  }
+  return colors[segment] || 'bg-muted text-muted-foreground'
+}
+
+export function calculateProjectProgress(project: { tasks: { status: string }[] }): number {
+  if (!project.tasks || project.tasks.length === 0) return 0
+  const completedTasks = project.tasks.filter(t => t.status === 'completed').length
+  return Math.round((completedTasks / project.tasks.length) * 100)
+}
+
+export function calculateMaterialUsage(material: { requiredQuantity: number; allocatedQuantity: number; usedQuantity: number }): { 
+  percentUsed: number
+  percentAllocated: number
+  remaining: number
+} {
+  const percentUsed = material.requiredQuantity > 0 
+    ? Math.round((material.usedQuantity / material.requiredQuantity) * 100) 
+    : 0
+  const percentAllocated = material.requiredQuantity > 0 
+    ? Math.round((material.allocatedQuantity / material.requiredQuantity) * 100) 
+    : 0
+  const remaining = material.allocatedQuantity - material.usedQuantity
+  
+  return { percentUsed, percentAllocated, remaining }
+}
+
+export function getConstructionMaterialStockStatus(material: { currentStock: number; reorderLevel: number }): { 
+  status: string
+  color: string
+  urgent: boolean 
+} {
+  if (material.currentStock === 0) {
+    return { status: 'out-of-stock', color: 'text-destructive', urgent: true }
+  }
+  
+  if (material.currentStock <= material.reorderLevel) {
+    return { status: 'low-stock', color: 'text-accent', urgent: true }
+  }
+  
+  return { status: 'in-stock', color: 'text-success', urgent: false }
+}
+
+export function searchConstructionMaterials(items: any[], searchTerm: string): any[] {
+  const term = searchTerm.toLowerCase()
+  return items.filter((i: any) => 
+    i.name.toLowerCase().includes(term) ||
+    i.category.toLowerCase().includes(term) ||
+    i.materialId.toLowerCase().includes(term)
+  )
+}
+
+export function filterMaterialsByCategory(items: any[], category?: string): any[] {
+  if (!category) return items
+  return items.filter((i: any) => i.category === category)
+}
+
+export function filterMaterialsBySegment(items: any[], segment?: string): any[] {
+  if (!segment) return items
+  return items.filter((i: any) => i.segment === segment)
+}
+
+export function filterMaterialsByProject(items: any[], projectId?: string): any[] {
+  if (!projectId) return items.filter((i: any) => !i.projectId)
+  return items.filter((i: any) => i.projectId === projectId)
+}
+
+export function getUrgentConstructionMaterials(items: any[]): any[] {
+  return items.filter((i: any) => getConstructionMaterialStockStatus(i).urgent)
+}
+
+export function calculateConstructionInventoryValue(items: { currentStock: number; unitCost: number }[]): number {
+  return items.reduce((sum, item) => sum + (item.currentStock * item.unitCost), 0)
+}
+
+export function searchProjects(projects: any[], searchTerm: string): any[] {
+  const term = searchTerm.toLowerCase()
+  return projects.filter((p: any) => 
+    p.name.toLowerCase().includes(term) ||
+    p.projectId.toLowerCase().includes(term) ||
+    p.location.toLowerCase().includes(term) ||
+    p.type.toLowerCase().includes(term)
+  )
+}
+
+export function filterProjectsByStatus(projects: any[], status?: string): any[] {
+  if (!status) return projects
+  return projects.filter((p: any) => p.status === status)
+}
+
+export function filterProjectsByType(projects: any[], type?: string): any[] {
+  if (!type) return projects
+  return projects.filter((p: any) => p.type === type)
+}
+
+export function isProjectOverBudget(project: { estimatedBudget: number; actualCost: number }): boolean {
+  return project.actualCost > project.estimatedBudget
+}
+
+export function isProjectOverdue(project: { endDate?: number; status: string }): boolean {
+  if (!project.endDate || project.status === 'completed' || project.status === 'cancelled') return false
+  return Date.now() > project.endDate
+}
+
+export function getDaysUntilProjectDeadline(project: { endDate?: number }): number | null {
+  if (!project.endDate) return null
+  const diff = project.endDate - Date.now()
+  return Math.ceil(diff / (1000 * 60 * 60 * 24))
+}

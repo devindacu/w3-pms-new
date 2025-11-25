@@ -18,6 +18,11 @@ export type OrderFrequency = 'daily' | 'weekly' | 'monthly' | 'on-demand'
 export type QualityStatus = 'excellent' | 'good' | 'fair' | 'poor' | 'rejected'
 export type AmenityCategory = 'toiletries' | 'linens' | 'cleaning-supplies' | 'beverages' | 'food-items' | 'paper-products' | 'room-supplies' | 'public-area-supplies' | 'laundry-supplies' | 'guest-amenities'
 export type AmenityDepartment = 'housekeeping' | 'front-office' | 'fnb' | 'public-areas' | 'laundry' | 'spa' | 'gym' | 'pool'
+export type ConstructionMaterialCategory = 'electrical' | 'plumbing' | 'carpentry' | 'masonry' | 'painting' | 'hvac' | 'hardware' | 'safety-equipment' | 'tools' | 'general-building'
+export type ProjectStatus = 'planning' | 'approved' | 'in-progress' | 'on-hold' | 'completed' | 'cancelled'
+export type ProjectPriority = 'low' | 'medium' | 'high' | 'urgent' | 'critical'
+export type ProjectType = 'renovation' | 'new-construction' | 'repair' | 'upgrade' | 'preventive-maintenance'
+export type InventorySegment = 'regular-maintenance' | 'project-construction' | 'emergency-stock'
 
 export interface Guest {
   id: string
@@ -455,6 +460,140 @@ export interface AmenityAutoOrder {
   orderedAt?: number
   receivedAt?: number
   orderReference?: string
+}
+
+export interface ConstructionMaterial {
+  id: string
+  materialId: string
+  name: string
+  category: ConstructionMaterialCategory
+  unit: string
+  currentStock: number
+  reorderLevel: number
+  reorderQuantity: number
+  unitCost: number
+  supplierIds: string[]
+  segment: InventorySegment
+  storeLocation: string
+  projectId?: string
+  batchNumber?: string
+  warrantyMonths?: number
+  specifications?: string
+  safetyDataSheet?: string
+  lastOrdered?: number
+  lastRestocked?: number
+  notes?: string
+  lastUpdated: number
+  createdAt: number
+}
+
+export interface ConstructionProject {
+  id: string
+  projectId: string
+  name: string
+  description: string
+  type: ProjectType
+  status: ProjectStatus
+  priority: ProjectPriority
+  location: string
+  startDate?: number
+  endDate?: number
+  estimatedBudget: number
+  actualCost: number
+  completionPercentage: number
+  assignedContractor?: string
+  projectManager?: string
+  materials: ProjectMaterialRequirement[]
+  tasks: ProjectTask[]
+  notes?: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface ProjectMaterialRequirement {
+  id: string
+  materialId: string
+  materialName: string
+  requiredQuantity: number
+  allocatedQuantity: number
+  usedQuantity: number
+  unit: string
+  estimatedCost: number
+  actualCost: number
+}
+
+export interface ProjectTask {
+  id: string
+  projectId: string
+  taskName: string
+  description?: string
+  assignedTo?: string
+  status: 'not-started' | 'in-progress' | 'completed' | 'blocked'
+  priority: MaintenancePriority
+  dueDate?: number
+  completedAt?: number
+  dependencies?: string[]
+  notes?: string
+}
+
+export interface MaterialOrder {
+  id: string
+  orderNumber: string
+  projectId?: string
+  supplierId: string
+  contractorId?: string
+  items: MaterialOrderItem[]
+  subtotal: number
+  tax: number
+  total: number
+  status: PurchaseOrderStatus
+  expectedDelivery?: number
+  actualDelivery?: number
+  segment: InventorySegment
+  notes?: string
+  createdAt: number
+  createdBy: string
+  approvedBy?: string
+  approvedAt?: number
+}
+
+export interface MaterialOrderItem {
+  id: string
+  materialId: string
+  name: string
+  quantity: number
+  unit: string
+  unitPrice: number
+  total: number
+}
+
+export interface Contractor {
+  id: string
+  contractorId: string
+  name: string
+  contactPerson: string
+  email?: string
+  phone: string
+  address?: string
+  specializations: ConstructionMaterialCategory[]
+  licenseNumber?: string
+  rating: number
+  totalProjects: number
+  totalSpent: number
+  paymentTerms?: string
+  insuranceExpiry?: number
+  createdAt: number
+}
+
+export interface MaterialUsageLog {
+  id: string
+  materialId: string
+  projectId?: string
+  quantity: number
+  usedBy: string
+  purpose: string
+  location?: string
+  timestamp: number
 }
 
 export interface DashboardMetrics {

@@ -82,6 +82,13 @@ A comprehensive cloud-based Property Management System integrating Front Office,
 - **Progression**: Maintenance due → Create work order → Assign technician → Issue spare parts → Complete work → Update equipment log
 - **Success criteria**: Schedules adhered to, response times met, parts availability maintained
 
+### Maintenance & Construction
+- **Functionality**: Construction material inventory management (electrical, plumbing, carpentry, masonry, painting, HVAC, hardware, safety equipment), project-based requirement creation, inventory segregation by segment (regular maintenance vs project construction vs emergency stock), contractor and supplier integration for quick order dispatch, project tracking with tasks and budget monitoring, material usage logging
+- **Purpose**: Manages all engineering and construction-related consumables and materials, tracks ongoing and planned projects, ensures material availability for both routine maintenance and major construction projects
+- **Trigger**: Project creation, material stock reaches reorder level, maintenance work order created, construction project approved
+- **Progression**: Create project → Define material requirements → Allocate materials from inventory → Track usage → Monitor project progress and budget → Receive materials from suppliers → Update contractor assignments → Complete project tasks → Final inspection
+- **Success criteria**: Materials available when needed, projects completed on time and within budget, contractors properly managed, inventory segregated by purpose, emergency stock maintained, material costs tracked accurately
+
 ### HR & Staff Management
 - **Functionality**: Employee profiles, attendance, leave management, shift rosters, performance reviews
 - **Purpose**: Optimizes staff scheduling and maintains employee records
