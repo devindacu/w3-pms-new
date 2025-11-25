@@ -509,7 +509,7 @@ export function ConstructionManagement({
             <SelectValue placeholder="All Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Status</SelectItem>
+            <SelectItem value="all-status">All Status</SelectItem>
             <SelectItem value="planning">Planning</SelectItem>
             <SelectItem value="approved">Approved</SelectItem>
             <SelectItem value="in-progress">In Progress</SelectItem>
@@ -523,7 +523,7 @@ export function ConstructionManagement({
             <SelectValue placeholder="All Types" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Types</SelectItem>
+            <SelectItem value="all-types">All Types</SelectItem>
             <SelectItem value="renovation">Renovation</SelectItem>
             <SelectItem value="new-construction">New Construction</SelectItem>
             <SelectItem value="repair">Repair</SelectItem>
