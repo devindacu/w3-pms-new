@@ -1,7 +1,8 @@
 import { 
   type Room, 
   type Guest, 
-  type Reservation, 
+  type Reservation,
+  type Folio,
   type InventoryItem,
   type HousekeepingTask,
   type MenuItem,
@@ -140,6 +141,81 @@ export const sampleReservations: Reservation[] = [
     createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
     updatedAt: Date.now(),
     createdBy: 'user-1'
+  }
+]
+
+export const sampleFolios: Folio[] = [
+  {
+    id: 'folio-1',
+    reservationId: 'res-1',
+    guestId: 'guest-1',
+    charges: [
+      {
+        id: 'charge-1',
+        folioId: 'folio-1',
+        description: 'Room Charges',
+        amount: 120,
+        quantity: 3,
+        department: 'front-office',
+        timestamp: Date.now() - 1 * 24 * 60 * 60 * 1000,
+        postedBy: 'system'
+      }
+    ],
+    payments: [
+      {
+        id: 'payment-1',
+        folioId: 'folio-1',
+        amount: 120,
+        method: 'card',
+        status: 'paid',
+        timestamp: Date.now() - 1 * 24 * 60 * 60 * 1000,
+        receivedBy: 'user-1'
+      }
+    ],
+    balance: 240,
+    createdAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now()
+  },
+  {
+    id: 'folio-2',
+    reservationId: 'res-2',
+    guestId: 'guest-2',
+    charges: [
+      {
+        id: 'charge-2',
+        folioId: 'folio-2',
+        description: 'Room Charges',
+        amount: 180,
+        quantity: 3,
+        department: 'front-office',
+        timestamp: Date.now(),
+        postedBy: 'system'
+      },
+      {
+        id: 'charge-3',
+        folioId: 'folio-2',
+        description: 'Mini Bar',
+        amount: 25,
+        quantity: 1,
+        department: 'fnb',
+        timestamp: Date.now(),
+        postedBy: 'user-1'
+      }
+    ],
+    payments: [
+      {
+        id: 'payment-2',
+        folioId: 'folio-2',
+        amount: 180,
+        method: 'card',
+        status: 'paid',
+        timestamp: Date.now(),
+        receivedBy: 'user-1'
+      }
+    ],
+    balance: 385,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
   }
 ]
 

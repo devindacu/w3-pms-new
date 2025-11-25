@@ -31,7 +31,8 @@ import {
 import { 
   type Room, 
   type Guest, 
-  type Reservation, 
+  type Reservation,
+  type Folio,
   type InventoryItem,
   type HousekeepingTask,
   type MenuItem,
@@ -70,6 +71,7 @@ import {
   sampleGuests,
   sampleRooms,
   sampleReservations,
+  sampleFolios,
   sampleInventory,
   sampleMenuItems,
   sampleHousekeepingTasks,
@@ -100,6 +102,8 @@ import { GeneralProductsManagement } from '@/components/GeneralProductsManagemen
 import { InventoryManagement } from '@/components/InventoryManagement'
 import { UserManagement } from '@/components/UserManagement'
 import { HRManagement } from '@/components/HRManagement'
+import { FrontOffice } from '@/components/FrontOffice'
+import { Housekeeping } from '@/components/Housekeeping'
 
 type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction' | 'suppliers' | 'general-products' | 'user-management'
 
@@ -107,6 +111,7 @@ function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
   const [rooms, setRooms] = useKV<Room[]>('w3-hotel-rooms', [])
   const [reservations, setReservations] = useKV<Reservation[]>('w3-hotel-reservations', [])
+  const [folios, setFolios] = useKV<Folio[]>('w3-hotel-folios', [])
   const [inventory, setInventory] = useKV<InventoryItem[]>('w3-hotel-inventory', [])
   const [menuItems, setMenuItems] = useKV<MenuItem[]>('w3-hotel-menu', [])
   const [housekeepingTasks, setHousekeepingTasks] = useKV<HousekeepingTask[]>('w3-hotel-housekeeping', [])
@@ -138,6 +143,7 @@ function App() {
     setGuests(sampleGuests)
     setRooms(sampleRooms)
     setReservations(sampleReservations)
+    setFolios(sampleFolios)
     setInventory(sampleInventory)
     setMenuItems(sampleMenuItems)
     setHousekeepingTasks(sampleHousekeepingTasks)
@@ -608,8 +614,27 @@ function App() {
       <main className="flex-1 overflow-auto">
         <div className="p-8">
           {currentModule === 'dashboard' && renderDashboard()}
-          {currentModule === 'front-office' && renderComingSoon('Front Office', <Bed size={64} />)}
-          {currentModule === 'housekeeping' && renderComingSoon('Housekeeping', <Broom size={64} />)}
+          {currentModule === 'front-office' && (
+            <FrontOffice
+              guests={guests || []}
+              setGuests={setGuests}
+              reservations={reservations || []}
+              setReservations={setReservations}
+              rooms={rooms || []}
+              setRooms={setRooms}
+              folios={folios || []}
+              setFolios={setFolios}
+            />
+          )}
+          {currentModule === 'housekeeping' && (
+            <Housekeeping
+              rooms={rooms || []}
+              setRooms={setRooms}
+              tasks={housekeepingTasks || []}
+              setTasks={setHousekeepingTasks}
+              employees={employees || []}
+            />
+          )}
           {currentModule === 'fnb' && renderComingSoon('F&B / POS', <ForkKnife size={64} />)}
           {currentModule === 'inventory' && (
             <InventoryManagement
