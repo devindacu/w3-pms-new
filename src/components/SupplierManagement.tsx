@@ -66,7 +66,7 @@ export function SupplierManagement({ suppliers, setSuppliers }: SupplierManageme
       const matchesSearch = 
         supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         supplier.supplierId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        supplier.contactPersons.some(cp => 
+        (supplier.contactPersons || []).some(cp => 
           cp.name.toLowerCase().includes(searchTerm.toLowerCase())
         )
       const matchesCategory = selectedCategory === 'all' || supplier.category.includes(selectedCategory)
@@ -346,7 +346,7 @@ export function SupplierManagement({ suppliers, setSuppliers }: SupplierManageme
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <User size={16} />
-                  <span>{supplier.contactPersons.find(cp => cp.isPrimary)?.name || 'No primary contact'}</span>
+                  <span>{(supplier.contactPersons || []).find(cp => cp.isPrimary)?.name || 'No primary contact'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Phone size={16} />
@@ -524,7 +524,7 @@ function SupplierDetailDialog({ supplier, open, onClose, onEdit }: SupplierDetai
               Contact Persons
             </h4>
             <div className="space-y-3">
-              {supplier.contactPersons.map(person => (
+              {(supplier.contactPersons || []).map(person => (
                 <Card key={person.id} className="p-4">
                   <div className="flex items-start justify-between">
                     <div>
@@ -549,6 +549,11 @@ function SupplierDetailDialog({ supplier, open, onClose, onEdit }: SupplierDetai
                   </div>
                 </Card>
               ))}
+              {(!supplier.contactPersons || supplier.contactPersons.length === 0) && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No contact persons added
+                </p>
+              )}
             </div>
           </div>
 
