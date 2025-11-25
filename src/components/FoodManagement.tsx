@@ -170,6 +170,15 @@ export function FoodManagement({ foodItems, setFoodItems, suppliers }: FoodManag
 
   const handleEdit = (item: FoodItem) => {
     setEditingItem(item)
+    
+    let expiryDateStr = ''
+    if (item.expiryDate && !isNaN(item.expiryDate)) {
+      const date = new Date(item.expiryDate)
+      if (!isNaN(date.getTime())) {
+        expiryDateStr = date.toISOString().split('T')[0]
+      }
+    }
+    
     setFormData({
       name: item.name,
       category: item.category,
@@ -183,7 +192,7 @@ export function FoodManagement({ foodItems, setFoodItems, suppliers }: FoodManag
       storeLocation: item.storeLocation,
       isPerishable: item.isPerishable,
       shelfLife: item.shelfLife || 0,
-      expiryDate: item.expiryDate ? new Date(item.expiryDate).toISOString().split('T')[0] : '',
+      expiryDate: expiryDateStr,
       batchNumber: item.batchNumber || '',
       qualityStatus: item.qualityStatus || 'excellent'
     })
