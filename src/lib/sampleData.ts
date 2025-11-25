@@ -18,8 +18,11 @@ import {
   type ConstructionMaterial,
   type ConstructionProject,
   type Contractor,
-  type GeneralProduct
+  type GeneralProduct,
+  type SystemUser,
+  type ActivityLog
 } from './types'
+import { getRolePermissions } from './helpers'
 
 export const sampleGuests: Guest[] = [
   {
@@ -2160,3 +2163,284 @@ export const sampleGeneralProducts: GeneralProduct[] = [
   }
 ]
 
+export const sampleSystemUsers: SystemUser[] = [
+  {
+    id: 'user-1',
+    userId: 'USR-00001',
+    username: 'admin',
+    email: 'admin@w3hotel.com',
+    firstName: 'System',
+    lastName: 'Administrator',
+    phone: '+1-555-1000',
+    role: 'admin',
+    department: 'admin',
+    permissions: getRolePermissions('admin'),
+    isActive: true,
+    lastLogin: Date.now() - 2 * 60 * 60 * 1000,
+    createdAt: Date.now() - 365 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now()
+  },
+  {
+    id: 'user-2',
+    userId: 'USR-00002',
+    username: 'procurement.manager',
+    email: 'procurement@w3hotel.com',
+    firstName: 'Maria',
+    lastName: 'Garcia',
+    phone: '+1-555-1001',
+    role: 'procurement-manager',
+    department: 'admin',
+    permissions: getRolePermissions('procurement-manager'),
+    isActive: true,
+    lastLogin: Date.now() - 5 * 60 * 60 * 1000,
+    createdAt: Date.now() - 300 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now()
+  },
+  {
+    id: 'user-3',
+    userId: 'USR-00003',
+    username: 'kitchen.head',
+    email: 'kitchen.head@w3hotel.com',
+    firstName: 'James',
+    lastName: 'Wilson',
+    phone: '+1-555-1002',
+    role: 'department-head',
+    department: 'kitchen',
+    permissions: getRolePermissions('department-head'),
+    isActive: true,
+    lastLogin: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    createdAt: Date.now() - 250 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now()
+  },
+  {
+    id: 'user-4',
+    userId: 'USR-00004',
+    username: 'storekeeper',
+    email: 'storekeeper@w3hotel.com',
+    firstName: 'David',
+    lastName: 'Lee',
+    phone: '+1-555-1003',
+    role: 'storekeeper',
+    department: 'admin',
+    permissions: getRolePermissions('storekeeper'),
+    isActive: true,
+    lastLogin: Date.now() - 3 * 60 * 60 * 1000,
+    createdAt: Date.now() - 280 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now()
+  },
+  {
+    id: 'user-5',
+    userId: 'USR-00005',
+    username: 'accounts.manager',
+    email: 'accounts@w3hotel.com',
+    firstName: 'Emily',
+    lastName: 'Brown',
+    phone: '+1-555-1004',
+    role: 'accounts',
+    department: 'finance',
+    permissions: getRolePermissions('accounts'),
+    isActive: true,
+    lastLogin: Date.now() - 6 * 60 * 60 * 1000,
+    createdAt: Date.now() - 320 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now()
+  },
+  {
+    id: 'user-6',
+    userId: 'USR-00006',
+    username: 'housekeeping.head',
+    email: 'housekeeping.head@w3hotel.com',
+    firstName: 'Sarah',
+    lastName: 'Martinez',
+    phone: '+1-555-1005',
+    role: 'department-head',
+    department: 'housekeeping',
+    permissions: getRolePermissions('department-head'),
+    isActive: true,
+    lastLogin: Date.now() - 4 * 60 * 60 * 1000,
+    createdAt: Date.now() - 260 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now()
+  },
+  {
+    id: 'user-7',
+    userId: 'USR-00007',
+    username: 'fnb.supervisor',
+    email: 'fnb.supervisor@w3hotel.com',
+    firstName: 'Robert',
+    lastName: 'Taylor',
+    phone: '+1-555-1006',
+    role: 'user-requester',
+    department: 'fnb',
+    permissions: getRolePermissions('user-requester'),
+    isActive: true,
+    lastLogin: Date.now() - 8 * 60 * 60 * 1000,
+    createdAt: Date.now() - 180 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now()
+  },
+  {
+    id: 'user-8',
+    userId: 'USR-00008',
+    username: 'maintenance.engineer',
+    email: 'maintenance@w3hotel.com',
+    firstName: 'Michael',
+    lastName: 'Anderson',
+    phone: '+1-555-1007',
+    role: 'user-requester',
+    department: 'engineering',
+    permissions: getRolePermissions('user-requester'),
+    isActive: true,
+    lastLogin: Date.now() - 12 * 60 * 60 * 1000,
+    createdAt: Date.now() - 200 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now()
+  },
+  {
+    id: 'user-9',
+    userId: 'USR-00009',
+    username: 'front.desk',
+    email: 'frontdesk@w3hotel.com',
+    firstName: 'Jessica',
+    lastName: 'White',
+    phone: '+1-555-1008',
+    role: 'user-requester',
+    department: 'front-office',
+    permissions: getRolePermissions('user-requester'),
+    isActive: true,
+    lastLogin: Date.now() - 1 * 60 * 60 * 1000,
+    createdAt: Date.now() - 150 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now()
+  },
+  {
+    id: 'user-10',
+    userId: 'USR-00010',
+    username: 'hr.manager',
+    email: 'hr@w3hotel.com',
+    firstName: 'Daniel',
+    lastName: 'Kim',
+    phone: '+1-555-1009',
+    role: 'department-head',
+    department: 'hr',
+    permissions: getRolePermissions('department-head'),
+    isActive: false,
+    lastLogin: Date.now() - 30 * 24 * 60 * 60 * 1000,
+    createdAt: Date.now() - 340 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now() - 15 * 24 * 60 * 60 * 1000
+  }
+]
+
+export const sampleActivityLogs: ActivityLog[] = [
+  {
+    id: 'log-1',
+    userId: 'user-1',
+    username: 'admin',
+    userRole: 'admin',
+    activityType: 'user-login',
+    action: 'User logged in',
+    details: 'Login successful',
+    timestamp: Date.now() - 2 * 60 * 60 * 1000
+  },
+  {
+    id: 'log-2',
+    userId: 'user-2',
+    username: 'procurement.manager',
+    userRole: 'procurement-manager',
+    activityType: 'po-created',
+    action: 'Created purchase order',
+    details: 'Purchase order for fresh vegetables',
+    resource: 'purchase-orders',
+    resourceId: 'PO-2024-001',
+    timestamp: Date.now() - 5 * 60 * 60 * 1000
+  },
+  {
+    id: 'log-3',
+    userId: 'user-3',
+    username: 'kitchen.head',
+    userRole: 'department-head',
+    activityType: 'requisition-created',
+    action: 'Created internal requisition',
+    details: 'Request for cooking oil and spices',
+    resource: 'requisitions',
+    resourceId: 'REQ-2024-045',
+    timestamp: Date.now() - 1 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'log-4',
+    userId: 'user-2',
+    username: 'procurement.manager',
+    userRole: 'procurement-manager',
+    activityType: 'requisition-approved',
+    action: 'Approved requisition',
+    details: 'Approved kitchen requisition REQ-2024-045',
+    resource: 'requisitions',
+    resourceId: 'REQ-2024-045',
+    timestamp: Date.now() - 23 * 60 * 60 * 1000
+  },
+  {
+    id: 'log-5',
+    userId: 'user-4',
+    username: 'storekeeper',
+    userRole: 'storekeeper',
+    activityType: 'stock-received',
+    action: 'Received stock delivery',
+    details: 'Received 100kg fresh vegetables from supplier',
+    resource: 'stock',
+    timestamp: Date.now() - 3 * 60 * 60 * 1000
+  },
+  {
+    id: 'log-6',
+    userId: 'user-5',
+    username: 'accounts.manager',
+    userRole: 'accounts',
+    activityType: 'payment-processed',
+    action: 'Processed supplier payment',
+    details: 'Payment of $2,450.00 to Green Valley Farms',
+    resource: 'payments',
+    resourceId: 'PAY-2024-089',
+    timestamp: Date.now() - 6 * 60 * 60 * 1000
+  },
+  {
+    id: 'log-7',
+    userId: 'user-1',
+    username: 'admin',
+    userRole: 'admin',
+    activityType: 'supplier-created',
+    action: 'Added new supplier',
+    details: 'Created supplier: Premium Linen Co.',
+    resource: 'suppliers',
+    resourceId: 'sup-10',
+    timestamp: Date.now() - 2 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'log-8',
+    userId: 'user-6',
+    username: 'housekeeping.head',
+    userRole: 'department-head',
+    activityType: 'requisition-created',
+    action: 'Created internal requisition',
+    details: 'Request for cleaning supplies and linens',
+    resource: 'requisitions',
+    resourceId: 'REQ-2024-046',
+    timestamp: Date.now() - 18 * 60 * 60 * 1000
+  },
+  {
+    id: 'log-9',
+    userId: 'user-4',
+    username: 'storekeeper',
+    userRole: 'storekeeper',
+    activityType: 'stock-adjusted',
+    action: 'Adjusted stock levels',
+    details: 'Stock count adjustment for toiletries',
+    resource: 'stock',
+    timestamp: Date.now() - 12 * 60 * 60 * 1000
+  },
+  {
+    id: 'log-10',
+    userId: 'user-2',
+    username: 'procurement.manager',
+    userRole: 'procurement-manager',
+    activityType: 'po-approved',
+    action: 'Approved purchase order',
+    details: 'PO for construction materials approved',
+    resource: 'purchase-orders',
+    resourceId: 'PO-2024-002',
+    timestamp: Date.now() - 8 * 60 * 60 * 1000
+  }
+]

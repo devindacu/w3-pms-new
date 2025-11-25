@@ -12,7 +12,7 @@ export type PurchaseOrderStatus = 'draft' | 'sent' | 'confirmed' | 'delivered' |
 export type MaintenanceStatus = 'scheduled' | 'in-progress' | 'completed' | 'cancelled'
 export type MaintenancePriority = 'low' | 'medium' | 'high' | 'urgent'
 export type Department = 'front-office' | 'housekeeping' | 'fnb' | 'kitchen' | 'engineering' | 'finance' | 'hr' | 'admin'
-export type UserRole = 'admin' | 'manager' | 'front-desk' | 'housekeeper' | 'chef' | 'waiter' | 'engineer' | 'accountant' | 'hr-staff'
+export type UserRole = 'admin' | 'manager' | 'front-desk' | 'housekeeper' | 'chef' | 'waiter' | 'engineer' | 'accountant' | 'hr-staff' | 'procurement-manager' | 'department-head' | 'storekeeper' | 'accounts' | 'user-requester'
 export type FoodCategory = 'perishable' | 'non-perishable' | 'frozen' | 'beverage' | 'spices' | 'dairy' | 'meat' | 'vegetables' | 'fruits' | 'bakery' | 'dry-goods'
 export type OrderFrequency = 'daily' | 'weekly' | 'monthly' | 'on-demand'
 export type QualityStatus = 'excellent' | 'good' | 'fair' | 'poor' | 'rejected'
@@ -686,4 +686,50 @@ export interface DashboardMetrics {
     urgent: number
     avgResolutionTime: number
   }
+}
+
+export type SystemRole = 'admin' | 'procurement-manager' | 'department-head' | 'storekeeper' | 'accounts' | 'user-requester'
+
+export interface SystemUser {
+  id: string
+  userId: string
+  username: string
+  email: string
+  firstName: string
+  lastName: string
+  phone?: string
+  role: SystemRole
+  department?: Department
+  permissions: UserPermission[]
+  isActive: boolean
+  lastLogin?: number
+  createdAt: number
+  updatedAt: number
+  createdBy?: string
+}
+
+export type PermissionAction = 'create' | 'read' | 'update' | 'delete' | 'approve' | 'issue' | 'receive' | 'manage'
+export type PermissionResource = 'users' | 'suppliers' | 'food-items' | 'amenities' | 'construction-materials' | 'general-products' | 'purchase-orders' | 'requisitions' | 'stock' | 'invoices' | 'payments' | 'projects' | 'reports' | 'system-settings'
+
+export interface UserPermission {
+  resource: PermissionResource
+  actions: PermissionAction[]
+}
+
+export type ActivityType = 'user-login' | 'user-logout' | 'user-created' | 'user-updated' | 'user-deleted' | 'user-role-changed' | 'user-status-changed' | 'po-created' | 'po-approved' | 'po-issued' | 'requisition-created' | 'requisition-approved' | 'requisition-rejected' | 'stock-received' | 'stock-adjusted' | 'invoice-created' | 'payment-processed' | 'supplier-created' | 'supplier-updated' | 'project-created' | 'project-updated' | 'settings-changed'
+
+export interface ActivityLog {
+  id: string
+  userId: string
+  username: string
+  userRole: SystemRole
+  activityType: ActivityType
+  resource?: string
+  resourceId?: string
+  action: string
+  details?: string
+  ipAddress?: string
+  userAgent?: string
+  timestamp: number
+  metadata?: Record<string, any>
 }

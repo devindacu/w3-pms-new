@@ -11,7 +11,14 @@ import {
   type FoodItem,
   type FoodCategory,
   type OrderFrequency,
-  type QualityStatus
+  type QualityStatus,
+  type SystemRole,
+  type SystemUser,
+  type UserPermission,
+  type PermissionAction,
+  type PermissionResource,
+  type ActivityLog,
+  type ActivityType
 } from './types'
 
 export function generateId(): string {
@@ -625,4 +632,263 @@ export function getDaysUntilProjectDeadline(project: { endDate?: number }): numb
   if (!project.endDate) return null
   const diff = project.endDate - Date.now()
   return Math.ceil(diff / (1000 * 60 * 60 * 24))
+}
+
+export function getRolePermissions(role: SystemRole): UserPermission[] {
+  const permissionsByRole: Record<SystemRole, UserPermission[]> = {
+    'admin': [
+      { resource: 'users', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+      { resource: 'suppliers', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+      { resource: 'food-items', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+      { resource: 'amenities', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+      { resource: 'construction-materials', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+      { resource: 'general-products', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+      { resource: 'purchase-orders', actions: ['create', 'read', 'update', 'delete', 'approve', 'issue', 'manage'] },
+      { resource: 'requisitions', actions: ['create', 'read', 'update', 'delete', 'approve', 'manage'] },
+      { resource: 'stock', actions: ['create', 'read', 'update', 'delete', 'receive', 'manage'] },
+      { resource: 'invoices', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+      { resource: 'payments', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+      { resource: 'projects', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+      { resource: 'reports', actions: ['read', 'manage'] },
+      { resource: 'system-settings', actions: ['read', 'update', 'manage'] }
+    ],
+    'procurement-manager': [
+      { resource: 'suppliers', actions: ['create', 'read', 'update'] },
+      { resource: 'food-items', actions: ['read', 'update'] },
+      { resource: 'amenities', actions: ['read', 'update'] },
+      { resource: 'construction-materials', actions: ['read', 'update'] },
+      { resource: 'general-products', actions: ['read', 'update'] },
+      { resource: 'purchase-orders', actions: ['create', 'read', 'update', 'approve', 'issue'] },
+      { resource: 'requisitions', actions: ['read', 'approve'] },
+      { resource: 'stock', actions: ['read'] },
+      { resource: 'invoices', actions: ['read', 'update'] },
+      { resource: 'payments', actions: ['read'] },
+      { resource: 'reports', actions: ['read'] }
+    ],
+    'department-head': [
+      { resource: 'food-items', actions: ['read'] },
+      { resource: 'amenities', actions: ['read'] },
+      { resource: 'construction-materials', actions: ['read'] },
+      { resource: 'general-products', actions: ['read'] },
+      { resource: 'requisitions', actions: ['create', 'read', 'update', 'approve'] },
+      { resource: 'stock', actions: ['read'] },
+      { resource: 'reports', actions: ['read'] }
+    ],
+    'storekeeper': [
+      { resource: 'food-items', actions: ['read', 'update'] },
+      { resource: 'amenities', actions: ['read', 'update'] },
+      { resource: 'construction-materials', actions: ['read', 'update'] },
+      { resource: 'general-products', actions: ['read', 'update'] },
+      { resource: 'purchase-orders', actions: ['read'] },
+      { resource: 'requisitions', actions: ['read'] },
+      { resource: 'stock', actions: ['create', 'read', 'update', 'receive'] },
+      { resource: 'reports', actions: ['read'] }
+    ],
+    'accounts': [
+      { resource: 'suppliers', actions: ['read'] },
+      { resource: 'purchase-orders', actions: ['read'] },
+      { resource: 'invoices', actions: ['create', 'read', 'update'] },
+      { resource: 'payments', actions: ['create', 'read', 'update'] },
+      { resource: 'reports', actions: ['read'] }
+    ],
+    'user-requester': [
+      { resource: 'food-items', actions: ['read'] },
+      { resource: 'amenities', actions: ['read'] },
+      { resource: 'general-products', actions: ['read'] },
+      { resource: 'requisitions', actions: ['create', 'read', 'update'] },
+      { resource: 'stock', actions: ['read'] }
+    ]
+  }
+  
+  return permissionsByRole[role] || []
+}
+
+export function hasPermission(user: SystemUser, resource: PermissionResource, action: PermissionAction): boolean {
+  if (!user.isActive) return false
+  
+  const resourcePermission = user.permissions.find(p => p.resource === resource)
+  if (!resourcePermission) return false
+  
+  return resourcePermission.actions.includes(action)
+}
+
+export function canAccessModule(user: SystemUser, module: string): boolean {
+  if (!user.isActive) return false
+  
+  const moduleResourceMap: Record<string, PermissionResource> = {
+    'users': 'users',
+    'suppliers': 'suppliers',
+    'food-management': 'food-items',
+    'amenities': 'amenities',
+    'construction': 'construction-materials',
+    'general-products': 'general-products',
+    'procurement': 'purchase-orders',
+    'inventory': 'stock',
+    'finance': 'invoices'
+  }
+  
+  const resource = moduleResourceMap[module]
+  if (!resource) return false
+  
+  return user.permissions.some(p => p.resource === resource)
+}
+
+export function getRoleColor(role: SystemRole): string {
+  const colors: Record<SystemRole, string> = {
+    'admin': 'bg-destructive/10 text-destructive border-destructive/20',
+    'procurement-manager': 'bg-primary/10 text-primary border-primary/20',
+    'department-head': 'bg-accent/10 text-accent border-accent/20',
+    'storekeeper': 'bg-success/10 text-success border-success/20',
+    'accounts': 'bg-secondary/10 text-secondary border-secondary/20',
+    'user-requester': 'bg-muted text-muted-foreground border-border'
+  }
+  return colors[role] || 'bg-muted text-muted-foreground'
+}
+
+export function getRoleLabel(role: SystemRole): string {
+  const labels: Record<SystemRole, string> = {
+    'admin': 'Administrator',
+    'procurement-manager': 'Procurement Manager',
+    'department-head': 'Department Head',
+    'storekeeper': 'Storekeeper',
+    'accounts': 'Accounts',
+    'user-requester': 'User/Requester'
+  }
+  return labels[role] || role
+}
+
+export function getActivityTypeLabel(type: ActivityType): string {
+  const labels: Record<ActivityType, string> = {
+    'user-login': 'User Login',
+    'user-logout': 'User Logout',
+    'user-created': 'User Created',
+    'user-updated': 'User Updated',
+    'user-deleted': 'User Deleted',
+    'user-role-changed': 'Role Changed',
+    'user-status-changed': 'Status Changed',
+    'po-created': 'PO Created',
+    'po-approved': 'PO Approved',
+    'po-issued': 'PO Issued',
+    'requisition-created': 'Requisition Created',
+    'requisition-approved': 'Requisition Approved',
+    'requisition-rejected': 'Requisition Rejected',
+    'stock-received': 'Stock Received',
+    'stock-adjusted': 'Stock Adjusted',
+    'invoice-created': 'Invoice Created',
+    'payment-processed': 'Payment Processed',
+    'supplier-created': 'Supplier Created',
+    'supplier-updated': 'Supplier Updated',
+    'project-created': 'Project Created',
+    'project-updated': 'Project Updated',
+    'settings-changed': 'Settings Changed'
+  }
+  return labels[type] || type
+}
+
+export function getActivityTypeColor(type: ActivityType): string {
+  const colors: Record<string, string> = {
+    'user-login': 'text-success',
+    'user-logout': 'text-muted-foreground',
+    'user-created': 'text-primary',
+    'user-updated': 'text-accent',
+    'user-deleted': 'text-destructive',
+    'user-role-changed': 'text-accent',
+    'user-status-changed': 'text-accent',
+    'po-created': 'text-primary',
+    'po-approved': 'text-success',
+    'po-issued': 'text-success',
+    'requisition-created': 'text-primary',
+    'requisition-approved': 'text-success',
+    'requisition-rejected': 'text-destructive',
+    'stock-received': 'text-success',
+    'stock-adjusted': 'text-accent',
+    'invoice-created': 'text-primary',
+    'payment-processed': 'text-success',
+    'supplier-created': 'text-primary',
+    'supplier-updated': 'text-accent',
+    'project-created': 'text-primary',
+    'project-updated': 'text-accent',
+    'settings-changed': 'text-accent'
+  }
+  return colors[type] || 'text-foreground'
+}
+
+export function searchUsers(users: SystemUser[], searchTerm: string): SystemUser[] {
+  const term = searchTerm.toLowerCase()
+  return users.filter(u => 
+    u.username.toLowerCase().includes(term) ||
+    u.email.toLowerCase().includes(term) ||
+    u.firstName.toLowerCase().includes(term) ||
+    u.lastName.toLowerCase().includes(term) ||
+    u.userId.toLowerCase().includes(term)
+  )
+}
+
+export function filterUsersByRole(users: SystemUser[], role?: SystemRole): SystemUser[] {
+  if (!role) return users
+  return users.filter(u => u.role === role)
+}
+
+export function filterUsersByStatus(users: SystemUser[], isActive?: boolean): SystemUser[] {
+  if (isActive === undefined) return users
+  return users.filter(u => u.isActive === isActive)
+}
+
+export function filterUsersByDepartment(users: SystemUser[], department?: string): SystemUser[] {
+  if (!department) return users
+  return users.filter(u => u.department === department)
+}
+
+export function searchActivityLogs(logs: ActivityLog[], searchTerm: string): ActivityLog[] {
+  const term = searchTerm.toLowerCase()
+  return logs.filter(l => 
+    l.username.toLowerCase().includes(term) ||
+    l.action.toLowerCase().includes(term) ||
+    l.details?.toLowerCase().includes(term) ||
+    l.resource?.toLowerCase().includes(term)
+  )
+}
+
+export function filterActivityByType(logs: ActivityLog[], type?: ActivityType): ActivityLog[] {
+  if (!type) return logs
+  return logs.filter(l => l.activityType === type)
+}
+
+export function filterActivityByUser(logs: ActivityLog[], userId?: string): ActivityLog[] {
+  if (!userId) return logs
+  return logs.filter(l => l.userId === userId)
+}
+
+export function filterActivityByDateRange(logs: ActivityLog[], startDate?: number, endDate?: number): ActivityLog[] {
+  if (!startDate && !endDate) return logs
+  
+  return logs.filter(l => {
+    if (startDate && l.timestamp < startDate) return false
+    if (endDate && l.timestamp > endDate) return false
+    return true
+  })
+}
+
+export function createActivityLog(
+  user: SystemUser,
+  activityType: ActivityType,
+  action: string,
+  details?: string,
+  resource?: string,
+  resourceId?: string,
+  metadata?: Record<string, any>
+): ActivityLog {
+  return {
+    id: generateId(),
+    userId: user.id,
+    username: user.username,
+    userRole: user.role,
+    activityType,
+    resource,
+    resourceId,
+    action,
+    details,
+    timestamp: Date.now(),
+    metadata
+  }
 }

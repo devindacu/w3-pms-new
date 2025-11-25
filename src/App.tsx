@@ -25,7 +25,8 @@ import {
   Basket,
   Hammer,
   Buildings,
-  ClipboardText
+  ClipboardText,
+  UserGear
 } from '@phosphor-icons/react'
 import { 
   type Room, 
@@ -45,7 +46,9 @@ import {
   type ConstructionMaterial,
   type ConstructionProject,
   type Contractor,
-  type GeneralProduct
+  type GeneralProduct,
+  type SystemUser,
+  type ActivityLog
 } from '@/lib/types'
 import { 
   formatCurrency, 
@@ -75,7 +78,9 @@ import {
   sampleConstructionMaterials,
   sampleConstructionProjects,
   sampleContractors,
-  sampleGeneralProducts
+  sampleGeneralProducts,
+  sampleSystemUsers,
+  sampleActivityLogs
 } from '@/lib/sampleData'
 import { FoodManagement } from '@/components/FoodManagement'
 import { AmenitiesManagement } from '@/components/AmenitiesManagement'
@@ -83,8 +88,9 @@ import { ConstructionManagement } from '@/components/ConstructionManagement'
 import { SupplierManagement } from '@/components/SupplierManagement'
 import { GeneralProductsManagement } from '@/components/GeneralProductsManagement'
 import { InventoryManagement } from '@/components/InventoryManagement'
+import { UserManagement } from '@/components/UserManagement'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction' | 'suppliers' | 'general-products'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction' | 'suppliers' | 'general-products' | 'user-management'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -105,8 +111,12 @@ function App() {
   const [constructionProjects, setConstructionProjects] = useKV<ConstructionProject[]>('w3-hotel-construction-projects', [])
   const [contractors, setContractors] = useKV<Contractor[]>('w3-hotel-contractors', [])
   const [generalProducts, setGeneralProducts] = useKV<GeneralProduct[]>('w3-hotel-general-products', [])
+  const [systemUsers, setSystemUsers] = useKV<SystemUser[]>('w3-hotel-system-users', [])
+  const [activityLogs, setActivityLogs] = useKV<ActivityLog[]>('w3-hotel-activity-logs', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
+  
+  const currentUser = (systemUsers || [])[0] || sampleSystemUsers[0]
 
   const loadSampleData = () => {
     setGuests(sampleGuests)
@@ -126,6 +136,8 @@ function App() {
     setConstructionProjects(sampleConstructionProjects)
     setContractors(sampleContractors)
     setGeneralProducts(sampleGeneralProducts)
+    setSystemUsers(sampleSystemUsers)
+    setActivityLogs(sampleActivityLogs)
     toast.success('Sample data loaded successfully')
   }
 
@@ -544,6 +556,15 @@ function App() {
           </Button>
 
           <Button
+            variant={currentModule === 'user-management' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('user-management')}
+          >
+            <UserGear size={18} className="mr-2" />
+            User Management
+          </Button>
+
+          <Button
             variant={currentModule === 'construction' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('construction')}
@@ -612,6 +633,15 @@ function App() {
           {currentModule === 'procurement' && renderComingSoon('Procurement', <ShoppingCart size={64} />)}
           {currentModule === 'finance' && renderComingSoon('Finance & Accounting', <CurrencyDollar size={64} />)}
           {currentModule === 'hr' && renderComingSoon('HR & Staff Management', <Users size={64} />)}
+          {currentModule === 'user-management' && (
+            <UserManagement
+              users={systemUsers || []}
+              setUsers={setSystemUsers}
+              currentUser={currentUser}
+              activityLogs={activityLogs || []}
+              setActivityLogs={setActivityLogs}
+            />
+          )}
           {currentModule === 'construction' && (
             <ConstructionManagement
               materials={constructionMaterials || []}
