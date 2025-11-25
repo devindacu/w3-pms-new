@@ -82,6 +82,7 @@ import { AmenitiesManagement } from '@/components/AmenitiesManagement'
 import { ConstructionManagement } from '@/components/ConstructionManagement'
 import { SupplierManagement } from '@/components/SupplierManagement'
 import { GeneralProductsManagement } from '@/components/GeneralProductsManagement'
+import { InventoryManagement } from '@/components/InventoryManagement'
 
 type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction' | 'suppliers' | 'general-products'
 
@@ -568,7 +569,15 @@ function App() {
           {currentModule === 'front-office' && renderComingSoon('Front Office', <Bed size={64} />)}
           {currentModule === 'housekeeping' && renderComingSoon('Housekeeping', <Broom size={64} />)}
           {currentModule === 'fnb' && renderComingSoon('F&B / POS', <ForkKnife size={64} />)}
-          {currentModule === 'inventory' && renderComingSoon('Inventory Management', <Package size={64} />)}
+          {currentModule === 'inventory' && (
+            <InventoryManagement
+              foodItems={foodItems || []}
+              amenities={amenities || []}
+              constructionMaterials={constructionMaterials || []}
+              generalProducts={generalProducts || []}
+              suppliers={suppliers || []}
+            />
+          )}
           {currentModule === 'food-management' && (
             <FoodManagement 
               foodItems={foodItems || []} 
