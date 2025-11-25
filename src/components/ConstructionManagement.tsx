@@ -84,10 +84,10 @@ export function ConstructionManagement({
 }: ConstructionManagementProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'materials' | 'projects' | 'contractors'>('overview')
   const [searchTerm, setSearchTerm] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState<string>('')
-  const [segmentFilter, setSegmentFilter] = useState<string>('')
-  const [statusFilter, setStatusFilter] = useState<string>('')
-  const [typeFilter, setTypeFilter] = useState<string>('')
+  const [categoryFilter, setCategoryFilter] = useState<string>('all-categories')
+  const [segmentFilter, setSegmentFilter] = useState<string>('all-segments')
+  const [statusFilter, setStatusFilter] = useState<string>('all-status')
+  const [typeFilter, setTypeFilter] = useState<string>('all-types')
   const [showMaterialDialog, setShowMaterialDialog] = useState(false)
   const [showProjectDialog, setShowProjectDialog] = useState(false)
   const [editingMaterial, setEditingMaterial] = useState<ConstructionMaterial | null>(null)
@@ -96,17 +96,17 @@ export function ConstructionManagement({
   const filteredMaterials = filterMaterialsBySegment(
     filterMaterialsByCategory(
       searchTerm ? searchConstructionMaterials(materials, searchTerm) : materials,
-      categoryFilter || undefined
+      categoryFilter === 'all-categories' ? undefined : categoryFilter
     ),
-    segmentFilter || undefined
+    segmentFilter === 'all-segments' ? undefined : segmentFilter
   )
 
   const filteredProjects = filterProjectsByType(
     filterProjectsByStatus(
       searchTerm ? searchProjects(projects, searchTerm) : projects,
-      statusFilter || undefined
+      statusFilter === 'all-status' ? undefined : statusFilter
     ),
-    typeFilter || undefined
+    typeFilter === 'all-types' ? undefined : typeFilter
   )
 
   const urgentMaterials = getUrgentConstructionMaterials(materials)
@@ -477,11 +477,11 @@ export function ConstructionManagement({
           <Package size={48} className="mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">No Materials Found</h3>
           <p className="text-muted-foreground mb-4">
-            {searchTerm || categoryFilter || segmentFilter
+            {searchTerm || (categoryFilter !== 'all-categories') || (segmentFilter !== 'all-segments')
               ? 'Try adjusting your filters'
               : 'Add your first material to get started'}
           </p>
-          {!searchTerm && !categoryFilter && !segmentFilter && (
+          {!searchTerm && categoryFilter === 'all-categories' && segmentFilter === 'all-segments' && (
             <Button onClick={() => setShowMaterialDialog(true)}>
               <Plus size={18} className="mr-2" />
               Add Material
@@ -642,11 +642,11 @@ export function ConstructionManagement({
           <Hammer size={48} className="mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">No Projects Found</h3>
           <p className="text-muted-foreground mb-4">
-            {searchTerm || statusFilter || typeFilter
+            {searchTerm || (statusFilter !== 'all-status') || (typeFilter !== 'all-types')
               ? 'Try adjusting your filters'
               : 'Create your first project to get started'}
           </p>
-          {!searchTerm && !statusFilter && !typeFilter && (
+          {!searchTerm && statusFilter === 'all-status' && typeFilter === 'all-types' && (
             <Button onClick={() => setShowProjectDialog(true)}>
               <Plus size={18} className="mr-2" />
               New Project
