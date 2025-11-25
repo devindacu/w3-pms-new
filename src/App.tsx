@@ -1,368 +1,332 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Toaster, toast } from 'sonner'
-import { Sidebar } from '@/components/Sidebar'
-import { DashboardStats } from '@/components/DashboardStats'
-import { ProjectCard } from '@/components/ProjectCard'
-import { TaskCard } from '@/components/TaskCard'
-import { ProjectDialog } from '@/components/ProjectDialog'
-import { TaskDialog } from '@/components/TaskDialog'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { Plus, MagnifyingGlass, ArrowLeft, Database } from '@phosphor-icons/react'
-import { type Project, type Task } from '@/lib/types'
-import { generateId, filterProjects, sortProjects, calculateProjectProgress } from '@/lib/helpers'
-import { sampleProjects, sampleTasks } from '@/lib/sampleData'
+import { Badge } from '@/components/ui/badge'
+import {
+  Gauge,
+  Bed,
+  Broom,
+  ForkKnife,
+  Package,
+  ShoppingCart,
+  CurrencyDollar,
+  Users,
+  Wrench,
+  ChartBar,
+  Plus,
+  Database,
+  ArrowUp,
+  ArrowDown,
+  Warning
+} from '@phosphor-icons/react'
+import { 
+  type Room, 
+  type Guest, 
+  type Reservation, 
+  type InventoryItem,
+  type HousekeepingTask,
+  type MenuItem,
+  type Order,
+  type Supplier,
+  type Employee,
+  type MaintenanceRequest
+} from '@/lib/types'
+import { 
+  formatCurrency, 
+  formatPercent,
+  calculateDashboardMetrics,
+  getRoomStatusColor,
+  getStockStatus,
+  generateNumber
+} from '@/lib/helpers'
+import {
+  sampleGuests,
+  sampleRooms,
+  sampleReservations,
+  sampleInventory,
+  sampleMenuItems,
+  sampleHousekeepingTasks,
+  sampleSuppliers,
+  sampleEmployees,
+  sampleMaintenanceRequests
+} from '@/lib/sampleData'
 
-type View = 'dashboard' | 'projects' | 'analytics' | 'team' | 'settings'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'engineering' | 'analytics'
 
 function App() {
-  const [projects, setProjects] = useKV<Project[]>('w3-pms-projects', [])
-  const [tasks, setTasks] = useKV<Task[]>('w3-pms-tasks', [])
-  const [currentView, setCurrentView] = useState<View>('dashboard')
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [sortBy, setSortBy] = useState<'name' | 'date' | 'status'>('date')
-  const [projectDialogOpen, setProjectDialogOpen] = useState(false)
-  const [taskDialogOpen, setTaskDialogOpen] = useState(false)
-  const [editingProject, setEditingProject] = useState<Project | undefined>()
-  const [editingTask, setEditingTask] = useState<Task | undefined>()
+  const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
+  const [rooms, setRooms] = useKV<Room[]>('w3-hotel-rooms', [])
+  const [reservations, setReservations] = useKV<Reservation[]>('w3-hotel-reservations', [])
+  const [inventory, setInventory] = useKV<InventoryItem[]>('w3-hotel-inventory', [])
+  const [menuItems, setMenuItems] = useKV<MenuItem[]>('w3-hotel-menu', [])
+  const [housekeepingTasks, setHousekeepingTasks] = useKV<HousekeepingTask[]>('w3-hotel-housekeeping', [])
+  const [orders, setOrders] = useKV<Order[]>('w3-hotel-orders', [])
+  const [suppliers, setSuppliers] = useKV<Supplier[]>('w3-hotel-suppliers', [])
+  const [employees, setEmployees] = useKV<Employee[]>('w3-hotel-employees', [])
+  const [maintenanceRequests, setMaintenanceRequests] = useKV<MaintenanceRequest[]>('w3-hotel-maintenance', [])
+  
+  const [currentModule, setCurrentModule] = useState<Module>('dashboard')
 
   const loadSampleData = () => {
-    setProjects(sampleProjects)
-    setTasks(sampleTasks)
+    setGuests(sampleGuests)
+    setRooms(sampleRooms)
+    setReservations(sampleReservations)
+    setInventory(sampleInventory)
+    setMenuItems(sampleMenuItems)
+    setHousekeepingTasks(sampleHousekeepingTasks)
+    setSuppliers(sampleSuppliers)
+    setEmployees(sampleEmployees)
+    setMaintenanceRequests(sampleMaintenanceRequests)
     toast.success('Sample data loaded successfully')
   }
 
-  const handleCreateProject = (projectData: Partial<Project>) => {
-    const newProject: Project = {
-      id: generateId(),
-      name: projectData.name || '',
-      description: projectData.description || '',
-      status: projectData.status || 'planning',
-      priority: projectData.priority || 'medium',
-      startDate: projectData.startDate || Date.now(),
-      endDate: projectData.endDate || Date.now(),
-      projectManager: projectData.projectManager || '',
-      teamMembers: projectData.teamMembers || [],
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      createdBy: 'current-user'
-    }
-    setProjects((current) => [...(current || []), newProject])
-    toast.success('Project created successfully')
-  }
+  const metrics = calculateDashboardMetrics(
+    rooms || [],
+    reservations || [],
+    housekeepingTasks || [],
+    orders || [],
+    inventory || [],
+    maintenanceRequests || []
+  )
 
-  const handleUpdateProject = (projectData: Partial<Project>) => {
-    if (!editingProject) return
-    setProjects((current) =>
-      (current || []).map((p) =>
-        p.id === editingProject.id
-          ? { ...p, ...projectData, updatedAt: Date.now() }
-          : p
-      )
-    )
-    toast.success('Project updated successfully')
-  }
-
-  const handleDeleteProject = (projectId: string) => {
-    setProjects((current) => (current || []).filter((p) => p.id !== projectId))
-    setTasks((current) => (current || []).filter((t) => t.projectId !== projectId))
-    setSelectedProject(null)
-    toast.success('Project deleted successfully')
-  }
-
-  const handleCreateTask = (taskData: Partial<Task>) => {
-    const newTask: Task = {
-      id: generateId(),
-      projectId: taskData.projectId || selectedProject?.id || '',
-      title: taskData.title || '',
-      description: taskData.description || '',
-      status: taskData.status || 'pending',
-      priority: taskData.priority || 'medium',
-      assignee: taskData.assignee,
-      dueDate: taskData.dueDate,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      createdBy: 'current-user'
-    }
-    setTasks((current) => [...(current || []), newTask])
-    toast.success('Task created successfully')
-  }
-
-  const handleUpdateTask = (taskData: Partial<Task>) => {
-    if (!editingTask) return
-    setTasks((current) =>
-      (current || []).map((t) =>
-        t.id === editingTask.id
-          ? { 
-              ...t, 
-              ...taskData, 
-              updatedAt: Date.now(),
-              completedAt: taskData.status === 'completed' ? Date.now() : t.completedAt
-            }
-          : t
-      )
-    )
-    toast.success('Task updated successfully')
-  }
-
-  const handleTaskStatusChange = (taskId: string, completed: boolean) => {
-    setTasks((current) =>
-      (current || []).map((t) =>
-        t.id === taskId
-          ? { 
-              ...t, 
-              status: completed ? 'completed' : 'pending',
-              completedAt: completed ? Date.now() : undefined,
-              updatedAt: Date.now()
-            }
-          : t
-      )
-    )
-  }
-
-  const filteredProjects = sortProjects(filterProjects(projects || [], searchTerm), sortBy)
-  const projectTasks = selectedProject ? (tasks || []).filter(t => t.projectId === selectedProject.id) : []
+  const hasData = (rooms || []).length > 0
 
   const renderDashboard = () => (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Welcome back! Here's your project overview</p>
-      </div>
-
-      <DashboardStats projects={projects || []} tasks={tasks || []} />
-
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Recent Projects</h2>
-          <Button onClick={() => {
-            setEditingProject(undefined)
-            setProjectDialogOpen(true)
-          }}>
-            <Plus size={18} className="mr-2" />
-            New Project
-          </Button>
-        </div>
-
-        {(projects || []).length === 0 ? (
-          <Card className="p-12 text-center">
-            <div className="max-w-md mx-auto">
-              <h3 className="text-lg font-semibold mb-2">No projects yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Get started by creating your first project or load sample data
-              </p>
-              <div className="flex gap-3 justify-center">
-                <Button onClick={() => setProjectDialogOpen(true)}>
-                  <Plus size={18} className="mr-2" />
-                  Create First Project
-                </Button>
-                <Button variant="outline" onClick={loadSampleData}>
-                  <Database size={18} className="mr-2" />
-                  Load Sample Data
-                </Button>
-              </div>
-            </div>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {(projects || []).slice(0, 6).map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                tasks={(tasks || []).filter(t => t.projectId === project.id)}
-                onSelect={() => setSelectedProject(project)}
-                onEdit={() => {
-                  setEditingProject(project)
-                  setProjectDialogOpen(true)
-                }}
-                onDelete={() => handleDeleteProject(project.id)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-
-  const renderProjects = () => (
-    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold">Projects</h1>
-          <p className="text-muted-foreground mt-1">Manage all your projects</p>
+          <h1 className="text-4xl font-semibold">Hotel Dashboard</h1>
+          <p className="text-muted-foreground mt-1">Unified view of all hotel operations</p>
         </div>
-        <Button onClick={() => {
-          setEditingProject(undefined)
-          setProjectDialogOpen(true)
-        }}>
-          <Plus size={18} className="mr-2" />
-          New Project
-        </Button>
+        {!hasData && (
+          <Button onClick={loadSampleData} size="lg">
+            <Database size={20} className="mr-2" />
+            Load Sample Data
+          </Button>
+        )}
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1">
-          <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-          <Input
-            placeholder="Search projects..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="date">Date Created</SelectItem>
-            <SelectItem value="name">Name</SelectItem>
-            <SelectItem value="status">Status</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {filteredProjects.length === 0 ? (
-        <Card className="p-12 text-center">
+      {!hasData ? (
+        <Card className="p-16 text-center">
           <div className="max-w-md mx-auto">
-            <h3 className="text-lg font-semibold mb-2">
-              {searchTerm ? 'No projects found' : 'No projects yet'}
-            </h3>
-            <p className="text-muted-foreground mb-4">
-              {searchTerm 
-                ? 'Try adjusting your search terms' 
-                : 'Get started by creating your first project or load sample data'
-              }
+            <Gauge size={64} className="mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-2xl font-semibold mb-2">Welcome to W3 Hotel PMS</h3>
+            <p className="text-muted-foreground mb-6">
+              Your comprehensive hotel management solution integrating all operations in one platform
             </p>
-            {!searchTerm && (
-              <div className="flex gap-3 justify-center">
-                <Button onClick={() => setProjectDialogOpen(true)}>
-                  <Plus size={18} className="mr-2" />
-                  Create First Project
-                </Button>
-                <Button variant="outline" onClick={loadSampleData}>
-                  <Database size={18} className="mr-2" />
-                  Load Sample Data
-                </Button>
-              </div>
-            )}
+            <Button onClick={loadSampleData} size="lg">
+              <Database size={20} className="mr-2" />
+              Load Sample Data to Get Started
+            </Button>
           </div>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredProjects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              tasks={(tasks || []).filter(t => t.projectId === project.id)}
-              onSelect={() => setSelectedProject(project)}
-              onEdit={() => {
-                setEditingProject(project)
-                setProjectDialogOpen(true)
-              }}
-              onDelete={() => handleDeleteProject(project.id)}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="p-6 border-l-4 border-l-primary">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-medium text-muted-foreground">Occupancy</h3>
+                <Bed size={20} className="text-primary" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-3xl font-semibold">{formatPercent(metrics.occupancy.rate)}</p>
+                <div className="flex items-center gap-4 text-sm">
+                  <span className="text-muted-foreground">
+                    {metrics.occupancy.occupied} / {metrics.occupancy.occupied + metrics.occupancy.available} rooms
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  <div className="text-xs">
+                    <span className="text-muted-foreground">Available:</span>
+                    <span className="ml-1 font-medium">{metrics.occupancy.available}</span>
+                  </div>
+                  <div className="text-xs">
+                    <span className="text-muted-foreground">Maintenance:</span>
+                    <span className="ml-1 font-medium">{metrics.occupancy.maintenance}</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6 border-l-4 border-l-success">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-medium text-muted-foreground">Revenue Today</h3>
+                <CurrencyDollar size={20} className="text-success" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-3xl font-semibold">{formatCurrency(metrics.revenue.today)}</p>
+                <div className="flex items-center gap-1 text-sm text-success">
+                  <ArrowUp size={16} />
+                  <span>Live tracking</span>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6 border-l-4 border-l-accent">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-medium text-muted-foreground">Housekeeping</h3>
+                <Broom size={20} className="text-accent" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-3xl font-semibold">{metrics.housekeeping.pendingTasks}</p>
+                <p className="text-sm text-muted-foreground">Pending tasks</p>
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  <div className="text-xs">
+                    <span className="text-muted-foreground">Clean:</span>
+                    <span className="ml-1 font-medium text-success">{metrics.housekeeping.cleanRooms}</span>
+                  </div>
+                  <div className="text-xs">
+                    <span className="text-muted-foreground">Dirty:</span>
+                    <span className="ml-1 font-medium text-destructive">{metrics.housekeeping.dirtyRooms}</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6 border-l-4 border-l-destructive">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-medium text-muted-foreground">Inventory Alerts</h3>
+                <Warning size={20} className="text-destructive" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-3xl font-semibold">{metrics.inventory.lowStockItems}</p>
+                <p className="text-sm text-muted-foreground">Low stock items</p>
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  <div className="text-xs">
+                    <span className="text-muted-foreground">Expiring:</span>
+                    <span className="ml-1 font-medium text-accent">{metrics.inventory.expiringItems}</span>
+                  </div>
+                  <div className="text-xs">
+                    <span className="text-muted-foreground">Value:</span>
+                    <span className="ml-1 font-medium">{formatCurrency(metrics.inventory.totalValue)}</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">F&B Performance</h3>
+                <ForkKnife size={20} className="text-muted-foreground" />
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Orders Today</span>
+                  <span className="text-lg font-semibold">{metrics.fnb.ordersToday}</span>
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">F&B Revenue</span>
+                  <span className="text-lg font-semibold">{formatCurrency(metrics.fnb.revenueToday)}</span>
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Avg Order Value</span>
+                  <span className="text-lg font-semibold">{formatCurrency(metrics.fnb.averageOrderValue)}</span>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Maintenance Status</h3>
+                <Wrench size={20} className="text-muted-foreground" />
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Open Requests</span>
+                  <span className="text-lg font-semibold">{metrics.maintenance.openRequests}</span>
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Urgent</span>
+                  <Badge variant="destructive">{metrics.maintenance.urgent}</Badge>
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Rooms Out of Service</span>
+                  <span className="text-lg font-semibold">{metrics.occupancy.maintenance}</span>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Room Status Overview</h3>
+              <Button size="sm" onClick={() => setCurrentModule('housekeeping')}>
+                View All Rooms
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              {(rooms || []).slice(0, 12).map((room) => (
+                <div
+                  key={room.id}
+                  className={`p-3 rounded-lg border-2 text-center ${getRoomStatusColor(room.status)}`}
+                >
+                  <div className="font-semibold text-lg">{room.roomNumber}</div>
+                  <div className="text-xs mt-1 capitalize">{room.roomType}</div>
+                  <div className="text-xs mt-1 opacity-80">{room.status.replace('-', ' ')}</div>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Low Stock Items</h3>
+              <Button size="sm" onClick={() => setCurrentModule('inventory')}>
+                View Inventory
+              </Button>
+            </div>
+            {metrics.inventory.lowStockItems === 0 ? (
+              <p className="text-center text-muted-foreground py-8">All inventory levels are healthy</p>
+            ) : (
+              <div className="space-y-3">
+                {(inventory || [])
+                  .filter(item => item.currentStock <= item.reorderLevel && item.currentStock > 0)
+                  .slice(0, 5)
+                  .map((item) => (
+                    <div key={item.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                      <div>
+                        <p className="font-medium">{item.name}</p>
+                        <p className="text-sm text-muted-foreground">{item.category}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-destructive">{item.currentStock} {item.unit}</p>
+                        <p className="text-xs text-muted-foreground">Reorder at {item.reorderLevel}</p>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </Card>
+        </>
       )}
     </div>
   )
 
-  const renderProjectDetail = () => {
-    if (!selectedProject) return null
-
-    const progress = calculateProjectProgress(projectTasks)
-
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setSelectedProject(null)}>
-            <ArrowLeft size={20} />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-3xl font-semibold">{selectedProject.name}</h1>
-            <p className="text-muted-foreground mt-1">{selectedProject.description}</p>
-          </div>
-          <Button onClick={() => {
-            setEditingTask(undefined)
-            setTaskDialogOpen(true)
-          }}>
-            <Plus size={18} className="mr-2" />
-            New Task
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="p-4">
-            <p className="text-sm text-muted-foreground mb-1">Progress</p>
-            <p className="text-2xl font-semibold">{progress}%</p>
-          </Card>
-          <Card className="p-4">
-            <p className="text-sm text-muted-foreground mb-1">Total Tasks</p>
-            <p className="text-2xl font-semibold">{projectTasks.length}</p>
-          </Card>
-          <Card className="p-4">
-            <p className="text-sm text-muted-foreground mb-1">Completed</p>
-            <p className="text-2xl font-semibold">
-              {projectTasks.filter(t => t.status === 'completed').length}
-            </p>
-          </Card>
-          <Card className="p-4">
-            <p className="text-sm text-muted-foreground mb-1">Team Size</p>
-            <p className="text-2xl font-semibold">{selectedProject.teamMembers.length}</p>
-          </Card>
-        </div>
-
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Tasks</h2>
-          {projectTasks.length === 0 ? (
-            <Card className="p-12 text-center">
-              <div className="max-w-md mx-auto">
-                <h3 className="text-lg font-semibold mb-2">No tasks yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Start organizing work by creating tasks
-                </p>
-                <Button onClick={() => setTaskDialogOpen(true)}>
-                  <Plus size={18} className="mr-2" />
-                  Create First Task
-                </Button>
-              </div>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {projectTasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  onSelect={() => setSelectedTask(task)}
-                  onStatusChange={(completed) => handleTaskStatusChange(task.id, completed)}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  const renderComingSoon = (title: string) => (
+  const renderComingSoon = (title: string, icon: React.ReactNode) => (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold">{title}</h1>
-        <p className="text-muted-foreground mt-1">This feature is coming soon</p>
+        <h1 className="text-4xl font-semibold">{title}</h1>
+        <p className="text-muted-foreground mt-1">This module is under development</p>
       </div>
-      <Card className="p-12 text-center">
+      <Card className="p-16 text-center">
         <div className="max-w-md mx-auto">
-          <h3 className="text-lg font-semibold mb-2">Under Development</h3>
-          <p className="text-muted-foreground">
-            We're working hard to bring you this feature. Stay tuned!
+          <div className="text-muted-foreground mb-4 flex justify-center">{icon}</div>
+          <h3 className="text-2xl font-semibold mb-2">Coming Soon</h3>
+          <p className="text-muted-foreground mb-6">
+            We're building this module to provide comprehensive {title.toLowerCase()} management capabilities.
           </p>
+          <Button onClick={() => setCurrentModule('dashboard')} variant="outline">
+            Back to Dashboard
+          </Button>
         </div>
       </Card>
     </div>
@@ -370,46 +334,125 @@ function App() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar currentView={currentView} onNavigate={setCurrentView} />
-      
+      <aside className="w-64 border-r bg-card p-4 space-y-2">
+        <div className="px-3 py-4 mb-4">
+          <h2 className="text-xl font-semibold">W3 Hotel PMS</h2>
+          <p className="text-xs text-muted-foreground mt-1">Unified Management</p>
+        </div>
+
+        <nav className="space-y-1">
+          <Button
+            variant={currentModule === 'dashboard' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('dashboard')}
+          >
+            <Gauge size={18} className="mr-2" />
+            Dashboard
+          </Button>
+
+          <Separator className="my-2" />
+
+          <Button
+            variant={currentModule === 'front-office' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('front-office')}
+          >
+            <Bed size={18} className="mr-2" />
+            Front Office
+          </Button>
+
+          <Button
+            variant={currentModule === 'housekeeping' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('housekeeping')}
+          >
+            <Broom size={18} className="mr-2" />
+            Housekeeping
+          </Button>
+
+          <Button
+            variant={currentModule === 'fnb' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('fnb')}
+          >
+            <ForkKnife size={18} className="mr-2" />
+            F&B / POS
+          </Button>
+
+          <Separator className="my-2" />
+
+          <Button
+            variant={currentModule === 'inventory' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('inventory')}
+          >
+            <Package size={18} className="mr-2" />
+            Inventory
+          </Button>
+
+          <Button
+            variant={currentModule === 'procurement' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('procurement')}
+          >
+            <ShoppingCart size={18} className="mr-2" />
+            Procurement
+          </Button>
+
+          <Separator className="my-2" />
+
+          <Button
+            variant={currentModule === 'finance' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('finance')}
+          >
+            <CurrencyDollar size={18} className="mr-2" />
+            Finance
+          </Button>
+
+          <Button
+            variant={currentModule === 'hr' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('hr')}
+          >
+            <Users size={18} className="mr-2" />
+            HR & Staff
+          </Button>
+
+          <Button
+            variant={currentModule === 'engineering' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('engineering')}
+          >
+            <Wrench size={18} className="mr-2" />
+            Engineering
+          </Button>
+
+          <Button
+            variant={currentModule === 'analytics' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('analytics')}
+          >
+            <ChartBar size={18} className="mr-2" />
+            Analytics
+          </Button>
+        </nav>
+      </aside>
+
       <main className="flex-1 overflow-auto">
         <div className="p-8">
-          {selectedProject ? (
-            renderProjectDetail()
-          ) : currentView === 'dashboard' ? (
-            renderDashboard()
-          ) : currentView === 'projects' ? (
-            renderProjects()
-          ) : currentView === 'analytics' ? (
-            renderComingSoon('Analytics')
-          ) : currentView === 'team' ? (
-            renderComingSoon('Team')
-          ) : (
-            renderComingSoon('Settings')
-          )}
+          {currentModule === 'dashboard' && renderDashboard()}
+          {currentModule === 'front-office' && renderComingSoon('Front Office', <Bed size={64} />)}
+          {currentModule === 'housekeeping' && renderComingSoon('Housekeeping', <Broom size={64} />)}
+          {currentModule === 'fnb' && renderComingSoon('F&B / POS', <ForkKnife size={64} />)}
+          {currentModule === 'inventory' && renderComingSoon('Inventory Management', <Package size={64} />)}
+          {currentModule === 'procurement' && renderComingSoon('Procurement', <ShoppingCart size={64} />)}
+          {currentModule === 'finance' && renderComingSoon('Finance & Accounting', <CurrencyDollar size={64} />)}
+          {currentModule === 'hr' && renderComingSoon('HR & Staff Management', <Users size={64} />)}
+          {currentModule === 'engineering' && renderComingSoon('Engineering & Maintenance', <Wrench size={64} />)}
+          {currentModule === 'analytics' && renderComingSoon('Analytics & Reports', <ChartBar size={64} />)}
         </div>
       </main>
-
-      <ProjectDialog
-        project={editingProject}
-        open={projectDialogOpen}
-        onClose={() => {
-          setProjectDialogOpen(false)
-          setEditingProject(undefined)
-        }}
-        onSave={editingProject ? handleUpdateProject : handleCreateProject}
-      />
-
-      <TaskDialog
-        task={editingTask}
-        projectId={selectedProject?.id || ''}
-        open={taskDialogOpen}
-        onClose={() => {
-          setTaskDialogOpen(false)
-          setEditingTask(undefined)
-        }}
-        onSave={editingTask ? handleUpdateTask : handleCreateTask}
-      />
 
       <Toaster position="top-right" richColors />
     </div>

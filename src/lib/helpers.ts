@@ -1,7 +1,23 @@
-import { type Project, type Task, type ProjectStatus, type TaskStatus } from './types'
+import { 
+  type Room, 
+  type RoomStatus, 
+  type Reservation, 
+  type Folio, 
+  type InventoryItem,
+  type HousekeepingTask,
+  type Order,
+  type MaintenanceRequest,
+  type DashboardMetrics
+} from './types'
 
 export function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+}
+
+export function generateNumber(prefix: string): string {
+  const timestamp = Date.now().toString().slice(-8)
+  const random = Math.random().toString(36).substr(2, 4).toUpperCase()
+  return `${prefix}${timestamp}${random}`
 }
 
 export function getInitials(name: string): string {
@@ -21,81 +37,255 @@ export function formatDate(timestamp: number): string {
   })
 }
 
-export function formatRelativeTime(timestamp: number): string {
-  const now = Date.now()
-  const diff = now - timestamp
-  const seconds = Math.floor(diff / 1000)
-  const minutes = Math.floor(seconds / 60)
-  const hours = Math.floor(minutes / 60)
-  const days = Math.floor(hours / 24)
-
-  if (days > 0) return `${days}d ago`
-  if (hours > 0) return `${hours}h ago`
-  if (minutes > 0) return `${minutes}m ago`
-  return 'just now'
+export function formatDateTime(timestamp: number): string {
+  return new Date(timestamp).toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 
-export function calculateProjectProgress(tasks: Task[]): number {
-  if (tasks.length === 0) return 0
-  const completed = tasks.filter(t => t.status === 'completed').length
-  return Math.round((completed / tasks.length) * 100)
+export function formatTime(timestamp: number): string {
+  return new Date(timestamp).toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 
-export function getProjectStatusColor(status: ProjectStatus): string {
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(amount)
+}
+
+export function formatPercent(value: number): string {
+  return `${Math.round(value)}%`
+}
+
+export function calculateNights(checkIn: number, checkOut: number): number {
+  const diffMs = checkOut - checkIn
+  return Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+}
+
+export function calculateOccupancyRate(occupied: number, total: number): number {
+  if (total === 0) return 0
+  return Math.round((occupied / total) * 100)
+}
+
+export function calculateFolioBalance(folio: Folio): number {
+  const totalCharges = folio.charges.reduce((sum, charge) => sum + (charge.amount * charge.quantity), 0)
+  const totalPayments = folio.payments
+    .filter(p => p.status === 'paid')
+    .reduce((sum, payment) => sum + payment.amount, 0)
+  return totalCharges - totalPayments
+}
+
+export function calculateInventoryValue(items: InventoryItem[]): number {
+  return items.reduce((sum, item) => sum + (item.currentStock * item.unitCost), 0)
+}
+
+export function calculateOrderTotal(items: { price: number; quantity: number }[]): number {
+  return items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+}
+
+export function getRoomStatusColor(status: RoomStatus): string {
   const colors = {
-    planning: 'bg-muted text-muted-foreground',
-    active: 'bg-primary text-primary-foreground',
-    'on-hold': 'bg-accent text-accent-foreground',
-    completed: 'bg-success text-success-foreground',
-    archived: 'bg-secondary text-secondary-foreground'
+    'vacant-clean': 'bg-success text-success-foreground',
+    'vacant-dirty': 'bg-accent text-accent-foreground',
+    'occupied-clean': 'bg-primary text-primary-foreground',
+    'occupied-dirty': 'bg-secondary text-secondary-foreground',
+    'maintenance': 'bg-muted text-muted-foreground',
+    'out-of-order': 'bg-destructive text-destructive-foreground'
   }
   return colors[status]
 }
 
-export function getTaskStatusColor(status: TaskStatus): string {
-  const colors = {
-    pending: 'bg-muted text-muted-foreground',
-    'in-progress': 'bg-primary text-primary-foreground',
-    'in-review': 'bg-accent text-accent-foreground',
-    completed: 'bg-success text-success-foreground',
-    blocked: 'bg-destructive text-destructive-foreground'
+export function getRoomStatusIcon(status: RoomStatus): string {
+  const icons = {
+    'vacant-clean': 'CheckCircle',
+    'vacant-dirty': 'Warning',
+    'occupied-clean': 'User',
+    'occupied-dirty': 'UserCircle',
+    'maintenance': 'Wrench',
+    'out-of-order': 'XCircle'
   }
-  return colors[status]
+  return icons[status]
+}
+
+export function getStockStatusColor(item: InventoryItem): string {
+  if (item.currentStock === 0) return 'text-destructive'
+  if (item.currentStock <= item.reorderLevel) return 'text-accent'
+  return 'text-success'
+}
+
+export function getStockStatus(item: InventoryItem): string {
+  if (item.currentStock === 0) return 'out-of-stock'
+  if (item.currentStock <= item.reorderLevel) return 'low-stock'
+  return 'in-stock'
+}
+
+export function isExpiringSoon(expiryDate: number | undefined, daysThreshold: number = 7): boolean {
+  if (!expiryDate) return false
+  const daysUntilExpiry = Math.ceil((expiryDate - Date.now()) / (1000 * 60 * 60 * 24))
+  return daysUntilExpiry <= daysThreshold && daysUntilExpiry >= 0
+}
+
+export function isExpired(expiryDate: number | undefined): boolean {
+  if (!expiryDate) return false
+  return Date.now() > expiryDate
+}
+
+export function getDaysUntilExpiry(expiryDate: number | undefined): number | null {
+  if (!expiryDate) return null
+  const diff = expiryDate - Date.now()
+  return Math.ceil(diff / (1000 * 60 * 60 * 24))
+}
+
+export function filterRoomsByStatus(rooms: Room[], status?: RoomStatus): Room[] {
+  if (!status) return rooms
+  return rooms.filter(r => r.status === status)
+}
+
+export function filterRoomsByType(rooms: Room[], type?: string): Room[] {
+  if (!type) return rooms
+  return rooms.filter(r => r.roomType === type)
+}
+
+export function sortRoomsByNumber(rooms: Room[]): Room[] {
+  return [...rooms].sort((a, b) => {
+    const numA = parseInt(a.roomNumber)
+    const numB = parseInt(b.roomNumber)
+    return numA - numB
+  })
+}
+
+export function getAvailableRooms(
+  rooms: Room[], 
+  reservations: Reservation[], 
+  checkIn: number, 
+  checkOut: number
+): Room[] {
+  const occupiedRoomIds = reservations
+    .filter(r => 
+      r.status === 'confirmed' || r.status === 'checked-in'
+    )
+    .filter(r => {
+      return !(checkOut <= r.checkInDate || checkIn >= r.checkOutDate)
+    })
+    .map(r => r.roomId)
+    .filter((id): id is string => id !== undefined)
+
+  return rooms.filter(room => 
+    !occupiedRoomIds.includes(room.id) && 
+    (room.status === 'vacant-clean' || room.status === 'vacant-dirty')
+  )
+}
+
+export function calculateHousekeepingWorkload(tasks: HousekeepingTask[], housekeeperId: string): number {
+  return tasks.filter(t => 
+    t.assignedTo === housekeeperId && 
+    (t.status === 'pending' || t.status === 'in-progress')
+  ).length
 }
 
 export function getPriorityColor(priority: string): string {
   const colors = {
     low: 'text-muted-foreground',
+    normal: 'text-foreground',
     medium: 'text-primary',
     high: 'text-accent',
     urgent: 'text-destructive'
   }
-  return colors[priority as keyof typeof colors] || colors.medium
+  return colors[priority as keyof typeof colors] || colors.normal
 }
 
-export function isOverdue(dueDate: number | undefined): boolean {
-  if (!dueDate) return false
-  return Date.now() > dueDate
+export function formatGuestName(firstName: string, lastName: string): string {
+  return `${firstName} ${lastName}`
 }
 
-export function getDaysUntilDue(dueDate: number | undefined): number | null {
-  if (!dueDate) return null
-  const diff = dueDate - Date.now()
-  return Math.ceil(diff / (1000 * 60 * 60 * 24))
-}
-
-export function filterProjects(projects: Project[], searchTerm: string): Project[] {
+export function searchGuests(guests: any[], searchTerm: string): any[] {
   const term = searchTerm.toLowerCase()
-  return projects.filter(p => 
-    p.name.toLowerCase().includes(term) ||
-    p.description.toLowerCase().includes(term)
+  return guests.filter(g => 
+    g.firstName.toLowerCase().includes(term) ||
+    g.lastName.toLowerCase().includes(term) ||
+    g.email?.toLowerCase().includes(term) ||
+    g.phone.includes(term)
   )
 }
 
-export function sortProjects(projects: Project[], sortBy: 'name' | 'date' | 'status'): Project[] {
-  return [...projects].sort((a, b) => {
-    if (sortBy === 'name') return a.name.localeCompare(b.name)
-    if (sortBy === 'date') return b.createdAt - a.createdAt
-    return a.status.localeCompare(b.status)
-  })
+export function searchInventory(items: InventoryItem[], searchTerm: string): InventoryItem[] {
+  const term = searchTerm.toLowerCase()
+  return items.filter(i => 
+    i.name.toLowerCase().includes(term) ||
+    i.category.toLowerCase().includes(term)
+  )
+}
+
+export function calculateDashboardMetrics(
+  rooms: Room[],
+  reservations: Reservation[],
+  housekeepingTasks: HousekeepingTask[],
+  orders: Order[],
+  inventory: InventoryItem[],
+  maintenanceRequests: MaintenanceRequest[]
+): DashboardMetrics {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const todayStart = today.getTime()
+  const todayEnd = todayStart + 24 * 60 * 60 * 1000
+
+  const occupiedRooms = rooms.filter(r => r.status === 'occupied-clean' || r.status === 'occupied-dirty')
+  const availableRooms = rooms.filter(r => r.status === 'vacant-clean')
+  const maintenanceRooms = rooms.filter(r => r.status === 'maintenance' || r.status === 'out-of-order')
+  
+  const todayOrders = orders.filter(o => o.createdAt >= todayStart && o.createdAt < todayEnd)
+  const todayRevenue = todayOrders.reduce((sum, o) => sum + o.total, 0)
+
+  const lowStockItems = inventory.filter(i => i.currentStock <= i.reorderLevel && i.currentStock > 0)
+  const expiringItems = inventory.filter(i => isExpiringSoon(i.expiryDate, 7))
+  const inventoryValue = calculateInventoryValue(inventory)
+
+  const openRequests = maintenanceRequests.filter(r => 
+    r.status === 'scheduled' || r.status === 'in-progress'
+  )
+  const urgentRequests = openRequests.filter(r => r.priority === 'urgent')
+
+  return {
+    occupancy: {
+      current: occupiedRooms.length,
+      available: availableRooms.length,
+      occupied: occupiedRooms.length,
+      maintenance: maintenanceRooms.length,
+      rate: calculateOccupancyRate(occupiedRooms.length, rooms.length)
+    },
+    revenue: {
+      today: todayRevenue,
+      month: 0,
+      lastMonth: 0,
+      growth: 0
+    },
+    housekeeping: {
+      cleanRooms: rooms.filter(r => r.status === 'vacant-clean' || r.status === 'occupied-clean').length,
+      dirtyRooms: rooms.filter(r => r.status === 'vacant-dirty' || r.status === 'occupied-dirty').length,
+      pendingTasks: housekeepingTasks.filter(t => t.status === 'pending').length
+    },
+    fnb: {
+      ordersToday: todayOrders.length,
+      revenueToday: todayRevenue,
+      averageOrderValue: todayOrders.length > 0 ? todayRevenue / todayOrders.length : 0
+    },
+    inventory: {
+      lowStockItems: lowStockItems.length,
+      expiringItems: expiringItems.length,
+      totalValue: inventoryValue
+    },
+    maintenance: {
+      openRequests: openRequests.length,
+      urgent: urgentRequests.length,
+      avgResolutionTime: 0
+    }
+  }
 }

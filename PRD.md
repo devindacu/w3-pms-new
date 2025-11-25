@@ -1,146 +1,189 @@
-# W3 Project Management System - Enterprise Edition
+# W3 Hotel Management System - Unified PMS Platform
 
-A comprehensive enterprise project management solution that enables teams to organize, track, and manage projects with task assignments, progress monitoring, and collaborative workflows.
+A comprehensive cloud-based Property Management System integrating Front Office, Housekeeping, F&B/POS, Inventory, Procurement, Finance, HR, Engineering, CRM, and Analytics into one centralized platform for modern hotel operations.
 
 **Experience Qualities**: 
-1. **Professional** - Clean, structured interface that conveys competence and reliability for enterprise environments
-2. **Efficient** - Streamlined workflows that minimize clicks and maximize productivity for project managers and team members
-3. **Transparent** - Clear visibility into project status, task assignments, and progress across all organizational levels
+1. **Efficient** - Streamlined workflows that reduce manual work and enable staff to focus on guest experience
+2. **Unified** - All hotel operations accessible from a single integrated platform with real-time synchronization
+3. **Intelligent** - Data-driven insights and automation that optimize operations and revenue
 
-**Complexity Level**: Complex Application (advanced functionality, accounts)
-  - Multi-user project management with role-based access, real-time updates, task hierarchies, progress tracking, and comprehensive data persistence
+**Complexity Level**: Complex Application (advanced functionality, multi-module integration)
+  - Enterprise hotel management with role-based access, real-time inventory tracking, automated workflows, financial integration, and comprehensive operational control across all departments
 
 ## Essential Features
 
-### Project Dashboard
-- **Functionality**: Central hub displaying all active projects with key metrics, status indicators, and quick actions
-- **Purpose**: Provides instant overview of organizational project health and enables rapid navigation
+### Unified Dashboard
+- **Functionality**: Central command center displaying key metrics across all hotel operations (occupancy, revenue, inventory alerts, pending tasks, housekeeping status)
+- **Purpose**: Provides instant operational overview enabling rapid decision-making and issue identification
 - **Trigger**: User logs in or navigates to home
-- **Progression**: Login → Dashboard loads with project cards → Filter/sort projects → Click project to drill down → View detailed project view
-- **Success criteria**: All projects visible with accurate status, filtering works, metrics update in real-time
+- **Progression**: Login → Dashboard loads with module widgets → View critical alerts → Navigate to specific module → Return to dashboard
+- **Success criteria**: All metrics accurate and real-time, alerts prioritized correctly, navigation seamless
 
-### Project Creation & Management
-- **Functionality**: Create new projects with name, description, timeline, team assignments, and objectives
-- **Purpose**: Establishes project structure and accountability from inception
-- **Trigger**: User clicks "New Project" button
-- **Progression**: Click new project → Enter project details (name, description, start/end dates, priority) → Assign project manager → Add team members → Set milestones → Save → Project appears in dashboard
-- **Success criteria**: Projects persist, all fields validate correctly, team notifications sent
+### Front Office Management
+- **Functionality**: Guest reservations, check-in/check-out, room allocation, folio management, billing, payment processing
+- **Purpose**: Manages complete guest lifecycle from booking to departure
+- **Trigger**: Guest booking received or walk-in arrival
+- **Progression**: Create reservation → Assign room → Check-in guest → Update folio with charges → Process checkout → Generate invoice → Accept payment
+- **Success criteria**: Booking conflicts prevented, folios accurate, payments reconcile, guest history maintained
 
-### Task Management System
-- **Functionality**: Create, assign, update, and track tasks within projects with status, priority, assignees, and dependencies
-- **Purpose**: Breaks down project work into manageable units with clear ownership
-- **Trigger**: User navigates to project and clicks "Add Task" or interacts with existing task
-- **Progression**: Open project → Click add task → Enter task details (title, description, assignee, due date, priority, status) → Set dependencies (optional) → Save → Task appears in project board → Update status via drag-drop or edit
-- **Success criteria**: Tasks persist, status updates reflect immediately, assignees receive notifications, dependencies prevent illogical workflows
+### Housekeeping Operations
+- **Functionality**: Room status tracking (clean/dirty/inspected), housekeeper assignment, workload planning, linen management
+- **Purpose**: Ensures rooms are guest-ready and housekeeping efficiency maximized
+- **Trigger**: Guest checkout or room status update
+- **Progression**: Room becomes vacant → Housekeeper assigned → Clean room → Update status to inspected → Front desk notified → Room available for sale
+- **Success criteria**: Status updates real-time, workload balanced, cleaning standards maintained
 
-### Progress Tracking & Analytics
-- **Functionality**: Visual representation of project completion, task distribution, timeline adherence, and team workload
-- **Purpose**: Enables data-driven decisions and early identification of risks
-- **Trigger**: User views project details or analytics dashboard
-- **Progression**: Navigate to project → View progress charts (Gantt, Kanban, burndown) → Filter by team member/status/priority → Export reports → Share insights
-- **Success criteria**: Charts render accurately, data updates real-time, calculations correct (% complete, velocity, etc.)
+### Point of Sale (F&B)
+- **Functionality**: Restaurant, bar, room service ordering with menu management, kitchen order tickets, auto inventory deduction
+- **Purpose**: Streamlines F&B operations and integrates sales with inventory and guest billing
+- **Trigger**: Order placed at restaurant, bar, or via room service
+- **Progression**: Take order → Generate KOT to kitchen → Prepare items → Deduct ingredients from inventory → Close bill (room charge or cash) → Update guest folio if applicable
+- **Success criteria**: Orders accurate, inventory updates automatic, bills reconcile, kitchen timing optimized
 
-### Team Collaboration
-- **Functionality**: Team member directory, task comments, activity feeds, and notifications
-- **Purpose**: Facilitates communication and maintains context around project activities
-- **Trigger**: User adds comment, mentions team member, or updates task
-- **Progression**: Open task → Add comment with @mentions → Submit → Mentioned users receive notification → View activity timeline → Respond
-- **Success criteria**: Comments persist, notifications deliver promptly, activity log complete
+### Inventory & Procurement
+- **Functionality**: Multi-store inventory tracking, stock alerts, requisition workflows, purchase orders, goods receiving, FIFO/batch tracking
+- **Purpose**: Maintains optimal stock levels while minimizing waste and costs
+- **Trigger**: Stock falls below reorder level or department submits requisition
+- **Progression**: Low stock alert → Create requisition → Approve requisition → Generate PO → Send to supplier → Receive goods (GRN) → Update inventory → Match invoice
+- **Success criteria**: Stock-outs prevented, expiry minimized, procurement costs optimized, supplier performance tracked
 
-### User Management & Roles
-- **Functionality**: Define user roles (Admin, Project Manager, Team Member), manage permissions, assign users to projects
-- **Purpose**: Ensures security and appropriate access levels across organization
-- **Trigger**: Admin navigates to user management
-- **Progression**: Admin panel → View users → Add/edit user → Assign role → Set project access → Save → User permissions take effect
-- **Success criteria**: Role-based access enforced, unauthorized actions blocked, audit trail maintained
+### Recipe & Menu Management
+- **Functionality**: Recipe builder with ingredient mapping, portion costing, menu management, auto inventory deduction from recipes
+- **Purpose**: Controls food costs and ensures consistent quality
+- **Trigger**: Chef creates recipe or updates menu
+- **Progression**: Create recipe → Map ingredients to inventory → Calculate portion cost → Add to menu → When dish sold → Auto deduct ingredients from stock
+- **Success criteria**: Recipe costs accurate, inventory deductions automatic, food cost variance minimized
+
+### Finance & Accounting
+- **Functionality**: Chart of accounts, AP/AR, revenue centers, tax management, integration with all revenue/expense modules
+- **Purpose**: Maintains financial accuracy and enables comprehensive reporting
+- **Trigger**: Transaction occurs in any module (sale, purchase, payment)
+- **Progression**: Transaction initiated → Auto journal entry created → Post to ledger → Update balances → Reconcile → Generate reports
+- **Success criteria**: All transactions captured, reconciliation clean, reports accurate, audit trail complete
+
+### CRM & Guest Engagement
+- **Functionality**: Guest profiles, preferences, loyalty program, feedback tracking, marketing campaigns
+- **Purpose**: Enhances guest satisfaction and drives repeat business
+- **Trigger**: Guest check-in or profile update
+- **Progression**: Guest arrives → Profile loaded with preferences → Personalize service → Capture feedback → Award loyalty points → Send post-stay communication
+- **Success criteria**: Preferences applied, feedback captured, loyalty tracked, marketing effective
+
+### Engineering & Maintenance
+- **Functionality**: Preventive maintenance schedules, work order management, spare parts inventory, equipment history
+- **Purpose**: Minimizes downtime and extends asset life
+- **Trigger**: Scheduled maintenance due or issue reported
+- **Progression**: Maintenance due → Create work order → Assign technician → Issue spare parts → Complete work → Update equipment log
+- **Success criteria**: Schedules adhered to, response times met, parts availability maintained
+
+### HR & Staff Management
+- **Functionality**: Employee profiles, attendance, leave management, shift rosters, performance reviews
+- **Purpose**: Optimizes staff scheduling and maintains employee records
+- **Trigger**: Shift planning period or leave request
+- **Progression**: Create roster → Assign shifts by department → Publish schedule → Track attendance → Process leave → Evaluate performance
+- **Success criteria**: Coverage adequate, attendance accurate, leave approved timely
+
+### Analytics & Reporting
+- **Functionality**: Operational dashboards (occupancy, revenue, food cost, inventory aging), financial reports (P&L, COGS, expense analysis)
+- **Purpose**: Enables data-driven decisions and performance monitoring
+- **Trigger**: User navigates to reports or scheduled report generation
+- **Progression**: Select report type → Choose date range → Apply filters → Generate report → Export/print → Schedule recurring
+- **Success criteria**: Data accurate, reports timely, insights actionable, export formats flexible
 
 ## Edge Case Handling
 
-- **Concurrent Edits**: Last write wins with conflict notification to inform users of overwrite
-- **Deleted Resources**: Soft delete with archive system; prevent deletion of projects with active tasks
-- **Invalid Dates**: Validation prevents end dates before start dates, warns when deadlines passed
-- **Unassigned Tasks**: Filter to show orphaned tasks, remind to assign before status changes
-- **Empty States**: Helpful onboarding messages with "Create First Project" CTAs when no data exists
-- **Offline Handling**: Queue updates locally, sync when connection restored with conflict resolution
-- **Missing Permissions**: Graceful permission denial with clear messaging explaining required access level
+- **Double Bookings**: Real-time room availability checking prevents conflicts; manual override with warning for authorized users
+- **Stock Discrepancies**: Variance tracking with adjustment workflows; automatic alerts for significant discrepancies
+- **Payment Failures**: Transaction rollback with retry mechanism; manual reconciliation tools for failed transactions
+- **Guest No-Shows**: Automatic no-show processing with configurable policies and revenue posting
+- **Expired Items**: Automated alerts before expiry; batch tracking prevents expired stock usage
+- **Concurrent Edits**: Optimistic locking with conflict resolution prompts
+- **Network Issues**: Offline mode queues critical operations; sync when connection restored
+- **Missing Permissions**: Graceful denial with clear messaging and request access workflow
 
 ## Design Direction
 
-The design should feel professional, trustworthy, and sophisticated to convey enterprise reliability, with a rich interface that accommodates complex data visualization while maintaining clarity through strong information hierarchy and purposeful use of color to indicate status and priority.
+The design should feel sophisticated and efficient like premium hospitality software, with a professional interface that handles complex operations gracefully while maintaining clarity through strong visual hierarchy, intuitive navigation, and purposeful use of color to indicate status, alerts, and departmental contexts.
 
 ## Color Selection
 
-Triadic color scheme (blue, amber, emerald) creating professional yet energetic feeling that communicates productivity, progress, and growth while maintaining enterprise credibility.
+Analogous color scheme (forest green, emerald, teal) creating a fresh, growth-oriented feeling that communicates efficiency, stability, and modern hospitality while maintaining professional credibility.
 
-- **Primary Color**: Deep Professional Blue (oklch(0.45 0.15 250)) - Conveys trust, stability, and corporate professionalism for primary actions and branding
-- **Secondary Colors**: Neutral Slate (oklch(0.35 0.02 250)) for secondary actions and subdued UI elements; Light Gray (oklch(0.96 0.01 250)) for backgrounds
-- **Accent Color**: Vibrant Amber (oklch(0.75 0.15 70)) - Energetic highlight for calls-to-action, alerts, and important status indicators
+- **Primary Color**: Forest Green (oklch(0.35 0.18 140)) - Conveys growth, harmony, and hospitality for primary actions and key metrics
+- **Secondary Colors**: Soft Sage (oklch(0.88 0.08 140)) for secondary UI elements and backgrounds; Deep Pine (oklch(0.25 0.12 140)) for text
+- **Accent Color**: Vibrant Teal (oklch(0.45 0.15 120)) - Fresh, modern highlight for active states and guest-facing interactions
+- **Success Color**: Emerald (oklch(0.65 0.15 150)) - Confirmation and positive metrics
+- **Destructive Color**: Warm Red (oklch(0.50 0.20 15)) - Alerts and critical actions
 - **Foreground/Background Pairings**:
-  - Background (White oklch(0.99 0 0)): Dark Text (oklch(0.25 0.02 250)) - Ratio 12.8:1 ✓
-  - Card (Light Gray oklch(0.98 0.01 250)): Dark Text (oklch(0.25 0.02 250)) - Ratio 11.9:1 ✓
-  - Primary (Blue oklch(0.45 0.15 250)): White (oklch(0.99 0 0)) - Ratio 7.2:1 ✓
-  - Secondary (Slate oklch(0.35 0.02 250)): White (oklch(0.99 0 0)) - Ratio 11.4:1 ✓
-  - Accent (Amber oklch(0.75 0.15 70)): Dark Text (oklch(0.25 0.02 250)) - Ratio 8.5:1 ✓
-  - Muted (Gray oklch(0.94 0.01 250)): Medium Text (oklch(0.50 0.02 250)) - Ratio 4.9:1 ✓
+  - Background (Soft Cream oklch(0.98 0.005 140)): Deep Pine (oklch(0.20 0.12 140)) - Ratio 13.2:1 ✓
+  - Card (Mint Tint oklch(0.96 0.008 140)): Deep Pine (oklch(0.20 0.12 140)) - Ratio 12.1:1 ✓
+  - Primary (Forest Green oklch(0.35 0.18 140)): White (oklch(0.98 0.005 140)) - Ratio 8.4:1 ✓
+  - Secondary (Soft Sage oklch(0.88 0.08 140)): Deep Pine (oklch(0.25 0.12 140)) - Ratio 6.8:1 ✓
+  - Accent (Teal oklch(0.45 0.15 120)): White (oklch(0.98 0.005 140)) - Ratio 7.1:1 ✓
+  - Success (Emerald oklch(0.65 0.15 150)): White (oklch(0.99 0 0)) - Ratio 5.2:1 ✓
 
 ## Font Selection
 
-Typography should communicate efficiency and readability with a modern sans-serif that performs well at all sizes, particularly in data-heavy tables and compact UI elements.
+Typography should communicate professionalism and clarity with distinct fonts for interface elements versus data display, using IBM Plex Sans for UI clarity, IBM Plex Serif for editorial content, and Fira Code for data/numbers.
 
-**Primary Font**: Inter - Clean, highly legible variable font optimized for UI with excellent hinting at small sizes
+**Primary Font**: IBM Plex Sans - Professional, highly legible sans-serif perfect for UI elements and navigation
+**Secondary Font**: IBM Plex Serif - Elegant serif for guest communications and formal content
+**Monospace Font**: Fira Code - Clear monospace for financial data, codes, and technical information
 
 - **Typographic Hierarchy**:
-  - H1 (Page Title): Inter SemiBold/32px/tight letter spacing (-0.02em)
-  - H2 (Section Header): Inter SemiBold/24px/tight letter spacing (-0.01em)
-  - H3 (Card Title): Inter Medium/18px/normal letter spacing
-  - Body (Content): Inter Regular/14px/relaxed line height (1.6)
-  - Small (Meta): Inter Regular/12px/normal letter spacing
-  - Label (Form): Inter Medium/13px/wide letter spacing (0.01em)
+  - H1 (Dashboard Title): IBM Plex Sans SemiBold/36px/tight letter spacing (-0.02em)
+  - H2 (Module Header): IBM Plex Sans SemiBold/28px/tight letter spacing (-0.01em)
+  - H3 (Section Header): IBM Plex Sans Medium/20px/normal letter spacing
+  - Body (Content): IBM Plex Sans Regular/15px/relaxed line height (1.6)
+  - Data (Numbers/Financial): Fira Code Medium/14px/tabular numbers
+  - Label (Form): IBM Plex Sans Medium/14px/wide letter spacing (0.005em)
+  - Small (Meta): IBM Plex Sans Regular/13px/normal letter spacing
 
 ## Animations
 
-Animations should be purposeful and subtle, reinforcing enterprise professionalism while providing feedback that guides users through complex workflows without distraction or delay.
+Animations should feel responsive and purposeful, providing immediate feedback for operations while maintaining the professional, efficient character of hotel management software.
 
-- **Purposeful Meaning**: Quick, confident transitions (200-300ms) that communicate state changes clearly without calling attention to themselves
+- **Purposeful Meaning**: Quick, confident transitions (150-250ms) that communicate state changes and guide users through multi-step workflows
 - **Hierarchy of Movement**: 
-  - Priority 1: Task status changes (drag-drop feedback, status updates) with subtle scale and position animations
-  - Priority 2: Modal/dialog appearances with gentle fade-in and slide-up (250ms)
-  - Priority 3: Hover states on interactive elements (100ms) to confirm clickability
-  - Priority 4: Chart data updates with smooth interpolation (400ms)
+  - Priority 1: Real-time status updates (room status, inventory levels) with subtle color transitions and icon changes
+  - Priority 2: Modal/sheet appearances for transactions (check-in, POS orders) with slide-in from relevant edge (200ms)
+  - Priority 3: Dashboard metric updates with count-up animations for dramatic changes (400ms)
+  - Priority 4: Hover states on interactive elements (80ms) for immediate responsiveness
 
 ## Component Selection
 
 - **Components**: 
-  - **Card** for project tiles and task cards with hover elevation and border accent on active projects
-  - **Table** for task lists with sortable columns, row selection, and inline editing capabilities
-  - **Dialog** for project/task creation with multi-step forms
-  - **Tabs** for switching between Kanban/List/Timeline views within projects
-  - **Select** for status, priority, and assignee dropdowns with search
-  - **Badge** for status indicators with color coding (blue=in-progress, green=complete, amber=blocked, gray=pending)
-  - **Avatar** for team member representation with fallback initials
-  - **Popover** for quick actions menu on project/task cards
-  - **Progress** for visual completion indicators on projects
-  - **Separator** for visual grouping in dense information layouts
+  - **Card** for module widgets, room cards, reservation cards with status-coded borders
+  - **Sheet/Dialog** for transaction forms (check-in, orders, requisitions) with multi-step wizards
+  - **Table** for detailed listings (reservations, inventory, transactions) with sorting, filtering, inline actions
+  - **Tabs** for switching between views (daily/weekly/monthly analytics, different POS sections)
+  - **Badge** for status indicators with semantic colors (occupied/vacant, clean/dirty, approved/pending)
+  - **Avatar** for staff and guest representation
+  - **Calendar** for date picking in reservations and reports
+  - **Select** with search for room selection, guest lookup, item selection
   - **Command** for quick navigation and global search (Cmd+K)
-  - **Calendar** for date picking in task/project creation
+  - **Progress** for task completion, occupancy rates, inventory levels
+  - **Separator** for organizing dense operational interfaces
+  - **Alert** for critical operational notifications (stock-outs, maintenance issues)
+  - **Sidebar** for primary navigation between modules with collapsible sections
   
 - **Customizations**: 
-  - Custom Kanban board component with drag-drop using framer-motion
-  - Custom Gantt chart component using D3 for timeline visualization
-  - Custom dashboard metrics cards with animated statistics
+  - Custom room grid component showing visual floor plan with real-time status
+  - Custom inventory dashboard with aging analysis and reorder point visualizations
+  - Custom guest folio component with running balance and itemized charges
+  - Custom KOT (Kitchen Order Ticket) display for kitchen staff
   
 - **States**: 
-  - Buttons: subtle shadow on rest, lift on hover, scale down on press, disabled with opacity and cursor
-  - Inputs: border highlight on focus with ring color, inline validation with icons
-  - Task cards: elevation on hover, active state with primary border, dragging state with increased shadow and slight rotation
+  - Room cards: color-coded by status (green=clean, red=dirty, blue=occupied, yellow=maintenance)
+  - Transaction buttons: loading spinner during processing, success checkmark, error state with retry
+  - Inventory items: warning state when below reorder point, danger when stock-out, info when near expiry
   
 - **Icon Selection**: 
-  - Folder (Projects), ListChecks (Tasks), Calendar (Timeline), ChartBar (Analytics), Users (Team), Plus (Create), Funnel (Filter), MagnifyingGlass (Search), DotsThree (More actions), CheckCircle (Complete), Warning (Blocked)
+  - Gauge (Dashboard), BedDouble (Rooms), Broom (Housekeeping), ForkKnife (F&B), Package (Inventory), ShoppingCart (Procurement), CurrencyDollar (Finance), Users (HR), Wrench (Engineering), ChartBar (Analytics), Bell (Notifications), MagnifyingGlass (Search)
   
 - **Spacing**: 
-  - Card padding: p-6, Card gaps: gap-4, Section spacing: space-y-6, List items: gap-3, Page margins: p-8
+  - Module cards: p-6, Dashboard grid: gap-6, Form sections: space-y-4, Page margins: p-6 md:p-8, Dense tables: gap-2
   
 - **Mobile**: 
-  - Desktop: Multi-column dashboard with sidebar navigation
-  - Tablet: Stacked columns, collapsible sidebar with hamburger menu
-  - Mobile: Single column cards, bottom navigation bar, full-screen task details as sheets, simplified table views as card lists
+  - Desktop: Multi-column dashboard with persistent sidebar, split views for transactions
+  - Tablet: Responsive grid collapse, drawer sidebar, modal forms
+  - Mobile: Single column, bottom navigation for key modules, full-screen sheets for forms, simplified tables as list cards
