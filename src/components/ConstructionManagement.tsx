@@ -389,7 +389,7 @@ export function ConstructionManagement({
             <SelectValue placeholder="All Segments" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Segments</SelectItem>
+            <SelectItem value="all-segments">All Segments</SelectItem>
             <SelectItem value="regular-maintenance">Regular Maintenance</SelectItem>
             <SelectItem value="project-construction">Project Construction</SelectItem>
             <SelectItem value="emergency-stock">Emergency Stock</SelectItem>
