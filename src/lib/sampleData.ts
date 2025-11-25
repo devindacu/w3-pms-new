@@ -2785,6 +2785,169 @@ export const samplePerformanceReviews: PerformanceReview[] = [
   }
 ]
 
+export const sampleOrders: Order[] = [
+  {
+    id: 'order-1',
+    orderNumber: 'ORD-100001',
+    type: 'dine-in',
+    tableNumber: '12',
+    items: [
+      {
+        id: 'oi-1',
+        menuItemId: 'menu-1',
+        name: 'Grilled Salmon',
+        quantity: 2,
+        price: 24.99,
+        status: 'served'
+      },
+      {
+        id: 'oi-2',
+        menuItemId: 'menu-4',
+        name: 'Cappuccino',
+        quantity: 2,
+        price: 4.99,
+        status: 'served'
+      }
+    ],
+    subtotal: 59.96,
+    tax: 5.996,
+    total: 65.96,
+    status: 'served',
+    paymentStatus: 'paid',
+    createdAt: Date.now() - 3 * 60 * 60 * 1000,
+    createdBy: 'user-1',
+    completedAt: Date.now() - 2 * 60 * 60 * 1000
+  },
+  {
+    id: 'order-2',
+    orderNumber: 'ORD-100002',
+    type: 'room-service',
+    guestId: 'guest-1',
+    roomId: 'room-102',
+    items: [
+      {
+        id: 'oi-3',
+        menuItemId: 'menu-2',
+        name: 'Caesar Salad',
+        quantity: 1,
+        price: 12.99,
+        status: 'preparing'
+      },
+      {
+        id: 'oi-4',
+        menuItemId: 'menu-5',
+        name: 'Fresh Orange Juice',
+        quantity: 1,
+        price: 5.99,
+        status: 'preparing'
+      }
+    ],
+    subtotal: 18.98,
+    tax: 1.898,
+    total: 20.88,
+    status: 'preparing',
+    paymentStatus: 'pending',
+    notes: 'Please deliver to room 102 at 2 PM',
+    createdAt: Date.now() - 30 * 60 * 1000,
+    createdBy: 'user-1'
+  },
+  {
+    id: 'order-3',
+    orderNumber: 'ORD-100003',
+    type: 'dine-in',
+    tableNumber: '8',
+    items: [
+      {
+        id: 'oi-5',
+        menuItemId: 'menu-3',
+        name: 'Club Sandwich',
+        quantity: 1,
+        price: 14.99,
+        status: 'ready'
+      },
+      {
+        id: 'oi-6',
+        menuItemId: 'menu-4',
+        name: 'Cappuccino',
+        quantity: 1,
+        price: 4.99,
+        status: 'ready'
+      }
+    ],
+    subtotal: 19.98,
+    tax: 1.998,
+    total: 21.98,
+    status: 'ready',
+    paymentStatus: 'pending',
+    createdAt: Date.now() - 15 * 60 * 1000,
+    createdBy: 'user-1'
+  },
+  {
+    id: 'order-4',
+    orderNumber: 'ORD-100004',
+    type: 'takeaway',
+    items: [
+      {
+        id: 'oi-7',
+        menuItemId: 'menu-1',
+        name: 'Grilled Salmon',
+        quantity: 3,
+        price: 24.99,
+        status: 'pending'
+      },
+      {
+        id: 'oi-8',
+        menuItemId: 'menu-2',
+        name: 'Caesar Salad',
+        quantity: 2,
+        price: 12.99,
+        status: 'pending'
+      }
+    ],
+    subtotal: 100.95,
+    tax: 10.095,
+    total: 111.05,
+    status: 'pending',
+    paymentStatus: 'pending',
+    notes: 'Extra dressing on the side',
+    createdAt: Date.now() - 5 * 60 * 1000,
+    createdBy: 'user-1'
+  },
+  {
+    id: 'order-5',
+    orderNumber: 'ORD-100005',
+    type: 'room-service',
+    guestId: 'guest-2',
+    roomId: 'room-202',
+    items: [
+      {
+        id: 'oi-9',
+        menuItemId: 'menu-4',
+        name: 'Cappuccino',
+        quantity: 2,
+        price: 4.99,
+        status: 'served'
+      },
+      {
+        id: 'oi-10',
+        menuItemId: 'menu-3',
+        name: 'Club Sandwich',
+        quantity: 2,
+        price: 14.99,
+        status: 'served'
+      }
+    ],
+    subtotal: 39.96,
+    tax: 3.996,
+    total: 43.96,
+    status: 'served',
+    paymentStatus: 'paid',
+    createdAt: Date.now() - 4 * 60 * 60 * 1000,
+    createdBy: 'user-1',
+    completedAt: Date.now() - 3 * 60 * 60 * 1000
+  }
+]
+
 export const sampleRequisitions: Requisition[] = [
   {
     id: 'req-1',

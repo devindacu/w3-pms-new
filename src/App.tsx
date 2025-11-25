@@ -78,6 +78,7 @@ import {
   sampleInventory,
   sampleMenuItems,
   sampleHousekeepingTasks,
+  sampleOrders,
   sampleSuppliers,
   sampleEmployees,
   sampleMaintenanceRequests,
@@ -111,6 +112,7 @@ import { HRManagement } from '@/components/HRManagement'
 import { FrontOffice } from '@/components/FrontOffice'
 import { Housekeeping } from '@/components/Housekeeping'
 import { Procurement } from '@/components/Procurement'
+import { FnBPOS } from '@/components/FnBPOS'
 
 type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction' | 'suppliers' | 'general-products' | 'user-management'
 
@@ -157,6 +159,7 @@ function App() {
     setInventory(sampleInventory)
     setMenuItems(sampleMenuItems)
     setHousekeepingTasks(sampleHousekeepingTasks)
+    setOrders(sampleOrders)
     setSuppliers(sampleSuppliers)
     setEmployees(sampleEmployees)
     setMaintenanceRequests(sampleMaintenanceRequests)
@@ -648,7 +651,16 @@ function App() {
               employees={employees || []}
             />
           )}
-          {currentModule === 'fnb' && renderComingSoon('F&B / POS', <ForkKnife size={64} />)}
+          {currentModule === 'fnb' && (
+            <FnBPOS
+              menuItems={menuItems || []}
+              setMenuItems={setMenuItems}
+              orders={orders || []}
+              setOrders={setOrders}
+              guests={guests || []}
+              rooms={rooms || []}
+            />
+          )}
           {currentModule === 'inventory' && (
             <InventoryManagement
               foodItems={foodItems || []}
