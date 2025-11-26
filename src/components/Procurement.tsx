@@ -331,7 +331,7 @@ export function Procurement({
                           <div className="grid grid-cols-12 gap-3 w-full">
                             <span className="col-span-4">{item.name}</span>
                             <span className="col-span-2 text-right text-muted-foreground">
-                              {item.quantity} {item.unit}
+                              {item.quantity}
                             </span>
                             <span className="col-span-2 text-right text-muted-foreground">
                               {formatCurrency(item.unitPrice)}
@@ -340,7 +340,7 @@ export function Procurement({
                               {formatCurrency(item.estimatedCost)}
                             </span>
                             <span className="col-span-2 text-muted-foreground text-xs">
-                              {supplier ? supplier.name : '-'}
+                              {supplier ? supplier.name : 'Any supplier'}
                             </span>
                           </div>
                         </div>

@@ -58,9 +58,8 @@ export function RequisitionDialog({
   const [items, setItems] = useState<RequisitionItem[]>([])
   const [newItemName, setNewItemName] = useState('')
   const [newItemQuantity, setNewItemQuantity] = useState('')
-  const [newItemUnit, setNewItemUnit] = useState('')
   const [newItemUnitPrice, setNewItemUnitPrice] = useState('')
-  const [newItemSupplierId, setNewItemSupplierId] = useState('')
+  const [newItemSupplierId, setNewItemSupplierId] = useState<string | 'any'>('any')
 
   const isViewMode = !!requisition && requisition.status !== 'draft'
   const canApprove = currentUser.role === 'admin' || currentUser.role === 'procurement-manager' || currentUser.role === 'department-head'
@@ -80,7 +79,7 @@ export function RequisitionDialog({
   }, [requisition, currentUser])
 
   const handleAddItem = () => {
-    if (!newItemName || !newItemQuantity || !newItemUnit || !newItemUnitPrice) {
+    if (!newItemName || !newItemQuantity || !newItemUnitPrice) {
       toast.error('Please fill in all item details')
       return
     }
@@ -102,18 +101,17 @@ export function RequisitionDialog({
       inventoryItemId: generateId(),
       name: newItemName,
       quantity,
-      unit: newItemUnit,
+      unit: 'unit',
       unitPrice,
       estimatedCost: quantity * unitPrice,
-      supplierId: newItemSupplierId || undefined
+      supplierId: newItemSupplierId === 'any' ? undefined : newItemSupplierId
     }
 
     setItems([...items, newItem])
     setNewItemName('')
     setNewItemQuantity('')
-    setNewItemUnit('')
     setNewItemUnitPrice('')
-    setNewItemSupplierId('')
+    setNewItemSupplierId('any')
     toast.success('Item added')
   }
 
@@ -275,7 +273,7 @@ export function RequisitionDialog({
                       onChange={(e) => setNewItemName(e.target.value)}
                     />
                   </div>
-                  <div className="col-span-2">
+                  <div className="col-span-3">
                     <Label className="text-xs">Quantity</Label>
                     <Input
                       type="number"
@@ -284,15 +282,7 @@ export function RequisitionDialog({
                       onChange={(e) => setNewItemQuantity(e.target.value)}
                     />
                   </div>
-                  <div className="col-span-2">
-                    <Label className="text-xs">Unit</Label>
-                    <Input
-                      placeholder="Unit"
-                      value={newItemUnit}
-                      onChange={(e) => setNewItemUnit(e.target.value)}
-                    />
-                  </div>
-                  <div className="col-span-2">
+                  <div className="col-span-3">
                     <Label className="text-xs">Unit Price</Label>
                     <Input
                       type="number"
@@ -305,12 +295,13 @@ export function RequisitionDialog({
                 </div>
                 <div className="grid grid-cols-12 gap-3">
                   <div className="col-span-11">
-                    <Label className="text-xs">Supplier (Optional)</Label>
-                    <Select value={newItemSupplierId || undefined} onValueChange={(value) => setNewItemSupplierId(value)}>
+                    <Label className="text-xs">Supplier</Label>
+                    <Select value={newItemSupplierId} onValueChange={(value) => setNewItemSupplierId(value)}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select supplier (optional)" />
+                        <SelectValue placeholder="Select supplier" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="any">Select any supplier</SelectItem>
                         {suppliers.map((supplier) => (
                           <SelectItem key={supplier.id} value={supplier.id}>
                             {supplier.name}
@@ -352,7 +343,7 @@ export function RequisitionDialog({
                             <p className="font-medium">{item.name}</p>
                           </div>
                           <div className="col-span-2 text-right text-sm text-muted-foreground">
-                            {item.quantity} {item.unit}
+                            {item.quantity}
                           </div>
                           <div className="col-span-2 text-right text-sm text-muted-foreground">
                             {formatCurrency(item.unitPrice)}
@@ -361,7 +352,7 @@ export function RequisitionDialog({
                             {formatCurrency(item.estimatedCost)}
                           </div>
                           <div className="col-span-2 text-sm text-muted-foreground">
-                            {supplier ? supplier.name : '-'}
+                            {supplier ? supplier.name : 'Any supplier'}
                           </div>
                         </div>
                         {!isViewMode && (
