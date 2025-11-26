@@ -725,6 +725,15 @@ function App() {
           </Button>
 
           <Button
+            variant={currentModule === 'extra-services' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('extra-services')}
+          >
+            <Sparkle size={18} className="mr-2" />
+            Extra Services
+          </Button>
+
+          <Button
             variant={currentModule === 'housekeeping' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('housekeeping')}
@@ -856,17 +865,6 @@ function App() {
           >
             <Buildings size={18} className="mr-2" />
             Channel Manager
-          </Button>
-
-          <Separator className="my-2" />
-
-          <Button
-            variant={currentModule === 'extra-services' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('extra-services')}
-          >
-            <Sparkle size={18} className="mr-2" />
-            Extra Services
           </Button>
         </nav>
       </aside>
