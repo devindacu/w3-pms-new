@@ -88,10 +88,11 @@ export function PurchaseOrderDialog({
   }, [purchaseOrder])
 
   const handleRequisitionChange = (reqId: string) => {
-    setRequisitionId(reqId)
+    const actualReqId = reqId === "none" ? "" : reqId
+    setRequisitionId(actualReqId)
     
-    if (reqId) {
-      const req = requisitions.find(r => r.id === reqId)
+    if (actualReqId) {
+      const req = requisitions.find(r => r.id === actualReqId)
       if (req) {
         const reqItems: PurchaseOrderItem[] = req.items.map(item => ({
           id: generateId(),
@@ -279,7 +280,7 @@ export function PurchaseOrderDialog({
             <div>
               <Label>From Requisition (Optional)</Label>
               <Select 
-                value={requisitionId} 
+                value={requisitionId || "none"} 
                 onValueChange={handleRequisitionChange}
                 disabled={isViewMode || !!purchaseOrder}
               >
@@ -287,7 +288,7 @@ export function PurchaseOrderDialog({
                   <SelectValue placeholder="Select requisition" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {approvedRequisitions.map(req => (
                     <SelectItem key={req.id} value={req.id}>
                       {req.requisitionNumber} - {req.department}
