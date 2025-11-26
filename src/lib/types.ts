@@ -121,6 +121,11 @@ export interface HousekeepingTask {
   createdAt: number
 }
 
+export type MenuType = 'breakfast' | 'lunch' | 'dinner' | 'buffet' | 'a-la-carte' | 'banquet' | 'staff-meal' | 'seasonal'
+export type DietaryRestriction = 'vegetarian' | 'vegan' | 'gluten-free' | 'dairy-free' | 'nut-free' | 'halal' | 'kosher'
+export type AllergenType = 'milk' | 'eggs' | 'fish' | 'shellfish' | 'tree-nuts' | 'peanuts' | 'wheat' | 'soybeans' | 'sesame'
+export type ConsumptionLogType = 'recipe-consumption' | 'waste' | 'spoilage' | 'variance'
+
 export interface MenuItem {
   id: string
   name: string
@@ -135,19 +140,245 @@ export interface MenuItem {
 
 export interface Recipe {
   id: string
-  menuItemId?: string
+  recipeCode: string
   name: string
+  description?: string
+  menuItemId?: string
+  category: string
   ingredients: RecipeIngredient[]
-  instructions?: string
-  portionSize: number
-  portionCost: number
+  subRecipes?: SubRecipe[]
+  instructions: RecipeStep[]
   preparationTime: number
+  cookingTime: number
+  totalTime: number
+  yieldPortions: number
+  portionSize: string
+  portionUnit: string
+  costPerPortion: number
+  sellingPrice?: number
+  profitMargin?: number
+  allergens: AllergenType[]
+  dietaryInfo: DietaryRestriction[]
+  nutritionInfo?: NutritionInfo
+  photos?: string[]
+  skillLevel: 'easy' | 'medium' | 'hard' | 'expert'
+  equipment?: string[]
+  notes?: string
+  version: number
+  versionHistory?: RecipeVersion[]
+  isActive: boolean
+  createdBy: string
+  createdAt: number
+  updatedAt: number
+  lastUsed?: number
 }
 
 export interface RecipeIngredient {
-  inventoryItemId: string
+  id: string
+  inventoryItemId?: string
+  foodItemId?: string
+  name: string
   quantity: number
   unit: string
+  unitCost: number
+  totalCost: number
+  preparationNotes?: string
+  isOptional: boolean
+  substituteOptions?: string[]
+}
+
+export interface SubRecipe {
+  id: string
+  recipeId: string
+  recipeName: string
+  quantity: number
+  unit: string
+  costContribution: number
+}
+
+export interface RecipeStep {
+  stepNumber: number
+  instruction: string
+  time?: number
+  temperature?: string
+  notes?: string
+  photoUrl?: string
+}
+
+export interface RecipeVersion {
+  version: number
+  changes: string
+  modifiedBy: string
+  modifiedAt: number
+  previousCost: number
+  newCost: number
+}
+
+export interface NutritionInfo {
+  servingSize: string
+  calories: number
+  protein: number
+  carbohydrates: number
+  fat: number
+  fiber?: number
+  sugar?: number
+  sodium?: number
+  cholesterol?: number
+}
+
+export interface Menu {
+  id: string
+  menuCode: string
+  name: string
+  description?: string
+  type: MenuType
+  category: string
+  items: MenuRecipeItem[]
+  startDate?: number
+  endDate?: number
+  daysAvailable?: string[]
+  timeSlotsAvailable?: TimeSlot[]
+  isActive: boolean
+  pricing?: MenuPricing
+  notes?: string
+  createdBy: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface MenuRecipeItem {
+  id: string
+  recipeId: string
+  recipeName: string
+  displayOrder: number
+  price: number
+  isAvailable: boolean
+  maxDailyQuantity?: number
+  soldToday?: number
+  notes?: string
+}
+
+export interface TimeSlot {
+  startTime: string
+  endTime: string
+}
+
+export interface MenuPricing {
+  adultPrice?: number
+  childPrice?: number
+  groupDiscountPercent?: number
+  minimumGroupSize?: number
+}
+
+export interface KitchenConsumptionLog {
+  id: string
+  logNumber: string
+  recipeId: string
+  recipeName: string
+  orderId?: string
+  orderNumber?: string
+  menuItemId?: string
+  portionsProduced: number
+  type: ConsumptionLogType
+  ingredients: ConsumptionIngredient[]
+  totalCost: number
+  costPerPortion: number
+  variance?: VarianceDetail[]
+  wasteReason?: string
+  spoilageReason?: string
+  producedBy: string
+  producedAt: number
+  shiftType?: ShiftType
+  notes?: string
+  createdAt: number
+}
+
+export interface ConsumptionIngredient {
+  id: string
+  inventoryItemId?: string
+  foodItemId?: string
+  name: string
+  expectedQuantity: number
+  actualQuantity: number
+  unit: string
+  unitCost: number
+  expectedCost: number
+  actualCost: number
+  variance: number
+  variancePercent: number
+  varianceReason?: string
+}
+
+export interface VarianceDetail {
+  itemName: string
+  expectedQuantity: number
+  actualQuantity: number
+  variance: number
+  variancePercent: number
+  varianceCost: number
+  reason?: string
+}
+
+export interface DailyConsumptionReport {
+  id: string
+  reportDate: number
+  shift?: ShiftType
+  totalRecipesProduced: number
+  totalPortions: number
+  totalRevenue: number
+  totalCost: number
+  grossProfit: number
+  profitMargin: number
+  recipeBreakdown: RecipeConsumptionSummary[]
+  ingredientUsage: IngredientUsageSummary[]
+  wasteItems: WasteSummary[]
+  topSellingRecipes: RecipeSales[]
+  lowPerformingRecipes: RecipeSales[]
+  totalVariance: number
+  variancePercent: number
+  generatedBy: string
+  generatedAt: number
+}
+
+export interface RecipeConsumptionSummary {
+  recipeId: string
+  recipeName: string
+  portionsProduced: number
+  averageCostPerPortion: number
+  totalCost: number
+  totalRevenue: number
+  profit: number
+  profitMargin: number
+}
+
+export interface IngredientUsageSummary {
+  inventoryItemId?: string
+  foodItemId?: string
+  itemName: string
+  totalUsed: number
+  unit: string
+  averageCost: number
+  totalCost: number
+  recipes: string[]
+}
+
+export interface WasteSummary {
+  itemName: string
+  quantity: number
+  unit: string
+  cost: number
+  reason: string
+  timestamp: number
+}
+
+export interface RecipeSales {
+  recipeId: string
+  recipeName: string
+  portionsSold: number
+  revenue: number
+  cost: number
+  profit: number
+  profitMargin: number
 }
 
 export interface Order {

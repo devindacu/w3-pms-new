@@ -60,7 +60,10 @@ import {
   type Requisition,
   type PurchaseOrder,
   type GoodsReceivedNote,
-  type Invoice
+  type Invoice,
+  type Recipe,
+  type Menu,
+  type KitchenConsumptionLog
 } from '@/lib/types'
 import { 
   formatCurrency, 
@@ -117,8 +120,10 @@ import { Housekeeping } from '@/components/Housekeeping'
 import { Procurement } from '@/components/Procurement'
 import { FnBPOS } from '@/components/FnBPOS'
 import { InvoiceScanning } from '@/components/InvoiceScanning'
+import { RecipeManagement } from '@/components/RecipeManagement'
+import { KitchenConsumption } from '@/components/KitchenConsumption'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction' | 'suppliers' | 'general-products' | 'user-management' | 'purchase-orders' | 'kitchen' | 'invoice-scanning'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction' | 'suppliers' | 'general-products' | 'user-management' | 'purchase-orders' | 'kitchen' | 'invoice-scanning' | 'recipes' | 'consumption'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -151,6 +156,9 @@ function App() {
   const [purchaseOrders, setPurchaseOrders] = useKV<PurchaseOrder[]>('w3-hotel-purchase-orders', [])
   const [grns, setGRNs] = useKV<GoodsReceivedNote[]>('w3-hotel-grns', [])
   const [invoices, setInvoices] = useKV<Invoice[]>('w3-hotel-invoices', [])
+  const [recipes, setRecipes] = useKV<Recipe[]>('w3-hotel-recipes', [])
+  const [menus, setMenus] = useKV<Menu[]>('w3-hotel-menus', [])
+  const [consumptionLogs, setConsumptionLogs] = useKV<KitchenConsumptionLog[]>('w3-hotel-consumption-logs', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   
@@ -604,6 +612,24 @@ function App() {
           <Separator className="my-2" />
 
           <Button
+            variant={currentModule === 'recipes' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('recipes')}
+          >
+            <ChefHat size={18} className="mr-2" />
+            Recipes & Menus
+          </Button>
+
+          <Button
+            variant={currentModule === 'consumption' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('consumption')}
+          >
+            <ChartBar size={18} className="mr-2" />
+            Kitchen Consumption
+          </Button>
+
+          <Button
             variant={currentModule === 'kitchen' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('kitchen')}
@@ -777,6 +803,25 @@ function App() {
               grns={grns || []}
               suppliers={suppliers || []}
               currentUser={currentUser}
+            />
+          )}
+          {currentModule === 'recipes' && (
+            <RecipeManagement
+              recipes={recipes || []}
+              setRecipes={setRecipes}
+              menus={menus || []}
+              setMenus={setMenus}
+              foodItems={foodItems || []}
+              suppliers={suppliers || []}
+            />
+          )}
+          {currentModule === 'consumption' && (
+            <KitchenConsumption
+              consumptionLogs={consumptionLogs || []}
+              setConsumptionLogs={setConsumptionLogs}
+              recipes={recipes || []}
+              foodItems={foodItems || []}
+              orders={orders || []}
             />
           )}
           {currentModule === 'kitchen' && renderComingSoon('Kitchen Management', <ChefHat size={64} />)}
