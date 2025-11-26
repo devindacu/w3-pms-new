@@ -820,3 +820,91 @@ export interface ActivityLog {
   timestamp: number
   metadata?: Record<string, any>
 }
+
+export type InvoiceStatus = 'pending-validation' | 'validated' | 'matched' | 'mismatch' | 'approved' | 'posted' | 'rejected'
+export type InvoiceMismatchType = 'price-variance' | 'quantity-variance' | 'item-missing' | 'no-po-match' | 'no-grn-match' | 'total-variance'
+
+export interface Invoice {
+  id: string
+  invoiceNumber: string
+  supplierId: string
+  supplierName?: string
+  purchaseOrderId?: string
+  grnId?: string
+  invoiceDate: number
+  dueDate?: number
+  subtotal: number
+  tax: number
+  total: number
+  status: InvoiceStatus
+  items: InvoiceItem[]
+  scannedImageUrl?: string
+  ocrData?: OCRData
+  mismatches?: InvoiceMismatch[]
+  validatedBy?: string
+  validatedAt?: number
+  approvedBy?: string
+  approvedAt?: number
+  postedAt?: number
+  postedToAccountsBy?: string
+  rejectionReason?: string
+  notes?: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface InvoiceItem {
+  id: string
+  itemName: string
+  description?: string
+  quantity: number
+  unit: string
+  unitPrice: number
+  total: number
+  poItemId?: string
+  grnItemId?: string
+  inventoryItemId?: string
+  variance?: number
+  varianceReason?: string
+}
+
+export interface OCRData {
+  rawText: string
+  confidence: number
+  extractedFields: {
+    invoiceNumber?: string
+    invoiceDate?: string
+    supplierName?: string
+    supplierAddress?: string
+    taxId?: string
+    subtotal?: number
+    tax?: number
+    total?: number
+    dueDate?: string
+  }
+  extractedItems?: Array<{
+    description: string
+    quantity: number
+    unitPrice: number
+    total: number
+    confidence: number
+  }>
+  processingTime: number
+  processedAt: number
+}
+
+export interface InvoiceMismatch {
+  id: string
+  type: InvoiceMismatchType
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  itemId?: string
+  itemName?: string
+  description: string
+  expectedValue?: string | number
+  actualValue?: string | number
+  variance?: number
+  requiresApproval: boolean
+  resolvedBy?: string
+  resolvedAt?: number
+  resolution?: string
+}

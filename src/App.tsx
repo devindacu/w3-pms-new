@@ -59,7 +59,8 @@ import {
   type PerformanceReview,
   type Requisition,
   type PurchaseOrder,
-  type GoodsReceivedNote
+  type GoodsReceivedNote,
+  type Invoice
 } from '@/lib/types'
 import { 
   formatCurrency, 
@@ -115,8 +116,9 @@ import { FrontOffice } from '@/components/FrontOffice'
 import { Housekeeping } from '@/components/Housekeeping'
 import { Procurement } from '@/components/Procurement'
 import { FnBPOS } from '@/components/FnBPOS'
+import { InvoiceScanning } from '@/components/InvoiceScanning'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction' | 'suppliers' | 'general-products' | 'user-management' | 'purchase-orders' | 'kitchen'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction' | 'suppliers' | 'general-products' | 'user-management' | 'purchase-orders' | 'kitchen' | 'invoice-scanning'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -148,6 +150,7 @@ function App() {
   const [requisitions, setRequisitions] = useKV<Requisition[]>('w3-hotel-requisitions', [])
   const [purchaseOrders, setPurchaseOrders] = useKV<PurchaseOrder[]>('w3-hotel-purchase-orders', [])
   const [grns, setGRNs] = useKV<GoodsReceivedNote[]>('w3-hotel-grns', [])
+  const [invoices, setInvoices] = useKV<Invoice[]>('w3-hotel-invoices', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   
@@ -589,6 +592,15 @@ function App() {
             Purchase Orders
           </Button>
 
+          <Button
+            variant={currentModule === 'invoice-scanning' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('invoice-scanning')}
+          >
+            <Receipt size={18} className="mr-2" />
+            Invoice Scanning (OCR)
+          </Button>
+
           <Separator className="my-2" />
 
           <Button
@@ -754,6 +766,16 @@ function App() {
               amenities={amenities || []}
               constructionMaterials={constructionMaterials || []}
               generalProducts={generalProducts || []}
+              currentUser={currentUser}
+            />
+          )}
+          {currentModule === 'invoice-scanning' && (
+            <InvoiceScanning
+              invoices={invoices || []}
+              setInvoices={setInvoices}
+              purchaseOrders={purchaseOrders || []}
+              grns={grns || []}
+              suppliers={suppliers || []}
               currentUser={currentUser}
             />
           )}
