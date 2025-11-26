@@ -28,7 +28,8 @@ import {
   ClipboardText,
   UserGear,
   Receipt,
-  ChefHat
+  ChefHat,
+  Sparkle
 } from '@phosphor-icons/react'
 import { 
   type Room, 
@@ -122,8 +123,9 @@ import { FnBPOS } from '@/components/FnBPOS'
 import { InvoiceScanning } from '@/components/InvoiceScanning'
 import { RecipeManagement } from '@/components/RecipeManagement'
 import { KitchenConsumption } from '@/components/KitchenConsumption'
+import { ForecastingAnalytics } from '@/components/ForecastingAnalytics'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction' | 'suppliers' | 'general-products' | 'user-management' | 'purchase-orders' | 'kitchen' | 'invoice-scanning' | 'recipes' | 'consumption'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction' | 'suppliers' | 'general-products' | 'user-management' | 'purchase-orders' | 'kitchen' | 'invoice-scanning' | 'recipes' | 'consumption' | 'forecasting'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -684,6 +686,15 @@ function App() {
             <ChartBar size={18} className="mr-2" />
             Analytics
           </Button>
+
+          <Button
+            variant={currentModule === 'forecasting' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('forecasting')}
+          >
+            <Sparkle size={18} className="mr-2" />
+            AI Forecasting
+          </Button>
         </nav>
       </aside>
 
@@ -863,6 +874,20 @@ function App() {
             />
           )}
           {currentModule === 'analytics' && renderComingSoon('Analytics & Reports', <ChartBar size={64} />)}
+          {currentModule === 'forecasting' && (
+            <ForecastingAnalytics
+              foodItems={foodItems || []}
+              amenities={amenities || []}
+              constructionMaterials={constructionMaterials || []}
+              generalProducts={generalProducts || []}
+              suppliers={suppliers || []}
+              rooms={rooms || []}
+              reservations={reservations || []}
+              consumptionLogs={consumptionLogs || []}
+              recipes={recipes || []}
+              menus={menus || []}
+            />
+          )}
         </div>
       </main>
 
