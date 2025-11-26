@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useKV } from '@github/spark/hooks'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -19,7 +20,8 @@ import {
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { X } from '@phosphor-icons/react'
-import type { Room, RoomStatus, RoomType } from '@/lib/types'
+import type { Room, RoomStatus, RoomType, RoomTypeConfig } from '@/lib/types'
+import { formatCurrency } from '@/lib/helpers'
 
 interface RoomDialogProps {
   open: boolean
@@ -51,6 +53,7 @@ const COMMON_AMENITIES = [
 ]
 
 export function RoomDialog({ open, onOpenChange, room, onSave }: RoomDialogProps) {
+  const [roomTypes] = useKV<RoomTypeConfig[]>('w3-hotel-room-types', [])
   const [formData, setFormData] = useState<Partial<Room>>({
     roomNumber: '',
     floor: 1,
@@ -79,6 +82,21 @@ export function RoomDialog({ open, onOpenChange, room, onSave }: RoomDialogProps
       })
     }
   }, [room, open])
+
+  const handleRoomTypeChange = (typeCode: string) => {
+    const selectedType = (roomTypes || []).find(rt => rt.code === typeCode)
+    if (selectedType) {
+      setFormData(prev => ({
+        ...prev,
+        roomType: typeCode as RoomType,
+        baseRate: selectedType.baseRate,
+        maxOccupancy: selectedType.maxOccupancy,
+        amenities: [...selectedType.amenities]
+      }))
+    } else {
+      setFormData(prev => ({ ...prev, roomType: typeCode as RoomType }))
+    }
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -166,17 +184,27 @@ export function RoomDialog({ open, onOpenChange, room, onSave }: RoomDialogProps
               <Label htmlFor="roomType">Room Type *</Label>
               <Select
                 value={formData.roomType}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, roomType: value as RoomType }))}
+                onValueChange={handleRoomTypeChange}
               >
                 <SelectTrigger id="roomType">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="standard">Standard</SelectItem>
-                  <SelectItem value="deluxe">Deluxe</SelectItem>
-                  <SelectItem value="suite">Suite</SelectItem>
-                  <SelectItem value="executive">Executive</SelectItem>
-                  <SelectItem value="presidential">Presidential</SelectItem>
+                  {(roomTypes || []).filter(rt => rt.isActive).length > 0 ? (
+                    (roomTypes || []).filter(rt => rt.isActive).map(rt => (
+                      <SelectItem key={rt.id} value={rt.code}>
+                        {rt.name} ({formatCurrency(rt.baseRate)}/night)
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <>
+                      <SelectItem value="standard">Standard</SelectItem>
+                      <SelectItem value="deluxe">Deluxe</SelectItem>
+                      <SelectItem value="suite">Suite</SelectItem>
+                      <SelectItem value="executive">Executive</SelectItem>
+                      <SelectItem value="presidential">Presidential</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -202,7 +230,7 @@ export function RoomDialog({ open, onOpenChange, room, onSave }: RoomDialogProps
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="baseRate">Base Rate (per night) *</Label>
+              <Label htmlFor="baseRate">Base Rate (LKR per night) *</Label>
               <Input
                 id="baseRate"
                 type="number"

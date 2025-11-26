@@ -137,7 +137,7 @@ export function RoomTypeDialog({
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="baseRate">Base Rate ($)</Label>
+              <Label htmlFor="baseRate">Base Rate (LKR)</Label>
               <Input
                 id="baseRate"
                 type="number"

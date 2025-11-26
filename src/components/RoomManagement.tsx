@@ -186,6 +186,10 @@ export function RoomManagement({ rooms, setRooms }: RoomManagementProps) {
   }
 
   const getRoomTypeLabel = (type: RoomType) => {
+    const roomTypeConfig = (roomTypes || []).find(rt => rt.code.toLowerCase() === type.toLowerCase())
+    if (roomTypeConfig) {
+      return roomTypeConfig.name
+    }
     return type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
   }
 
@@ -286,11 +290,21 @@ export function RoomManagement({ rooms, setRooms }: RoomManagementProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="standard">Standard</SelectItem>
-              <SelectItem value="deluxe">Deluxe</SelectItem>
-              <SelectItem value="suite">Suite</SelectItem>
-              <SelectItem value="executive">Executive</SelectItem>
-              <SelectItem value="presidential">Presidential</SelectItem>
+              {(roomTypes || []).filter(rt => rt.isActive).length > 0 ? (
+                (roomTypes || []).filter(rt => rt.isActive).map(rt => (
+                  <SelectItem key={rt.id} value={rt.code.toLowerCase()}>
+                    {rt.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <>
+                  <SelectItem value="standard">Standard</SelectItem>
+                  <SelectItem value="deluxe">Deluxe</SelectItem>
+                  <SelectItem value="suite">Suite</SelectItem>
+                  <SelectItem value="executive">Executive</SelectItem>
+                  <SelectItem value="presidential">Presidential</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
 
