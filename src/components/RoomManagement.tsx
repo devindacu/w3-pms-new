@@ -121,9 +121,8 @@ export function RoomManagement({ rooms, setRooms }: RoomManagementProps) {
   }
 
   const handleDeleteRoomType = (roomTypeId: string) => {
-    const roomsUsingType = rooms.filter(r => 
-      (roomTypes || []).find(rt => rt.id === roomTypeId)?.code.toLowerCase() === r.roomType
-    )
+    const roomTypeConfig = (roomTypes || []).find(rt => rt.id === roomTypeId)
+    const roomsUsingType = rooms.filter(r => roomTypeConfig && r.roomType === roomTypeConfig.code)
     
     if (roomsUsingType.length > 0) {
       toast.error(`Cannot delete room type: ${roomsUsingType.length} room(s) are using this type`)
@@ -186,7 +185,7 @@ export function RoomManagement({ rooms, setRooms }: RoomManagementProps) {
   }
 
   const getRoomTypeLabel = (type: RoomType) => {
-    const roomTypeConfig = (roomTypes || []).find(rt => rt.code.toLowerCase() === type.toLowerCase())
+    const roomTypeConfig = (roomTypes || []).find(rt => rt.code === type)
     if (roomTypeConfig) {
       return roomTypeConfig.name
     }
@@ -292,7 +291,7 @@ export function RoomManagement({ rooms, setRooms }: RoomManagementProps) {
               <SelectItem value="all">All Types</SelectItem>
               {(roomTypes || []).filter(rt => rt.isActive).length > 0 ? (
                 (roomTypes || []).filter(rt => rt.isActive).map(rt => (
-                  <SelectItem key={rt.id} value={rt.code.toLowerCase()}>
+                  <SelectItem key={rt.id} value={rt.code}>
                     {rt.name}
                   </SelectItem>
                 ))
