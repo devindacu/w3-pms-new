@@ -193,7 +193,7 @@ export function RoomDialog({ open, onOpenChange, room, onSave }: RoomDialogProps
                   {(roomTypes || []).filter(rt => rt.isActive).length > 0 ? (
                     (roomTypes || []).filter(rt => rt.isActive).map(rt => (
                       <SelectItem key={rt.id} value={rt.code}>
-                        {rt.name} ({formatCurrency(rt.baseRate)}/night)
+                        {rt.name}
                       </SelectItem>
                     ))
                   ) : (
