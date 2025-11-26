@@ -37,6 +37,7 @@ import {
   ClipboardText,
   Buildings,
   FunnelSimple,
+  Plus,
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
@@ -48,10 +49,15 @@ import type {
   GeneralProduct,
   Department,
   Supplier,
+  AmenityUsageLog,
+  AmenityAutoOrder,
 } from '@/lib/types'
 import { StockMovementDialog } from '@/components/StockMovementDialog'
 import { BatchTrackingDialog } from '@/components/BatchTrackingDialog'
 import { DepartmentUsageDialog } from '@/components/DepartmentUsageDialog'
+import { FoodManagement } from '@/components/FoodManagement'
+import { AmenitiesManagement } from '@/components/AmenitiesManagement'
+import { GeneralProductsManagement } from '@/components/GeneralProductsManagement'
 
 type InventorySource = 'all' | 'food' | 'amenities' | 'construction' | 'general'
 type StockLevel = 'all' | 'in-stock' | 'low-stock' | 'out-of-stock' | 'expiring'
@@ -81,17 +87,31 @@ interface UnifiedInventoryItem {
 
 interface InventoryManagementProps {
   foodItems: FoodItem[]
+  setFoodItems: (items: FoodItem[] | ((prev: FoodItem[]) => FoodItem[])) => void
   amenities: Amenity[]
+  setAmenities: (items: Amenity[] | ((prev: Amenity[]) => Amenity[])) => void
+  amenityUsageLogs: AmenityUsageLog[]
+  setAmenityUsageLogs: (logs: AmenityUsageLog[] | ((prev: AmenityUsageLog[]) => AmenityUsageLog[])) => void
+  amenityAutoOrders: AmenityAutoOrder[]
+  setAmenityAutoOrders: (orders: AmenityAutoOrder[] | ((prev: AmenityAutoOrder[]) => AmenityAutoOrder[])) => void
   constructionMaterials: ConstructionMaterial[]
   generalProducts: GeneralProduct[]
+  setGeneralProducts: (products: GeneralProduct[] | ((prev: GeneralProduct[]) => GeneralProduct[])) => void
   suppliers: Supplier[]
 }
 
 export function InventoryManagement({
   foodItems,
+  setFoodItems,
   amenities,
+  setAmenities,
+  amenityUsageLogs,
+  setAmenityUsageLogs,
+  amenityAutoOrders,
+  setAmenityAutoOrders,
   constructionMaterials,
   generalProducts,
+  setGeneralProducts,
   suppliers,
 }: InventoryManagementProps) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -350,7 +370,7 @@ export function InventoryManagement({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-semibold">Inventory Management</h1>
-          <p className="text-muted-foreground mt-1">Unified real-time stock tracking across all departments</p>
+          <p className="text-muted-foreground mt-1">Unified real-time stock tracking and management across all departments</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={handleExport} variant="outline">
@@ -359,6 +379,28 @@ export function InventoryManagement({
           </Button>
         </div>
       </div>
+
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">
+            <Package size={18} className="mr-2" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="food">
+            <Carrot size={18} className="mr-2" />
+            Food Items
+          </TabsTrigger>
+          <TabsTrigger value="amenities">
+            <Basket size={18} className="mr-2" />
+            Amenities
+          </TabsTrigger>
+          <TabsTrigger value="general">
+            <ClipboardText size={18} className="mr-2" />
+            General Products
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="p-6 border-l-4 border-l-primary">
@@ -557,25 +599,55 @@ export function InventoryManagement({
         </div>
       </Card>
 
-      {selectedItem && (
-        <>
-          <StockMovementDialog
-            open={movementDialogOpen}
-            onOpenChange={setMovementDialogOpen}
-            item={selectedItem}
+        {selectedItem && (
+          <>
+            <StockMovementDialog
+              open={movementDialogOpen}
+              onOpenChange={setMovementDialogOpen}
+              item={selectedItem}
+            />
+            <BatchTrackingDialog
+              open={batchDialogOpen}
+              onOpenChange={setBatchDialogOpen}
+              item={selectedItem}
+            />
+            <DepartmentUsageDialog
+              open={usageDialogOpen}
+              onOpenChange={setUsageDialogOpen}
+              item={selectedItem}
+            />
+          </>
+        )}
+        </TabsContent>
+
+        <TabsContent value="food">
+          <FoodManagement 
+            foodItems={foodItems}
+            setFoodItems={setFoodItems}
+            suppliers={suppliers}
           />
-          <BatchTrackingDialog
-            open={batchDialogOpen}
-            onOpenChange={setBatchDialogOpen}
-            item={selectedItem}
+        </TabsContent>
+
+        <TabsContent value="amenities">
+          <AmenitiesManagement 
+            amenities={amenities}
+            setAmenities={setAmenities}
+            suppliers={suppliers}
+            usageLogs={amenityUsageLogs}
+            setUsageLogs={setAmenityUsageLogs}
+            autoOrders={amenityAutoOrders}
+            setAutoOrders={setAmenityAutoOrders}
           />
-          <DepartmentUsageDialog
-            open={usageDialogOpen}
-            onOpenChange={setUsageDialogOpen}
-            item={selectedItem}
+        </TabsContent>
+
+        <TabsContent value="general">
+          <GeneralProductsManagement
+            products={generalProducts}
+            setProducts={setGeneralProducts}
+            suppliers={suppliers}
           />
-        </>
-      )}
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

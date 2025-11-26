@@ -108,11 +108,8 @@ import {
   samplePurchaseOrders,
   sampleGRNs
 } from '@/lib/sampleData'
-import { FoodManagement } from '@/components/FoodManagement'
-import { AmenitiesManagement } from '@/components/AmenitiesManagement'
 import { ConstructionManagement } from '@/components/ConstructionManagement'
 import { SupplierManagement } from '@/components/SupplierManagement'
-import { GeneralProductsManagement } from '@/components/GeneralProductsManagement'
 import { InventoryManagement } from '@/components/InventoryManagement'
 import { UserManagement } from '@/components/UserManagement'
 import { HRManagement } from '@/components/HRManagement'
@@ -124,7 +121,7 @@ import { InvoiceScanning } from '@/components/InvoiceScanning'
 import { KitchenOperations } from '@/components/KitchenOperations'
 import { ForecastingAnalytics } from '@/components/ForecastingAnalytics'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction' | 'suppliers' | 'general-products' | 'user-management' | 'purchase-orders' | 'kitchen' | 'invoice-scanning' | 'forecasting'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'purchase-orders' | 'kitchen' | 'invoice-scanning' | 'forecasting'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -548,33 +545,6 @@ function App() {
           </Button>
 
           <Button
-            variant={currentModule === 'food-management' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('food-management')}
-          >
-            <Carrot size={18} className="mr-2" />
-            Food Management
-          </Button>
-
-          <Button
-            variant={currentModule === 'amenities' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('amenities')}
-          >
-            <Basket size={18} className="mr-2" />
-            Amenities
-          </Button>
-
-          <Button
-            variant={currentModule === 'general-products' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('general-products')}
-          >
-            <ClipboardText size={18} className="mr-2" />
-            General Products
-          </Button>
-
-          <Button
             variant={currentModule === 'suppliers' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('suppliers')}
@@ -716,37 +686,20 @@ function App() {
           {currentModule === 'inventory' && (
             <InventoryManagement
               foodItems={foodItems || []}
+              setFoodItems={setFoodItems}
               amenities={amenities || []}
+              setAmenities={setAmenities}
+              amenityUsageLogs={amenityUsageLogs || []}
+              setAmenityUsageLogs={setAmenityUsageLogs}
+              amenityAutoOrders={amenityAutoOrders || []}
+              setAmenityAutoOrders={setAmenityAutoOrders}
               constructionMaterials={constructionMaterials || []}
               generalProducts={generalProducts || []}
+              setGeneralProducts={setGeneralProducts}
               suppliers={suppliers || []}
             />
           )}
-          {currentModule === 'food-management' && (
-            <FoodManagement 
-              foodItems={foodItems || []} 
-              setFoodItems={setFoodItems}
-              suppliers={suppliers || []}
-            />
-          )}
-          {currentModule === 'amenities' && (
-            <AmenitiesManagement 
-              amenities={amenities || []} 
-              setAmenities={setAmenities}
-              suppliers={suppliers || []}
-              usageLogs={amenityUsageLogs || []}
-              setUsageLogs={setAmenityUsageLogs}
-              autoOrders={amenityAutoOrders || []}
-              setAutoOrders={setAmenityAutoOrders}
-            />
-          )}
-          {currentModule === 'general-products' && (
-            <GeneralProductsManagement
-              products={generalProducts || []}
-              setProducts={setGeneralProducts}
-              suppliers={suppliers || []}
-            />
-          )}
+
           {currentModule === 'suppliers' && (
             <SupplierManagement
               suppliers={suppliers || []}
