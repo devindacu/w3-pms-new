@@ -1,6 +1,20 @@
 export type RoomStatus = 'vacant-clean' | 'vacant-dirty' | 'occupied-clean' | 'occupied-dirty' | 'maintenance' | 'out-of-order'
 export type RoomType = 'standard' | 'deluxe' | 'suite' | 'executive' | 'presidential'
 export type ReservationStatus = 'confirmed' | 'checked-in' | 'checked-out' | 'cancelled' | 'no-show'
+
+export interface RoomTypeConfig {
+  id: string
+  name: string
+  code: string
+  description?: string
+  baseRate: number
+  maxOccupancy: number
+  size?: number
+  amenities: string[]
+  isActive: boolean
+  createdAt: number
+  updatedAt: number
+}
 export type PaymentMethod = 'cash' | 'card' | 'bank-transfer' | 'mobile-payment' | 'credit'
 export type PaymentStatus = 'pending' | 'paid' | 'partially-paid' | 'refunded'
 export type HousekeepingTaskStatus = 'pending' | 'in-progress' | 'completed' | 'inspected'

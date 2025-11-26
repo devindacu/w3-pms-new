@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { useKV } from '@github/spark/hooks'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Table,
   TableBody,
@@ -30,11 +32,13 @@ import {
   Wrench,
   Check,
   X,
-  FunnelSimple
+  FunnelSimple,
+  Tag
 } from '@phosphor-icons/react'
-import type { Room, RoomStatus, RoomType } from '@/lib/types'
+import type { Room, RoomStatus, RoomType, RoomTypeConfig } from '@/lib/types'
 import { RoomDialog } from '@/components/RoomDialog'
 import { RoomDetailsDialog } from '@/components/RoomDetailsDialog'
+import { RoomTypeDialog } from '@/components/RoomTypeDialog'
 import { formatCurrency } from '@/lib/helpers'
 
 interface RoomManagementProps {
@@ -43,14 +47,18 @@ interface RoomManagementProps {
 }
 
 export function RoomManagement({ rooms, setRooms }: RoomManagementProps) {
+  const [roomTypes, setRoomTypes] = useKV<RoomTypeConfig[]>('w3-hotel-room-types', [])
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<RoomStatus | 'all'>('all')
   const [typeFilter, setTypeFilter] = useState<RoomType | 'all'>('all')
   const [floorFilter, setFloorFilter] = useState<string>('all')
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
+  const [selectedRoomType, setSelectedRoomType] = useState<RoomTypeConfig | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+  const [isRoomTypeDialogOpen, setIsRoomTypeDialogOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid')
+  const [activeTab, setActiveTab] = useState<'rooms' | 'types'>('rooms')
 
   const floors = Array.from(new Set(rooms.map(r => r.floor))).sort((a, b) => a - b)
 
@@ -100,6 +108,43 @@ export function RoomManagement({ rooms, setRooms }: RoomManagementProps) {
       toast.success('Room added successfully')
     }
     setIsDialogOpen(false)
+  }
+
+  const handleAddRoomType = () => {
+    setSelectedRoomType(null)
+    setIsRoomTypeDialogOpen(true)
+  }
+
+  const handleEditRoomType = (roomType: RoomTypeConfig) => {
+    setSelectedRoomType(roomType)
+    setIsRoomTypeDialogOpen(true)
+  }
+
+  const handleDeleteRoomType = (roomTypeId: string) => {
+    const roomsUsingType = rooms.filter(r => 
+      (roomTypes || []).find(rt => rt.id === roomTypeId)?.code.toLowerCase() === r.roomType
+    )
+    
+    if (roomsUsingType.length > 0) {
+      toast.error(`Cannot delete room type: ${roomsUsingType.length} room(s) are using this type`)
+      return
+    }
+
+    if (confirm('Are you sure you want to delete this room type?')) {
+      setRoomTypes((prev) => (prev || []).filter(rt => rt.id !== roomTypeId))
+      toast.success('Room type deleted successfully')
+    }
+  }
+
+  const handleSaveRoomType = (roomType: RoomTypeConfig) => {
+    if (selectedRoomType) {
+      setRoomTypes((prev) => (prev || []).map(rt => rt.id === roomType.id ? roomType : rt))
+      toast.success('Room type updated successfully')
+    } else {
+      setRoomTypes((prev) => [...(prev || []), roomType])
+      toast.success('Room type added successfully')
+    }
+    setIsRoomTypeDialogOpen(false)
   }
 
   const getRoomStatusColor = (status: RoomStatus) => {
@@ -164,19 +209,8 @@ export function RoomManagement({ rooms, setRooms }: RoomManagementProps) {
 
   const stats = getStatusStats()
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-semibold">Room Management</h1>
-          <p className="text-muted-foreground mt-1">Manage hotel rooms and their status</p>
-        </div>
-        <Button onClick={handleAdd} size="lg">
-          <Plus size={20} className="mr-2" />
-          Add Room
-        </Button>
-      </div>
-
+  const renderRoomsTab = () => (
+    <>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card className="p-4">
           <div className="text-sm text-muted-foreground mb-1">Total Rooms</div>
@@ -451,6 +485,121 @@ export function RoomManagement({ rooms, setRooms }: RoomManagementProps) {
           </div>
         )}
       </Card>
+    </>
+  )
+
+  const renderRoomTypesTab = () => (
+    <Card className="p-6">
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Code</TableHead>
+              <TableHead>Base Rate</TableHead>
+              <TableHead>Max Occupancy</TableHead>
+              <TableHead>Size</TableHead>
+              <TableHead>Amenities</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {(roomTypes || []).length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  No room types configured. Add your first room type to get started.
+                </TableCell>
+              </TableRow>
+            ) : (
+              (roomTypes || []).map(roomType => (
+                <TableRow key={roomType.id}>
+                  <TableCell className="font-medium">{roomType.name}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{roomType.code}</Badge>
+                  </TableCell>
+                  <TableCell>{formatCurrency(roomType.baseRate)}/night</TableCell>
+                  <TableCell>{roomType.maxOccupancy} guests</TableCell>
+                  <TableCell>{roomType.size ? `${roomType.size} sq ft` : '-'}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-1 flex-wrap max-w-[200px]">
+                      {roomType.amenities.slice(0, 2).map((amenity, idx) => (
+                        <Badge key={idx} variant="secondary" className="text-xs">
+                          {amenity}
+                        </Badge>
+                      ))}
+                      {roomType.amenities.length > 2 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{roomType.amenities.length - 2}
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={roomType.isActive ? 'default' : 'secondary'}>
+                      {roomType.isActive ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleEditRoomType(roomType)}
+                      >
+                        <PencilSimple size={16} />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDeleteRoomType(roomType.id)}
+                      >
+                        <Trash size={16} />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </Card>
+  )
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-semibold">Room Management</h1>
+          <p className="text-muted-foreground mt-1">Manage hotel rooms, types, and their status</p>
+        </div>
+        <Button onClick={activeTab === 'rooms' ? handleAdd : handleAddRoomType} size="lg">
+          <Plus size={20} className="mr-2" />
+          {activeTab === 'rooms' ? 'Add Room' : 'Add Room Type'}
+        </Button>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as 'rooms' | 'types')}>
+        <TabsList>
+          <TabsTrigger value="rooms">
+            <Bed size={18} className="mr-2" />
+            Rooms
+          </TabsTrigger>
+          <TabsTrigger value="types">
+            <Tag size={18} className="mr-2" />
+            Room Types
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="rooms" className="space-y-6 mt-6">
+          {renderRoomsTab()}
+        </TabsContent>
+
+        <TabsContent value="types" className="space-y-6 mt-6">
+          {renderRoomTypesTab()}
+        </TabsContent>
+      </Tabs>
 
       <RoomDialog
         open={isDialogOpen}
@@ -464,6 +613,13 @@ export function RoomManagement({ rooms, setRooms }: RoomManagementProps) {
         onOpenChange={setIsDetailsOpen}
         room={selectedRoom}
         onEdit={handleEdit}
+      />
+
+      <RoomTypeDialog
+        open={isRoomTypeDialogOpen}
+        onOpenChange={setIsRoomTypeDialogOpen}
+        roomType={selectedRoomType}
+        onSave={handleSaveRoomType}
       />
     </div>
   )
