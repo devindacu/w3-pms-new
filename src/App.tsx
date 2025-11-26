@@ -26,7 +26,9 @@ import {
   Hammer,
   Buildings,
   ClipboardText,
-  UserGear
+  UserGear,
+  Receipt,
+  ChefHat
 } from '@phosphor-icons/react'
 import { 
   type Room, 
@@ -114,7 +116,7 @@ import { Housekeeping } from '@/components/Housekeeping'
 import { Procurement } from '@/components/Procurement'
 import { FnBPOS } from '@/components/FnBPOS'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction' | 'suppliers' | 'general-products' | 'user-management'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction' | 'suppliers' | 'general-products' | 'user-management' | 'purchase-orders' | 'kitchen'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -578,6 +580,26 @@ function App() {
             Procurement
           </Button>
 
+          <Button
+            variant={currentModule === 'purchase-orders' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('purchase-orders')}
+          >
+            <Receipt size={18} className="mr-2" />
+            Purchase Orders
+          </Button>
+
+          <Separator className="my-2" />
+
+          <Button
+            variant={currentModule === 'kitchen' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('kitchen')}
+          >
+            <ChefHat size={18} className="mr-2" />
+            Kitchen Management
+          </Button>
+
           <Separator className="my-2" />
 
           <Button
@@ -718,6 +740,24 @@ function App() {
               currentUser={currentUser}
             />
           )}
+          {currentModule === 'purchase-orders' && (
+            <Procurement
+              requisitions={requisitions || []}
+              setRequisitions={setRequisitions}
+              purchaseOrders={purchaseOrders || []}
+              setPurchaseOrders={setPurchaseOrders}
+              grns={grns || []}
+              setGRNs={setGRNs}
+              suppliers={suppliers || []}
+              inventory={inventory || []}
+              foodItems={foodItems || []}
+              amenities={amenities || []}
+              constructionMaterials={constructionMaterials || []}
+              generalProducts={generalProducts || []}
+              currentUser={currentUser}
+            />
+          )}
+          {currentModule === 'kitchen' && renderComingSoon('Kitchen Management', <ChefHat size={64} />)}
           {currentModule === 'finance' && renderComingSoon('Finance & Accounting', <CurrencyDollar size={64} />)}
           {currentModule === 'hr' && (
             <HRManagement
