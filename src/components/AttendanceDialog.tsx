@@ -27,8 +27,22 @@ export function AttendanceDialog({ open, onOpenChange, attendance, employees, at
 
   useEffect(() => {
     if (attendance) {
-      const checkInTime = attendance.checkIn ? new Date(attendance.checkIn).toTimeString().slice(0, 5) : ''
-      const checkOutTime = attendance.checkOut ? new Date(attendance.checkOut).toTimeString().slice(0, 5) : ''
+      let checkInTime = ''
+      let checkOutTime = ''
+      
+      if (attendance.checkIn && !isNaN(attendance.checkIn)) {
+        const checkInDate = new Date(attendance.checkIn)
+        if (!isNaN(checkInDate.getTime())) {
+          checkInTime = checkInDate.toTimeString().slice(0, 5)
+        }
+      }
+      
+      if (attendance.checkOut && !isNaN(attendance.checkOut)) {
+        const checkOutDate = new Date(attendance.checkOut)
+        if (!isNaN(checkOutDate.getTime())) {
+          checkOutTime = checkOutDate.toTimeString().slice(0, 5)
+        }
+      }
       
       setFormData({
         employeeId: attendance.employeeId,
