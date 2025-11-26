@@ -134,6 +134,7 @@ import { generateAllAlerts } from '@/lib/notificationHelpers'
 import { generateEmailFromNotifications, mockSendEmail } from '@/lib/emailHelpers'
 import { CRM } from '@/components/CRM'
 import { ChannelManager } from '@/components/ChannelManager'
+import { RoomManagement } from '@/components/RoomManagement'
 import type {
   GuestProfile,
   GuestComplaint,
@@ -154,7 +155,7 @@ import type {
   BulkUpdateOperation
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-management'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -708,6 +709,15 @@ function App() {
           </Button>
 
           <Button
+            variant={currentModule === 'room-management' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('room-management')}
+          >
+            <Buildings size={18} className="mr-2" />
+            Room Management
+          </Button>
+
+          <Button
             variant={currentModule === 'housekeeping' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('housekeeping')}
@@ -856,6 +866,12 @@ function App() {
               setRooms={setRooms}
               folios={folios || []}
               setFolios={setFolios}
+            />
+          )}
+          {currentModule === 'room-management' && (
+            <RoomManagement
+              rooms={rooms || []}
+              setRooms={setRooms}
             />
           )}
           {currentModule === 'housekeeping' && (
