@@ -3037,13 +3037,48 @@ export const samplePurchaseOrders: PurchaseOrder[] = [
     subtotal: 567.5,
     tax: 56.75,
     total: 624.25,
-    status: 'confirmed',
+    status: 'ordered',
     expectedDelivery: Date.now() + 2 * 24 * 60 * 60 * 1000,
     notes: 'Deliver to kitchen entrance',
     createdAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
     createdBy: 'admin',
     approvedBy: 'admin',
-    approvedAt: Date.now() - 1 * 24 * 60 * 60 * 1000
+    approvedAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    revisionNumber: 1,
+    watermark: 'ORDERED',
+    qrCode: 'QR-PO17345680IJKL',
+    sentAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    sentBy: 'admin',
+    emailedTo: ['supplier@example.com'],
+    emailedAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    auditLog: [
+      {
+        id: 'audit-1',
+        timestamp: Date.now() - 2 * 24 * 60 * 60 * 1000,
+        action: 'Created',
+        performedBy: 'admin',
+        details: 'Purchase order created from requisition',
+        newStatus: 'draft'
+      },
+      {
+        id: 'audit-2',
+        timestamp: Date.now() - 1 * 24 * 60 * 60 * 1000,
+        action: 'Approved',
+        performedBy: 'admin',
+        details: 'PO approved for sending',
+        previousStatus: 'draft',
+        newStatus: 'approved'
+      },
+      {
+        id: 'audit-3',
+        timestamp: Date.now() - 1 * 24 * 60 * 60 * 1000,
+        action: 'Emailed',
+        performedBy: 'admin',
+        details: 'PO sent to supplier@example.com',
+        previousStatus: 'approved',
+        newStatus: 'ordered'
+      }
+    ]
   },
   {
     id: 'po-2',
@@ -3063,10 +3098,23 @@ export const samplePurchaseOrders: PurchaseOrder[] = [
     subtotal: 375,
     tax: 37.5,
     total: 412.5,
-    status: 'sent',
+    status: 'approved',
     expectedDelivery: Date.now() + 5 * 24 * 60 * 60 * 1000,
     createdAt: Date.now() - 6 * 60 * 60 * 1000,
-    createdBy: 'admin'
+    createdBy: 'admin',
+    revisionNumber: 1,
+    watermark: 'APPROVED',
+    qrCode: 'QR-PO17345681MNOP',
+    auditLog: [
+      {
+        id: 'audit-4',
+        timestamp: Date.now() - 6 * 60 * 60 * 1000,
+        action: 'Created',
+        performedBy: 'admin',
+        details: 'Purchase order created',
+        newStatus: 'draft'
+      }
+    ]
   }
 ]
 

@@ -63,7 +63,7 @@ export function GRNDialog({
 
   const isViewMode = !!grn
 
-  const confirmedPOs = purchaseOrders.filter(po => po.status === 'confirmed')
+  const orderedPOs = purchaseOrders.filter(po => po.status === 'ordered')
 
   useEffect(() => {
     if (grn) {
@@ -188,7 +188,7 @@ export function GRNDialog({
 
       const updatedPOs = purchaseOrders.map(p =>
         p.id === purchaseOrderId
-          ? { ...p, status: 'delivered' as const }
+          ? { ...p, status: 'received' as const }
           : p
       )
       setPurchaseOrders(updatedPOs)
@@ -226,7 +226,7 @@ export function GRNDialog({
                   <SelectValue placeholder="Select purchase order" />
                 </SelectTrigger>
                 <SelectContent>
-                  {confirmedPOs.map(po => {
+                  {orderedPOs.map(po => {
                     const sup = suppliers.find(s => s.id === po.supplierId)
                     return (
                       <SelectItem key={po.id} value={po.id}>

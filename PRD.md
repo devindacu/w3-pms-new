@@ -41,11 +41,11 @@ A comprehensive cloud-based Property Management System integrating Front Office,
 - **Success criteria**: Orders accurate, inventory updates automatic, bills reconcile, kitchen timing optimized
 
 ### Inventory & Procurement
-- **Functionality**: Multi-store inventory tracking, stock alerts, requisition workflows, purchase orders, goods receiving, FIFO/batch tracking
-- **Purpose**: Maintains optimal stock levels while minimizing waste and costs
+- **Functionality**: Multi-store inventory tracking, stock alerts, requisition workflows, purchase orders with preview/print/email, goods receiving, FIFO/batch tracking, PO approval hierarchy, audit trails
+- **Purpose**: Maintains optimal stock levels while minimizing waste and costs with comprehensive PO lifecycle management
 - **Trigger**: Stock falls below reorder level or department submits requisition
-- **Progression**: Low stock alert → Create requisition → Approve requisition → Generate PO → Send to supplier → Receive goods (GRN) → Update inventory → Match invoice
-- **Success criteria**: Stock-outs prevented, expiry minimized, procurement costs optimized, supplier performance tracked
+- **Progression**: Low stock alert → Create requisition → Approve requisition → Auto-generate PO → Preview PO → Approve PO → Print/Email to supplier → Track PO status (Draft → Approved → Ordered → Received → Closed) → Receive goods (GRN) → Update inventory → Match invoice → Audit trail
+- **Success criteria**: Stock-outs prevented, expiry minimized, procurement costs optimized, supplier performance tracked, PO approval workflow enforced, digital PO documents with QR codes, email delivery confirmation, complete audit trail
 
 ### Food Management
 - **Functionality**: Dedicated food inventory tracking with category-based organization (perishable, non-perishable, frozen, beverage, spices, etc.), order frequency management (daily, weekly, monthly, on-demand), supplier assignment per food type, quality & expiry tracking for perishables, minimum stock alerts with auto re-order triggers

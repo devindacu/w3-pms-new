@@ -216,7 +216,10 @@ export function PurchaseOrderDialog({
         expectedDelivery: expectedDelivery ? new Date(expectedDelivery).getTime() : undefined,
         notes,
         createdAt: now,
-        createdBy: currentUser.username
+        createdBy: currentUser.username,
+        revisionNumber: 1,
+        watermark: newStatus === 'draft' ? 'DRAFT' : newStatus === 'approved' ? 'APPROVED' : 'ORDERED',
+        qrCode: `QR-${generateNumber('PO')}`
       }
       setPurchaseOrders([newPO, ...purchaseOrders])
       toast.success('Purchase order created')
@@ -476,9 +479,9 @@ export function PurchaseOrderDialog({
               <Button variant="secondary" onClick={() => handleSave('draft')}>
                 Save as Draft
               </Button>
-              <Button onClick={() => handleSave('sent')}>
+              <Button onClick={() => handleSave('approved')}>
                 <PaperPlaneRight size={18} className="mr-2" />
-                Create & Send
+                Approve & Send
               </Button>
             </>
           )}

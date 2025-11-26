@@ -36,6 +36,7 @@ import { formatCurrency, formatDate, formatDateTime } from '@/lib/helpers'
 import { RequisitionDialog } from '@/components/RequisitionDialog'
 import { PurchaseOrderDialog } from '@/components/PurchaseOrderDialog'
 import { GRNDialog } from '@/components/GRNDialog'
+import { POPreviewDialog } from '@/components/POPreviewDialog'
 
 interface ProcurementProps {
   requisitions: Requisition[]
@@ -72,6 +73,7 @@ export function Procurement({
   const [requisitionDialogOpen, setRequisitionDialogOpen] = useState(false)
   const [poDialogOpen, setPODialogOpen] = useState(false)
   const [grnDialogOpen, setGRNDialogOpen] = useState(false)
+  const [poPreviewDialogOpen, setPOPreviewDialogOpen] = useState(false)
   const [selectedRequisition, setSelectedRequisition] = useState<Requisition | undefined>()
   const [selectedPO, setSelectedPO] = useState<PurchaseOrder | undefined>()
   const [selectedGRN, setSelectedGRN] = useState<GoodsReceivedNote | undefined>()
@@ -103,11 +105,10 @@ export function Procurement({
   const getPOStatusBadge = (status: string) => {
     const colors = {
       'draft': 'bg-muted text-muted-foreground',
-      'sent': 'bg-accent text-accent-foreground',
-      'confirmed': 'bg-primary text-primary-foreground',
-      'delivered': 'bg-success text-success-foreground',
-      'invoiced': 'bg-secondary text-secondary-foreground',
-      'paid': 'bg-success text-success-foreground'
+      'approved': 'bg-success/20 text-success-foreground',
+      'ordered': 'bg-primary/20 text-primary-foreground',
+      'received': 'bg-accent/20 text-accent-foreground',
+      'closed': 'bg-secondary text-secondary-foreground'
     }
 
     return (
@@ -117,11 +118,15 @@ export function Procurement({
     )
   }
 
+  const handlePOStatusChange = (newStatus: 'approved' | 'ordered', updatedPO: PurchaseOrder) => {
+    setPurchaseOrders(purchaseOrders.map(po => po.id === updatedPO.id ? updatedPO : po))
+  }
+
   const stats = {
     pendingRequisitions: requisitions.filter(r => r.status === 'pending-approval').length,
     approvedRequisitions: requisitions.filter(r => r.status === 'approved').length,
-    activePOs: purchaseOrders.filter(po => ['sent', 'confirmed'].includes(po.status)).length,
-    pendingDeliveries: purchaseOrders.filter(po => po.status === 'confirmed').length,
+    activePOs: purchaseOrders.filter(po => ['approved', 'ordered'].includes(po.status)).length,
+    pendingDeliveries: purchaseOrders.filter(po => po.status === 'ordered').length,
     totalPOValue: purchaseOrders.filter(po => po.status !== 'draft').reduce((sum, po) => sum + po.total, 0),
     monthlySpend: purchaseOrders.filter(po => {
       const poDate = new Date(po.createdAt)
@@ -425,13 +430,24 @@ export function Procurement({
                   <div className="flex gap-2 ml-4">
                     <Button
                       size="sm"
+                      variant="default"
+                      onClick={() => {
+                        setSelectedPO(po)
+                        setPOPreviewDialogOpen(true)
+                      }}
+                    >
+                      <Eye size={16} className="mr-2" />
+                      Preview
+                    </Button>
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => {
                         setSelectedPO(po)
                         setPODialogOpen(true)
                       }}
                     >
-                      <Eye size={16} />
+                      Edit
                     </Button>
                   </div>
                 </div>
@@ -637,6 +653,17 @@ export function Procurement({
         constructionMaterials={constructionMaterials}
         generalProducts={generalProducts}
       />
+
+      {selectedPO && (
+        <POPreviewDialog
+          open={poPreviewDialogOpen}
+          onOpenChange={setPOPreviewDialogOpen}
+          purchaseOrder={selectedPO}
+          supplier={suppliers.find(s => s.id === selectedPO.supplierId)!}
+          onStatusChange={handlePOStatusChange}
+          currentUser={currentUser}
+        />
+      )}
     </div>
   )
 }

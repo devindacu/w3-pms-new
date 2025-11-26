@@ -8,7 +8,7 @@ export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'served' | 'cancel
 export type OrderType = 'dine-in' | 'room-service' | 'takeaway'
 export type StockStatus = 'in-stock' | 'low-stock' | 'out-of-stock' | 'expired'
 export type RequisitionStatus = 'draft' | 'pending-approval' | 'approved' | 'rejected' | 'fulfilled'
-export type PurchaseOrderStatus = 'draft' | 'sent' | 'confirmed' | 'delivered' | 'invoiced' | 'paid'
+export type PurchaseOrderStatus = 'draft' | 'approved' | 'ordered' | 'received' | 'closed'
 export type MaintenanceStatus = 'scheduled' | 'in-progress' | 'completed' | 'cancelled'
 export type MaintenancePriority = 'low' | 'medium' | 'high' | 'urgent'
 export type Department = 'front-office' | 'housekeeping' | 'fnb' | 'kitchen' | 'engineering' | 'finance' | 'hr' | 'admin'
@@ -247,6 +247,27 @@ export interface PurchaseOrder {
   createdBy: string
   approvedBy?: string
   approvedAt?: number
+  sentAt?: number
+  sentBy?: string
+  emailedTo?: string[]
+  emailedAt?: number
+  printedAt?: number
+  printedBy?: string
+  digitalSignature?: string
+  qrCode?: string
+  watermark?: 'DRAFT' | 'APPROVED' | 'ORDERED'
+  revisionNumber: number
+  auditLog?: POAuditEntry[]
+}
+
+export interface POAuditEntry {
+  id: string
+  timestamp: number
+  action: string
+  performedBy: string
+  details?: string
+  previousStatus?: PurchaseOrderStatus
+  newStatus?: PurchaseOrderStatus
 }
 
 export interface PurchaseOrderItem {
