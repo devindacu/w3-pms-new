@@ -1785,3 +1785,453 @@ export interface MatchingRecommendation {
   actionLabel?: string
   actionData?: any
 }
+
+export type LoyaltyTier = 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond'
+export type GuestSegment = 'vip' | 'corporate' | 'leisure' | 'group' | 'wedding' | 'repeat' | 'new'
+export type CommunicationPreference = 'email' | 'sms' | 'phone' | 'whatsapp' | 'none'
+export type ComplaintStatus = 'open' | 'investigating' | 'resolved' | 'closed' | 'escalated'
+export type ComplaintPriority = 'low' | 'medium' | 'high' | 'urgent'
+export type ComplaintCategory = 'room-cleanliness' | 'staff-behavior' | 'food-quality' | 'billing-issue' | 'amenities' | 'noise' | 'service-delay' | 'facility-maintenance' | 'other'
+export type FeedbackRating = 1 | 2 | 3 | 4 | 5
+export type MarketingCampaignStatus = 'draft' | 'scheduled' | 'running' | 'paused' | 'completed' | 'cancelled'
+export type MarketingChannelType = 'email' | 'sms' | 'both'
+export type UpsellCategory = 'room-upgrade' | 'spa' | 'dining' | 'transport' | 'tours' | 'late-checkout' | 'early-checkin' | 'package' | 'other'
+export type UpsellStatus = 'offered' | 'accepted' | 'declined' | 'pending'
+
+export interface GuestProfile {
+  id: string
+  guestId: string
+  salutation?: 'Mr' | 'Ms' | 'Mrs' | 'Dr' | 'Prof'
+  firstName: string
+  lastName: string
+  email?: string
+  phone: string
+  alternatePhone?: string
+  dateOfBirth?: number
+  nationality?: string
+  idType?: string
+  idNumber?: string
+  passportNumber?: string
+  address?: string
+  city?: string
+  state?: string
+  country?: string
+  postalCode?: string
+  companyName?: string
+  gstNumber?: string
+  preferences: GuestPreferences
+  loyaltyInfo: LoyaltyInfo
+  segments: GuestSegment[]
+  communicationPreference: CommunicationPreference[]
+  doNotDisturb: boolean
+  blacklisted: boolean
+  blacklistReason?: string
+  vipNotes?: string
+  dietaryRestrictions?: string[]
+  allergies?: string[]
+  specialRequests?: string[]
+  totalStays: number
+  totalNights: number
+  totalSpent: number
+  averageSpendPerStay: number
+  lastStayDate?: number
+  nextReservationDate?: number
+  acquisitionSource?: string
+  referredBy?: string
+  socialMediaHandles?: {
+    facebook?: string
+    instagram?: string
+    twitter?: string
+    linkedin?: string
+  }
+  emergencyContact?: {
+    name: string
+    relationship: string
+    phone: string
+  }
+  tags?: string[]
+  notes?: string
+  createdAt: number
+  updatedAt: number
+  createdBy: string
+}
+
+export interface GuestPreferences {
+  roomType?: RoomType
+  floor?: string
+  bedType?: 'king' | 'queen' | 'twin' | 'single'
+  smoking?: boolean
+  view?: 'sea' | 'city' | 'garden' | 'pool' | 'no-preference'
+  pillow?: 'soft' | 'firm' | 'memory-foam' | 'feather'
+  temperature?: number
+  newspaper?: string
+  wakeUpCall?: boolean
+  wakeUpTime?: string
+  minibarPreferences?: string[]
+  roomAmenities?: string[]
+  foodPreferences?: string[]
+  beveragePreferences?: string[]
+  transportPreferences?: string[]
+  activityInterests?: string[]
+  specialOccasions?: {
+    type: 'birthday' | 'anniversary' | 'honeymoon' | 'other'
+    date?: number
+    notes?: string
+  }[]
+}
+
+export interface LoyaltyInfo {
+  memberId?: string
+  tier: LoyaltyTier
+  points: number
+  lifetimePoints: number
+  pointsToNextTier: number
+  tierSince: number
+  tierBenefits: string[]
+  pointsExpiring?: {
+    points: number
+    expiryDate: number
+  }[]
+  enrolledDate: number
+  lastPointsEarned?: number
+  lastPointsRedeemed?: number
+}
+
+export interface LoyaltyTransaction {
+  id: string
+  guestId: string
+  type: 'earned' | 'redeemed' | 'expired' | 'adjusted' | 'bonus'
+  points: number
+  balance: number
+  reason: string
+  reservationId?: string
+  orderId?: string
+  campaignId?: string
+  referenceNumber?: string
+  expiryDate?: number
+  processedBy?: string
+  notes?: string
+  createdAt: number
+}
+
+export interface LoyaltyProgram {
+  id: string
+  name: string
+  description: string
+  isActive: boolean
+  tiers: LoyaltyTier[]
+  tierRequirements: {
+    [key in LoyaltyTier]: {
+      minPoints: number
+      minStays: number
+      minSpend: number
+      benefits: string[]
+      pointsMultiplier: number
+    }
+  }
+  earningRules: {
+    roomNightPoints: number
+    spendMultiplier: number
+    bonusCategories: {
+      category: string
+      multiplier: number
+    }[]
+  }
+  redemptionRules: {
+    minimumRedemption: number
+    pointValue: number
+    blackoutDates?: number[]
+    restrictions?: string[]
+  }
+  pointsExpiry: {
+    enabled: boolean
+    expiryMonths: number
+    warningDays: number
+  }
+  updatedAt: number
+}
+
+export interface GuestComplaint {
+  id: string
+  complaintNumber: string
+  guestId: string
+  guestName: string
+  reservationId?: string
+  roomNumber?: string
+  category: ComplaintCategory
+  priority: ComplaintPriority
+  status: ComplaintStatus
+  subject: string
+  description: string
+  reportedBy: string
+  reportedAt: number
+  reportedVia: 'in-person' | 'phone' | 'email' | 'social-media' | 'review-site' | 'other'
+  assignedTo?: string
+  assignedAt?: number
+  department?: Department
+  actionsTaken: ComplaintAction[]
+  resolution?: string
+  compensationOffered?: {
+    type: 'refund' | 'discount' | 'upgrade' | 'loyalty-points' | 'complimentary-service' | 'other'
+    value: number
+    description: string
+  }
+  guestSatisfied?: boolean
+  followUpRequired: boolean
+  followUpDate?: number
+  followUpBy?: string
+  resolvedBy?: string
+  resolvedAt?: number
+  closedBy?: string
+  closedAt?: number
+  escalatedTo?: string
+  escalatedAt?: number
+  tags?: string[]
+  attachments?: string[]
+  internalNotes?: string
+  updatedAt: number
+}
+
+export interface ComplaintAction {
+  id: string
+  actionType: 'investigation' | 'resolution-attempt' | 'compensation' | 'follow-up' | 'escalation' | 'closure'
+  description: string
+  takenBy: string
+  takenAt: number
+  result?: string
+  notes?: string
+}
+
+export interface GuestFeedback {
+  id: string
+  feedbackNumber: string
+  guestId: string
+  guestName: string
+  reservationId?: string
+  roomNumber?: string
+  stayCheckIn?: number
+  stayCheckOut?: number
+  submittedAt: number
+  channel: 'email' | 'sms' | 'in-room-tablet' | 'website' | 'app' | 'front-desk' | 'phone'
+  overallRating: FeedbackRating
+  ratings: {
+    roomCleanliness?: FeedbackRating
+    roomComfort?: FeedbackRating
+    staffService?: FeedbackRating
+    foodQuality?: FeedbackRating
+    facilities?: FeedbackRating
+    valueForMoney?: FeedbackRating
+    location?: FeedbackRating
+    checkInExperience?: FeedbackRating
+    checkOutExperience?: FeedbackRating
+  }
+  comments?: string
+  highlights?: string[]
+  improvements?: string[]
+  wouldRecommend: boolean
+  wouldReturn: boolean
+  nps?: number
+  sentiment?: 'positive' | 'neutral' | 'negative'
+  reviewPublic?: boolean
+  reviewPlatform?: string
+  responseRequired: boolean
+  respondedBy?: string
+  responseText?: string
+  respondedAt?: number
+  tags?: string[]
+  actionItems?: string[]
+  createdAt: number
+}
+
+export interface MarketingTemplate {
+  id: string
+  templateId: string
+  name: string
+  description?: string
+  type: 'promotional' | 'transactional' | 'welcome' | 'birthday' | 'anniversary' | 'loyalty' | 'feedback-request' | 'win-back' | 'booking-confirmation' | 'pre-arrival' | 'post-stay' | 'seasonal' | 'newsletter'
+  channel: MarketingChannelType
+  subject?: string
+  emailBody?: string
+  smsBody?: string
+  variables: TemplateVariable[]
+  segments?: GuestSegment[]
+  tags?: string[]
+  isActive: boolean
+  usage: number
+  openRate?: number
+  clickRate?: number
+  conversionRate?: number
+  lastUsed?: number
+  createdBy: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface TemplateVariable {
+  name: string
+  description: string
+  example: string
+  required: boolean
+}
+
+export interface MarketingCampaign {
+  id: string
+  campaignId: string
+  name: string
+  description?: string
+  type: 'promotional' | 'loyalty' | 'seasonal' | 'feedback' | 'reengagement' | 'upsell' | 'event' | 'newsletter'
+  status: MarketingCampaignStatus
+  channel: MarketingChannelType
+  templateId?: string
+  targetSegments: GuestSegment[]
+  targetTiers?: LoyaltyTier[]
+  filters: CampaignFilter[]
+  recipientCount: number
+  scheduledDate?: number
+  sentDate?: number
+  completedDate?: number
+  emailsSent: number
+  smsSent: number
+  emailsOpened: number
+  emailsClicked: number
+  conversions: number
+  revenue: number
+  cost: number
+  roi?: number
+  offer?: {
+    type: 'discount-percentage' | 'discount-amount' | 'free-upgrade' | 'loyalty-points' | 'free-service' | 'package-deal'
+    value: number
+    code?: string
+    validFrom?: number
+    validUntil?: number
+    termsAndConditions?: string
+  }
+  trackingLinks?: {
+    name: string
+    url: string
+    clicks: number
+  }[]
+  unsubscribes: number
+  bounces: number
+  errors: number
+  createdBy: string
+  createdAt: number
+  updatedAt: number
+  completedBy?: string
+  cancelledBy?: string
+  cancelledAt?: number
+  cancelReason?: string
+  notes?: string
+}
+
+export interface CampaignFilter {
+  field: 'totalStays' | 'totalSpent' | 'lastStayDate' | 'loyaltyTier' | 'segment' | 'country' | 'city' | 'hasEmail' | 'hasSMS' | 'age' | 'preferredRoomType'
+  operator: 'equals' | 'notEquals' | 'greaterThan' | 'lessThan' | 'between' | 'contains' | 'in'
+  value: any
+}
+
+export interface UpsellOffer {
+  id: string
+  offerId: string
+  name: string
+  description: string
+  category: UpsellCategory
+  basePrice: number
+  discountedPrice?: number
+  isActive: boolean
+  validFrom?: number
+  validUntil?: number
+  availableFor: {
+    roomTypes?: RoomType[]
+    segments?: GuestSegment[]
+    tiers?: LoyaltyTier[]
+    minimumStayNights?: number
+  }
+  inventory?: {
+    total: number
+    available: number
+    reserved: number
+  }
+  commissionPercentage?: number
+  images?: string[]
+  highlights?: string[]
+  termsAndConditions?: string
+  displayOrder: number
+  createdBy: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface UpsellTransaction {
+  id: string
+  transactionNumber: string
+  guestId: string
+  guestName: string
+  reservationId?: string
+  offerId: string
+  offerName: string
+  category: UpsellCategory
+  status: UpsellStatus
+  offeredAt: number
+  offeredBy: string
+  offeredVia: 'front-desk' | 'email' | 'sms' | 'app' | 'website' | 'phone' | 'in-room-tablet'
+  respondedAt?: number
+  amount: number
+  discount?: number
+  finalAmount: number
+  commissionAmount?: number
+  commissionPaidTo?: string
+  paymentStatus?: PaymentStatus
+  paymentMethod?: PaymentMethod
+  folioId?: string
+  deliveryDate?: number
+  deliveryTime?: string
+  deliveryStatus?: 'pending' | 'confirmed' | 'delivered' | 'cancelled'
+  guestRating?: FeedbackRating
+  guestFeedback?: string
+  notes?: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface GuestCommunication {
+  id: string
+  guestId: string
+  guestName: string
+  type: 'email' | 'sms' | 'phone' | 'whatsapp' | 'in-person' | 'letter'
+  direction: 'inbound' | 'outbound'
+  subject?: string
+  message: string
+  templateId?: string
+  campaignId?: string
+  sentBy?: string
+  receivedFrom?: string
+  timestamp: number
+  status?: 'sent' | 'delivered' | 'read' | 'failed' | 'bounced'
+  channel?: string
+  attachments?: string[]
+  tags?: string[]
+  relatedTo?: {
+    type: 'reservation' | 'complaint' | 'feedback' | 'upsell' | 'campaign' | 'general'
+    id: string
+  }
+  notes?: string
+}
+
+export interface GuestJourney {
+  guestId: string
+  events: JourneyEvent[]
+  touchpoints: number
+  lastInteraction: number
+  engagementScore: number
+  conversionRate: number
+  lifetimeValue: number
+}
+
+export interface JourneyEvent {
+  id: string
+  type: 'website-visit' | 'inquiry' | 'reservation' | 'check-in' | 'upsell-offer' | 'upsell-accept' | 'complaint' | 'feedback' | 'campaign-sent' | 'campaign-opened' | 'campaign-clicked' | 'loyalty-earned' | 'loyalty-redeemed' | 'check-out' | 'review-posted'
+  timestamp: number
+  details: string
+  metadata?: Record<string, any>
+}

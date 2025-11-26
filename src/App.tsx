@@ -131,8 +131,19 @@ import { NotificationPanel } from '@/components/NotificationPanel'
 import { DashboardAlerts } from '@/components/DashboardAlerts'
 import { generateAllAlerts } from '@/lib/notificationHelpers'
 import { generateEmailFromNotifications, mockSendEmail } from '@/lib/emailHelpers'
+import { CRM } from '@/components/CRM'
+import type {
+  GuestProfile,
+  GuestComplaint,
+  GuestFeedback,
+  MarketingCampaign,
+  MarketingTemplate,
+  UpsellOffer,
+  UpsellTransaction,
+  LoyaltyTransaction
+} from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -175,6 +186,14 @@ function App() {
   const [wasteTracking, setWasteTracking] = useKV<WasteTracking[]>('w3-hotel-waste-tracking', [])
   const [notifications, setNotifications] = useKV<Notification[]>('w3-hotel-notifications', [])
   const [forecasts, setForecasts] = useKV<DemandForecast[]>('w3-hotel-forecasts', [])
+  const [guestProfiles, setGuestProfiles] = useKV<GuestProfile[]>('w3-hotel-guest-profiles', [])
+  const [complaints, setComplaints] = useKV<GuestComplaint[]>('w3-hotel-complaints', [])
+  const [guestFeedback, setGuestFeedback] = useKV<GuestFeedback[]>('w3-hotel-guest-feedback', [])
+  const [marketingCampaigns, setMarketingCampaigns] = useKV<MarketingCampaign[]>('w3-hotel-marketing-campaigns', [])
+  const [marketingTemplates, setMarketingTemplates] = useKV<MarketingTemplate[]>('w3-hotel-marketing-templates', [])
+  const [upsellOffers, setUpsellOffers] = useKV<UpsellOffer[]>('w3-hotel-upsell-offers', [])
+  const [upsellTransactions, setUpsellTransactions] = useKV<UpsellTransaction[]>('w3-hotel-upsell-transactions', [])
+  const [loyaltyTransactions, setLoyaltyTransactions] = useKV<LoyaltyTransaction[]>('w3-hotel-loyalty-transactions', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
@@ -779,6 +798,17 @@ function App() {
             <Sparkle size={18} className="mr-2" />
             AI Forecasting
           </Button>
+
+          <Separator className="my-2" />
+
+          <Button
+            variant={currentModule === 'crm' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('crm')}
+          >
+            <Users size={18} className="mr-2" />
+            CRM & Guest Relations
+          </Button>
         </nav>
       </aside>
 
@@ -932,6 +962,26 @@ function App() {
               consumptionLogs={consumptionLogs || []}
               recipes={recipes || []}
               menus={menus || []}
+            />
+          )}
+          {currentModule === 'crm' && (
+            <CRM
+              guestProfiles={guestProfiles || []}
+              setGuestProfiles={setGuestProfiles}
+              complaints={complaints || []}
+              setComplaints={setComplaints}
+              feedback={guestFeedback || []}
+              setFeedback={setGuestFeedback}
+              campaigns={marketingCampaigns || []}
+              setCampaigns={setMarketingCampaigns}
+              templates={marketingTemplates || []}
+              setTemplates={setMarketingTemplates}
+              upsellOffers={upsellOffers || []}
+              setUpsellOffers={setUpsellOffers}
+              upsellTransactions={upsellTransactions || []}
+              setUpsellTransactions={setUpsellTransactions}
+              loyaltyTransactions={loyaltyTransactions || []}
+              setLoyaltyTransactions={setLoyaltyTransactions}
             />
           )}
         </div>
