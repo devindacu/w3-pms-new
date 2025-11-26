@@ -18,9 +18,10 @@ import {
   type FoodItem,
   type Amenity,
   type ConstructionMaterial,
-  type GeneralProduct
+  type GeneralProduct,
+  type Supplier
 } from '@/lib/types'
-import { generateId, generateNumber } from '@/lib/helpers'
+import { generateId, generateNumber, formatCurrency } from '@/lib/helpers'
 
 interface RequisitionDialogProps {
   open: boolean
@@ -34,6 +35,7 @@ interface RequisitionDialogProps {
   amenities: Amenity[]
   constructionMaterials: ConstructionMaterial[]
   generalProducts: GeneralProduct[]
+  suppliers: Supplier[]
 }
 
 export function RequisitionDialog({
@@ -47,7 +49,8 @@ export function RequisitionDialog({
   foodItems,
   amenities,
   constructionMaterials,
-  generalProducts
+  generalProducts,
+  suppliers
 }: RequisitionDialogProps) {
   const [department, setDepartment] = useState<Department>('front-office')
   const [priority, setPriority] = useState<'normal' | 'high' | 'urgent'>('normal')
@@ -56,6 +59,8 @@ export function RequisitionDialog({
   const [newItemName, setNewItemName] = useState('')
   const [newItemQuantity, setNewItemQuantity] = useState('')
   const [newItemUnit, setNewItemUnit] = useState('')
+  const [newItemUnitPrice, setNewItemUnitPrice] = useState('')
+  const [newItemSupplierId, setNewItemSupplierId] = useState('')
 
   const isViewMode = !!requisition && requisition.status !== 'draft'
   const canApprove = currentUser.role === 'admin' || currentUser.role === 'procurement-manager' || currentUser.role === 'department-head'
@@ -75,7 +80,7 @@ export function RequisitionDialog({
   }, [requisition, currentUser])
 
   const handleAddItem = () => {
-    if (!newItemName || !newItemQuantity || !newItemUnit) {
+    if (!newItemName || !newItemQuantity || !newItemUnit || !newItemUnitPrice) {
       toast.error('Please fill in all item details')
       return
     }
@@ -86,19 +91,29 @@ export function RequisitionDialog({
       return
     }
 
+    const unitPrice = parseFloat(newItemUnitPrice)
+    if (isNaN(unitPrice) || unitPrice < 0) {
+      toast.error('Please enter a valid unit price')
+      return
+    }
+
     const newItem: RequisitionItem = {
       id: generateId(),
       inventoryItemId: generateId(),
       name: newItemName,
       quantity,
       unit: newItemUnit,
-      estimatedCost: 0
+      unitPrice,
+      estimatedCost: quantity * unitPrice,
+      supplierId: newItemSupplierId || undefined
     }
 
     setItems([...items, newItem])
     setNewItemName('')
     setNewItemQuantity('')
     setNewItemUnit('')
+    setNewItemUnitPrice('')
+    setNewItemSupplierId('')
     toast.success('Item added')
   }
 
@@ -250,33 +265,66 @@ export function RequisitionDialog({
             <Label className="text-base font-semibold">Items</Label>
             
             {!isViewMode && (
-              <div className="grid grid-cols-12 gap-3 mt-4 p-4 bg-muted/50 rounded-lg">
-                <div className="col-span-5">
-                  <Input
-                    placeholder="Item name"
-                    value={newItemName}
-                    onChange={(e) => setNewItemName(e.target.value)}
-                  />
+              <div className="space-y-3 mt-4 p-4 bg-muted/50 rounded-lg">
+                <div className="grid grid-cols-12 gap-3">
+                  <div className="col-span-6">
+                    <Label className="text-xs">Item Name</Label>
+                    <Input
+                      placeholder="Item name"
+                      value={newItemName}
+                      onChange={(e) => setNewItemName(e.target.value)}
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-xs">Quantity</Label>
+                    <Input
+                      type="number"
+                      placeholder="Quantity"
+                      value={newItemQuantity}
+                      onChange={(e) => setNewItemQuantity(e.target.value)}
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-xs">Unit</Label>
+                    <Input
+                      placeholder="Unit"
+                      value={newItemUnit}
+                      onChange={(e) => setNewItemUnit(e.target.value)}
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-xs">Unit Price</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={newItemUnitPrice}
+                      onChange={(e) => setNewItemUnitPrice(e.target.value)}
+                    />
+                  </div>
                 </div>
-                <div className="col-span-3">
-                  <Input
-                    type="number"
-                    placeholder="Quantity"
-                    value={newItemQuantity}
-                    onChange={(e) => setNewItemQuantity(e.target.value)}
-                  />
-                </div>
-                <div className="col-span-3">
-                  <Input
-                    placeholder="Unit"
-                    value={newItemUnit}
-                    onChange={(e) => setNewItemUnit(e.target.value)}
-                  />
-                </div>
-                <div className="col-span-1">
-                  <Button onClick={handleAddItem} size="icon" className="w-full">
-                    <Plus size={18} />
-                  </Button>
+                <div className="grid grid-cols-12 gap-3">
+                  <div className="col-span-11">
+                    <Label className="text-xs">Supplier (Optional)</Label>
+                    <Select value={newItemSupplierId} onValueChange={setNewItemSupplierId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select supplier" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">None</SelectItem>
+                        {suppliers.map((supplier) => (
+                          <SelectItem key={supplier.id} value={supplier.id}>
+                            {supplier.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-1 flex items-end">
+                    <Button onClick={handleAddItem} size="icon" className="w-full">
+                      <Plus size={18} />
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
@@ -285,28 +333,59 @@ export function RequisitionDialog({
               {items.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">No items added yet</p>
               ) : (
-                items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
-                  >
-                    <div className="flex-1">
-                      <p className="font-medium">{item.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {item.quantity} {item.unit}
+                <>
+                  <div className="grid grid-cols-12 gap-3 px-3 py-2 text-xs font-medium text-muted-foreground">
+                    <div className="col-span-4">Item</div>
+                    <div className="col-span-2 text-right">Quantity</div>
+                    <div className="col-span-2 text-right">Unit Price</div>
+                    <div className="col-span-2 text-right">Total</div>
+                    <div className="col-span-2">Supplier</div>
+                  </div>
+                  {items.map((item) => {
+                    const supplier = item.supplierId ? suppliers.find(s => s.id === item.supplierId) : null
+                    return (
+                      <div
+                        key={item.id}
+                        className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg"
+                      >
+                        <div className="flex-1 grid grid-cols-12 gap-3 items-center">
+                          <div className="col-span-4">
+                            <p className="font-medium">{item.name}</p>
+                          </div>
+                          <div className="col-span-2 text-right text-sm text-muted-foreground">
+                            {item.quantity} {item.unit}
+                          </div>
+                          <div className="col-span-2 text-right text-sm text-muted-foreground">
+                            {formatCurrency(item.unitPrice)}
+                          </div>
+                          <div className="col-span-2 text-right text-sm font-medium">
+                            {formatCurrency(item.estimatedCost)}
+                          </div>
+                          <div className="col-span-2 text-sm text-muted-foreground">
+                            {supplier ? supplier.name : '-'}
+                          </div>
+                        </div>
+                        {!isViewMode && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleRemoveItem(item.id)}
+                          >
+                            <Trash size={16} className="text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                    )
+                  })}
+                  <div className="flex justify-end pt-3 border-t">
+                    <div className="text-right">
+                      <p className="text-sm text-muted-foreground">Total Estimated Cost</p>
+                      <p className="text-xl font-semibold">
+                        {formatCurrency(items.reduce((sum, item) => sum + item.estimatedCost, 0))}
                       </p>
                     </div>
-                    {!isViewMode && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleRemoveItem(item.id)}
-                      >
-                        <Trash size={16} className="text-destructive" />
-                      </Button>
-                    )}
                   </div>
-                ))
+                </>
               )}
             </div>
           </div>

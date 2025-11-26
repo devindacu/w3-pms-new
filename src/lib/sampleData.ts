@@ -2961,7 +2961,9 @@ export const sampleRequisitions: Requisition[] = [
         name: 'Shampoo Bottles',
         quantity: 100,
         unit: 'bottles',
-        estimatedCost: 3.5
+        unitPrice: 3.5,
+        estimatedCost: 350,
+        supplierId: 'sup-1'
       },
       {
         id: 'reqitem-2',
@@ -2969,7 +2971,9 @@ export const sampleRequisitions: Requisition[] = [
         name: 'Bath Towels',
         quantity: 50,
         unit: 'pieces',
-        estimatedCost: 12
+        unitPrice: 12,
+        estimatedCost: 600,
+        supplierId: 'sup-2'
       }
     ],
     status: 'pending-approval',
@@ -2989,7 +2993,9 @@ export const sampleRequisitions: Requisition[] = [
         name: 'Chicken Breast',
         quantity: 50,
         unit: 'kg',
-        estimatedCost: 8
+        unitPrice: 8,
+        estimatedCost: 400,
+        supplierId: 'sup-3'
       },
       {
         id: 'reqitem-4',
@@ -2997,7 +3003,8 @@ export const sampleRequisitions: Requisition[] = [
         name: 'Fresh Vegetables',
         quantity: 30,
         unit: 'kg',
-        estimatedCost: 4.5
+        unitPrice: 4.5,
+        estimatedCost: 135
       }
     ],
     status: 'approved',

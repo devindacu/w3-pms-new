@@ -228,7 +228,9 @@ export interface RequisitionItem {
   name: string
   quantity: number
   unit: string
+  unitPrice: number
   estimatedCost: number
+  supplierId?: string
 }
 
 export interface PurchaseOrder {

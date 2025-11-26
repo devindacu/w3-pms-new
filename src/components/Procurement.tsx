@@ -317,14 +317,43 @@ export function Procurement({
                   )}
                   <Separator className="my-4" />
                   <div className="space-y-2">
-                    {req.items.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between text-sm">
-                        <span>{item.name}</span>
-                        <span className="text-muted-foreground">
-                          {item.quantity} {item.unit}
-                        </span>
+                    <div className="grid grid-cols-12 gap-3 px-2 text-xs font-medium text-muted-foreground">
+                      <div className="col-span-4">Item</div>
+                      <div className="col-span-2 text-right">Quantity</div>
+                      <div className="col-span-2 text-right">Unit Price</div>
+                      <div className="col-span-2 text-right">Total</div>
+                      <div className="col-span-2">Supplier</div>
+                    </div>
+                    {req.items.map((item) => {
+                      const supplier = item.supplierId ? suppliers.find(s => s.id === item.supplierId) : null
+                      return (
+                        <div key={item.id} className="flex items-center justify-between text-sm px-2">
+                          <div className="grid grid-cols-12 gap-3 w-full">
+                            <span className="col-span-4">{item.name}</span>
+                            <span className="col-span-2 text-right text-muted-foreground">
+                              {item.quantity} {item.unit}
+                            </span>
+                            <span className="col-span-2 text-right text-muted-foreground">
+                              {formatCurrency(item.unitPrice)}
+                            </span>
+                            <span className="col-span-2 text-right font-medium">
+                              {formatCurrency(item.estimatedCost)}
+                            </span>
+                            <span className="col-span-2 text-muted-foreground text-xs">
+                              {supplier ? supplier.name : '-'}
+                            </span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                    <div className="flex justify-end pt-2 border-t mt-2">
+                      <div className="text-right px-2">
+                        <p className="text-xs text-muted-foreground">Total Estimated Cost</p>
+                        <p className="text-sm font-semibold">
+                          {formatCurrency(req.items.reduce((sum, item) => sum + item.estimatedCost, 0))}
+                        </p>
                       </div>
-                    ))}
+                    </div>
                   </div>
                 </div>
                 <div className="flex gap-2 ml-4">
@@ -619,6 +648,7 @@ export function Procurement({
         amenities={amenities}
         constructionMaterials={constructionMaterials}
         generalProducts={generalProducts}
+        suppliers={suppliers}
       />
 
       <PurchaseOrderDialog
