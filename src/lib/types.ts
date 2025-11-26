@@ -2252,3 +2252,306 @@ export interface JourneyEvent {
   details: string
   metadata?: Record<string, any>
 }
+
+export type OTAChannel = 'booking.com' | 'agoda' | 'expedia' | 'airbnb' | 'makemytrip' | 'goibibo' | 'tripadvisor' | 'hotels.com' | 'direct-website'
+export type OTAConnectionStatus = 'connected' | 'disconnected' | 'syncing' | 'error' | 'pending'
+export type SyncDirection = 'push' | 'pull' | 'bidirectional'
+export type SyncStatus = 'success' | 'failed' | 'in-progress' | 'pending' | 'partial'
+export type RatePlanType = 'standard' | 'non-refundable' | 'advance-purchase' | 'package' | 'promotional' | 'corporate' | 'weekend' | 'long-stay'
+
+export interface OTAConnection {
+  id: string
+  channel: OTAChannel
+  name: string
+  status: OTAConnectionStatus
+  apiKey?: string
+  propertyId?: string
+  accountId?: string
+  username?: string
+  isActive: boolean
+  autoSync: boolean
+  syncFrequency: number
+  lastSync?: number
+  nextSync?: number
+  totalBookings: number
+  totalRevenue: number
+  averageRating?: number
+  reviewCount?: number
+  commission: number
+  syncSettings: {
+    syncAvailability: boolean
+    syncRates: boolean
+    syncRestrictions: boolean
+    syncInventory: boolean
+    syncReservations: boolean
+    syncReviews: boolean
+  }
+  lastError?: {
+    code: string
+    message: string
+    timestamp: number
+  }
+  createdAt: number
+  updatedAt: number
+  connectedBy: string
+}
+
+export interface RatePlan {
+  id: string
+  planId: string
+  name: string
+  description?: string
+  type: RatePlanType
+  roomTypes: RoomType[]
+  baseRate: number
+  currency: string
+  isActive: boolean
+  channels: OTAChannel[]
+  includedInPackage?: string[]
+  mealPlan?: 'room-only' | 'breakfast' | 'half-board' | 'full-board' | 'all-inclusive'
+  cancellationPolicy: {
+    freeCancellationDays: number
+    penaltyPercentage: number
+    noShowCharge: number
+  }
+  advancePurchaseDays?: number
+  minimumStay?: number
+  maximumStay?: number
+  blackoutDates?: number[]
+  validFrom?: number
+  validUntil?: number
+  markup?: number
+  discount?: number
+  priority: number
+  createdBy: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface ChannelInventory {
+  id: string
+  date: number
+  roomType: RoomType
+  totalRooms: number
+  availableRooms: number
+  channelAllocations: {
+    [key in OTAChannel]?: number
+  }
+  reservedRooms: number
+  blockedRooms: number
+  overbooking: number
+  lastUpdated: number
+  updatedBy?: string
+}
+
+export interface ChannelRate {
+  id: string
+  date: number
+  roomType: RoomType
+  ratePlanId: string
+  baseRate: number
+  channelRates: {
+    [key in OTAChannel]?: {
+      rate: number
+      currency: string
+      commission: number
+      netRate: number
+      extraGuestCharge?: number
+      childCharge?: number
+    }
+  }
+  restrictions: RateRestrictions
+  lastUpdated: number
+  updatedBy?: string
+}
+
+export interface RateRestrictions {
+  minimumStay?: number
+  maximumStay?: number
+  closedToArrival: boolean
+  closedToDeparture: boolean
+  stopSell: boolean
+  minimumAdvanceBooking?: number
+  maximumAdvanceBooking?: number
+}
+
+export interface ChannelReservation {
+  id: string
+  bookingId: string
+  channel: OTAChannel
+  channelBookingId: string
+  guestId: string
+  roomType: RoomType
+  checkInDate: number
+  checkOutDate: number
+  adults: number
+  children: number
+  ratePlanId: string
+  ratePerNight: number
+  totalAmount: number
+  commission: number
+  netAmount: number
+  currency: string
+  status: ReservationStatus
+  guestDetails: {
+    firstName: string
+    lastName: string
+    email?: string
+    phone?: string
+    nationality?: string
+    specialRequests?: string
+  }
+  paymentDetails: {
+    method: 'prepaid' | 'pay-at-hotel' | 'virtual-card'
+    status: PaymentStatus
+    paidAmount: number
+    cardDetails?: {
+      type: string
+      lastFour?: string
+      expiryDate?: string
+    }
+  }
+  cancellationPolicy: string
+  syncedToPMS: boolean
+  pmsReservationId?: string
+  importedAt: number
+  lastSyncedAt?: number
+  notes?: string
+}
+
+export interface SyncLog {
+  id: string
+  channel: OTAChannel
+  syncType: 'availability' | 'rates' | 'restrictions' | 'inventory' | 'reservations' | 'reviews' | 'full'
+  direction: SyncDirection
+  status: SyncStatus
+  startedAt: number
+  completedAt?: number
+  duration?: number
+  recordsProcessed: number
+  recordsSuccessful: number
+  recordsFailed: number
+  errors?: SyncError[]
+  details?: {
+    roomTypes?: RoomType[]
+    dateRange?: {
+      from: number
+      to: number
+    }
+    changes?: {
+      created: number
+      updated: number
+      deleted: number
+    }
+  }
+  triggeredBy: 'manual' | 'auto' | 'scheduled' | 'api-webhook'
+  executedBy?: string
+}
+
+export interface SyncError {
+  id: string
+  errorCode: string
+  message: string
+  severity: 'info' | 'warning' | 'error' | 'critical'
+  resourceType?: string
+  resourceId?: string
+  timestamp: number
+  resolved: boolean
+  resolvedBy?: string
+  resolvedAt?: number
+  resolution?: string
+}
+
+export interface ChannelPerformance {
+  id: string
+  channel: OTAChannel
+  period: 'daily' | 'weekly' | 'monthly' | 'yearly'
+  startDate: number
+  endDate: number
+  bookings: number
+  cancellations: number
+  revenue: number
+  commission: number
+  netRevenue: number
+  averageRoomRate: number
+  averageLOS: number
+  conversionRate: number
+  reviewCount: number
+  averageRating: number
+  responseRate: number
+  responseTime: number
+  calculatedAt: number
+}
+
+export interface ChannelReview {
+  id: string
+  channel: OTAChannel
+  externalReviewId: string
+  guestName: string
+  guestCountry?: string
+  reservationId?: string
+  channelBookingId?: string
+  rating: number
+  reviewTitle?: string
+  reviewText: string
+  positiveComments?: string
+  negativeComments?: string
+  submittedAt: number
+  stayDate?: number
+  tripType?: 'business' | 'leisure' | 'family' | 'couple' | 'solo' | 'group'
+  roomType?: RoomType
+  verified: boolean
+  responseText?: string
+  responseBy?: string
+  respondedAt?: number
+  sentiment?: 'positive' | 'neutral' | 'negative'
+  categories?: {
+    cleanliness?: number
+    comfort?: number
+    location?: number
+    facilities?: number
+    staff?: number
+    valueForMoney?: number
+    wifi?: number
+  }
+  helpful: number
+  notHelpful: number
+  isPublic: boolean
+  syncedToFeedback: boolean
+  feedbackId?: string
+  importedAt: number
+  lastSyncedAt?: number
+  tags?: string[]
+}
+
+export interface BulkUpdateOperation {
+  id: string
+  operationType: 'rate-update' | 'availability-update' | 'restriction-update' | 'inventory-update'
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled'
+  channels: OTAChannel[]
+  roomTypes: RoomType[]
+  dateRange: {
+    from: number
+    to: number
+  }
+  updates: {
+    rate?: number
+    rateAdjustment?: {
+      type: 'percentage' | 'amount'
+      value: number
+    }
+    availability?: number
+    restrictions?: Partial<RateRestrictions>
+  }
+  applyToDaysOfWeek?: number[]
+  totalRecords: number
+  processedRecords: number
+  failedRecords: number
+  errors?: SyncError[]
+  createdBy: string
+  createdAt: number
+  startedAt?: number
+  completedAt?: number
+  cancelledBy?: string
+  cancelledAt?: number
+}

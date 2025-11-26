@@ -116,6 +116,7 @@ import {
   samplePurchaseOrders,
   sampleGRNs
 } from '@/lib/sampleData'
+import { sampleOTAConnections, sampleChannelPerformance } from '@/lib/channelManagerSampleData'
 import { ConstructionManagement } from '@/components/ConstructionManagement'
 import { SupplierManagement } from '@/components/SupplierManagement'
 import { InventoryManagement } from '@/components/InventoryManagement'
@@ -132,6 +133,7 @@ import { DashboardAlerts } from '@/components/DashboardAlerts'
 import { generateAllAlerts } from '@/lib/notificationHelpers'
 import { generateEmailFromNotifications, mockSendEmail } from '@/lib/emailHelpers'
 import { CRM } from '@/components/CRM'
+import { ChannelManager } from '@/components/ChannelManager'
 import type {
   GuestProfile,
   GuestComplaint,
@@ -140,10 +142,19 @@ import type {
   MarketingTemplate,
   UpsellOffer,
   UpsellTransaction,
-  LoyaltyTransaction
+  LoyaltyTransaction,
+  OTAConnection,
+  RatePlan,
+  ChannelInventory,
+  ChannelRate,
+  ChannelReservation,
+  SyncLog,
+  ChannelPerformance,
+  ChannelReview,
+  BulkUpdateOperation
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -194,6 +205,15 @@ function App() {
   const [upsellOffers, setUpsellOffers] = useKV<UpsellOffer[]>('w3-hotel-upsell-offers', [])
   const [upsellTransactions, setUpsellTransactions] = useKV<UpsellTransaction[]>('w3-hotel-upsell-transactions', [])
   const [loyaltyTransactions, setLoyaltyTransactions] = useKV<LoyaltyTransaction[]>('w3-hotel-loyalty-transactions', [])
+  const [otaConnections, setOTAConnections] = useKV<OTAConnection[]>('w3-hotel-ota-connections', [])
+  const [ratePlans, setRatePlans] = useKV<RatePlan[]>('w3-hotel-rate-plans', [])
+  const [channelInventory, setChannelInventory] = useKV<ChannelInventory[]>('w3-hotel-channel-inventory', [])
+  const [channelRates, setChannelRates] = useKV<ChannelRate[]>('w3-hotel-channel-rates', [])
+  const [channelReservations, setChannelReservations] = useKV<ChannelReservation[]>('w3-hotel-channel-reservations', [])
+  const [syncLogs, setSyncLogs] = useKV<SyncLog[]>('w3-hotel-sync-logs', [])
+  const [channelPerformance, setChannelPerformance] = useKV<ChannelPerformance[]>('w3-hotel-channel-performance', [])
+  const [channelReviews, setChannelReviews] = useKV<ChannelReview[]>('w3-hotel-channel-reviews', [])
+  const [bulkOperations, setBulkOperations] = useKV<BulkUpdateOperation[]>('w3-hotel-bulk-operations', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
@@ -346,6 +366,8 @@ function App() {
     setRequisitions(sampleRequisitions)
     setPurchaseOrders(samplePurchaseOrders)
     setGRNs(sampleGRNs)
+    setOTAConnections(sampleOTAConnections)
+    setChannelPerformance(sampleChannelPerformance)
     toast.success('Sample data loaded successfully')
   }
 
@@ -809,6 +831,15 @@ function App() {
             <Users size={18} className="mr-2" />
             CRM & Guest Relations
           </Button>
+
+          <Button
+            variant={currentModule === 'channel-manager' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('channel-manager')}
+          >
+            <Buildings size={18} className="mr-2" />
+            Channel Manager
+          </Button>
         </nav>
       </aside>
 
@@ -982,6 +1013,29 @@ function App() {
               setUpsellTransactions={setUpsellTransactions}
               loyaltyTransactions={loyaltyTransactions || []}
               setLoyaltyTransactions={setLoyaltyTransactions}
+            />
+          )}
+          {currentModule === 'channel-manager' && (
+            <ChannelManager
+              connections={otaConnections || []}
+              setConnections={setOTAConnections}
+              ratePlans={ratePlans || []}
+              setRatePlans={setRatePlans}
+              inventory={channelInventory || []}
+              setInventory={setChannelInventory}
+              rates={channelRates || []}
+              setRates={setChannelRates}
+              reservations={channelReservations || []}
+              setReservations={setChannelReservations}
+              syncLogs={syncLogs || []}
+              setSyncLogs={setSyncLogs}
+              performance={channelPerformance || []}
+              reviews={channelReviews || []}
+              setReviews={setChannelReviews}
+              bulkOperations={bulkOperations || []}
+              setBulkOperations={setBulkOperations}
+              rooms={rooms || []}
+              currentUser={currentUser}
             />
           )}
         </div>
