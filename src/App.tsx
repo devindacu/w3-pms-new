@@ -64,7 +64,12 @@ import {
   type Invoice,
   type Recipe,
   type Menu,
-  type KitchenConsumptionLog
+  type KitchenConsumptionLog,
+  type KitchenStation,
+  type KitchenStaff,
+  type ProductionSchedule,
+  type KitchenInventoryIssue,
+  type WasteTracking
 } from '@/lib/types'
 import { 
   formatCurrency, 
@@ -156,6 +161,11 @@ function App() {
   const [recipes, setRecipes] = useKV<Recipe[]>('w3-hotel-recipes', [])
   const [menus, setMenus] = useKV<Menu[]>('w3-hotel-menus', [])
   const [consumptionLogs, setConsumptionLogs] = useKV<KitchenConsumptionLog[]>('w3-hotel-consumption-logs', [])
+  const [kitchenStations, setKitchenStations] = useKV<KitchenStation[]>('w3-hotel-kitchen-stations', [])
+  const [kitchenStaff, setKitchenStaff] = useKV<KitchenStaff[]>('w3-hotel-kitchen-staff', [])
+  const [productionSchedules, setProductionSchedules] = useKV<ProductionSchedule[]>('w3-hotel-production-schedules', [])
+  const [inventoryIssues, setInventoryIssues] = useKV<KitchenInventoryIssue[]>('w3-hotel-inventory-issues', [])
+  const [wasteTracking, setWasteTracking] = useKV<WasteTracking[]>('w3-hotel-waste-tracking', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   
@@ -714,9 +724,20 @@ function App() {
               setMenus={setMenus}
               consumptionLogs={consumptionLogs || []}
               setConsumptionLogs={setConsumptionLogs}
+              stations={kitchenStations || []}
+              setStations={setKitchenStations}
+              kitchenStaff={kitchenStaff || []}
+              setKitchenStaff={setKitchenStaff}
+              productionSchedules={productionSchedules || []}
+              setProductionSchedules={setProductionSchedules}
+              inventoryIssues={inventoryIssues || []}
+              setInventoryIssues={setInventoryIssues}
+              wasteTracking={wasteTracking || []}
+              setWasteTracking={setWasteTracking}
               foodItems={foodItems || []}
               suppliers={suppliers || []}
               orders={orders || []}
+              employees={employees || []}
             />
           )}
           {currentModule === 'finance' && renderComingSoon('Finance & Accounting', <CurrencyDollar size={64} />)}

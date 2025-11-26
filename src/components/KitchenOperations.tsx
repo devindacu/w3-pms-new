@@ -1,16 +1,22 @@
 import { useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ChefHat, ChartBar, BookOpen, Receipt } from '@phosphor-icons/react'
+import { ChefHat, ChartBar, BookOpen } from '@phosphor-icons/react'
 import { RecipeManagement } from '@/components/RecipeManagement'
 import { KitchenConsumption } from '@/components/KitchenConsumption'
-import { Card } from '@/components/ui/card'
+import { KitchenManagement } from '@/components/KitchenManagement'
 import {
   type Recipe,
   type Menu,
   type KitchenConsumptionLog,
   type FoodItem,
   type Supplier,
-  type Order
+  type Order,
+  type KitchenStation,
+  type KitchenStaff,
+  type ProductionSchedule,
+  type KitchenInventoryIssue,
+  type WasteTracking,
+  type Employee
 } from '@/lib/types'
 
 interface KitchenOperationsProps {
@@ -20,9 +26,20 @@ interface KitchenOperationsProps {
   setMenus: (menus: Menu[] | ((prev: Menu[]) => Menu[])) => void
   consumptionLogs: KitchenConsumptionLog[]
   setConsumptionLogs: (logs: KitchenConsumptionLog[] | ((prev: KitchenConsumptionLog[]) => KitchenConsumptionLog[])) => void
+  stations: KitchenStation[]
+  setStations: (stations: KitchenStation[] | ((prev: KitchenStation[]) => KitchenStation[])) => void
+  kitchenStaff: KitchenStaff[]
+  setKitchenStaff: (staff: KitchenStaff[] | ((prev: KitchenStaff[]) => KitchenStaff[])) => void
+  productionSchedules: ProductionSchedule[]
+  setProductionSchedules: (schedules: ProductionSchedule[] | ((prev: ProductionSchedule[]) => ProductionSchedule[])) => void
+  inventoryIssues: KitchenInventoryIssue[]
+  setInventoryIssues: (issues: KitchenInventoryIssue[] | ((prev: KitchenInventoryIssue[]) => KitchenInventoryIssue[])) => void
+  wasteTracking: WasteTracking[]
+  setWasteTracking: (waste: WasteTracking[] | ((prev: WasteTracking[]) => WasteTracking[])) => void
   foodItems: FoodItem[]
   suppliers: Supplier[]
   orders: Order[]
+  employees: Employee[]
 }
 
 export function KitchenOperations({
@@ -32,9 +49,20 @@ export function KitchenOperations({
   setMenus,
   consumptionLogs,
   setConsumptionLogs,
+  stations,
+  setStations,
+  kitchenStaff,
+  setKitchenStaff,
+  productionSchedules,
+  setProductionSchedules,
+  inventoryIssues,
+  setInventoryIssues,
+  wasteTracking,
+  setWasteTracking,
   foodItems,
   suppliers,
-  orders
+  orders,
+  employees
 }: KitchenOperationsProps) {
   const [activeTab, setActiveTab] = useState('recipes')
 
@@ -83,15 +111,20 @@ export function KitchenOperations({
         </TabsContent>
 
         <TabsContent value="management" className="mt-6">
-          <Card className="p-16 text-center">
-            <div className="max-w-md mx-auto">
-              <ChefHat size={64} className="mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-2xl font-semibold mb-2">Kitchen Management</h3>
-              <p className="text-muted-foreground mb-6">
-                Advanced kitchen workflow management, staff assignments, and production scheduling coming soon.
-              </p>
-            </div>
-          </Card>
+          <KitchenManagement
+            stations={stations}
+            setStations={setStations}
+            staff={kitchenStaff}
+            setStaff={setKitchenStaff}
+            schedules={productionSchedules}
+            setSchedules={setProductionSchedules}
+            inventoryIssues={inventoryIssues}
+            setInventoryIssues={setInventoryIssues}
+            wasteTracking={wasteTracking}
+            setWasteTracking={setWasteTracking}
+            employees={employees}
+            foodItems={foodItems}
+          />
         </TabsContent>
       </Tabs>
     </div>

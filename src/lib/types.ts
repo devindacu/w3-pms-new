@@ -1273,3 +1273,294 @@ export interface AutoReorderSuggestion {
   reviewedAt?: number
   notes?: string
 }
+
+export type KitchenStationType = 'hot-kitchen' | 'cold-kitchen' | 'pastry' | 'butchery' | 'prep-station' | 'desserts' | 'grill' | 'fry-station' | 'salad-bar' | 'bakery'
+export type ProductionTaskStatus = 'pending' | 'in-progress' | 'completed' | 'on-hold' | 'cancelled'
+export type ProductionTaskPriority = 'low' | 'normal' | 'high' | 'urgent'
+export type KitchenStaffRole = 'executive-chef' | 'sous-chef' | 'chef-de-partie' | 'commis-chef' | 'line-cook' | 'prep-cook' | 'pastry-chef' | 'kitchen-steward'
+
+export interface KitchenStation {
+  id: string
+  stationId: string
+  name: string
+  type: KitchenStationType
+  description?: string
+  location: string
+  equipment: string[]
+  capacity: number
+  assignedStaff: string[]
+  isActive: boolean
+  maintenanceSchedule?: StationMaintenance[]
+  safetyChecklist?: SafetyCheckItem[]
+  notes?: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface StationMaintenance {
+  id: string
+  equipmentName: string
+  lastMaintenance?: number
+  nextMaintenance: number
+  maintenanceType: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual'
+  assignedTo?: string
+  notes?: string
+}
+
+export interface SafetyCheckItem {
+  id: string
+  checkName: string
+  description: string
+  frequency: 'pre-shift' | 'post-shift' | 'hourly' | 'daily'
+  isCompleted: boolean
+  lastCheckedAt?: number
+  lastCheckedBy?: string
+}
+
+export interface KitchenStaff {
+  id: string
+  employeeId: string
+  firstName: string
+  lastName: string
+  role: KitchenStaffRole
+  specializations: string[]
+  shiftType: ShiftType
+  primaryStation?: string
+  secondaryStations: string[]
+  certifications: StaffCertification[]
+  performanceRating: number
+  tasksCompleted: number
+  efficiency: number
+  qualityRating: number
+  isAvailable: boolean
+  status: 'active' | 'on-leave' | 'off-duty'
+  phone?: string
+  email?: string
+  hireDate: number
+  notes?: string
+}
+
+export interface StaffCertification {
+  id: string
+  name: string
+  issuedBy: string
+  issuedDate: number
+  expiryDate?: number
+  certificateNumber?: string
+}
+
+export interface ProductionSchedule {
+  id: string
+  scheduleId: string
+  date: number
+  shiftType: ShiftType
+  menuId?: string
+  menuName?: string
+  tasks: ProductionTask[]
+  totalRecipes: number
+  totalPortions: number
+  estimatedCost: number
+  estimatedRevenue: number
+  assignedStaff: StaffAssignment[]
+  status: 'draft' | 'scheduled' | 'in-progress' | 'completed' | 'cancelled'
+  startedAt?: number
+  completedAt?: number
+  actualCost?: number
+  actualRevenue?: number
+  efficiency?: number
+  notes?: string
+  createdBy: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface ProductionTask {
+  id: string
+  scheduleId: string
+  recipeId: string
+  recipeName: string
+  station: string
+  portionsRequired: number
+  portionsCompleted: number
+  priority: ProductionTaskPriority
+  status: ProductionTaskStatus
+  assignedTo?: string
+  estimatedTime: number
+  actualTime?: number
+  startTime?: number
+  endTime?: number
+  dependencies: string[]
+  ingredients: TaskIngredient[]
+  equipment: string[]
+  notes?: string
+  qualityCheckRequired: boolean
+  qualityCheckStatus?: 'passed' | 'failed' | 'pending'
+  qualityCheckedBy?: string
+}
+
+export interface TaskIngredient {
+  id: string
+  foodItemId?: string
+  name: string
+  quantityNeeded: number
+  quantityIssued: number
+  unit: string
+  storeLocation: string
+  issuedBy?: string
+  issuedAt?: number
+  batchNumber?: string
+}
+
+export interface StaffAssignment {
+  id: string
+  staffId: string
+  staffName: string
+  role: KitchenStaffRole
+  assignedStation: string
+  tasks: string[]
+  startTime: number
+  endTime: number
+  breakTime?: number[]
+  isPresent: boolean
+  performanceNotes?: string
+}
+
+export interface BatchProduction {
+  id: string
+  batchNumber: string
+  recipeId: string
+  recipeName: string
+  batchSize: number
+  portionsProduced: number
+  productionDate: number
+  shiftType: ShiftType
+  producedBy: string
+  station: string
+  batchStartTime: number
+  batchEndTime: number
+  totalTime: number
+  ingredients: BatchIngredient[]
+  totalCost: number
+  costPerPortion: number
+  qualityCheck: BatchQualityCheck
+  storageInstructions?: string
+  expiryTime?: number
+  isActive: boolean
+  notes?: string
+}
+
+export interface BatchIngredient {
+  id: string
+  foodItemId: string
+  name: string
+  quantity: number
+  unit: string
+  batchNumber?: string
+  cost: number
+}
+
+export interface BatchQualityCheck {
+  checkedBy: string
+  checkedAt: number
+  temperature?: number
+  appearance: 'excellent' | 'good' | 'acceptable' | 'poor'
+  taste: 'excellent' | 'good' | 'acceptable' | 'poor'
+  texture: 'excellent' | 'good' | 'acceptable' | 'poor'
+  portionConsistency: 'excellent' | 'good' | 'acceptable' | 'poor'
+  overallRating: 'passed' | 'conditional' | 'failed'
+  notes?: string
+  actionTaken?: string
+}
+
+export interface KitchenInventoryIssue {
+  id: string
+  issueNumber: string
+  requestedBy: string
+  requestedFor: string
+  station?: string
+  scheduleId?: string
+  items: InventoryIssueItem[]
+  status: 'pending' | 'partially-issued' | 'issued' | 'rejected'
+  requestedAt: number
+  issuedBy?: string
+  issuedAt?: number
+  notes?: string
+}
+
+export interface InventoryIssueItem {
+  id: string
+  foodItemId: string
+  itemName: string
+  requestedQuantity: number
+  issuedQuantity: number
+  unit: string
+  batchNumber?: string
+  storeLocation: string
+  purpose: string
+}
+
+export interface WasteTracking {
+  id: string
+  wasteId: string
+  date: number
+  shiftType: ShiftType
+  station: string
+  items: WasteItem[]
+  totalWasteCost: number
+  reportedBy: string
+  supervisorApproval?: string
+  approvedAt?: number
+  correctiveActions?: string
+  notes?: string
+  createdAt: number
+}
+
+export interface WasteItem {
+  id: string
+  itemType: 'ingredient' | 'prepared-food' | 'finished-dish'
+  itemId?: string
+  itemName: string
+  quantity: number
+  unit: string
+  cost: number
+  wasteCategory: 'preparation-waste' | 'overproduction' | 'spoilage' | 'customer-return' | 'quality-rejection' | 'breakage' | 'other'
+  reason: string
+  preventable: boolean
+  preventionSuggestion?: string
+}
+
+export interface KitchenPerformanceMetrics {
+  date: number
+  shiftType?: ShiftType
+  recipesProduced: number
+  totalPortions: number
+  totalCost: number
+  totalRevenue: number
+  grossProfit: number
+  profitMargin: number
+  foodCostPercentage: number
+  wastePercentage: number
+  wasteCost: number
+  laborHours: number
+  laborCost: number
+  portionsPerLaborHour: number
+  onTimeCompletionRate: number
+  qualityPassRate: number
+  efficiency: number
+  topPerformingRecipes: RecipeSales[]
+  bottomPerformingRecipes: RecipeSales[]
+  staffPerformance: StaffPerformanceSummary[]
+  inventoryTurnover: number
+}
+
+export interface StaffPerformanceSummary {
+  staffId: string
+  staffName: string
+  role: KitchenStaffRole
+  tasksCompleted: number
+  tasksAssigned: number
+  averageTaskTime: number
+  qualityScore: number
+  efficiency: number
+  hoursWorked: number
+}
