@@ -5,10 +5,12 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import { type Folio, type Reservation, type Guest, type Department } from '@/lib/types'
+import { type Folio, type Reservation, type Guest, type Department, type FolioExtraService, type ExtraService, type ExtraServiceCategory } from '@/lib/types'
 import { formatDateTime, formatCurrency, generateId } from '@/lib/helpers'
-import { Plus, Receipt } from '@phosphor-icons/react'
+import { Plus, Receipt, Sparkle } from '@phosphor-icons/react'
+import { AssignExtraServiceDialog } from '@/components/AssignExtraServiceDialog'
 
 interface FolioDialogProps {
   open: boolean
@@ -18,6 +20,11 @@ interface FolioDialogProps {
   folios: Folio[]
   setFolios: (folios: Folio[] | ((prev: Folio[]) => Folio[])) => void
   guests: Guest[]
+  extraServices?: ExtraService[]
+  serviceCategories?: ExtraServiceCategory[]
+  folioExtraServices?: FolioExtraService[]
+  setFolioExtraServices?: (services: FolioExtraService[] | ((prev: FolioExtraService[]) => FolioExtraService[])) => void
+  currentUser?: { id: string; firstName: string; lastName: string }
 }
 
 export function FolioDialog({ 
@@ -27,7 +34,12 @@ export function FolioDialog({
   reservation,
   folios,
   setFolios,
-  guests
+  guests,
+  extraServices = [],
+  serviceCategories = [],
+  folioExtraServices = [],
+  setFolioExtraServices,
+  currentUser = { id: 'system', firstName: 'System', lastName: 'User' }
 }: FolioDialogProps) {
   const [chargeDescription, setChargeDescription] = useState('')
   const [chargeAmount, setChargeAmount] = useState(0)
@@ -35,6 +47,7 @@ export function FolioDialog({
   const [chargeDepartment, setChargeDepartment] = useState<Department>('front-office')
   const [paymentAmount, setPaymentAmount] = useState(0)
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'bank-transfer' | 'mobile-payment'>('card')
+  const [extraServiceDialogOpen, setExtraServiceDialogOpen] = useState(false)
 
   if (!folio && !reservation) return null
 
@@ -43,9 +56,18 @@ export function FolioDialog({
 
   if (!currentFolio) return null
 
+  const folioServices = folioExtraServices.filter(s => s.folioId === currentFolio.id)
+  const extraServicesTotal = folioServices.reduce((sum, s) => sum + s.totalAmount, 0)
+
   const totalCharges = currentFolio.charges.reduce((sum, c) => sum + (c.amount * c.quantity), 0)
   const totalPayments = currentFolio.payments.reduce((sum, p) => sum + p.amount, 0)
-  const balance = totalCharges - totalPayments
+  const balance = totalCharges + extraServicesTotal - totalPayments
+
+  const handleSaveExtraService = (folioService: FolioExtraService) => {
+    if (setFolioExtraServices) {
+      setFolioExtraServices((prev) => [...prev, folioService])
+    }
+  }
 
   const handleAddCharge = () => {
     if (!chargeDescription.trim() || chargeAmount <= 0) {
@@ -218,6 +240,55 @@ export function FolioDialog({
           <Separator />
 
           <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Extra Services</h3>
+              {extraServices.length > 0 && setFolioExtraServices && (
+                <Button variant="outline" size="sm" onClick={() => setExtraServiceDialogOpen(true)}>
+                  <Sparkle size={16} className="mr-2" />
+                  Add Service
+                </Button>
+              )}
+            </div>
+            <div className="space-y-2">
+              {folioServices.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No extra services added
+                </p>
+              ) : (
+                folioServices.map(service => (
+                  <div key={service.id} className="flex justify-between p-3 bg-accent/10 border border-accent/20 rounded-lg">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{service.serviceName}</p>
+                        <Badge variant="outline" className="text-xs">{service.categoryName}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {formatDateTime(service.postedAt)}
+                        {service.comments && ` • ${service.comments}`}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-muted-foreground">
+                        {formatCurrency(service.unitPrice)} × {service.quantity}
+                      </p>
+                      {service.taxRate > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          +{formatCurrency(service.taxAmount)} tax ({service.taxRate}%)
+                        </p>
+                      )}
+                      <p className="font-semibold text-accent">
+                        {formatCurrency(service.totalAmount)}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <Separator />
+
+          <div>
             <h3 className="text-lg font-semibold mb-4">Payments</h3>
             <div className="space-y-2 mb-4">
               {currentFolio.payments.map(payment => (
@@ -271,9 +342,15 @@ export function FolioDialog({
 
           <div className="p-4 bg-muted rounded-lg space-y-2">
             <div className="flex justify-between text-lg">
-              <span>Total Charges:</span>
+              <span>Room Charges:</span>
               <span className="font-semibold">{formatCurrency(totalCharges)}</span>
             </div>
+            {extraServicesTotal > 0 && (
+              <div className="flex justify-between text-lg">
+                <span>Extra Services:</span>
+                <span className="font-semibold">{formatCurrency(extraServicesTotal)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-lg">
               <span>Total Payments:</span>
               <span className="font-semibold">{formatCurrency(totalPayments)}</span>
@@ -298,6 +375,18 @@ export function FolioDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {extraServices.length > 0 && setFolioExtraServices && (
+        <AssignExtraServiceDialog
+          open={extraServiceDialogOpen}
+          onOpenChange={setExtraServiceDialogOpen}
+          folioId={currentFolio.id}
+          services={extraServices}
+          categories={serviceCategories}
+          onSave={handleSaveExtraService}
+          currentUser={currentUser}
+        />
+      )}
     </Dialog>
   )
 }

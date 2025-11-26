@@ -37,6 +37,54 @@ export type ProjectStatus = 'planning' | 'approved' | 'in-progress' | 'on-hold' 
 export type ProjectPriority = 'low' | 'medium' | 'high' | 'urgent' | 'critical'
 export type ProjectType = 'renovation' | 'new-construction' | 'repair' | 'upgrade' | 'preventive-maintenance'
 export type InventorySegment = 'regular-maintenance' | 'project-construction' | 'emergency-stock'
+export type ExtraServiceStatus = 'active' | 'inactive' | 'archived'
+
+export interface ExtraServiceCategory {
+  id: string
+  name: string
+  description?: string
+  icon?: string
+  sortOrder: number
+  isActive: boolean
+  createdAt: number
+  updatedAt: number
+}
+
+export interface ExtraService {
+  id: string
+  categoryId: string
+  name: string
+  description?: string
+  basePrice: number
+  taxRate: number
+  unit: string
+  status: ExtraServiceStatus
+  department: Department
+  requiresApproval: boolean
+  maxQuantity?: number
+  comments?: string
+  createdAt: number
+  updatedAt: number
+  createdBy: string
+}
+
+export interface FolioExtraService {
+  id: string
+  folioId: string
+  serviceId: string
+  serviceName: string
+  categoryName: string
+  quantity: number
+  unitPrice: number
+  taxRate: number
+  taxAmount: number
+  totalAmount: number
+  comments?: string
+  postedBy: string
+  postedAt: number
+  approvedBy?: string
+  approvedAt?: number
+}
 
 export interface Guest {
   id: string

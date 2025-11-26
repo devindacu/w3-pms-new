@@ -72,7 +72,10 @@ import {
   type KitchenInventoryIssue,
   type WasteTracking,
   type Notification,
-  type DemandForecast
+  type DemandForecast,
+  type ExtraService,
+  type ExtraServiceCategory,
+  type FolioExtraService
 } from '@/lib/types'
 import { 
   formatCurrency, 
@@ -135,6 +138,7 @@ import { generateEmailFromNotifications, mockSendEmail } from '@/lib/emailHelper
 import { CRM } from '@/components/CRM'
 import { ChannelManager } from '@/components/ChannelManager'
 import { RoomManagement } from '@/components/RoomManagement'
+import { ExtraServicesManagement } from '@/components/ExtraServicesManagement'
 import type {
   GuestProfile,
   GuestComplaint,
@@ -155,7 +159,7 @@ import type {
   BulkUpdateOperation
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-management'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-management' | 'extra-services'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -215,6 +219,9 @@ function App() {
   const [channelPerformance, setChannelPerformance] = useKV<ChannelPerformance[]>('w3-hotel-channel-performance', [])
   const [channelReviews, setChannelReviews] = useKV<ChannelReview[]>('w3-hotel-channel-reviews', [])
   const [bulkOperations, setBulkOperations] = useKV<BulkUpdateOperation[]>('w3-hotel-bulk-operations', [])
+  const [extraServices, setExtraServices] = useKV<ExtraService[]>('w3-hotel-extra-services', [])
+  const [serviceCategories, setServiceCategories] = useKV<ExtraServiceCategory[]>('w3-hotel-service-categories', [])
+  const [folioExtraServices, setFolioExtraServices] = useKV<FolioExtraService[]>('w3-hotel-folio-extra-services', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
@@ -850,6 +857,17 @@ function App() {
             <Buildings size={18} className="mr-2" />
             Channel Manager
           </Button>
+
+          <Separator className="my-2" />
+
+          <Button
+            variant={currentModule === 'extra-services' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('extra-services')}
+          >
+            <Sparkle size={18} className="mr-2" />
+            Extra Services
+          </Button>
         </nav>
       </aside>
 
@@ -866,6 +884,11 @@ function App() {
               setRooms={setRooms}
               folios={folios || []}
               setFolios={setFolios}
+              extraServices={extraServices || []}
+              serviceCategories={serviceCategories || []}
+              folioExtraServices={folioExtraServices || []}
+              setFolioExtraServices={setFolioExtraServices}
+              currentUser={currentUser}
             />
           )}
           {currentModule === 'room-management' && (
@@ -1051,6 +1074,15 @@ function App() {
               bulkOperations={bulkOperations || []}
               setBulkOperations={setBulkOperations}
               rooms={rooms || []}
+              currentUser={currentUser}
+            />
+          )}
+          {currentModule === 'extra-services' && (
+            <ExtraServicesManagement
+              services={extraServices || []}
+              setServices={setExtraServices}
+              categories={serviceCategories || []}
+              setCategories={setServiceCategories}
               currentUser={currentUser}
             />
           )}

@@ -14,7 +14,7 @@ import {
   Key,
   Receipt
 } from '@phosphor-icons/react'
-import { type Guest, type Reservation, type Room, type Folio } from '@/lib/types'
+import { type Guest, type Reservation, type Room, type Folio, type ExtraService, type ExtraServiceCategory, type FolioExtraService, type SystemUser } from '@/lib/types'
 import { formatDate, formatCurrency, calculateNights } from '@/lib/helpers'
 import { GuestDialog } from './GuestDialog'
 import { ReservationDialog } from './ReservationDialog'
@@ -31,6 +31,11 @@ interface FrontOfficeProps {
   setRooms: (rooms: Room[] | ((prev: Room[]) => Room[])) => void
   folios: Folio[]
   setFolios: (folios: Folio[] | ((prev: Folio[]) => Folio[])) => void
+  extraServices?: ExtraService[]
+  serviceCategories?: ExtraServiceCategory[]
+  folioExtraServices?: FolioExtraService[]
+  setFolioExtraServices?: (services: FolioExtraService[] | ((prev: FolioExtraService[]) => FolioExtraService[])) => void
+  currentUser?: SystemUser
 }
 
 export function FrontOffice({ 
@@ -41,7 +46,12 @@ export function FrontOffice({
   rooms,
   setRooms,
   folios,
-  setFolios
+  setFolios,
+  extraServices,
+  serviceCategories,
+  folioExtraServices,
+  setFolioExtraServices,
+  currentUser
 }: FrontOfficeProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [guestDialogOpen, setGuestDialogOpen] = useState(false)
@@ -472,6 +482,11 @@ export function FrontOffice({
         folios={folios}
         setFolios={setFolios}
         guests={guests}
+        extraServices={extraServices}
+        serviceCategories={serviceCategories}
+        folioExtraServices={folioExtraServices}
+        setFolioExtraServices={setFolioExtraServices}
+        currentUser={currentUser}
       />
     </div>
   )
