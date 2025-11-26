@@ -1564,3 +1564,90 @@ export interface StaffPerformanceSummary {
   efficiency: number
   hoursWorked: number
 }
+
+export type NotificationType = 
+  | 'inventory-low-stock'
+  | 'inventory-critical-stock'
+  | 'inventory-expired'
+  | 'inventory-expiring-soon'
+  | 'requisition-pending'
+  | 'requisition-approved'
+  | 'requisition-rejected'
+  | 'po-pending-approval'
+  | 'po-approved'
+  | 'po-delivery-due'
+  | 'grn-received'
+  | 'invoice-mismatch'
+  | 'payment-due'
+  | 'room-maintenance'
+  | 'room-ready'
+  | 'housekeeping-task-overdue'
+  | 'guest-checkout-today'
+  | 'guest-checkin-today'
+  | 'order-pending'
+  | 'order-ready'
+  | 'kitchen-inventory-low'
+  | 'recipe-cost-variance'
+  | 'waste-high'
+  | 'quality-check-failed'
+  | 'staff-leave-request'
+  | 'staff-shift-swap'
+  | 'construction-project-delayed'
+  | 'construction-material-low'
+  | 'supplier-rating-low'
+  | 'system-alert'
+  | 'forecast-stockout-warning'
+  | 'forecast-high-demand'
+
+export type NotificationPriority = 'low' | 'medium' | 'high' | 'critical'
+export type NotificationStatus = 'unread' | 'read' | 'archived' | 'dismissed'
+
+export interface Notification {
+  id: string
+  type: NotificationType
+  priority: NotificationPriority
+  status: NotificationStatus
+  title: string
+  message: string
+  module: Department | 'procurement' | 'inventory' | 'construction' | 'forecasting' | 'system'
+  resourceId?: string
+  resourceType?: string
+  actionUrl?: string
+  actionLabel?: string
+  metadata?: Record<string, any>
+  createdAt: number
+  readAt?: number
+  archivedAt?: number
+  dismissedAt?: number
+  expiresAt?: number
+}
+
+export interface NotificationPreferences {
+  userId: string
+  emailEnabled: boolean
+  emailAddress?: string
+  notificationTypes: {
+    [key in NotificationType]?: {
+      enabled: boolean
+      email: boolean
+      priority: NotificationPriority
+    }
+  }
+  dailyDigest: boolean
+  dailyDigestTime: string
+  updatedAt: number
+}
+
+export interface EmailNotification {
+  id: string
+  to: string[]
+  cc?: string[]
+  subject: string
+  body: string
+  htmlBody?: string
+  notificationIds: string[]
+  status: 'pending' | 'sent' | 'failed'
+  sentAt?: number
+  failureReason?: string
+  createdAt: number
+}

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Toaster, toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -29,7 +29,8 @@ import {
   UserGear,
   Receipt,
   ChefHat,
-  Sparkle
+  Sparkle,
+  Bell
 } from '@phosphor-icons/react'
 import { 
   type Room, 
@@ -69,7 +70,9 @@ import {
   type KitchenStaff,
   type ProductionSchedule,
   type KitchenInventoryIssue,
-  type WasteTracking
+  type WasteTracking,
+  type Notification,
+  type DemandForecast
 } from '@/lib/types'
 import { 
   formatCurrency, 
@@ -124,8 +127,12 @@ import { Procurement } from '@/components/Procurement'
 import { FnBPOS } from '@/components/FnBPOS'
 import { KitchenOperations } from '@/components/KitchenOperations'
 import { ForecastingAnalytics } from '@/components/ForecastingAnalytics'
+import { NotificationPanel } from '@/components/NotificationPanel'
+import { DashboardAlerts } from '@/components/DashboardAlerts'
+import { generateAllAlerts } from '@/lib/notificationHelpers'
+import { generateEmailFromNotifications, mockSendEmail } from '@/lib/emailHelpers'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -166,10 +173,129 @@ function App() {
   const [productionSchedules, setProductionSchedules] = useKV<ProductionSchedule[]>('w3-hotel-production-schedules', [])
   const [inventoryIssues, setInventoryIssues] = useKV<KitchenInventoryIssue[]>('w3-hotel-inventory-issues', [])
   const [wasteTracking, setWasteTracking] = useKV<WasteTracking[]>('w3-hotel-waste-tracking', [])
+  const [notifications, setNotifications] = useKV<Notification[]>('w3-hotel-notifications', [])
+  const [forecasts, setForecasts] = useKV<DemandForecast[]>('w3-hotel-forecasts', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
+  const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
+
+  useEffect(() => {
+    const refreshNotifications = () => {
+      const newNotifications = generateAllAlerts(
+        foodItems || [],
+        amenities || [],
+        constructionMaterials || [],
+        generalProducts || [],
+        requisitions || [],
+        purchaseOrders || [],
+        invoices || [],
+        housekeepingTasks || [],
+        rooms || [],
+        reservations || [],
+        orders || [],
+        leaveRequests || [],
+        constructionProjects || [],
+        forecasts || []
+      )
+
+      setNotifications((currentNotifs) => {
+        const existingIds = new Set((currentNotifs || []).map(n => 
+          `${n.type}-${n.resourceId || 'global'}-${n.title}`
+        ))
+        
+        const filtered = newNotifications.filter(n => {
+          const key = `${n.type}-${n.resourceId || 'global'}-${n.title}`
+          return !existingIds.has(key)
+        })
+
+        const active = (currentNotifs || []).filter(n => 
+          n.status !== 'archived' && n.status !== 'dismissed' &&
+          (!n.expiresAt || n.expiresAt > Date.now())
+        )
+
+        return [...active, ...filtered]
+      })
+    }
+
+    const interval = setInterval(refreshNotifications, 60000)
+    refreshNotifications()
+
+    return () => clearInterval(interval)
+  }, [
+    foodItems,
+    amenities,
+    constructionMaterials,
+    generalProducts,
+    requisitions,
+    purchaseOrders,
+    invoices,
+    housekeepingTasks,
+    rooms,
+    reservations,
+    orders,
+    leaveRequests,
+    constructionProjects,
+    forecasts
+  ])
   
   const currentUser = (systemUsers || [])[0] || sampleSystemUsers[0]
+
+  const handleMarkAsRead = (id: string) => {
+    setNotifications((notifs) =>
+      (notifs || []).map(n => n.id === id ? { ...n, status: 'read' as const, readAt: Date.now() } : n)
+    )
+  }
+
+  const handleMarkAllAsRead = () => {
+    setNotifications((notifs) =>
+      (notifs || []).map(n => n.status === 'unread' ? { ...n, status: 'read' as const, readAt: Date.now() } : n)
+    )
+    toast.success('All notifications marked as read')
+  }
+
+  const handleDismiss = (id: string) => {
+    setNotifications((notifs) =>
+      (notifs || []).map(n => n.id === id ? { ...n, status: 'dismissed' as const, dismissedAt: Date.now() } : n)
+    )
+  }
+
+  const handleArchive = (id: string) => {
+    setNotifications((notifs) =>
+      (notifs || []).map(n => n.id === id ? { ...n, status: 'archived' as const, archivedAt: Date.now() } : n)
+    )
+    toast.success('Notification archived')
+  }
+
+  const handleClearAll = () => {
+    setNotifications((notifs) =>
+      (notifs || []).map(n => ({ ...n, status: 'archived' as const, archivedAt: Date.now() }))
+    )
+    toast.success('All notifications cleared')
+  }
+
+  const handleSendEmailNotifications = async () => {
+    const unreadCritical = (notifications || []).filter(
+      n => n.status === 'unread' && (n.priority === 'critical' || n.priority === 'high')
+    )
+
+    if (unreadCritical.length === 0) {
+      toast.info('No critical notifications to send')
+      return
+    }
+
+    const email = generateEmailFromNotifications(
+      unreadCritical,
+      currentUser.email,
+      `${currentUser.firstName} ${currentUser.lastName}`
+    )
+
+    const success = await mockSendEmail(email)
+    if (success) {
+      toast.success(`Email notification sent to ${currentUser.email}`)
+    } else {
+      toast.error('Failed to send email notification')
+    }
+  }
 
   const loadSampleData = () => {
     setGuests(sampleGuests)
@@ -246,6 +372,12 @@ function App() {
         </Card>
       ) : (
         <>
+          <DashboardAlerts
+            notifications={notifications || []}
+            onDismiss={handleDismiss}
+            onViewAll={() => setNotificationPanelOpen(true)}
+          />
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card className="p-6 border-l-4 border-l-primary">
               <div className="flex items-center justify-between mb-4">
@@ -498,9 +630,19 @@ function App() {
   return (
     <div className="flex min-h-screen bg-background">
       <aside className="w-64 border-r bg-card p-4 space-y-2">
-        <div className="px-3 py-4 mb-4">
-          <h2 className="text-xl font-semibold">W3 Hotel PMS</h2>
-          <p className="text-xs text-muted-foreground mt-1">Unified Management</p>
+        <div className="px-3 py-4 mb-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold">W3 Hotel PMS</h2>
+            <p className="text-xs text-muted-foreground mt-1">Unified Management</p>
+          </div>
+          <NotificationPanel
+            notifications={notifications || []}
+            onMarkAsRead={handleMarkAsRead}
+            onMarkAllAsRead={handleMarkAllAsRead}
+            onDismiss={handleDismiss}
+            onArchive={handleArchive}
+            onClearAll={handleClearAll}
+          />
         </div>
 
         <nav className="space-y-1">

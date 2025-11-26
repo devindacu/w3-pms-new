@@ -12,6 +12,13 @@ A comprehensive cloud-based Property Management System integrating Front Office,
 
 ## Essential Features
 
+### Alerts & Notifications
+- **Functionality**: Real-time alert system tracking critical events across all modules with dashboard alerts, notification panel, email delivery, and auto-refresh monitoring
+- **Purpose**: Keeps staff informed of critical issues requiring immediate attention and enables proactive operations management
+- **Trigger**: System monitors inventory levels, pending approvals, due dates, quality issues, and operational thresholds every minute
+- **Progression**: System detects condition → Generate notification → Display in panel with priority badge → Show critical alerts on dashboard → Email digest option → User reviews → Takes action → Marks as read/archive → Notification removed from active view
+- **Success criteria**: All critical conditions detected within 1 minute, notifications categorized by priority (critical/high/medium/low), email delivery successful, zero missed critical alerts, dashboard shows top 5 urgent items, notification count badge accurate
+
 ### Unified Dashboard
 - **Functionality**: Central command center displaying key metrics across all hotel operations (occupancy, revenue, inventory alerts, pending tasks, housekeeping status)
 - **Purpose**: Provides instant operational overview enabling rapid decision-making and issue identification
