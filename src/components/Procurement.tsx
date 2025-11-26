@@ -18,7 +18,8 @@ import {
   Calendar,
   CurrencyDollar,
   WarningCircle,
-  Gauge
+  Gauge,
+  Receipt
 } from '@phosphor-icons/react'
 import {
   type Requisition,
@@ -30,7 +31,8 @@ import {
   type Amenity,
   type ConstructionMaterial,
   type GeneralProduct,
-  type SystemUser
+  type SystemUser,
+  type Invoice
 } from '@/lib/types'
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/helpers'
 import { RequisitionDialog } from '@/components/RequisitionDialog'
@@ -52,6 +54,8 @@ interface ProcurementProps {
   constructionMaterials: ConstructionMaterial[]
   generalProducts: GeneralProduct[]
   currentUser: SystemUser
+  invoices: Invoice[]
+  setInvoices: (invoices: Invoice[]) => void
 }
 
 export function Procurement({
@@ -67,7 +71,9 @@ export function Procurement({
   amenities,
   constructionMaterials,
   generalProducts,
-  currentUser
+  currentUser,
+  invoices,
+  setInvoices
 }: ProcurementProps) {
   const [activeTab, setActiveTab] = useState('overview')
   const [requisitionDialogOpen, setRequisitionDialogOpen] = useState(false)
@@ -77,6 +83,8 @@ export function Procurement({
   const [selectedRequisition, setSelectedRequisition] = useState<Requisition | undefined>()
   const [selectedPO, setSelectedPO] = useState<PurchaseOrder | undefined>()
   const [selectedGRN, setSelectedGRN] = useState<GoodsReceivedNote | undefined>()
+  const [isScanning, setIsScanning] = useState(false)
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
 
   const getRequisitionStatusBadge = (status: string) => {
     const variants = {
@@ -592,11 +600,185 @@ export function Procurement({
     </div>
   )
 
+  const renderInvoices = () => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (!file) return
+
+      if (!file.type.startsWith('image/')) {
+        return
+      }
+
+      setUploadedFile(file)
+      setIsScanning(true)
+
+      setTimeout(() => {
+        setIsScanning(false)
+        setUploadedFile(null)
+      }, 2000)
+    }
+
+    const getStatusBadge = (status: string) => {
+      const variants: Record<string, any> = {
+        'pending-validation': 'default',
+        'validated': 'secondary',
+        'matched': 'default',
+        'mismatch': 'destructive',
+        'approved': 'default',
+        'posted': 'default',
+        'rejected': 'destructive',
+      }
+
+      return (
+        <Badge variant={variants[status] || 'default'}>
+          {status.replace('-', ' ')}
+        </Badge>
+      )
+    }
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold">Invoice Scanning & Validation</h2>
+            <p className="text-muted-foreground mt-1">Automated invoice processing with OCR</p>
+          </div>
+          <Button asChild variant="outline">
+            <label className="cursor-pointer flex items-center gap-2">
+              <Receipt size={20} />
+              Upload Invoice
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileUpload}
+                disabled={isScanning}
+              />
+            </label>
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="p-6 border-l-4 border-l-primary">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Total Invoices</h3>
+              <Receipt size={20} className="text-primary" />
+            </div>
+            <p className="text-3xl font-semibold">{invoices.length}</p>
+            <p className="text-sm text-muted-foreground mt-1">All invoices</p>
+          </Card>
+
+          <Card className="p-6 border-l-4 border-l-accent">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Pending</h3>
+              <Clock size={20} className="text-accent" />
+            </div>
+            <p className="text-3xl font-semibold">
+              {invoices.filter(i => i.status === 'pending-validation').length}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">Awaiting validation</p>
+          </Card>
+
+          <Card className="p-6 border-l-4 border-l-destructive">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Mismatches</h3>
+              <WarningCircle size={20} className="text-destructive" />
+            </div>
+            <p className="text-3xl font-semibold">
+              {invoices.filter(i => i.status === 'mismatch').length}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">Requires attention</p>
+          </Card>
+
+          <Card className="p-6 border-l-4 border-l-success">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Approved</h3>
+              <CheckCircle size={20} className="text-success" />
+            </div>
+            <p className="text-3xl font-semibold">
+              {invoices.filter(i => i.status === 'approved' || i.status === 'posted').length}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">Ready to post</p>
+          </Card>
+        </div>
+
+        <div className="space-y-3">
+          {invoices.length === 0 ? (
+            <Card className="p-12 text-center">
+              <Receipt size={48} className="mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">No invoices scanned yet. Upload an invoice to get started.</p>
+            </Card>
+          ) : (
+            invoices.map((invoice) => {
+              const supplier = suppliers.find(s => s.id === invoice.supplierId)
+              const po = purchaseOrders.find(p => p.id === invoice.purchaseOrderId)
+              
+              return (
+                <Card key={invoice.id} className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-lg font-semibold">{invoice.invoiceNumber}</h3>
+                        {getStatusBadge(invoice.status)}
+                        {(invoice as any).confidence && (
+                          <Badge variant="secondary">
+                            Confidence: {((invoice as any).confidence * 100).toFixed(0)}%
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Supplier</p>
+                          <p className="text-sm font-medium">{supplier?.name || 'Unknown'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Invoice Date</p>
+                          <p className="text-sm font-medium">{formatDate(invoice.invoiceDate)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Total Amount</p>
+                          <p className="text-sm font-medium">{formatCurrency(invoice.total)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">PO Reference</p>
+                          <p className="text-sm font-medium">{po?.poNumber || 'N/A'}</p>
+                        </div>
+                      </div>
+                      {invoice.mismatches && invoice.mismatches.length > 0 && (
+                        <div className="mt-4 p-3 bg-destructive/10 rounded-lg">
+                          <p className="text-sm font-medium text-destructive mb-2">
+                            {invoice.mismatches.length} Mismatch(es) Detected
+                          </p>
+                          <div className="space-y-1">
+                            {invoice.mismatches.slice(0, 3).map((mismatch) => (
+                              <p key={mismatch.id} className="text-xs text-muted-foreground">
+                                • {mismatch.description}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2 ml-4">
+                      <Button size="sm" variant="outline">
+                        <Eye size={16} />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              )
+            })
+          )}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-4xl font-semibold">Procurement</h1>
-        <p className="text-muted-foreground mt-1">Manage requisitions, purchase orders, and goods receipt</p>
+        <h1 className="text-4xl font-semibold">Procurement & Invoices</h1>
+        <p className="text-muted-foreground mt-1">Manage requisitions, purchase orders, goods receipt, and invoice scanning</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -617,6 +799,10 @@ export function Procurement({
             <Package size={18} className="mr-2" />
             Goods Received
           </TabsTrigger>
+          <TabsTrigger value="invoices">
+            <Receipt size={18} className="mr-2" />
+            Invoice Scanning
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-6">
@@ -633,6 +819,10 @@ export function Procurement({
 
         <TabsContent value="grn" className="mt-6">
           {renderGRNs()}
+        </TabsContent>
+
+        <TabsContent value="invoices" className="mt-6">
+          {renderInvoices()}
         </TabsContent>
       </Tabs>
 

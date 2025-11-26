@@ -117,11 +117,10 @@ import { FrontOffice } from '@/components/FrontOffice'
 import { Housekeeping } from '@/components/Housekeeping'
 import { Procurement } from '@/components/Procurement'
 import { FnBPOS } from '@/components/FnBPOS'
-import { InvoiceScanning } from '@/components/InvoiceScanning'
 import { KitchenOperations } from '@/components/KitchenOperations'
 import { ForecastingAnalytics } from '@/components/ForecastingAnalytics'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'purchase-orders' | 'kitchen' | 'invoice-scanning' | 'forecasting'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -559,25 +558,7 @@ function App() {
             onClick={() => setCurrentModule('procurement')}
           >
             <ShoppingCart size={18} className="mr-2" />
-            Procurement
-          </Button>
-
-          <Button
-            variant={currentModule === 'purchase-orders' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('purchase-orders')}
-          >
-            <Receipt size={18} className="mr-2" />
-            Purchase Orders
-          </Button>
-
-          <Button
-            variant={currentModule === 'invoice-scanning' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('invoice-scanning')}
-          >
-            <Receipt size={18} className="mr-2" />
-            Invoice Scanning (OCR)
+            Procurement & Invoices
           </Button>
 
           <Separator className="my-2" />
@@ -721,33 +702,8 @@ function App() {
               constructionMaterials={constructionMaterials || []}
               generalProducts={generalProducts || []}
               currentUser={currentUser}
-            />
-          )}
-          {currentModule === 'purchase-orders' && (
-            <Procurement
-              requisitions={requisitions || []}
-              setRequisitions={setRequisitions}
-              purchaseOrders={purchaseOrders || []}
-              setPurchaseOrders={setPurchaseOrders}
-              grns={grns || []}
-              setGRNs={setGRNs}
-              suppliers={suppliers || []}
-              inventory={inventory || []}
-              foodItems={foodItems || []}
-              amenities={amenities || []}
-              constructionMaterials={constructionMaterials || []}
-              generalProducts={generalProducts || []}
-              currentUser={currentUser}
-            />
-          )}
-          {currentModule === 'invoice-scanning' && (
-            <InvoiceScanning
               invoices={invoices || []}
               setInvoices={setInvoices}
-              purchaseOrders={purchaseOrders || []}
-              grns={grns || []}
-              suppliers={suppliers || []}
-              currentUser={currentUser}
             />
           )}
           {currentModule === 'kitchen' && (
