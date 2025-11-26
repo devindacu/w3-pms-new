@@ -22,6 +22,10 @@ export function EmployeeDialog({ open, onOpenChange, employee, employees, setEmp
     lastName: '',
     email: '',
     phone: '',
+    dateOfBirth: '',
+    address: '',
+    emergencyContactName: '',
+    emergencyContactPhone: '',
     department: 'front-office' as Department,
     role: 'front-desk' as UserRole,
     salary: '',
@@ -36,6 +40,10 @@ export function EmployeeDialog({ open, onOpenChange, employee, employees, setEmp
         lastName: employee.lastName,
         email: employee.email || '',
         phone: employee.phone,
+        dateOfBirth: employee.dateOfBirth ? new Date(employee.dateOfBirth).toISOString().split('T')[0] : '',
+        address: employee.address || '',
+        emergencyContactName: employee.emergencyContactName || '',
+        emergencyContactPhone: employee.emergencyContactPhone || '',
         department: employee.department,
         role: employee.role,
         salary: employee.salary?.toString() || '',
@@ -49,6 +57,10 @@ export function EmployeeDialog({ open, onOpenChange, employee, employees, setEmp
         lastName: '',
         email: '',
         phone: '',
+        dateOfBirth: '',
+        address: '',
+        emergencyContactName: '',
+        emergencyContactPhone: '',
         department: 'front-office',
         role: 'front-desk',
         salary: '',
@@ -70,9 +82,19 @@ export function EmployeeDialog({ open, onOpenChange, employee, employees, setEmp
         emp.id === employee.id
           ? {
               ...emp,
-              ...formData,
+              employeeId: formData.employeeId,
+              firstName: formData.firstName,
+              lastName: formData.lastName,
+              email: formData.email || undefined,
+              phone: formData.phone,
+              dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth).getTime() : undefined,
+              address: formData.address || undefined,
+              emergencyContactName: formData.emergencyContactName || undefined,
+              emergencyContactPhone: formData.emergencyContactPhone || undefined,
+              department: formData.department,
+              role: formData.role,
               salary: formData.salary ? parseFloat(formData.salary) : undefined,
-              updatedAt: Date.now()
+              status: formData.status
             }
           : emp
       ))
@@ -80,8 +102,19 @@ export function EmployeeDialog({ open, onOpenChange, employee, employees, setEmp
     } else {
       const newEmployee: Employee = {
         id: `emp-${Date.now()}`,
-        ...formData,
+        employeeId: formData.employeeId,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email || undefined,
+        phone: formData.phone,
+        dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth).getTime() : undefined,
+        address: formData.address || undefined,
+        emergencyContactName: formData.emergencyContactName || undefined,
+        emergencyContactPhone: formData.emergencyContactPhone || undefined,
+        department: formData.department,
+        role: formData.role,
         salary: formData.salary ? parseFloat(formData.salary) : undefined,
+        status: formData.status,
         joinDate: Date.now(),
         createdAt: Date.now()
       }
@@ -177,6 +210,47 @@ export function EmployeeDialog({ open, onOpenChange, employee, employees, setEmp
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="dateOfBirth">Date of Birth</Label>
+              <Input
+                id="dateOfBirth"
+                type="date"
+                value={formData.dateOfBirth}
+                onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="address">Address</Label>
+              <Input
+                id="address"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="emergencyContactName">Emergency Contact Name</Label>
+              <Input
+                id="emergencyContactName"
+                value={formData.emergencyContactName}
+                onChange={(e) => setFormData({ ...formData, emergencyContactName: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="emergencyContactPhone">Emergency Contact Phone</Label>
+              <Input
+                id="emergencyContactPhone"
+                value={formData.emergencyContactPhone}
+                onChange={(e) => setFormData({ ...formData, emergencyContactPhone: e.target.value })}
               />
             </div>
           </div>

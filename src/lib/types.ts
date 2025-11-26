@@ -641,6 +641,10 @@ export interface Employee {
   lastName: string
   email?: string
   phone: string
+  dateOfBirth?: number
+  address?: string
+  emergencyContactName?: string
+  emergencyContactPhone?: string
   department: Department
   role: UserRole
   joinDate: number
