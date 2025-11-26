@@ -110,6 +110,13 @@ A comprehensive cloud-based Property Management System integrating Front Office,
 - **Progression**: Select report type → Choose date range → Apply filters → Generate report → Export/print → Schedule recurring
 - **Success criteria**: Data accurate, reports timely, insights actionable, export formats flexible
 
+### Revenue Management & Rate Planning
+- **Functionality**: Room type configuration with bedding/view/amenities, hierarchical rate plans (parent/child with derived formulas), daily rate calendar with drag-drop editing, bulk rate updates, stay restrictions (min/max stay, CTA/CTD, stop-sell), seasonal pricing, event-based pricing, corporate negotiated rates, occupancy-based pricing (extra adult/child charges), meal plan rates (RO/BB/HB/FB/AI), promotional rates with blackout dates, rate override management, comprehensive audit logging
+- **Purpose**: Provides sophisticated revenue management and yield control enabling hotels to maximize revenue through dynamic pricing, market segmentation, and demand-based rate optimization
+- **Trigger**: Rate planning period, season change, special event, occupancy forecast change, corporate contract negotiation, competitive rate adjustment
+- **Progression**: Define room types with attributes → Create parent rate plans (BAR, Corporate, etc.) → Derive child rate plans with formulas (BAR -10%, Early Bird, etc.) → Set up seasonal pricing → Configure meal plan rates → Add event days with multipliers → Set stay restrictions → Configure corporate accounts with negotiated rates → Set occupancy pricing rules → Populate rate calendar → Apply bulk updates → Monitor and override rates → Review audit logs → Analyze rate performance
+- **Success criteria**: Rate hierarchy enforced, derived rates calculate correctly, restrictions prevent invalid bookings, seasonal rates apply automatically, event pricing triggers on dates, corporate rates honor contracts, occupancy pricing adjusts for extra guests, meal plans calculate properly, rate changes logged with full audit trail, calendar updates sync to channels, override approvals tracked
+
 ## Edge Case Handling
 
 - **Double Bookings**: Real-time room availability checking prevents conflicts; manual override with warning for authorized users

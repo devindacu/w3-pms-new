@@ -1,6 +1,14 @@
 export type RoomStatus = 'vacant-clean' | 'vacant-dirty' | 'occupied-clean' | 'occupied-dirty' | 'maintenance' | 'out-of-order'
 export type RoomType = 'standard' | 'deluxe' | 'suite' | 'executive' | 'presidential'
 export type ReservationStatus = 'confirmed' | 'checked-in' | 'checked-out' | 'cancelled' | 'no-show'
+export type BeddingType = 'king' | 'queen' | 'twin' | 'single' | 'double' | 'sofa-bed' | 'bunk-bed'
+export type ViewType = 'city' | 'ocean' | 'garden' | 'pool' | 'mountain' | 'courtyard' | 'interior'
+export type BaseRatePlanType = 'bar' | 'rack' | 'corporate' | 'travel-agent' | 'wholesale' | 'member' | 'staff'
+export type PromoRatePlanType = 'early-bird' | 'last-minute' | 'long-stay' | 'weekend' | 'festive' | 'honeymoon' | 'spa-package'
+export type MealPlanType = 'ro' | 'bb' | 'hb' | 'fb' | 'ai'
+export type DerivedRateType = 'percentage-discount' | 'percentage-markup' | 'fixed-discount' | 'fixed-markup' | 'derived-from-rate'
+export type RestrictionType = 'min-stay' | 'max-stay' | 'min-stay-arrival' | 'cta' | 'ctd' | 'stop-sell' | 'mandatory-stay'
+export type SeasonType = 'low' | 'mid' | 'high' | 'peak'
 
 export interface RoomTypeConfig {
   id: string
@@ -8,12 +16,166 @@ export interface RoomTypeConfig {
   code: string
   description?: string
   baseRate: number
+  rackRate: number
   maxOccupancy: number
+  baseOccupancy: number
   size?: number
   amenities: string[]
+  bedding: BeddingType[]
+  viewTypes: ViewType[]
+  inventoryItems?: string[]
+  sortOrder: number
   isActive: boolean
   createdAt: number
   updatedAt: number
+  createdBy: string
+}
+
+export interface RatePlanConfig {
+  id: string
+  code: string
+  name: string
+  description?: string
+  type: BaseRatePlanType | PromoRatePlanType
+  mealPlan?: MealPlanType
+  parentRatePlanId?: string
+  isParent: boolean
+  roomTypeId?: string
+  baseRate?: number
+  derivedRateConfig?: DerivedRateConfig
+  validFrom: number
+  validTo?: number
+  blackoutDates?: number[]
+  minimumStay?: number
+  maximumStay?: number
+  advanceBookingDays?: number
+  maxAdvanceBookingDays?: number
+  cancellationPolicy?: string
+  requiresApproval: boolean
+  isActive: boolean
+  sortOrder: number
+  channels?: string[]
+  createdAt: number
+  updatedAt: number
+  createdBy: string
+}
+
+export interface DerivedRateConfig {
+  derivedType: DerivedRateType
+  parentRatePlanId: string
+  value: number
+  roundingRule?: 'none' | 'nearest-5' | 'nearest-10' | 'nearest-50' | 'nearest-100'
+}
+
+export interface RateCalendar {
+  id: string
+  roomTypeId: string
+  ratePlanId: string
+  date: number
+  rate: number
+  availability: number
+  restrictions: YieldRestriction[]
+  isOverride: boolean
+  overrideReason?: string
+  createdAt: number
+  updatedAt: number
+  updatedBy: string
+}
+
+export interface YieldRestriction {
+  type: RestrictionType
+  value?: number
+  isActive: boolean
+}
+
+export interface Season {
+  id: string
+  name: string
+  code: string
+  type: SeasonType
+  startDate: number
+  endDate: number
+  rateMultiplier: number
+  description?: string
+  isActive: boolean
+  createdAt: number
+  updatedAt: number
+}
+
+export interface EventDay {
+  id: string
+  name: string
+  date: number
+  description?: string
+  rateMultiplier: number
+  minimumStay?: number
+  isActive: boolean
+  createdAt: number
+  updatedAt: number
+}
+
+export interface CorporateAccount {
+  id: string
+  companyName: string
+  code: string
+  contactPerson: string
+  email: string
+  phone: string
+  address?: string
+  negotiatedRates: CorporateRate[]
+  blackoutDates?: number[]
+  roomAllotment?: number
+  creditLimit?: number
+  paymentTerms?: string
+  commissionRate?: number
+  isActive: boolean
+  createdAt: number
+  updatedAt: number
+}
+
+export interface CorporateRate {
+  roomTypeId: string
+  ratePlanId: string
+  rate: number
+  validFrom: number
+  validTo?: number
+}
+
+export interface OccupancyPricing {
+  id: string
+  roomTypeId: string
+  ratePlanId: string
+  baseOccupancy: number
+  extraAdultCharge: number
+  extraChildCharge: number
+  childAgeSlab: ChildAgeSlab[]
+  maxOccupancy: number
+  createdAt: number
+  updatedAt: number
+}
+
+export interface ChildAgeSlab {
+  minAge: number
+  maxAge: number
+  charge: number
+  chargeType: 'fixed' | 'percentage'
+}
+
+export interface RateAuditLog {
+  id: string
+  roomTypeId: string
+  ratePlanId: string
+  date: number
+  changeType: 'create' | 'update' | 'delete' | 'override'
+  oldRate?: number
+  newRate?: number
+  oldRestrictions?: YieldRestriction[]
+  newRestrictions?: YieldRestriction[]
+  reason?: string
+  changedBy: string
+  changedAt: number
+  approvedBy?: string
+  approvedAt?: number
 }
 export type PaymentMethod = 'cash' | 'card' | 'bank-transfer' | 'mobile-payment' | 'credit'
 export type PaymentStatus = 'pending' | 'paid' | 'partially-paid' | 'refunded'

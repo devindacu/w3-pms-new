@@ -139,6 +139,7 @@ import { CRM } from '@/components/CRM'
 import { ChannelManager } from '@/components/ChannelManager'
 import { RoomManagement } from '@/components/RoomManagement'
 import { ExtraServicesManagement } from '@/components/ExtraServicesManagement'
+import { RevenueManagement } from '@/components/RevenueManagement'
 import type {
   GuestProfile,
   GuestComplaint,
@@ -156,10 +157,17 @@ import type {
   SyncLog,
   ChannelPerformance,
   ChannelReview,
-  BulkUpdateOperation
+  BulkUpdateOperation,
+  RoomTypeConfig,
+  RatePlanConfig,
+  Season,
+  EventDay,
+  CorporateAccount,
+  RateCalendar,
+  OccupancyPricing
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-management' | 'extra-services'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-management' | 'extra-services' | 'revenue-management'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -222,6 +230,14 @@ function App() {
   const [extraServices, setExtraServices] = useKV<ExtraService[]>('w3-hotel-extra-services', [])
   const [serviceCategories, setServiceCategories] = useKV<ExtraServiceCategory[]>('w3-hotel-service-categories', [])
   const [folioExtraServices, setFolioExtraServices] = useKV<FolioExtraService[]>('w3-hotel-folio-extra-services', [])
+  
+  const [roomTypeConfigs, setRoomTypeConfigs] = useKV<RoomTypeConfig[]>('w3-hotel-room-type-configs', [])
+  const [ratePlanConfigs, setRatePlanConfigs] = useKV<RatePlanConfig[]>('w3-hotel-rate-plan-configs', [])
+  const [seasons, setSeasons] = useKV<Season[]>('w3-hotel-seasons', [])
+  const [eventDays, setEventDays] = useKV<EventDay[]>('w3-hotel-event-days', [])
+  const [corporateAccounts, setCorporateAccounts] = useKV<CorporateAccount[]>('w3-hotel-corporate-accounts', [])
+  const [rateCalendar, setRateCalendar] = useKV<RateCalendar[]>('w3-hotel-rate-calendar', [])
+  const [occupancyPricing, setOccupancyPricing] = useKV<OccupancyPricing[]>('w3-hotel-occupancy-pricing', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
@@ -866,6 +882,15 @@ function App() {
             <Buildings size={18} className="mr-2" />
             Channel Manager
           </Button>
+
+          <Button
+            variant={currentModule === 'revenue-management' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('revenue-management')}
+          >
+            <CurrencyDollar size={18} className="mr-2" />
+            Revenue Management
+          </Button>
         </nav>
       </aside>
 
@@ -1081,6 +1106,23 @@ function App() {
               setServices={setExtraServices}
               categories={serviceCategories || []}
               setCategories={setServiceCategories}
+              currentUser={currentUser}
+            />
+          )}
+          {currentModule === 'revenue-management' && (
+            <RevenueManagement
+              roomTypes={roomTypeConfigs || []}
+              setRoomTypes={setRoomTypeConfigs}
+              ratePlans={ratePlanConfigs || []}
+              setRatePlans={setRatePlanConfigs}
+              seasons={seasons || []}
+              setSeasons={setSeasons}
+              eventDays={eventDays || []}
+              setEventDays={setEventDays}
+              corporateAccounts={corporateAccounts || []}
+              setCorporateAccounts={setCorporateAccounts}
+              rateCalendar={rateCalendar || []}
+              setRateCalendar={setRateCalendar}
               currentUser={currentUser}
             />
           )}
