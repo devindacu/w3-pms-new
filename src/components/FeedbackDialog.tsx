@@ -3,10 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Star, ThumbsUp } from '@phosphor-icons/react'
-import type { GuestFeedback, GuestProfile, FeedbackRating } from '@/lib/types'
+import type { GuestFeedback, GuestProfile, FeedbackRating, ReviewSource } from '@/lib/types'
 
 interface FeedbackDialogProps {
   open: boolean
@@ -23,7 +24,8 @@ export function FeedbackDialog({ open, onOpenChange, feedback, guests, onSave }:
     wouldRecommend: true,
     wouldReturn: true,
     responseRequired: false,
-    channel: 'front-desk'
+    channel: 'front-desk',
+    reviewSource: 'manual'
   })
 
   useEffect(() => {
@@ -36,7 +38,8 @@ export function FeedbackDialog({ open, onOpenChange, feedback, guests, onSave }:
         wouldRecommend: true,
         wouldReturn: true,
         responseRequired: false,
-        channel: 'front-desk'
+        channel: 'front-desk',
+        reviewSource: 'manual'
       })
     }
   }, [feedback, open])
@@ -50,7 +53,7 @@ export function FeedbackDialog({ open, onOpenChange, feedback, guests, onSave }:
       id: feedback?.id || `FB-${Date.now()}`,
       feedbackNumber: feedback?.feedbackNumber || `F${String(Date.now()).slice(-6)}`,
       ...formData,
-      guestName: selectedGuest ? `${selectedGuest.firstName} ${selectedGuest.lastName}` : '',
+      guestName: formData.guestName || (selectedGuest ? `${selectedGuest.firstName} ${selectedGuest.lastName}` : ''),
       submittedAt: feedback?.submittedAt || Date.now(),
       createdAt: feedback?.createdAt || Date.now()
     } as GuestFeedback
@@ -92,15 +95,15 @@ export function FeedbackDialog({ open, onOpenChange, feedback, guests, onSave }:
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="guestId">Guest *</Label>
+              <Label htmlFor="guestId">Guest {formData.reviewSource === 'manual' && '*'}</Label>
               <Select 
                 value={formData.guestId} 
                 onValueChange={(value) => setFormData({ ...formData, guestId: value })}
-                required
+                required={formData.reviewSource === 'manual'}
                 disabled={!!feedback}
               >
                 <SelectTrigger id="guestId">
-                  <SelectValue placeholder="Select guest" />
+                  <SelectValue placeholder="Select guest or enter name" />
                 </SelectTrigger>
                 <SelectContent>
                   {guests.map((guest) => (
@@ -111,12 +114,47 @@ export function FeedbackDialog({ open, onOpenChange, feedback, guests, onSave }:
                 </SelectContent>
               </Select>
             </div>
+            {!formData.guestId && !feedback && (
+              <div>
+                <Label htmlFor="guestName">Guest Name *</Label>
+                <Input
+                  id="guestName"
+                  value={formData.guestName || ''}
+                  onChange={(e) => setFormData({ ...formData, guestName: e.target.value })}
+                  placeholder="Enter guest name"
+                  required={!formData.guestId}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="reviewSource">Review Source *</Label>
+              <Select 
+                value={formData.reviewSource} 
+                onValueChange={(value) => setFormData({ ...formData, reviewSource: value as ReviewSource, channel: value === 'manual' ? 'front-desk' : 'review-site' })}
+                disabled={!!feedback}
+              >
+                <SelectTrigger id="reviewSource">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="manual">Manual Entry</SelectItem>
+                  <SelectItem value="google-maps">Google Maps</SelectItem>
+                  <SelectItem value="tripadvisor">TripAdvisor</SelectItem>
+                  <SelectItem value="booking.com">Booking.com</SelectItem>
+                  <SelectItem value="airbnb">Airbnb</SelectItem>
+                  <SelectItem value="facebook">Facebook</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div>
               <Label htmlFor="channel">Channel</Label>
               <Select 
                 value={formData.channel} 
                 onValueChange={(value) => setFormData({ ...formData, channel: value as any })}
-                disabled={!!feedback}
+                disabled={!!feedback || formData.reviewSource !== 'manual'}
               >
                 <SelectTrigger id="channel">
                   <SelectValue />
@@ -129,10 +167,23 @@ export function FeedbackDialog({ open, onOpenChange, feedback, guests, onSave }:
                   <SelectItem value="app">App</SelectItem>
                   <SelectItem value="front-desk">Front Desk</SelectItem>
                   <SelectItem value="phone">Phone</SelectItem>
+                  <SelectItem value="review-site">Review Site</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
+
+          {formData.reviewSource && formData.reviewSource !== 'manual' && !feedback && (
+            <div>
+              <Label htmlFor="reviewSourceUrl">Review Link (Optional)</Label>
+              <Input
+                id="reviewSourceUrl"
+                value={formData.reviewSourceUrl || ''}
+                onChange={(e) => setFormData({ ...formData, reviewSourceUrl: e.target.value })}
+                placeholder="https://..."
+              />
+            </div>
+          )}
 
           <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
             <RatingSelector 
@@ -218,6 +269,11 @@ export function FeedbackDialog({ open, onOpenChange, feedback, guests, onSave }:
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {feedback ? 'Close' : 'Cancel'}
             </Button>
+            {!feedback && (
+              <Button type="submit">
+                Add Feedback
+              </Button>
+            )}
             {feedback && (
               <Button type="submit">
                 Update Feedback

@@ -2002,17 +2002,34 @@ export interface ComplaintAction {
   notes?: string
 }
 
+export type ReviewSource = 'manual' | 'google-maps' | 'tripadvisor' | 'booking.com' | 'airbnb' | 'facebook'
+
+export interface ReviewSourceConfig {
+  id: string
+  source: Exclude<ReviewSource, 'manual'>
+  url: string
+  isActive: boolean
+  lastSync?: number
+  reviewCount: number
+  averageRating: number
+  createdAt: number
+  updatedAt: number
+}
+
 export interface GuestFeedback {
   id: string
   feedbackNumber: string
-  guestId: string
+  guestId?: string
   guestName: string
   reservationId?: string
   roomNumber?: string
   stayCheckIn?: number
   stayCheckOut?: number
   submittedAt: number
-  channel: 'email' | 'sms' | 'in-room-tablet' | 'website' | 'app' | 'front-desk' | 'phone'
+  channel: 'email' | 'sms' | 'in-room-tablet' | 'website' | 'app' | 'front-desk' | 'phone' | 'review-site'
+  reviewSource: ReviewSource
+  reviewSourceUrl?: string
+  externalReviewId?: string
   overallRating: FeedbackRating
   ratings: {
     roomCleanliness?: FeedbackRating

@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { useKV } from '@github/spark/hooks'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { ulid } from 'ulid'
 import {
   Users,
   Star,
@@ -15,7 +17,9 @@ import {
   Plus,
   Warning,
   ThumbsUp,
-  Megaphone
+  Megaphone,
+  GlobeHemisphereWest,
+  Link as LinkIcon
 } from '@phosphor-icons/react'
 import type {
   GuestProfile,
@@ -25,7 +29,8 @@ import type {
   GuestFeedback,
   UpsellOffer,
   UpsellTransaction,
-  LoyaltyTransaction
+  LoyaltyTransaction,
+  ReviewSourceConfig
 } from '@/lib/types'
 import { GuestProfileDialog } from '@/components/GuestProfileDialog'
 import { ComplaintDialog } from '@/components/ComplaintDialog'
@@ -34,6 +39,7 @@ import { MarketingCampaignDialog } from '@/components/MarketingCampaignDialog'
 import { MarketingTemplateDialog } from '@/components/MarketingTemplateDialog'
 import { UpsellOfferDialog } from '@/components/UpsellOfferDialog'
 import { UpsellTransactionDialog } from '@/components/UpsellTransactionDialog'
+import { ReviewSourceDialog } from '@/components/ReviewSourceDialog'
 import { formatCurrency, formatDate } from '@/lib/helpers'
 import { toast } from 'sonner'
 
@@ -89,15 +95,45 @@ export function CRM({
   const [selectedOffer, setSelectedOffer] = useState<UpsellOffer | undefined>()
   const [upsellTransactionDialogOpen, setUpsellTransactionDialogOpen] = useState(false)
   const [selectedTransaction, setSelectedTransaction] = useState<UpsellTransaction | undefined>()
+  const [reviewSourceDialogOpen, setReviewSourceDialogOpen] = useState(false)
+  const [selectedReviewSource, setSelectedReviewSource] = useState<ReviewSourceConfig | undefined>()
   const [searchQuery, setSearchQuery] = useState('')
+
+  const [reviewSources, setReviewSources] = useKV<ReviewSourceConfig[]>('w3-hotel-review-sources', [])
+
+  const calculateAverageRating = () => {
+    if (feedback.length === 0) return '0.0'
+    const totalRating = feedback.reduce((sum, f) => sum + f.overallRating, 0)
+    const average = totalRating / feedback.length
+    return (average * 2).toFixed(1)
+  }
+
+  const getReviewSourceStats = () => {
+    const sourceStats: Record<string, { count: number; avgRating: number }> = {}
+    
+    feedback.forEach(f => {
+      if (!sourceStats[f.reviewSource]) {
+        sourceStats[f.reviewSource] = { count: 0, avgRating: 0 }
+      }
+      sourceStats[f.reviewSource].count++
+      sourceStats[f.reviewSource].avgRating += f.overallRating
+    })
+
+    Object.keys(sourceStats).forEach(source => {
+      if (sourceStats[source].count > 0) {
+        sourceStats[source].avgRating = sourceStats[source].avgRating / sourceStats[source].count
+      }
+    })
+
+    return sourceStats
+  }
 
   const stats = {
     totalGuests: guestProfiles.length,
     vipGuests: guestProfiles.filter(g => g.segments.includes('vip')).length,
     activeComplaints: complaints.filter(c => c.status !== 'closed').length,
-    averageRating: feedback.length > 0 
-      ? (feedback.reduce((sum, f) => sum + f.overallRating, 0) / feedback.length).toFixed(1)
-      : '0',
+    averageRating: calculateAverageRating(),
+    totalReviews: feedback.length,
     totalLoyaltyPoints: guestProfiles.reduce((sum, g) => sum + g.loyaltyInfo.points, 0),
     upsellRevenue: upsellTransactions
       .filter(t => t.status === 'accepted')
@@ -181,8 +217,8 @@ export function CRM({
             <h3 className="text-sm font-medium text-muted-foreground">Average Rating</h3>
             <ThumbsUp size={20} className="text-blue-500" />
           </div>
-          <p className="text-3xl font-semibold">{stats.averageRating} / 5</p>
-          <p className="text-sm text-muted-foreground mt-1">{feedback.length} reviews</p>
+          <p className="text-3xl font-semibold">{stats.averageRating} / 10</p>
+          <p className="text-sm text-muted-foreground mt-1">{stats.totalReviews} reviews</p>
         </Card>
 
         <Card className="p-6 border-l-4 border-l-purple-500">
@@ -196,7 +232,7 @@ export function CRM({
       </div>
 
       <Tabs value={currentTab} onValueChange={setCurrentTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="guests">
             <Users size={16} className="mr-2" />
             Guests
@@ -216,6 +252,10 @@ export function CRM({
           <TabsTrigger value="feedback">
             <ChatCircle size={16} className="mr-2" />
             Feedback
+          </TabsTrigger>
+          <TabsTrigger value="reviews">
+            <GlobeHemisphereWest size={16} className="mr-2" />
+            Review Sources
           </TabsTrigger>
         </TabsList>
 
@@ -649,9 +689,29 @@ export function CRM({
             </TabsList>
 
             <TabsContent value="feedback" className="space-y-4 mt-6">
+              <div className="flex items-center justify-between mb-4">
+                <Button onClick={() => {
+                  setSelectedFeedback(undefined)
+                  setFeedbackDialogOpen(true)
+                }}>
+                  <Plus size={20} className="mr-2" />
+                  Add Feedback
+                </Button>
+              </div>
+
               <div className="grid gap-4">
                 {feedback.map((fb) => {
                   const guest = guestProfiles.find(g => g.id === fb.guestId)
+                  const getReviewSourceIcon = (source: string) => {
+                    switch (source) {
+                      case 'google-maps': return '🗺️'
+                      case 'tripadvisor': return '🦉'
+                      case 'booking.com': return '🏨'
+                      case 'airbnb': return '🏡'
+                      case 'facebook': return '📘'
+                      default: return '📝'
+                    }
+                  }
                   return (
                     <Card
                       key={fb.id}
@@ -662,26 +722,36 @@ export function CRM({
                       }}
                     >
                       <div className="flex items-start justify-between mb-3">
-                        <div>
+                        <div className="flex-1">
                           <div className="flex items-center gap-3">
-                            <h3 className="text-lg font-semibold">
-                              {guest?.firstName} {guest?.lastName}
-                            </h3>
+                            <h3 className="text-lg font-semibold">{fb.guestName}</h3>
                             <div className="flex items-center gap-1">
                               <Star size={16} className="text-yellow-500 fill-yellow-500" />
-                              <span className="font-semibold">{fb.overallRating}/5</span>
+                              <span className="font-semibold">{fb.overallRating * 2}/10</span>
                             </div>
                             <Badge variant={
                               fb.sentiment === 'positive' ? 'default' :
                               fb.sentiment === 'negative' ? 'destructive' :
                               'secondary'
                             }>
-                              {fb.sentiment}
+                              {fb.sentiment || 'neutral'}
+                            </Badge>
+                            <Badge variant="outline" className="gap-1">
+                              <span>{getReviewSourceIcon(fb.reviewSource)}</span>
+                              {fb.reviewSource}
                             </Badge>
                           </div>
                           <p className="text-sm text-muted-foreground mt-1">
                             {formatDate(fb.submittedAt)} via {fb.channel}
                           </p>
+                          {fb.reviewSourceUrl && (
+                            <a href={fb.reviewSourceUrl} target="_blank" rel="noopener noreferrer" 
+                               className="text-xs text-blue-500 hover:underline mt-1 inline-block"
+                               onClick={(e) => e.stopPropagation()}>
+                              <LinkIcon size={12} className="inline mr-1" />
+                              View Original Review
+                            </a>
+                          )}
                         </div>
                       </div>
                       {fb.comments && (
@@ -702,7 +772,14 @@ export function CRM({
                   <Card className="p-16 text-center">
                     <ThumbsUp size={64} className="mx-auto text-muted-foreground mb-4" />
                     <h3 className="text-xl font-semibold mb-2">No feedback yet</h3>
-                    <p className="text-muted-foreground">Guest feedback will appear here</p>
+                    <p className="text-muted-foreground mb-6">Add guest feedback manually or import from review sites</p>
+                    <Button onClick={() => {
+                      setSelectedFeedback(undefined)
+                      setFeedbackDialogOpen(true)
+                    }}>
+                      <Plus size={20} className="mr-2" />
+                      Add Feedback
+                    </Button>
                   </Card>
                 )}
               </div>
@@ -778,6 +855,85 @@ export function CRM({
               </div>
             </TabsContent>
           </Tabs>
+        </TabsContent>
+
+        <TabsContent value="reviews" className="space-y-4 mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold">Review Source Configuration</h3>
+              <p className="text-sm text-muted-foreground">Add review website links to import reviews automatically</p>
+            </div>
+            <Button onClick={() => {
+              setSelectedReviewSource(undefined)
+              setReviewSourceDialogOpen(true)
+            }}>
+              <Plus size={20} className="mr-2" />
+              Add Review Source
+            </Button>
+          </div>
+
+          <div className="grid gap-4">
+            {(reviewSources || []).map((source) => (
+              <Card
+                key={source.id}
+                className="p-6 cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => {
+                  setSelectedReviewSource(source)
+                  setReviewSourceDialogOpen(true)
+                }}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-semibold capitalize">{source.source.replace('-', ' ')}</h3>
+                      <Badge variant={source.isActive ? 'default' : 'outline'}>
+                        {source.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </div>
+                    <a href={source.url} target="_blank" rel="noopener noreferrer" 
+                       className="text-sm text-blue-500 hover:underline block mb-3"
+                       onClick={(e) => e.stopPropagation()}>
+                      <LinkIcon size={14} className="inline mr-1" />
+                      {source.url}
+                    </a>
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Reviews Imported</p>
+                        <p className="font-semibold text-lg">{source.reviewCount}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Average Rating</p>
+                        <div className="flex items-center gap-1 mt-1">
+                          <Star size={16} className="text-yellow-500 fill-yellow-500" />
+                          <span className="font-semibold text-lg">{source.averageRating.toFixed(1)}/10</span>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Last Synced</p>
+                        <p className="font-medium">{source.lastSync ? formatDate(source.lastSync) : 'Never'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+            {(reviewSources || []).length === 0 && (
+              <Card className="p-16 text-center">
+                <GlobeHemisphereWest size={64} className="mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold mb-2">No review sources configured</h3>
+                <p className="text-muted-foreground mb-6">
+                  Add links to Google Maps, TripAdvisor, Booking.com, Airbnb, or Facebook to import reviews
+                </p>
+                <Button onClick={() => {
+                  setSelectedReviewSource(undefined)
+                  setReviewSourceDialogOpen(true)
+                }}>
+                  <Plus size={20} className="mr-2" />
+                  Add Review Source
+                </Button>
+              </Card>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
 
@@ -891,6 +1047,52 @@ export function CRM({
             toast.success('Transaction created')
           }
           setUpsellTransactionDialogOpen(false)
+        }}
+      />
+
+      <ReviewSourceDialog
+        open={reviewSourceDialogOpen}
+        onOpenChange={setReviewSourceDialogOpen}
+        source={selectedReviewSource}
+        onSave={(source) => {
+          if (selectedReviewSource) {
+            setReviewSources((prev) => (prev || []).map(s => s.id === source.id ? source : s))
+            toast.success('Review source updated')
+          } else {
+            setReviewSources((prev) => [...(prev || []), source])
+            toast.success('Review source added')
+          }
+          setReviewSourceDialogOpen(false)
+        }}
+        onImportReviews={async (source) => {
+          const mockReviews: GuestFeedback[] = await new Promise((resolve) => {
+            setTimeout(() => {
+              const reviewCount = Math.floor(Math.random() * 15) + 5
+              const reviews: GuestFeedback[] = Array.from({ length: reviewCount }, (_, i) => ({
+                id: ulid(),
+                feedbackNumber: `RVW-${source.source.toUpperCase()}-${Date.now()}-${i}`,
+                guestName: `Guest from ${source.source}`,
+                submittedAt: Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000,
+                channel: 'review-site' as const,
+                reviewSource: source.source,
+                reviewSourceUrl: source.url,
+                externalReviewId: `ext-${ulid()}`,
+                overallRating: (Math.floor(Math.random() * 3) + 3) as 1 | 2 | 3 | 4 | 5,
+                ratings: {},
+                wouldRecommend: Math.random() > 0.3,
+                wouldReturn: Math.random() > 0.4,
+                sentiment: (Math.random() > 0.5 ? 'positive' : Math.random() > 0.5 ? 'neutral' : 'negative') as 'positive' | 'neutral' | 'negative',
+                comments: `Great experience at the hotel. ${source.source} review import.`,
+                responseRequired: false,
+                createdAt: Date.now()
+              }))
+              resolve(reviews)
+            }, 2000)
+          })
+
+          setFeedback((prev) => [...prev, ...mockReviews])
+          
+          return mockReviews
         }}
       />
     </div>
