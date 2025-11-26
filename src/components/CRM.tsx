@@ -19,7 +19,8 @@ import {
   ThumbsUp,
   Megaphone,
   GlobeHemisphereWest,
-  Link as LinkIcon
+  Link as LinkIcon,
+  ArrowsClockwise
 } from '@phosphor-icons/react'
 import type {
   GuestProfile,
@@ -41,6 +42,7 @@ import { UpsellOfferDialog } from '@/components/UpsellOfferDialog'
 import { UpsellTransactionDialog } from '@/components/UpsellTransactionDialog'
 import { ReviewSourceDialog } from '@/components/ReviewSourceDialog'
 import { formatCurrency, formatDate } from '@/lib/helpers'
+import { fetchReviewsFromUrl, mergeReviews, calculateOverallRatingFromSources } from '@/lib/reviewSyncHelpers'
 import { toast } from 'sonner'
 
 interface CRMProps {
@@ -100,6 +102,85 @@ export function CRM({
   const [searchQuery, setSearchQuery] = useState('')
 
   const [reviewSources, setReviewSources] = useKV<ReviewSourceConfig[]>('w3-hotel-review-sources', [])
+  const [isSyncing, setIsSyncing] = useState(false)
+
+  const syncReviewsFromSource = async (source: ReviewSourceConfig) => {
+    try {
+      setIsSyncing(true)
+      toast.info(`Syncing reviews from ${source.source}...`)
+      
+      const result = await fetchReviewsFromUrl(source.url, source.source)
+      
+      if (!result.success) {
+        toast.error(`Failed to sync reviews from ${source.source}: ${result.errors?.join(', ')}`)
+        return
+      }
+
+      const updatedFeedback = mergeReviews(feedback, result.reviews)
+      setFeedback(updatedFeedback)
+
+      const updatedSource: ReviewSourceConfig = {
+        ...source,
+        lastSync: Date.now(),
+        reviewCount: result.totalReviews,
+        averageRating: result.averageRating,
+        updatedAt: Date.now()
+      }
+
+      setReviewSources((current) =>
+        (current || []).map(s => s.id === source.id ? updatedSource : s)
+      )
+
+      toast.success(`Successfully imported ${result.totalReviews} reviews from ${source.source}`)
+    } catch (error) {
+      console.error('Sync error:', error)
+      toast.error('Failed to sync reviews. Please try again.')
+    } finally {
+      setIsSyncing(false)
+    }
+  }
+
+  const syncAllActiveSources = async () => {
+    const activeSources = (reviewSources || []).filter(s => s.isActive)
+    
+    if (activeSources.length === 0) {
+      toast.info('No active review sources configured')
+      return
+    }
+
+    setIsSyncing(true)
+    toast.info(`Syncing reviews from ${activeSources.length} source${activeSources.length > 1 ? 's' : ''}...`)
+
+    let totalImported = 0
+    for (const source of activeSources) {
+      try {
+        const result = await fetchReviewsFromUrl(source.url, source.source)
+        
+        if (result.success) {
+          const updatedFeedback = mergeReviews(feedback, result.reviews)
+          setFeedback(updatedFeedback)
+          totalImported += result.reviews.length
+
+          const updatedSource: ReviewSourceConfig = {
+            ...source,
+            lastSync: Date.now(),
+            reviewCount: result.totalReviews,
+            averageRating: result.averageRating,
+            updatedAt: Date.now()
+          }
+
+          setReviewSources((current) =>
+            (current || []).map(s => s.id === source.id ? updatedSource : s)
+          )
+        }
+      } catch (error) {
+        console.error(`Error syncing ${source.source}:`, error)
+      }
+    }
+
+    setIsSyncing(false)
+    toast.success(`Successfully imported ${totalImported} total reviews from all sources`)
+  }
 
   const calculateAverageRating = () => {
     if (feedback.length === 0) return '0.0'
@@ -862,28 +943,41 @@ export function CRM({
             <div>
               <h3 className="text-lg font-semibold">Review Source Configuration</h3>
               <p className="text-sm text-muted-foreground">Add review website links to import reviews automatically</p>
+              <p className="text-xs text-muted-foreground mt-1">Overall Average: <span className="font-semibold">{calculateOverallRatingFromSources(reviewSources || []).toFixed(1)}/10</span> from all sources</p>
             </div>
-            <Button onClick={() => {
-              setSelectedReviewSource(undefined)
-              setReviewSourceDialogOpen(true)
-            }}>
-              <Plus size={20} className="mr-2" />
-              Add Review Source
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={syncAllActiveSources}
+                disabled={isSyncing || (reviewSources || []).filter(s => s.isActive).length === 0}
+                variant="outline"
+              >
+                <ArrowsClockwise size={20} className={`mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                Sync All Sources
+              </Button>
+              <Button onClick={() => {
+                setSelectedReviewSource(undefined)
+                setReviewSourceDialogOpen(true)
+              }}>
+                <Plus size={20} className="mr-2" />
+                Add Review Source
+              </Button>
+            </div>
           </div>
 
           <div className="grid gap-4">
             {(reviewSources || []).map((source) => (
               <Card
                 key={source.id}
-                className="p-6 cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => {
-                  setSelectedReviewSource(source)
-                  setReviewSourceDialogOpen(true)
-                }}
+                className="p-6 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex-1">
+                  <div 
+                    className="flex-1 cursor-pointer"
+                    onClick={() => {
+                      setSelectedReviewSource(source)
+                      setReviewSourceDialogOpen(true)
+                    }}
+                  >
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-lg font-semibold capitalize">{source.source.replace('-', ' ')}</h3>
                       <Badge variant={source.isActive ? 'default' : 'outline'}>
@@ -914,6 +1008,15 @@ export function CRM({
                       </div>
                     </div>
                   </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => syncReviewsFromSource(source)}
+                    disabled={isSyncing || !source.isActive}
+                  >
+                    <ArrowsClockwise size={16} className={`mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                    Sync Now
+                  </Button>
                 </div>
               </Card>
             ))}
@@ -1065,34 +1168,16 @@ export function CRM({
           setReviewSourceDialogOpen(false)
         }}
         onImportReviews={async (source) => {
-          const mockReviews: GuestFeedback[] = await new Promise((resolve) => {
-            setTimeout(() => {
-              const reviewCount = Math.floor(Math.random() * 15) + 5
-              const reviews: GuestFeedback[] = Array.from({ length: reviewCount }, (_, i) => ({
-                id: ulid(),
-                feedbackNumber: `RVW-${source.source.toUpperCase()}-${Date.now()}-${i}`,
-                guestName: `Guest from ${source.source}`,
-                submittedAt: Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000,
-                channel: 'review-site' as const,
-                reviewSource: source.source,
-                reviewSourceUrl: source.url,
-                externalReviewId: `ext-${ulid()}`,
-                overallRating: (Math.floor(Math.random() * 3) + 3) as 1 | 2 | 3 | 4 | 5,
-                ratings: {},
-                wouldRecommend: Math.random() > 0.3,
-                wouldReturn: Math.random() > 0.4,
-                sentiment: (Math.random() > 0.5 ? 'positive' : Math.random() > 0.5 ? 'neutral' : 'negative') as 'positive' | 'neutral' | 'negative',
-                comments: `Great experience at the hotel. ${source.source} review import.`,
-                responseRequired: false,
-                createdAt: Date.now()
-              }))
-              resolve(reviews)
-            }, 2000)
-          })
-
-          setFeedback((prev) => [...prev, ...mockReviews])
+          const result = await fetchReviewsFromUrl(source.url, source.source)
           
-          return mockReviews
+          if (!result.success) {
+            throw new Error(result.errors?.join(', ') || 'Failed to import reviews')
+          }
+          
+          const updatedFeedback = mergeReviews(feedback, result.reviews)
+          setFeedback(updatedFeedback)
+          
+          return result.reviews
         }}
       />
     </div>
