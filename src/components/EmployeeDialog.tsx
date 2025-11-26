@@ -100,7 +100,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, employees, setEmp
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="employeeId">Employee ID</Label>
               <Input
@@ -123,6 +123,17 @@ export function EmployeeDialog({ open, onOpenChange, employee, employees, setEmp
                   <SelectItem value="terminated">Terminated</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="salary">Salary</Label>
+              <Input
+                id="salary"
+                type="number"
+                step="0.01"
+                value={formData.salary}
+                onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+              />
             </div>
           </div>
 
@@ -209,17 +220,6 @@ export function EmployeeDialog({ open, onOpenChange, employee, employees, setEmp
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="salary">Salary (optional)</Label>
-            <Input
-              id="salary"
-              type="number"
-              step="0.01"
-              value={formData.salary}
-              onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
-            />
           </div>
 
           <DialogFooter>

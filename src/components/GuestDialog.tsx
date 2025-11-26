@@ -149,7 +149,7 @@ export function GuestDialog({ open, onOpenChange, guest, guests, setGuests }: Gu
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="nationality">Nationality</Label>
                 <Input
@@ -164,18 +164,17 @@ export function GuestDialog({ open, onOpenChange, guest, guests, setGuests }: Gu
                   id="idType"
                   value={formData.idType}
                   onChange={(e) => setFormData({ ...formData, idType: e.target.value })}
-                  placeholder="Passport, Driver's License, etc."
+                  placeholder="Passport, etc."
                 />
               </div>
-            </div>
-
-            <div>
-              <Label htmlFor="idNumber">ID Number</Label>
-              <Input
-                id="idNumber"
-                value={formData.idNumber}
-                onChange={(e) => setFormData({ ...formData, idNumber: e.target.value })}
-              />
+              <div>
+                <Label htmlFor="idNumber">ID Number</Label>
+                <Input
+                  id="idNumber"
+                  value={formData.idNumber}
+                  onChange={(e) => setFormData({ ...formData, idNumber: e.target.value })}
+                />
+              </div>
             </div>
 
             <div>

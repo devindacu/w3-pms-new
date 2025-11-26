@@ -221,7 +221,7 @@ export function ReservationDialog({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               <div>
                 <Label htmlFor="adults">Adults</Label>
                 <Input
@@ -242,11 +242,8 @@ export function ReservationDialog({
                   onChange={(e) => setFormData({ ...formData, children: parseInt(e.target.value) })}
                 />
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="ratePerNight">Rate per Night ($)</Label>
+                <Label htmlFor="ratePerNight">Rate/Night ($)</Label>
                 <Input
                   id="ratePerNight"
                   type="number"
@@ -257,7 +254,7 @@ export function ReservationDialog({
                 />
               </div>
               <div>
-                <Label htmlFor="advancePaid">Advance Paid ($)</Label>
+                <Label htmlFor="advancePaid">Advance ($)</Label>
                 <Input
                   id="advancePaid"
                   type="number"

@@ -100,8 +100,8 @@ export function RoomTypeDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2 col-span-2">
               <Label htmlFor="name">Name *</Label>
               <Input
                 id="name"

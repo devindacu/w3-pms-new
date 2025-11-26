@@ -84,11 +84,11 @@ export function RoomDialog({ open, onOpenChange, room, onSave }: RoomDialogProps
   }, [room, open])
 
   const handleRoomTypeChange = (typeCode: string) => {
-    const selectedType = (roomTypes || []).find(rt => rt.code === typeCode)
+    const selectedType = (roomTypes || []).find(rt => rt.code.toLowerCase() === typeCode.toLowerCase())
     if (selectedType) {
       setFormData(prev => ({
         ...prev,
-        roomType: typeCode as RoomType,
+        roomType: typeCode.toLowerCase() as RoomType,
         baseRate: selectedType.baseRate,
         maxOccupancy: selectedType.maxOccupancy,
         amenities: [...selectedType.amenities]
@@ -156,7 +156,7 @@ export function RoomDialog({ open, onOpenChange, room, onSave }: RoomDialogProps
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label htmlFor="roomNumber">Room Number *</Label>
               <Input
@@ -180,7 +180,7 @@ export function RoomDialog({ open, onOpenChange, room, onSave }: RoomDialogProps
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 col-span-2">
               <Label htmlFor="roomType">Room Type *</Label>
               <Select
                 value={formData.roomType}
@@ -192,7 +192,7 @@ export function RoomDialog({ open, onOpenChange, room, onSave }: RoomDialogProps
                 <SelectContent>
                   {(roomTypes || []).filter(rt => rt.isActive).length > 0 ? (
                     (roomTypes || []).filter(rt => rt.isActive).map(rt => (
-                      <SelectItem key={rt.id} value={rt.code}>
+                      <SelectItem key={rt.id} value={rt.code.toLowerCase()}>
                         {rt.name}
                       </SelectItem>
                     ))
@@ -209,7 +209,7 @@ export function RoomDialog({ open, onOpenChange, room, onSave }: RoomDialogProps
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 col-span-2">
               <Label htmlFor="status">Status *</Label>
               <Select
                 value={formData.status}
@@ -230,7 +230,7 @@ export function RoomDialog({ open, onOpenChange, room, onSave }: RoomDialogProps
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="baseRate">Base Rate (LKR per night) *</Label>
+              <Label htmlFor="baseRate">Base Rate (LKR) *</Label>
               <Input
                 id="baseRate"
                 type="number"
