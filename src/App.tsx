@@ -121,11 +121,10 @@ import { Housekeeping } from '@/components/Housekeeping'
 import { Procurement } from '@/components/Procurement'
 import { FnBPOS } from '@/components/FnBPOS'
 import { InvoiceScanning } from '@/components/InvoiceScanning'
-import { RecipeManagement } from '@/components/RecipeManagement'
-import { KitchenConsumption } from '@/components/KitchenConsumption'
+import { KitchenOperations } from '@/components/KitchenOperations'
 import { ForecastingAnalytics } from '@/components/ForecastingAnalytics'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction' | 'suppliers' | 'general-products' | 'user-management' | 'purchase-orders' | 'kitchen' | 'invoice-scanning' | 'recipes' | 'consumption' | 'forecasting'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'food-management' | 'amenities' | 'construction' | 'suppliers' | 'general-products' | 'user-management' | 'purchase-orders' | 'kitchen' | 'invoice-scanning' | 'forecasting'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -614,30 +613,12 @@ function App() {
           <Separator className="my-2" />
 
           <Button
-            variant={currentModule === 'recipes' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('recipes')}
-          >
-            <ChefHat size={18} className="mr-2" />
-            Recipes & Menus
-          </Button>
-
-          <Button
-            variant={currentModule === 'consumption' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('consumption')}
-          >
-            <ChartBar size={18} className="mr-2" />
-            Kitchen Consumption
-          </Button>
-
-          <Button
             variant={currentModule === 'kitchen' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('kitchen')}
           >
             <ChefHat size={18} className="mr-2" />
-            Kitchen Management
+            Kitchen Operations
           </Button>
 
           <Separator className="my-2" />
@@ -816,26 +797,19 @@ function App() {
               currentUser={currentUser}
             />
           )}
-          {currentModule === 'recipes' && (
-            <RecipeManagement
+          {currentModule === 'kitchen' && (
+            <KitchenOperations
               recipes={recipes || []}
               setRecipes={setRecipes}
               menus={menus || []}
               setMenus={setMenus}
-              foodItems={foodItems || []}
-              suppliers={suppliers || []}
-            />
-          )}
-          {currentModule === 'consumption' && (
-            <KitchenConsumption
               consumptionLogs={consumptionLogs || []}
               setConsumptionLogs={setConsumptionLogs}
-              recipes={recipes || []}
               foodItems={foodItems || []}
+              suppliers={suppliers || []}
               orders={orders || []}
             />
           )}
-          {currentModule === 'kitchen' && renderComingSoon('Kitchen Management', <ChefHat size={64} />)}
           {currentModule === 'finance' && renderComingSoon('Finance & Accounting', <CurrencyDollar size={64} />)}
           {currentModule === 'hr' && (
             <HRManagement
