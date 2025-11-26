@@ -293,6 +293,14 @@ export interface GoodsReceivedNote {
   notes?: string
   invoiceNumber?: string
   invoiceAmount?: number
+  invoicePhotos?: string[]
+  deliveryNotePhotos?: string[]
+  hasVariance?: boolean
+  varianceNotes?: string
+  deliveryNoteNumber?: string
+  vehicleNumber?: string
+  driverName?: string
+  qualityCheckStatus?: 'passed' | 'partial' | 'failed'
 }
 
 export interface GRNItem {
@@ -303,6 +311,13 @@ export interface GRNItem {
   damagedQuantity: number
   batchNumber?: string
   expiryDate?: number
+  manufactureDate?: number
+  unitPrice?: number
+  varianceAmount?: number
+  varianceReason?: string
+  barcode?: string
+  qualityStatus?: QualityStatus
+  rejectionReason?: string
 }
 
 export interface SupplierContactPerson {

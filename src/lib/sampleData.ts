@@ -3139,13 +3139,27 @@ export const sampleGRNs: GoodsReceivedNote[] = [
         receivedQuantity: 98,
         damagedQuantity: 2,
         batchNumber: 'BATCH2024-001',
-        expiryDate: Date.now() + 30 * 24 * 60 * 60 * 1000
+        expiryDate: Date.now() + 30 * 24 * 60 * 60 * 1000,
+        manufactureDate: Date.now() - 5 * 24 * 60 * 60 * 1000,
+        unitPrice: 4.50,
+        varianceAmount: -9.00,
+        varianceReason: 'Damaged during transport',
+        barcode: '8901234567890',
+        qualityStatus: 'good'
       }
     ],
     receivedAt: Date.now() - 12 * 60 * 60 * 1000,
     receivedBy: 'sophie_chen',
     invoiceNumber: 'INV-2024-001',
     invoiceAmount: 450.00,
-    notes: '2 damaged items rejected, credit note requested'
+    notes: '2 damaged items rejected, credit note requested',
+    deliveryNoteNumber: 'DN-2024-001',
+    vehicleNumber: 'ABC-1234',
+    driverName: 'John Driver',
+    hasVariance: true,
+    varianceNotes: 'Supplier agreed to credit note for damaged items. Overall quality acceptable.',
+    qualityCheckStatus: 'partial',
+    invoicePhotos: [],
+    deliveryNotePhotos: []
   }
 ]
