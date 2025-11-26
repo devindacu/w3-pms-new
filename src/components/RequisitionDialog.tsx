@@ -306,12 +306,11 @@ export function RequisitionDialog({
                 <div className="grid grid-cols-12 gap-3">
                   <div className="col-span-11">
                     <Label className="text-xs">Supplier (Optional)</Label>
-                    <Select value={newItemSupplierId} onValueChange={setNewItemSupplierId}>
+                    <Select value={newItemSupplierId || undefined} onValueChange={(value) => setNewItemSupplierId(value)}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select supplier" />
+                        <SelectValue placeholder="Select supplier (optional)" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">None</SelectItem>
                         {suppliers.map((supplier) => (
                           <SelectItem key={supplier.id} value={supplier.id}>
                             {supplier.name}
