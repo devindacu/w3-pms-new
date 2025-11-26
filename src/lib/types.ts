@@ -1651,3 +1651,137 @@ export interface EmailNotification {
   failureReason?: string
   createdAt: number
 }
+
+export type DisputeType = 'quality-issue' | 'quantity-shortage' | 'damaged-goods' | 'late-delivery' | 'incorrect-items' | 'pricing-error' | 'invoice-mismatch' | 'other'
+export type DisputeStatus = 'open' | 'in-review' | 'supplier-contacted' | 'awaiting-response' | 'negotiating' | 'resolved' | 'closed' | 'escalated'
+export type DisputePriority = 'low' | 'medium' | 'high' | 'critical'
+export type DisputeResolution = 'credit-note' | 'replacement' | 'refund' | 'price-adjustment' | 'accepted-as-is' | 'partial-credit' | 'return-goods'
+
+export interface SupplierDispute {
+  id: string
+  disputeNumber: string
+  supplierId: string
+  supplierName: string
+  purchaseOrderId?: string
+  grnId?: string
+  invoiceId?: string
+  disputeType: DisputeType
+  status: DisputeStatus
+  priority: DisputePriority
+  title: string
+  description: string
+  disputedAmount: number
+  claimAmount: number
+  items: DisputeItem[]
+  evidence: DisputeEvidence[]
+  communications: DisputeCommunication[]
+  resolution?: DisputeResolution
+  resolutionDetails?: string
+  agreedAmount?: number
+  creditNoteNumber?: string
+  creditNoteAmount?: number
+  deadlineDate?: number
+  raisedBy: string
+  raisedAt: number
+  contactedSupplierAt?: number
+  responseReceivedAt?: number
+  resolvedBy?: string
+  resolvedAt?: number
+  closedAt?: number
+  escalatedTo?: string
+  escalatedAt?: number
+  notes?: string
+  tags?: string[]
+  updatedAt: number
+}
+
+export interface DisputeItem {
+  id: string
+  itemName: string
+  inventoryItemId?: string
+  grnItemId?: string
+  invoiceItemId?: string
+  issueDescription: string
+  orderedQuantity?: number
+  receivedQuantity?: number
+  damagedQuantity?: number
+  orderedPrice?: number
+  invoicedPrice?: number
+  disputedAmount: number
+  photoEvidence?: string[]
+}
+
+export interface DisputeEvidence {
+  id: string
+  type: 'photo' | 'document' | 'email' | 'delivery-note' | 'invoice' | 'grn' | 'quality-report' | 'other'
+  title: string
+  description?: string
+  fileUrl?: string
+  fileData?: string
+  uploadedBy: string
+  uploadedAt: number
+}
+
+export interface DisputeCommunication {
+  id: string
+  direction: 'outgoing' | 'incoming'
+  method: 'email' | 'phone' | 'meeting' | 'letter' | 'portal'
+  contactPerson?: string
+  subject?: string
+  message: string
+  response?: string
+  attachments?: string[]
+  sentBy?: string
+  receivedFrom?: string
+  timestamp: number
+  followUpRequired: boolean
+  followUpDate?: number
+  notes?: string
+}
+
+export interface InvoiceMatchingResult {
+  id: string
+  invoiceId: string
+  purchaseOrderId?: string
+  grnId?: string
+  matchStatus: 'fully-matched' | 'partially-matched' | 'not-matched' | 'variance-within-tolerance' | 'needs-review'
+  overallVariance: number
+  variancePercentage: number
+  toleranceThreshold: number
+  itemsMatched: number
+  itemsMismatched: number
+  itemsMissing: number
+  quantityVariances: MatchingVariance[]
+  priceVariances: MatchingVariance[]
+  totalVariances: MatchingVariance[]
+  recommendations: MatchingRecommendation[]
+  requiresApproval: boolean
+  approvalLevel: 'auto-approve' | 'manager' | 'senior-manager' | 'director'
+  matchedBy?: string
+  matchedAt: number
+  approvedBy?: string
+  approvedAt?: number
+  notes?: string
+}
+
+export interface MatchingVariance {
+  itemId: string
+  itemName: string
+  field: 'quantity' | 'price' | 'total' | 'tax'
+  poValue?: number
+  grnValue?: number
+  invoiceValue?: number
+  variance: number
+  variancePercentage: number
+  isWithinTolerance: boolean
+  requiresAction: boolean
+  suggestedAction?: string
+}
+
+export interface MatchingRecommendation {
+  type: 'approve' | 'reject' | 'create-dispute' | 'request-clarification' | 'adjust-tolerance'
+  priority: 'info' | 'warning' | 'action-required'
+  message: string
+  actionLabel?: string
+  actionData?: any
+}

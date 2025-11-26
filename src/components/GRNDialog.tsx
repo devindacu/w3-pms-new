@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Package, Barcode, Camera, Warning, Check, X, Upload, Image as ImageIcon } from '@phosphor-icons/react'
+import { Package, Barcode, Camera, Warning, Check, X, Upload, Image as ImageIcon, Flag } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { 
   type GoodsReceivedNote,
@@ -22,7 +22,8 @@ import {
   type FoodItem,
   type Amenity,
   type ConstructionMaterial,
-  type GeneralProduct
+  type GeneralProduct,
+  type SupplierDispute
 } from '@/lib/types'
 import { generateId, generateNumber, formatCurrency, formatDate } from '@/lib/helpers'
 
@@ -41,6 +42,7 @@ interface GRNDialogProps {
   amenities: Amenity[]
   constructionMaterials: ConstructionMaterial[]
   generalProducts: GeneralProduct[]
+  onCreateDispute?: (dispute: Partial<SupplierDispute>) => void
 }
 
 export function GRNDialog({
@@ -57,7 +59,8 @@ export function GRNDialog({
   foodItems,
   amenities,
   constructionMaterials,
-  generalProducts
+  generalProducts,
+  onCreateDispute
 }: GRNDialogProps) {
   const [purchaseOrderId, setPurchaseOrderId] = useState('')
   const [invoiceNumber, setInvoiceNumber] = useState('')
@@ -323,6 +326,56 @@ export function GRNDialog({
       toast.success('GRN created - stock will be updated automatically')
     }
 
+    onOpenChange(false)
+  }
+
+  const handleCreateDisputeFromGRN = () => {
+    if (!onCreateDispute || !selectedPO) return
+
+    const problemItems = items
+      .filter(item => 
+        item.receivedQuantity !== item.orderedQuantity || 
+        item.damagedQuantity > 0 ||
+        item.qualityStatus === 'poor' ||
+        item.qualityStatus === 'rejected'
+      )
+      .map(item => {
+        const poItem = selectedPO.items.find(p => p.inventoryItemId === item.inventoryItemId)
+        return {
+          id: generateId(),
+          itemName: poItem?.name || 'Unknown Item',
+          inventoryItemId: item.inventoryItemId,
+          grnItemId: item.id,
+          issueDescription: [
+            item.receivedQuantity !== item.orderedQuantity ? `Quantity variance: Ordered ${item.orderedQuantity}, Received ${item.receivedQuantity}` : '',
+            item.damagedQuantity > 0 ? `Damaged quantity: ${item.damagedQuantity}` : '',
+            item.qualityStatus === 'poor' || item.qualityStatus === 'rejected' ? `Quality issue: ${item.qualityStatus}` : ''
+          ].filter(Boolean).join('; '),
+          orderedQuantity: item.orderedQuantity,
+          receivedQuantity: item.receivedQuantity,
+          damagedQuantity: item.damagedQuantity,
+          orderedPrice: item.unitPrice,
+          disputedAmount: item.varianceAmount || 0
+        }
+      })
+
+    const supplier = suppliers.find(s => s.id === selectedPO.supplierId)
+
+    onCreateDispute({
+      supplierId: selectedPO.supplierId,
+      supplierName: supplier?.name || '',
+      purchaseOrderId: selectedPO.id,
+      grnId: grn?.id,
+      disputeType: items.some(i => i.damagedQuantity > 0) ? 'damaged-goods' : 'quantity-shortage',
+      priority: items.some(i => i.qualityStatus === 'rejected') ? 'high' : 'medium',
+      title: `GRN Issues - ${selectedPO.poNumber}`,
+      description: `Multiple issues detected during goods receiving: ${problemItems.length} items with problems`,
+      disputedAmount: selectedPO.total,
+      claimAmount: totalVariance,
+      items: problemItems
+    })
+
+    toast.success('Dispute created from GRN issues')
     onOpenChange(false)
   }
 
@@ -822,7 +875,21 @@ export function GRNDialog({
                   <Alert variant="destructive">
                     <Warning size={20} />
                     <AlertDescription>
-                      <span className="font-semibold">Variance detected!</span> The received quantities or damaged items differ from the purchase order.
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="font-semibold">Variance detected!</span> The received quantities or damaged items differ from the purchase order.
+                        </div>
+                        {onCreateDispute && !isViewMode && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={handleCreateDisputeFromGRN}
+                          >
+                            <Flag size={16} className="mr-2" />
+                            Create Dispute
+                          </Button>
+                        )}
+                      </div>
                     </AlertDescription>
                   </Alert>
                 ) : (
@@ -845,19 +912,22 @@ export function GRNDialog({
                       if (!hasItemVariance) return null
                       
                       return (
-                        <div key={item.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <div key={item.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border-l-4 border-l-destructive">
                           <div className="flex-1">
                             <p className="font-medium">{poItem?.name}</p>
                             <div className="flex gap-4 mt-1 text-sm">
                               {qtyVariance !== 0 && (
-                                <span className={qtyVariance > 0 ? 'text-success' : 'text-destructive'}>
-                                  Qty: {qtyVariance > 0 ? '+' : ''}{qtyVariance}
-                                </span>
+                                <div className={qtyVariance > 0 ? 'text-green-600' : 'text-destructive'}>
+                                  <span className="font-medium">Qty Variance:</span> {qtyVariance > 0 ? '+' : ''}{qtyVariance}
+                                </div>
                               )}
                               {item.damagedQuantity > 0 && (
-                                <span className="text-destructive">
-                                  Damaged: {item.damagedQuantity}
-                                </span>
+                                <div className="text-destructive">
+                                  <span className="font-medium">Damaged:</span> {item.damagedQuantity}
+                                </div>
+                              )}
+                              {item.qualityStatus && (item.qualityStatus === 'poor' || item.qualityStatus === 'rejected') && (
+                                <Badge variant="destructive">Quality: {item.qualityStatus}</Badge>
                               )}
                             </div>
                             {item.varianceReason && (
@@ -868,7 +938,7 @@ export function GRNDialog({
                           </div>
                           <div className="text-right">
                             {item.varianceAmount !== undefined && item.varianceAmount !== 0 && (
-                              <p className={`font-semibold ${item.varianceAmount > 0 ? 'text-success' : 'text-destructive'}`}>
+                              <p className={`font-semibold ${item.varianceAmount > 0 ? 'text-green-600' : 'text-destructive'}`}>
                                 {item.varianceAmount > 0 ? '+' : ''}{formatCurrency(Math.abs(item.varianceAmount))}
                               </p>
                             )}
@@ -881,7 +951,7 @@ export function GRNDialog({
                   {totalVariance !== 0 && (
                     <div className="mt-4 pt-4 border-t flex items-center justify-between">
                       <span className="font-semibold">Total Variance:</span>
-                      <span className={`text-lg font-bold ${totalVariance > 0 ? 'text-success' : 'text-destructive'}`}>
+                      <span className={`text-xl font-bold ${totalVariance > 0 ? 'text-green-600' : 'text-destructive'}`}>
                         {totalVariance > 0 ? '+' : ''}{formatCurrency(Math.abs(totalVariance))}
                       </span>
                     </div>
