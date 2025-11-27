@@ -141,7 +141,6 @@ import { ChannelManager } from '@/components/ChannelManager'
 import { RoomRevenueManagement } from '@/components/RoomRevenueManagement'
 import { ExtraServicesManagement } from '@/components/ExtraServicesManagement'
 import { Analytics } from '@/components/Analytics'
-import { GuestInvoicing } from '@/components/GuestInvoicing'
 import type {
   GuestProfile,
   GuestComplaint,
@@ -170,7 +169,7 @@ import type {
   GuestInvoice
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoicing'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -887,15 +886,6 @@ function App() {
             <Buildings size={18} className="mr-2" />
             Channel Manager
           </Button>
-
-          <Button
-            variant={currentModule === 'invoicing' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('invoicing')}
-          >
-            <Receipt size={18} className="mr-2" />
-            Guest Invoicing
-          </Button>
         </nav>
       </aside>
 
@@ -1135,11 +1125,6 @@ function App() {
               setServices={setExtraServices}
               categories={serviceCategories || []}
               setCategories={setServiceCategories}
-              currentUser={currentUser}
-            />
-          )}
-          {currentModule === 'invoicing' && (
-            <GuestInvoicing
               currentUser={currentUser}
             />
           )}
