@@ -68,6 +68,13 @@ A comprehensive cloud-based Property Management System integrating Front Office,
 - **Progression**: Create recipe → Map ingredients to inventory → Calculate portion cost → Add to menu → When dish sold → Auto deduct ingredients from stock
 - **Success criteria**: Recipe costs accurate, inventory deductions automatic, food cost variance minimized
 
+### Guest Invoicing & Billing
+- **Functionality**: Comprehensive invoice generation, viewing, printing, downloading, and sharing with guest-facing professional layouts, multi-format delivery (email, print, download), tax calculation, payment tracking, and complete audit trails
+- **Purpose**: Streamlines guest billing process with professional invoice presentation, enables multiple delivery methods, ensures tax compliance, and maintains complete financial records
+- **Trigger**: Guest checkout, folio finalization, payment received, or manual invoice generation
+- **Progression**: Generate invoice from folio → Review line items and taxes → View formatted invoice → Print invoice → Download as HTML/PDF → Email to guest → Share via link → Track delivery status → Record payment → Update accounting
+- **Success criteria**: Invoices display all charges accurately with proper tax calculations, professional layout maintains brand identity, print/download/email functions work reliably, delivery tracked with timestamps, payment status updates correctly, complete audit trail maintained, guest receives invoice in preferred format
+
 ### Finance & Accounting
 - **Functionality**: Chart of accounts, AP/AR, revenue centers, tax management, integration with all revenue/expense modules
 - **Purpose**: Maintains financial accuracy and enables comprehensive reporting
