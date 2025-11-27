@@ -702,20 +702,10 @@ function App() {
 
   const SidebarContent = () => (
     <>
-      <div className="px-3 py-4 mb-4 flex items-center justify-between">
+      <div className="px-3 py-4 mb-4">
         <div>
           <h2 className="text-xl font-semibold">W3 Hotel PMS</h2>
           <p className="text-xs text-muted-foreground mt-1">Unified Management</p>
-        </div>
-        <div className="lg:block hidden">
-          <NotificationPanel
-            notifications={notifications || []}
-            onMarkAsRead={handleMarkAsRead}
-            onMarkAllAsRead={handleMarkAllAsRead}
-            onDismiss={handleDismiss}
-            onArchive={handleArchive}
-            onClearAll={handleClearAll}
-          />
         </div>
       </div>
 
@@ -901,6 +891,17 @@ function App() {
         <aside className="hidden lg:block w-64 border-r bg-card p-4 space-y-2 overflow-y-auto fixed left-0 top-0 bottom-0 z-40">
           <SidebarContent />
         </aside>
+        
+        <div className="hidden lg:block fixed top-4 right-4 z-50">
+          <NotificationPanel
+            notifications={notifications || []}
+            onMarkAsRead={handleMarkAsRead}
+            onMarkAllAsRead={handleMarkAllAsRead}
+            onDismiss={handleDismiss}
+            onArchive={handleArchive}
+            onClearAll={handleClearAll}
+          />
+        </div>
 
         <SheetContent side="left" className="w-64 p-4 overflow-y-auto">
           <SidebarContent />
