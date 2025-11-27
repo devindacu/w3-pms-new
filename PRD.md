@@ -27,11 +27,11 @@ A comprehensive cloud-based Property Management System integrating Front Office,
 - **Success criteria**: All metrics accurate and real-time, alerts prioritized correctly, navigation seamless
 
 ### Front Office Management
-- **Functionality**: Guest reservations, check-in/check-out, room allocation, folio management, billing, payment processing
-- **Purpose**: Manages complete guest lifecycle from booking to departure
+- **Functionality**: Guest reservations, check-in/check-out, room allocation, folio management, billing, payment processing, comprehensive reservation details viewing with full guest and stay information
+- **Purpose**: Manages complete guest lifecycle from booking to departure with easy access to all reservation information
 - **Trigger**: Guest booking received or walk-in arrival
-- **Progression**: Create reservation → Assign room → Check-in guest → Update folio with charges → Process checkout → Generate invoice → Accept payment
-- **Success criteria**: Booking conflicts prevented, folios accurate, payments reconcile, guest history maintained
+- **Progression**: Create reservation → Assign room → View reservation details (guest info, room info, stay details, pricing breakdown, special requests, guest history) → Check-in guest → Update folio with charges → Process checkout → Generate invoice → Accept payment
+- **Success criteria**: Booking conflicts prevented, folios accurate, payments reconcile, guest history maintained, reservation details accessible with one click showing comprehensive information including guest contact details, room amenities, stay duration, pricing breakdown, payment status, special requests, and loyalty information
 
 ### Housekeeping Operations
 - **Functionality**: Room status tracking (clean/dirty/inspected), housekeeper assignment, workload planning, linen management

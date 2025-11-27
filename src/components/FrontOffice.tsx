@@ -12,7 +12,8 @@ import {
   CalendarX,
   CurrencyDollar,
   Key,
-  Receipt
+  Receipt,
+  Eye
 } from '@phosphor-icons/react'
 import { type Guest, type Reservation, type Room, type Folio, type ExtraService, type ExtraServiceCategory, type FolioExtraService, type SystemUser } from '@/lib/types'
 import { formatDate, formatCurrency, calculateNights } from '@/lib/helpers'
@@ -21,6 +22,7 @@ import { ReservationDialog } from './ReservationDialog'
 import { CheckInDialog } from './CheckInDialog'
 import { CheckOutDialog } from './CheckOutDialog'
 import { FolioDialog } from './FolioDialog'
+import { ReservationDetailsDialog } from './ReservationDetailsDialog'
 
 interface FrontOfficeProps {
   guests: Guest[]
@@ -59,6 +61,7 @@ export function FrontOffice({
   const [checkInDialogOpen, setCheckInDialogOpen] = useState(false)
   const [checkOutDialogOpen, setCheckOutDialogOpen] = useState(false)
   const [folioDialogOpen, setFolioDialogOpen] = useState(false)
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
   const [selectedGuest, setSelectedGuest] = useState<Guest | undefined>()
   const [selectedReservation, setSelectedReservation] = useState<Reservation | undefined>()
   const [selectedFolio, setSelectedFolio] = useState<Folio | undefined>()
@@ -139,6 +142,13 @@ export function FrontOffice({
     setSelectedFolio(folio)
     setSelectedReservation(reservation)
     setFolioDialogOpen(true)
+  }
+
+  const handleViewDetails = (reservation: Reservation) => {
+    const guest = guests.find(g => g.id === reservation.guestId)
+    setSelectedReservation(reservation)
+    setSelectedGuest(guest)
+    setDetailsDialogOpen(true)
   }
 
   return (
@@ -260,6 +270,10 @@ export function FrontOffice({
                         )}
                       </div>
                       <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => handleViewDetails(reservation)}>
+                          <Eye size={16} className="mr-1" />
+                          View Details
+                        </Button>
                         {reservation.status === 'confirmed' && (
                           <Button size="sm" onClick={() => handleCheckIn(reservation)}>
                             <CalendarCheck size={16} className="mr-1" />
@@ -320,10 +334,16 @@ export function FrontOffice({
                           </div>
                         </div>
                       </div>
-                      <Button size="sm" onClick={() => handleCheckIn(reservation)}>
-                        <CalendarCheck size={16} className="mr-1" />
-                        Check In
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => handleViewDetails(reservation)}>
+                          <Eye size={16} className="mr-1" />
+                          View Details
+                        </Button>
+                        <Button size="sm" onClick={() => handleCheckIn(reservation)}>
+                          <CalendarCheck size={16} className="mr-1" />
+                          Check In
+                        </Button>
+                      </div>
                     </div>
                   </Card>
                 )
@@ -364,6 +384,10 @@ export function FrontOffice({
                         </div>
                       </div>
                       <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => handleViewDetails(reservation)}>
+                          <Eye size={16} className="mr-1" />
+                          View Details
+                        </Button>
                         <Button size="sm" variant="outline" onClick={() => handleViewFolio(reservation)}>
                           <Receipt size={16} className="mr-1" />
                           Folio
@@ -488,6 +512,16 @@ export function FrontOffice({
         setFolioExtraServices={setFolioExtraServices}
         currentUser={currentUser}
       />
+
+      {selectedReservation && selectedGuest && (
+        <ReservationDetailsDialog
+          open={detailsDialogOpen}
+          onOpenChange={setDetailsDialogOpen}
+          reservation={selectedReservation}
+          guest={selectedGuest}
+          room={rooms.find(r => r.id === selectedReservation.roomId)}
+        />
+      )}
     </div>
   )
 }
