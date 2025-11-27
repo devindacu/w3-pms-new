@@ -137,9 +137,8 @@ import { generateAllAlerts } from '@/lib/notificationHelpers'
 import { generateEmailFromNotifications, mockSendEmail } from '@/lib/emailHelpers'
 import { CRM } from '@/components/CRM'
 import { ChannelManager } from '@/components/ChannelManager'
-import { RoomManagement } from '@/components/RoomManagement'
+import { RoomRevenueManagement } from '@/components/RoomRevenueManagement'
 import { ExtraServicesManagement } from '@/components/ExtraServicesManagement'
-import { RevenueManagement } from '@/components/RevenueManagement'
 import type {
   GuestProfile,
   GuestComplaint,
@@ -167,7 +166,7 @@ import type {
   OccupancyPricing
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-management' | 'extra-services' | 'revenue-management'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -732,12 +731,12 @@ function App() {
           </Button>
 
           <Button
-            variant={currentModule === 'room-management' ? 'default' : 'ghost'}
+            variant={currentModule === 'room-revenue' ? 'default' : 'ghost'}
             className="w-full justify-start"
-            onClick={() => setCurrentModule('room-management')}
+            onClick={() => setCurrentModule('room-revenue')}
           >
             <Buildings size={18} className="mr-2" />
-            Room Management
+            Room & Revenue
           </Button>
 
           <Button
@@ -882,15 +881,6 @@ function App() {
             <Buildings size={18} className="mr-2" />
             Channel Manager
           </Button>
-
-          <Button
-            variant={currentModule === 'revenue-management' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('revenue-management')}
-          >
-            <CurrencyDollar size={18} className="mr-2" />
-            Revenue Management
-          </Button>
         </nav>
       </aside>
 
@@ -914,10 +904,23 @@ function App() {
               currentUser={currentUser}
             />
           )}
-          {currentModule === 'room-management' && (
-            <RoomManagement
+          {currentModule === 'room-revenue' && (
+            <RoomRevenueManagement
               rooms={rooms || []}
               setRooms={setRooms}
+              roomTypes={roomTypeConfigs || []}
+              setRoomTypes={setRoomTypeConfigs}
+              ratePlans={ratePlanConfigs || []}
+              setRatePlans={setRatePlanConfigs}
+              seasons={seasons || []}
+              setSeasons={setSeasons}
+              eventDays={eventDays || []}
+              setEventDays={setEventDays}
+              corporateAccounts={corporateAccounts || []}
+              setCorporateAccounts={setCorporateAccounts}
+              rateCalendar={rateCalendar || []}
+              setRateCalendar={setRateCalendar}
+              currentUser={currentUser}
             />
           )}
           {currentModule === 'housekeeping' && (
@@ -1106,23 +1109,6 @@ function App() {
               setServices={setExtraServices}
               categories={serviceCategories || []}
               setCategories={setServiceCategories}
-              currentUser={currentUser}
-            />
-          )}
-          {currentModule === 'revenue-management' && (
-            <RevenueManagement
-              roomTypes={roomTypeConfigs || []}
-              setRoomTypes={setRoomTypeConfigs}
-              ratePlans={ratePlanConfigs || []}
-              setRatePlans={setRatePlanConfigs}
-              seasons={seasons || []}
-              setSeasons={setSeasons}
-              eventDays={eventDays || []}
-              setEventDays={setEventDays}
-              corporateAccounts={corporateAccounts || []}
-              setCorporateAccounts={setCorporateAccounts}
-              rateCalendar={rateCalendar || []}
-              setRateCalendar={setRateCalendar}
               currentUser={currentUser}
             />
           )}
