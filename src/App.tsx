@@ -905,25 +905,24 @@ function App() {
         <SheetContent side="left" className="w-64 p-4 overflow-y-auto">
           <SidebarContent />
         </SheetContent>
-      </Sheet>
 
-      <main className="flex-1 overflow-auto lg:ml-64">
-        <div className="lg:hidden sticky top-0 z-30 bg-background border-b px-4 py-3 flex items-center justify-between">
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <List size={24} />
-            </Button>
-          </SheetTrigger>
-          <h1 className="text-lg font-semibold">W3 Hotel PMS</h1>
-          <NotificationPanel
-            notifications={notifications || []}
-            onMarkAsRead={handleMarkAsRead}
-            onMarkAllAsRead={handleMarkAllAsRead}
-            onDismiss={handleDismiss}
-            onArchive={handleArchive}
-            onClearAll={handleClearAll}
-          />
-        </div>
+        <main className="flex-1 overflow-auto lg:ml-64">
+          <div className="lg:hidden sticky top-0 z-30 bg-background border-b px-4 py-3 flex items-center justify-between">
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <List size={24} />
+              </Button>
+            </SheetTrigger>
+            <h1 className="text-lg font-semibold">W3 Hotel PMS</h1>
+            <NotificationPanel
+              notifications={notifications || []}
+              onMarkAsRead={handleMarkAsRead}
+              onMarkAllAsRead={handleMarkAllAsRead}
+              onDismiss={handleDismiss}
+              onArchive={handleArchive}
+              onClearAll={handleClearAll}
+            />
+          </div>
 
         <div className="p-4 md:p-6 lg:p-8">
           {currentModule === 'dashboard' && renderDashboard()}
@@ -1165,6 +1164,7 @@ function App() {
           )}
         </div>
       </main>
+      </Sheet>
 
       <Toaster position="top-right" richColors />
     </div>
