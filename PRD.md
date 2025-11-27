@@ -104,11 +104,11 @@ A comprehensive cloud-based Property Management System integrating Front Office,
 - **Success criteria**: Coverage adequate, attendance accurate, leave approved timely, performance reviews completed, shift conflicts prevented
 
 ### Analytics & Reporting
-- **Functionality**: Operational dashboards (occupancy, revenue, food cost, inventory aging), financial reports (P&L, COGS, expense analysis)
-- **Purpose**: Enables data-driven decisions and performance monitoring
-- **Trigger**: User navigates to reports or scheduled report generation
-- **Progression**: Select report type → Choose date range → Apply filters → Generate report → Export/print → Schedule recurring
-- **Success criteria**: Data accurate, reports timely, insights actionable, export formats flexible
+- **Functionality**: Comprehensive reporting across all hotel operations including operational reports (order summary, supplier price comparison, department consumption, GRN variance, expiry forecast), financial reports (cost per department, food cost percentage, purchase cost trends, budget utilization), and kitchen & menu reports (ingredient usage, dish profitability, menu performance analysis) with export capabilities and period selection
+- **Purpose**: Enables data-driven decisions through detailed analysis of purchasing patterns, cost control, supplier performance, inventory efficiency, and profitability metrics
+- **Trigger**: User navigates to Analytics module or scheduled report generation
+- **Progression**: Select report category (Operational/Financial/Kitchen) → Choose period (Daily/Weekly/Monthly/Custom) → View detailed tables and metrics → Apply advanced filters → Export report (CSV/PDF/Excel) → Print report → Analyze insights
+- **Success criteria**: All reports display accurate data from integrated systems, period filtering works correctly, export functions generate proper files, supplier comparisons identify best prices, variance reports highlight discrepancies, profitability analysis shows margin calculations, budget utilization tracks spending vs allocation
 
 ### Revenue Management & Rate Planning
 - **Functionality**: Room type configuration with bedding/view/amenities, hierarchical rate plans (parent/child with derived formulas), daily rate calendar with drag-drop editing, bulk rate updates, stay restrictions (min/max stay, CTA/CTD, stop-sell), seasonal pricing, event-based pricing, corporate negotiated rates, occupancy-based pricing (extra adult/child charges), meal plan rates (RO/BB/HB/FB/AI), promotional rates with blackout dates, rate override management, comprehensive audit logging

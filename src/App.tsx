@@ -139,6 +139,7 @@ import { CRM } from '@/components/CRM'
 import { ChannelManager } from '@/components/ChannelManager'
 import { RoomRevenueManagement } from '@/components/RoomRevenueManagement'
 import { ExtraServicesManagement } from '@/components/ExtraServicesManagement'
+import { Analytics } from '@/components/Analytics'
 import type {
   GuestProfile,
   GuestComplaint,
@@ -1045,7 +1046,18 @@ function App() {
               setContractors={setContractors}
             />
           )}
-          {currentModule === 'analytics' && renderComingSoon('Analytics & Reports', <ChartBar size={64} />)}
+          {currentModule === 'analytics' && (
+            <Analytics
+              orders={orders || []}
+              foodItems={foodItems || []}
+              suppliers={suppliers || []}
+              grns={grns || []}
+              recipes={recipes || []}
+              menus={menus || []}
+              consumptionLogs={consumptionLogs || []}
+              purchaseOrders={purchaseOrders || []}
+            />
+          )}
           {currentModule === 'forecasting' && (
             <ForecastingAnalytics
               foodItems={foodItems || []}
