@@ -30,7 +30,7 @@ export function ReservationDialog({
 }: ReservationDialogProps) {
   const [formData, setFormData] = useState({
     guestId: '',
-    roomId: '',
+    roomId: 'no-room',
     checkInDate: '',
     checkOutDate: '',
     adults: 1,
@@ -47,7 +47,7 @@ export function ReservationDialog({
       const checkOut = new Date(reservation.checkOutDate)
       setFormData({
         guestId: reservation.guestId,
-        roomId: reservation.roomId || '',
+        roomId: reservation.roomId || 'no-room',
         checkInDate: checkIn.toISOString().split('T')[0],
         checkOutDate: checkOut.toISOString().split('T')[0],
         adults: reservation.adults,
@@ -60,7 +60,7 @@ export function ReservationDialog({
     } else {
       setFormData({
         guestId: '',
-        roomId: '',
+        roomId: 'no-room',
         checkInDate: '',
         checkOutDate: '',
         adults: 1,
@@ -78,12 +78,20 @@ export function ReservationDialog({
   )
 
   const handleRoomChange = (roomId: string) => {
-    const room = rooms.find(r => r.id === roomId)
-    setFormData({ 
-      ...formData, 
-      roomId,
-      ratePerNight: room?.baseRate || 0
-    })
+    if (roomId === 'no-room') {
+      setFormData({ 
+        ...formData, 
+        roomId: 'no-room',
+        ratePerNight: 0
+      })
+    } else {
+      const room = rooms.find(r => r.id === roomId)
+      setFormData({ 
+        ...formData, 
+        roomId,
+        ratePerNight: room?.baseRate || 0
+      })
+    }
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -111,7 +119,7 @@ export function ReservationDialog({
           ? {
               ...r,
               guestId: formData.guestId,
-              roomId: formData.roomId || undefined,
+              roomId: formData.roomId === 'no-room' ? undefined : formData.roomId,
               checkInDate: checkIn,
               checkOutDate: checkOut,
               adults: formData.adults,
@@ -130,7 +138,7 @@ export function ReservationDialog({
       const newReservation: Reservation = {
         id: generateId(),
         guestId: formData.guestId,
-        roomId: formData.roomId || undefined,
+        roomId: formData.roomId === 'no-room' ? undefined : formData.roomId,
         checkInDate: checkIn,
         checkOutDate: checkOut,
         adults: formData.adults,
@@ -188,6 +196,7 @@ export function ReservationDialog({
                   <SelectValue placeholder="Select room (optional)" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="no-room">No Room Assigned</SelectItem>
                   {availableRooms.map(room => (
                     <SelectItem key={room.id} value={room.id}>
                       {room.roomNumber} - {room.roomType} (${room.baseRate}/night)

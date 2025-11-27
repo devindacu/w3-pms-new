@@ -29,7 +29,7 @@ export function HousekeepingTaskDialog({
 }: HousekeepingTaskDialogProps) {
   const [formData, setFormData] = useState({
     roomId: '',
-    assignedTo: '',
+    assignedTo: 'unassigned',
     taskType: 'clean' as 'clean' | 'deep-clean' | 'turndown' | 'inspection',
     status: 'pending' as 'pending' | 'in-progress' | 'completed' | 'inspected',
     priority: 'normal' as 'normal' | 'high' | 'urgent',
@@ -42,7 +42,7 @@ export function HousekeepingTaskDialog({
     if (task) {
       setFormData({
         roomId: task.roomId,
-        assignedTo: task.assignedTo || '',
+        assignedTo: task.assignedTo || 'unassigned',
         taskType: task.taskType,
         status: task.status,
         priority: task.priority,
@@ -51,7 +51,7 @@ export function HousekeepingTaskDialog({
     } else {
       setFormData({
         roomId: '',
-        assignedTo: '',
+        assignedTo: 'unassigned',
         taskType: 'clean',
         status: 'pending',
         priority: 'normal',
@@ -74,7 +74,7 @@ export function HousekeepingTaskDialog({
           ? {
               ...t,
               roomId: formData.roomId,
-              assignedTo: formData.assignedTo || undefined,
+              assignedTo: formData.assignedTo === 'unassigned' ? undefined : formData.assignedTo,
               taskType: formData.taskType,
               status: formData.status,
               priority: formData.priority,
@@ -89,7 +89,7 @@ export function HousekeepingTaskDialog({
       const newTask: HousekeepingTask = {
         id: generateId(),
         roomId: formData.roomId,
-        assignedTo: formData.assignedTo || undefined,
+        assignedTo: formData.assignedTo === 'unassigned' ? undefined : formData.assignedTo,
         taskType: formData.taskType,
         status: formData.status,
         priority: formData.priority,
@@ -149,6 +149,7 @@ export function HousekeepingTaskDialog({
                   <SelectValue placeholder="Select housekeeper (optional)" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
                   {housekeepers.map(emp => (
                     <SelectItem key={emp.id} value={emp.id}>
                       {emp.firstName} {emp.lastName}
