@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import {
   Gauge,
   Bed,
@@ -30,7 +31,8 @@ import {
   Receipt,
   ChefHat,
   Sparkle,
-  Bell
+  Bell,
+  List
 } from '@phosphor-icons/react'
 import { 
   type Room, 
@@ -411,14 +413,14 @@ function App() {
   const hasData = (rooms || []).length > 0
 
   const renderDashboard = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-semibold">Hotel Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Unified view of all hotel operations</p>
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold">Hotel Dashboard</h1>
+          <p className="text-muted-foreground mt-1 text-sm md:text-base">Unified view of all hotel operations</p>
         </div>
         {!hasData && (
-          <Button onClick={loadSampleData} size="lg">
+          <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto">
             <Database size={20} className="mr-2" />
             Load Sample Data
           </Button>
@@ -426,14 +428,14 @@ function App() {
       </div>
 
       {!hasData ? (
-        <Card className="p-16 text-center">
+        <Card className="p-8 md:p-12 lg:p-16 text-center">
           <div className="max-w-md mx-auto">
-            <Gauge size={64} className="mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-2xl font-semibold mb-2">Welcome to W3 Hotel PMS</h3>
-            <p className="text-muted-foreground mb-6">
+            <Gauge size={48} className="mx-auto text-muted-foreground mb-4 md:w-16 md:h-16" />
+            <h3 className="text-xl md:text-2xl font-semibold mb-2">Welcome to W3 Hotel PMS</h3>
+            <p className="text-muted-foreground mb-6 text-sm md:text-base">
               Your comprehensive hotel management solution integrating all operations in one platform
             </p>
-            <Button onClick={loadSampleData} size="lg">
+            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto">
               <Database size={20} className="mr-2" />
               Load Sample Data to Get Started
             </Button>
@@ -572,39 +574,39 @@ function App() {
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            <Card className="p-4 md:p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">F&B Performance</h3>
-                <ForkKnife size={20} className="text-muted-foreground" />
+                <h3 className="text-base md:text-lg font-semibold">F&B Performance</h3>
+                <ForkKnife size={18} className="text-muted-foreground md:w-5 md:h-5" />
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Orders Today</span>
-                  <span className="text-lg font-semibold">{metrics.fnb.ordersToday}</span>
+                  <span className="text-base md:text-lg font-semibold">{metrics.fnb.ordersToday}</span>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">F&B Revenue</span>
-                  <span className="text-lg font-semibold">{formatCurrency(metrics.fnb.revenueToday)}</span>
+                  <span className="text-base md:text-lg font-semibold truncate ml-2">{formatCurrency(metrics.fnb.revenueToday)}</span>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Avg Order Value</span>
-                  <span className="text-lg font-semibold">{formatCurrency(metrics.fnb.averageOrderValue)}</span>
+                  <span className="text-base md:text-lg font-semibold truncate ml-2">{formatCurrency(metrics.fnb.averageOrderValue)}</span>
                 </div>
               </div>
             </Card>
 
-            <Card className="p-6">
+            <Card className="p-4 md:p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Maintenance Status</h3>
-                <Wrench size={20} className="text-muted-foreground" />
+                <h3 className="text-base md:text-lg font-semibold">Maintenance Status</h3>
+                <Wrench size={18} className="text-muted-foreground md:w-5 md:h-5" />
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Open Requests</span>
-                  <span className="text-lg font-semibold">{metrics.maintenance.openRequests}</span>
+                  <span className="text-base md:text-lg font-semibold">{metrics.maintenance.openRequests}</span>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
@@ -614,56 +616,56 @@ function App() {
                 <Separator />
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Rooms Out of Service</span>
-                  <span className="text-lg font-semibold">{metrics.occupancy.maintenance}</span>
+                  <span className="text-base md:text-lg font-semibold">{metrics.occupancy.maintenance}</span>
                 </div>
               </div>
             </Card>
           </div>
 
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Room Status Overview</h3>
-              <Button size="sm" onClick={() => setCurrentModule('housekeeping')}>
+          <Card className="p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+              <h3 className="text-base md:text-lg font-semibold">Room Status Overview</h3>
+              <Button size="sm" onClick={() => setCurrentModule('housekeeping')} className="w-full sm:w-auto">
                 View All Rooms
               </Button>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-3">
               {(rooms || []).slice(0, 12).map((room) => (
                 <div
                   key={room.id}
-                  className={`p-3 rounded-lg border-2 text-center ${getRoomStatusColor(room.status)}`}
+                  className={`p-2 md:p-3 rounded-lg border-2 text-center ${getRoomStatusColor(room.status)}`}
                 >
-                  <div className="font-semibold text-lg">{room.roomNumber}</div>
-                  <div className="text-xs mt-1 capitalize">{room.roomType}</div>
-                  <div className="text-xs mt-1 opacity-80">{room.status.replace('-', ' ')}</div>
+                  <div className="font-semibold text-base md:text-lg">{room.roomNumber}</div>
+                  <div className="text-xs mt-1 capitalize line-clamp-1">{room.roomType}</div>
+                  <div className="text-xs mt-1 opacity-80 line-clamp-1">{room.status.replace('-', ' ')}</div>
                 </div>
               ))}
             </div>
           </Card>
 
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Low Stock Items</h3>
-              <Button size="sm" onClick={() => setCurrentModule('inventory')}>
+          <Card className="p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+              <h3 className="text-base md:text-lg font-semibold">Low Stock Items</h3>
+              <Button size="sm" onClick={() => setCurrentModule('inventory')} className="w-full sm:w-auto">
                 View Inventory
               </Button>
             </div>
             {metrics.inventory.lowStockItems === 0 ? (
-              <p className="text-center text-muted-foreground py-8">All inventory levels are healthy</p>
+              <p className="text-center text-muted-foreground py-6 md:py-8 text-sm md:text-base">All inventory levels are healthy</p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2 md:space-y-3">
                 {(inventory || [])
                   .filter(item => item.currentStock <= item.reorderLevel && item.currentStock > 0)
                   .slice(0, 5)
                   .map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                      <div>
-                        <p className="font-medium">{item.name}</p>
-                        <p className="text-sm text-muted-foreground">{item.category}</p>
+                    <div key={item.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-muted/50 rounded-lg">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">{item.name}</p>
+                        <p className="text-sm text-muted-foreground truncate">{item.category}</p>
                       </div>
-                      <div className="text-right">
+                      <div className="text-left sm:text-right shrink-0">
                         <p className="font-semibold text-destructive">{item.currentStock} {item.unit}</p>
-                        <p className="text-xs text-muted-foreground">Reorder at {item.reorderLevel}</p>
+                        <p className="text-xs text-muted-foreground whitespace-nowrap">Reorder at {item.reorderLevel}</p>
                       </div>
                     </div>
                   ))}
@@ -696,14 +698,16 @@ function App() {
     </div>
   )
 
-  return (
-    <div className="flex min-h-screen bg-background">
-      <aside className="w-64 border-r bg-card p-4 space-y-2">
-        <div className="px-3 py-4 mb-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-semibold">W3 Hotel PMS</h2>
-            <p className="text-xs text-muted-foreground mt-1">Unified Management</p>
-          </div>
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  const SidebarContent = () => (
+    <>
+      <div className="px-3 py-4 mb-4 flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-semibold">W3 Hotel PMS</h2>
+          <p className="text-xs text-muted-foreground mt-1">Unified Management</p>
+        </div>
+        <div className="lg:block hidden">
           <NotificationPanel
             notifications={notifications || []}
             onMarkAsRead={handleMarkAsRead}
@@ -713,9 +717,10 @@ function App() {
             onClearAll={handleClearAll}
           />
         </div>
+      </div>
 
-        <nav className="space-y-1">
-          <Button
+      <nav className="space-y-1" onClick={() => setSidebarOpen(false)}>
+        <Button
             variant={currentModule === 'dashboard' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('dashboard')}
@@ -887,10 +892,40 @@ function App() {
             Channel Manager
           </Button>
         </nav>
-      </aside>
+      </>
+  )
 
-      <main className="flex-1 overflow-auto">
-        <div className="p-8">
+  return (
+    <div className="flex min-h-screen bg-background">
+      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+        <aside className="hidden lg:block w-64 border-r bg-card p-4 space-y-2 overflow-y-auto fixed left-0 top-0 bottom-0 z-40">
+          <SidebarContent />
+        </aside>
+
+        <SheetContent side="left" className="w-64 p-4 overflow-y-auto">
+          <SidebarContent />
+        </SheetContent>
+      </Sheet>
+
+      <main className="flex-1 overflow-auto lg:ml-64">
+        <div className="lg:hidden sticky top-0 z-30 bg-background border-b px-4 py-3 flex items-center justify-between">
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <List size={24} />
+            </Button>
+          </SheetTrigger>
+          <h1 className="text-lg font-semibold">W3 Hotel PMS</h1>
+          <NotificationPanel
+            notifications={notifications || []}
+            onMarkAsRead={handleMarkAsRead}
+            onMarkAllAsRead={handleMarkAllAsRead}
+            onDismiss={handleDismiss}
+            onArchive={handleArchive}
+            onClearAll={handleClearAll}
+          />
+        </div>
+
+        <div className="p-4 md:p-6 lg:p-8">
           {currentModule === 'dashboard' && renderDashboard()}
           {currentModule === 'front-office' && (
             <FrontOffice

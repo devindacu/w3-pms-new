@@ -220,6 +220,6 @@ Animations should feel responsive and purposeful, providing immediate feedback f
   - Module cards: p-6, Dashboard grid: gap-6, Form sections: space-y-4, Page margins: p-6 md:p-8, Dense tables: gap-2
   
 - **Mobile**: 
-  - Desktop: Multi-column dashboard with persistent sidebar, split views for transactions
-  - Tablet: Responsive grid collapse, drawer sidebar, modal forms
-  - Mobile: Single column, bottom navigation for key modules, full-screen sheets for forms, simplified tables as list cards
+  - Desktop (≥1024px): Multi-column dashboard with persistent fixed sidebar (64 units wide), 4-column stat grids, 6-column room grids, split views for transactions
+  - Tablet (768-1023px): Responsive 2-column grids, drawer sidebar accessible via hamburger menu, modal forms, 4-column room grids
+  - Mobile (<768px): Single column layout, sticky top header with menu button, notification panel, and branding, full-width cards with responsive padding (p-4 vs p-6), 2-column room grids, flexible stacked layouts for complex cards, truncated text with line-clamp, responsive font sizes (text-2xl md:text-3xl lg:text-4xl), full-width buttons on mobile that adapt to auto-width on larger screens
