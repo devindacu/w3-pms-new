@@ -2783,3 +2783,485 @@ export interface BulkUpdateOperation {
   cancelledBy?: string
   cancelledAt?: number
 }
+
+export type GuestInvoiceType = 'guest-folio' | 'room-only' | 'fnb-only' | 'extras-only' | 'group-master' | 'proforma' | 'credit-note' | 'debit-note'
+export type GuestInvoiceStatus = 'draft' | 'interim' | 'final' | 'posted' | 'cancelled' | 'refunded' | 'partially-refunded'
+export type TaxType = 'vat' | 'gst' | 'service-charge' | 'sales-tax' | 'tourism-tax' | 'municipal-tax'
+export type PaymentType = 'cash' | 'card' | 'bank-transfer' | 'mobile-payment' | 'corporate-billing' | 'voucher' | 'loyalty-points' | 'advance-deposit'
+export type InvoiceDeliveryStatus = 'pending' | 'printed' | 'emailed' | 'downloaded' | 'failed'
+export type DiscountType = 'percentage' | 'fixed-amount'
+export type DiscountScope = 'line-item' | 'invoice-level' | 'category' | 'tax-exemption'
+
+export interface TaxConfiguration {
+  id: string
+  name: string
+  type: TaxType
+  rate: number
+  isInclusive: boolean
+  isActive: boolean
+  isCompoundTax: boolean
+  appliesTo: Department[]
+  exemptCategories?: string[]
+  calculationOrder: number
+  taxableOnServiceCharge: boolean
+  startDate?: number
+  endDate?: number
+  registrationNumber?: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface ServiceChargeConfiguration {
+  id: string
+  rate: number
+  isActive: boolean
+  appliesTo: Department[]
+  exemptCategories?: string[]
+  isTaxable: boolean
+  distributionRules?: {
+    staffPercentage: number
+    housePercentage: number
+  }
+  startDate?: number
+  endDate?: number
+  createdAt: number
+  updatedAt: number
+}
+
+export interface GuestInvoice {
+  id: string
+  invoiceNumber: string
+  invoiceType: GuestInvoiceType
+  status: GuestInvoiceStatus
+  folioIds: string[]
+  reservationIds: string[]
+  guestId: string
+  guestName: string
+  guestAddress?: string
+  guestEmail?: string
+  guestPhone?: string
+  companyName?: string
+  companyGSTNumber?: string
+  companyAddress?: string
+  roomNumber?: string
+  checkInDate?: number
+  checkOutDate?: number
+  invoiceDate: number
+  dueDate?: number
+  currency: string
+  exchangeRate: number
+  lineItems: InvoiceLineItem[]
+  splitBillingMap?: SplitBillingMapping[]
+  subtotal: number
+  discounts: InvoiceDiscount[]
+  totalDiscount: number
+  serviceChargeRate: number
+  serviceChargeAmount: number
+  taxLines: InvoiceTaxLine[]
+  totalTax: number
+  grandTotal: number
+  payments: InvoicePaymentRecord[]
+  totalPaid: number
+  amountDue: number
+  creditNotes: CreditNoteReference[]
+  debitNotes: DebitNoteReference[]
+  prepayments: PrepaymentApplication[]
+  netAmountDue: number
+  isPostedToAccounts: boolean
+  postedToAccountsBy?: string
+  postedToAccountsAt?: number
+  accountingReference?: string
+  glEntries?: GLEntry[]
+  deliveryMethods: InvoiceDeliveryMethod[]
+  pdfUrl?: string
+  emailDeliveryStatus?: InvoiceDeliveryStatus
+  emailDeliveredAt?: number
+  printedBy?: string
+  printedAt?: number
+  downloadedBy?: string
+  downloadedAt?: number
+  auditTrail: InvoiceAuditEntry[]
+  isGroupMaster: boolean
+  groupMemberInvoices?: string[]
+  parentGroupInvoiceId?: string
+  splitFromInvoiceId?: string
+  isTaxExempt: boolean
+  taxExemptionReason?: string
+  taxExemptionCertificate?: string
+  specialInstructions?: string
+  internalNotes?: string
+  termsAndConditions?: string
+  paymentInstructions?: string
+  bankDetails?: BankingDetails
+  qrCodeData?: string
+  legalDisclaimer?: string
+  cancellationReason?: string
+  cancelledBy?: string
+  cancelledAt?: number
+  refundAmount?: number
+  refundMethod?: PaymentType
+  refundedAt?: number
+  refundedBy?: string
+  refundReference?: string
+  createdBy: string
+  createdAt: number
+  updatedAt: number
+  finalizedBy?: string
+  finalizedAt?: number
+}
+
+export interface InvoiceLineItem {
+  id: string
+  folioChargeId?: string
+  folioExtraServiceId?: string
+  orderItemId?: string
+  date: number
+  itemType: 'room-charge' | 'fnb-restaurant' | 'fnb-minibar' | 'fnb-banquet' | 'fnb-room-service' | 'spa' | 'transport' | 'laundry' | 'telephone' | 'parking' | 'late-checkout' | 'early-checkin' | 'extra-service' | 'misc'
+  department: Department
+  description: string
+  quantity: number
+  unit: string
+  unitPrice: number
+  lineTotal: number
+  discountType?: DiscountType
+  discountValue?: number
+  discountAmount?: number
+  netAmount: number
+  taxable: boolean
+  serviceChargeApplicable: boolean
+  serviceChargeAmount: number
+  taxLines: LineTaxDetail[]
+  totalTax: number
+  lineGrandTotal: number
+  postedBy?: string
+  postedAt: number
+  isSplit: boolean
+  splitToInvoiceId?: string
+  isVoided: boolean
+  voidedBy?: string
+  voidedAt?: number
+  voidReason?: string
+  reference?: string
+  notes?: string
+}
+
+export interface LineTaxDetail {
+  taxType: TaxType
+  taxName: string
+  taxRate: number
+  taxableAmount: number
+  taxAmount: number
+  isInclusive: boolean
+}
+
+export interface InvoiceDiscount {
+  id: string
+  type: DiscountType
+  scope: DiscountScope
+  description: string
+  value: number
+  amount: number
+  appliedToLineIds?: string[]
+  appliedBy: string
+  appliedAt: number
+  approvalRequired: boolean
+  approvedBy?: string
+  approvedAt?: number
+  reason?: string
+  voucherCode?: string
+  corporateContractId?: string
+}
+
+export interface InvoiceTaxLine {
+  taxType: TaxType
+  taxName: string
+  taxRate: number
+  taxableAmount: number
+  taxAmount: number
+  isInclusive: boolean
+  breakdown?: {
+    lineItemId: string
+    description: string
+    taxableAmount: number
+    taxAmount: number
+  }[]
+}
+
+export interface InvoicePaymentRecord {
+  id: string
+  paymentDate: number
+  paymentType: PaymentType
+  amount: number
+  currency: string
+  exchangeRate: number
+  amountInBaseCurrency: number
+  reference?: string
+  authorizationCode?: string
+  cardType?: string
+  cardLast4?: string
+  bankName?: string
+  chequeNumber?: string
+  voucherCode?: string
+  loyaltyPointsUsed?: number
+  receivedBy: string
+  receivedAt: number
+  isRefunded: boolean
+  refundedAmount?: number
+  refundedAt?: number
+  refundReference?: string
+  notes?: string
+}
+
+export interface CreditNoteReference {
+  creditNoteId: string
+  creditNoteNumber: string
+  amount: number
+  reason: string
+  issuedAt: number
+  issuedBy: string
+}
+
+export interface DebitNoteReference {
+  debitNoteId: string
+  debitNoteNumber: string
+  amount: number
+  reason: string
+  issuedAt: number
+  issuedBy: string
+}
+
+export interface PrepaymentApplication {
+  prepaymentId: string
+  reservationId: string
+  amount: number
+  appliedBy: string
+  appliedAt: number
+}
+
+export interface GLEntry {
+  accountCode: string
+  accountName: string
+  debit: number
+  credit: number
+  description: string
+  postingDate: number
+  reference: string
+}
+
+export interface InvoiceDeliveryMethod {
+  method: 'print' | 'email' | 'download' | 'sms' | 'whatsapp' | 'portal'
+  status: InvoiceDeliveryStatus
+  recipient?: string
+  attemptedAt: number
+  deliveredAt?: number
+  failureReason?: string
+  retryCount: number
+  deliveredBy?: string
+}
+
+export interface BankingDetails {
+  bankName: string
+  accountName: string
+  accountNumber: string
+  swiftCode?: string
+  ibanNumber?: string
+  branchName?: string
+  branchCode?: string
+  paymentInstructions?: string
+}
+
+export interface InvoiceAuditEntry {
+  id: string
+  action: 'created' | 'updated' | 'finalized' | 'payment-received' | 'voided' | 'split' | 'merged' | 'discount-applied' | 'tax-adjusted' | 'posted-to-accounts' | 'printed' | 'emailed' | 'cancelled' | 'refunded'
+  description: string
+  performedBy: string
+  performedAt: number
+  ipAddress?: string
+  beforeSnapshot?: any
+  afterSnapshot?: any
+  changes?: {
+    field: string
+    oldValue: any
+    newValue: any
+  }[]
+}
+
+export interface SplitBillingMapping {
+  originalLineItemId: string
+  splitToInvoiceId: string
+  splitAmount: number
+  splitPercentage: number
+  splitReason: string
+}
+
+export interface InvoiceTemplate {
+  id: string
+  name: string
+  type: GuestInvoiceType
+  isDefault: boolean
+  headerLayout: {
+    hotelLogo?: string
+    hotelName: string
+    hotelAddress: string
+    hotelPhone: string
+    hotelEmail: string
+    hotelWebsite?: string
+    taxRegistrationNumber?: string
+    businessRegistrationNumber?: string
+  }
+  showColumns: {
+    date: boolean
+    itemCode: boolean
+    quantity: boolean
+    unit: boolean
+    unitPrice: boolean
+    discount: boolean
+    serviceCharge: boolean
+    tax: boolean
+    lineTotal: boolean
+  }
+  footerText?: string
+  legalDisclaimer?: string
+  paymentInstructions?: string
+  showBankDetails: boolean
+  showQRCode: boolean
+  showSignature: boolean
+  colorScheme?: {
+    primary: string
+    secondary: string
+    accent: string
+  }
+  createdAt: number
+  updatedAt: number
+}
+
+export interface NightAuditLog {
+  id: string
+  auditDate: number
+  auditPeriodStart: number
+  auditPeriodEnd: number
+  status: 'in-progress' | 'completed' | 'failed'
+  startedBy: string
+  startedAt: number
+  completedAt?: number
+  operations: NightAuditOperation[]
+  roomChargesPosted: number
+  fnbChargesPosted: number
+  extraChargesPosted: number
+  foliosClosed: number
+  invoicesGenerated: number
+  paymentsReconciled: number
+  totalRevenue: number
+  errors: AuditError[]
+  warnings: AuditWarning[]
+  summary: {
+    roomRevenue: number
+    fnbRevenue: number
+    extraRevenue: number
+    totalTax: number
+    totalServiceCharge: number
+    cashPayments: number
+    cardPayments: number
+    otherPayments: number
+    outstandingBalance: number
+  }
+  nextAuditDate: number
+  notes?: string
+}
+
+export interface NightAuditOperation {
+  id: string
+  operationType: 'post-room-charges' | 'post-fnb-charges' | 'post-extra-charges' | 'close-folios' | 'generate-invoices' | 'reconcile-payments' | 'update-inventory' | 'rotate-invoice-numbers' | 'generate-reports'
+  status: 'pending' | 'completed' | 'failed' | 'skipped'
+  recordsProcessed: number
+  startTime: number
+  endTime?: number
+  duration?: number
+  errors?: string[]
+  details?: any
+}
+
+export interface AuditError {
+  id: string
+  errorType: string
+  message: string
+  resourceType?: string
+  resourceId?: string
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  requiresAction: boolean
+  resolvedBy?: string
+  resolvedAt?: number
+  resolution?: string
+}
+
+export interface AuditWarning {
+  id: string
+  warningType: string
+  message: string
+  resourceType?: string
+  resourceId?: string
+  acknowledgedBy?: string
+  acknowledgedAt?: number
+}
+
+export interface InvoiceNumberSequence {
+  id: string
+  invoiceType: GuestInvoiceType
+  prefix: string
+  currentNumber: number
+  paddingLength: number
+  suffix?: string
+  resetPeriod: 'never' | 'daily' | 'monthly' | 'yearly' | 'financial-year'
+  lastResetDate?: number
+  nextResetDate?: number
+  isActive: boolean
+  createdAt: number
+  updatedAt: number
+}
+
+export interface ConsolidatedInvoiceRequest {
+  folioIds: string[]
+  invoiceType: GuestInvoiceType
+  consolidationType: 'single-guest' | 'group-master' | 'split-billing'
+  splitRules?: {
+    type: 'by-line-item' | 'by-percentage' | 'by-amount' | 'by-department'
+    allocations: {
+      guestName: string
+      folioId?: string
+      percentage?: number
+      amount?: number
+      departments?: Department[]
+      lineItemIds?: string[]
+    }[]
+  }
+  discounts?: InvoiceDiscount[]
+  applyPrepayments: boolean
+  generateSeparateInvoices: boolean
+  notes?: string
+}
+
+export interface InvoiceValidationError {
+  field: string
+  message: string
+  severity: 'error' | 'warning'
+}
+
+export interface InvoiceValidationWarning {
+  field: string
+  message: string
+  suggestion?: string
+}
+
+export interface InvoiceValidationResult {
+  isValid: boolean
+  errors: InvoiceValidationError[]
+  warnings: InvoiceValidationWarning[]
+  lineItemValidations: {
+    lineItemId: string
+    isValid: boolean
+    errors: string[]
+  }[]
+  taxCalculationVerified: boolean
+  totalCalculationVerified: boolean
+  paymentBalanceVerified: boolean
+}
