@@ -255,14 +255,14 @@ export function RatePlanConfigDialog({
             <div className="space-y-2">
               <Label htmlFor="mealPlan">Meal Plan</Label>
               <Select
-                value={formData.mealPlan || ''}
-                onValueChange={(value) => setFormData({ ...formData, mealPlan: value ? value as MealPlanType : undefined })}
+                value={formData.mealPlan || 'none'}
+                onValueChange={(value) => setFormData({ ...formData, mealPlan: value === 'none' ? undefined : value as MealPlanType })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select meal plan" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {mealPlanTypes.map(type => (
                     <SelectItem key={type} value={type} className="uppercase">
                       {type}
@@ -406,14 +406,14 @@ export function RatePlanConfigDialog({
               <div className="space-y-2">
                 <Label htmlFor="roomTypeId">Room Type (Optional)</Label>
                 <Select
-                  value={formData.roomTypeId || ''}
-                  onValueChange={(value) => setFormData({ ...formData, roomTypeId: value || undefined })}
+                  value={formData.roomTypeId || 'all-room-types'}
+                  onValueChange={(value) => setFormData({ ...formData, roomTypeId: value === 'all-room-types' ? undefined : value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select room type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Room Types</SelectItem>
+                    <SelectItem value="all-room-types">All Room Types</SelectItem>
                     {roomTypes.map(rt => (
                       <SelectItem key={rt.id} value={rt.id}>
                         {rt.name}
