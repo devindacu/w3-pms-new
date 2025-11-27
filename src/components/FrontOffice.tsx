@@ -60,6 +60,7 @@ import { CheckOutDialog } from './CheckOutDialog'
 import { FolioDialog } from './FolioDialog'
 import { ReservationDetailsDialog } from './ReservationDetailsDialog'
 import { InvoiceViewerA4 } from './InvoiceViewerA4'
+import { InvoiceManagementDialog } from './InvoiceManagementDialog'
 import { toast } from 'sonner'
 
 interface FrontOfficeProps {
@@ -105,6 +106,7 @@ export function FrontOffice({
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
   const [invoiceViewerOpen, setInvoiceViewerOpen] = useState(false)
   const [createInvoiceDialogOpen, setCreateInvoiceDialogOpen] = useState(false)
+  const [invoiceManagementDialogOpen, setInvoiceManagementDialogOpen] = useState(false)
   const [selectedGuest, setSelectedGuest] = useState<Guest | undefined>()
   const [selectedReservation, setSelectedReservation] = useState<Reservation | undefined>()
   const [selectedFolio, setSelectedFolio] = useState<Folio | undefined>()
@@ -112,6 +114,7 @@ export function FrontOffice({
   const [selectedFolioId, setSelectedFolioId] = useState<string>('')
   const [statusFilter, setStatusFilter] = useState<GuestInvoiceStatus | 'all'>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [editingInvoice, setEditingInvoice] = useState<GuestInvoice | undefined>()
 
   const today = Date.now()
   const arrivalsToday = reservations.filter(r => {
@@ -743,10 +746,19 @@ export function FrontOffice({
                         {pendingFolios.length} folio{pendingFolios.length !== 1 ? 's' : ''} awaiting invoice generation
                       </p>
                     </div>
-                    <Button size="sm" onClick={() => setCreateInvoiceDialogOpen(true)}>
-                      <Receipt size={18} className="mr-2" />
-                      Create Invoice
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => setCreateInvoiceDialogOpen(true)}>
+                        <Receipt size={18} className="mr-2" />
+                        Quick Invoice
+                      </Button>
+                      <Button size="sm" onClick={() => {
+                        setEditingInvoice(undefined)
+                        setInvoiceManagementDialogOpen(true)
+                      }}>
+                        <Plus size={18} className="mr-2" />
+                        New Invoice
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               )}
@@ -861,6 +873,20 @@ export function FrontOffice({
                       </div>
 
                       <div className="flex items-center gap-2 ml-4">
+                        {(invoice.status === 'draft' || invoice.status === 'interim') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setEditingInvoice(invoice)
+                              setInvoiceManagementDialogOpen(true)
+                            }}
+                            title="Edit Invoice"
+                          >
+                            <FileText size={18} />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
@@ -1099,6 +1125,33 @@ export function FrontOffice({
           </DialogContent>
         </Dialog>
       )}
+
+      <InvoiceManagementDialog
+        open={invoiceManagementDialogOpen}
+        onOpenChange={setInvoiceManagementDialogOpen}
+        invoice={editingInvoice}
+        folios={folios}
+        guests={guests}
+        reservations={reservations}
+        rooms={rooms}
+        folioExtraServices={folioExtraServices || []}
+        taxConfig={taxConfig}
+        serviceChargeConfig={serviceChargeConfig}
+        onSave={(invoice) => {
+          if (editingInvoice) {
+            setGuestInvoices(current => 
+              (current || []).map(inv => inv.id === invoice.id ? invoice : inv)
+            )
+            toast.success('Invoice updated successfully')
+          } else {
+            setGuestInvoices(current => [...(current || []), invoice])
+            toast.success('Invoice created successfully')
+          }
+          setInvoiceManagementDialogOpen(false)
+          setEditingInvoice(undefined)
+        }}
+        currentUser={currentUser}
+      />
     </div>
   )
 }
