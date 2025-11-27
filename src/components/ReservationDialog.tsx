@@ -199,7 +199,7 @@ export function ReservationDialog({
                   <SelectItem value="no-room">No Room Assigned</SelectItem>
                   {availableRooms.map(room => (
                     <SelectItem key={room.id} value={room.id}>
-                      {room.roomNumber} - {room.roomType} (${room.baseRate}/night)
+                      {room.roomNumber} - {room.roomType} (LKR {room.baseRate}/night)
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -252,7 +252,7 @@ export function ReservationDialog({
                 />
               </div>
               <div>
-                <Label htmlFor="ratePerNight">Rate/Night ($)</Label>
+                <Label htmlFor="ratePerNight">Rate/Night (LKR)</Label>
                 <Input
                   id="ratePerNight"
                   type="number"
@@ -263,7 +263,7 @@ export function ReservationDialog({
                 />
               </div>
               <div>
-                <Label htmlFor="advancePaid">Advance ($)</Label>
+                <Label htmlFor="advancePaid">Advance (LKR)</Label>
                 <Input
                   id="advancePaid"
                   type="number"
