@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { useKV } from '@github/spark/hooks'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { 
   Plus, 
   MagnifyingGlass, 
@@ -13,9 +15,12 @@ import {
   CurrencyDollar,
   Key,
   Receipt,
-  Eye
+  Eye,
+  FileText,
+  Printer,
+  Download
 } from '@phosphor-icons/react'
-import { type Guest, type Reservation, type Room, type Folio, type ExtraService, type ExtraServiceCategory, type FolioExtraService, type SystemUser } from '@/lib/types'
+import { type Guest, type Reservation, type Room, type Folio, type ExtraService, type ExtraServiceCategory, type FolioExtraService, type SystemUser, type GuestInvoice } from '@/lib/types'
 import { formatDate, formatCurrency, calculateNights } from '@/lib/helpers'
 import { GuestDialog } from './GuestDialog'
 import { ReservationDialog } from './ReservationDialog'
@@ -23,6 +28,7 @@ import { CheckInDialog } from './CheckInDialog'
 import { CheckOutDialog } from './CheckOutDialog'
 import { FolioDialog } from './FolioDialog'
 import { ReservationDetailsDialog } from './ReservationDetailsDialog'
+import { InvoiceViewerA4 } from './InvoiceViewerA4'
 
 interface FrontOfficeProps {
   guests: Guest[]
@@ -55,6 +61,8 @@ export function FrontOffice({
   setFolioExtraServices,
   currentUser
 }: FrontOfficeProps) {
+  const [guestInvoices, setGuestInvoices] = useKV<GuestInvoice[]>('w3-hotel-guest-invoices', [])
+  
   const [searchQuery, setSearchQuery] = useState('')
   const [guestDialogOpen, setGuestDialogOpen] = useState(false)
   const [reservationDialogOpen, setReservationDialogOpen] = useState(false)
@@ -62,9 +70,11 @@ export function FrontOffice({
   const [checkOutDialogOpen, setCheckOutDialogOpen] = useState(false)
   const [folioDialogOpen, setFolioDialogOpen] = useState(false)
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
+  const [invoiceViewerOpen, setInvoiceViewerOpen] = useState(false)
   const [selectedGuest, setSelectedGuest] = useState<Guest | undefined>()
   const [selectedReservation, setSelectedReservation] = useState<Reservation | undefined>()
   const [selectedFolio, setSelectedFolio] = useState<Folio | undefined>()
+  const [selectedInvoice, setSelectedInvoice] = useState<GuestInvoice | undefined>()
 
   const today = Date.now()
   const arrivalsToday = reservations.filter(r => {
@@ -149,6 +159,26 @@ export function FrontOffice({
     setSelectedReservation(reservation)
     setSelectedGuest(guest)
     setDetailsDialogOpen(true)
+  }
+
+  const handleViewInvoice = (reservation: Reservation) => {
+    const invoicesForReservation = (guestInvoices || []).filter(
+      inv => inv.reservationIds?.includes(reservation.id)
+    )
+    if (invoicesForReservation.length > 0) {
+      setSelectedInvoice(invoicesForReservation[0])
+      setInvoiceViewerOpen(true)
+    }
+  }
+
+  const hotelInfo = {
+    name: 'W3 Hotel',
+    address: '123 Hospitality Boulevard, Tourism District, City 12345',
+    phone: '+1 (555) 123-4567',
+    email: 'billing@w3hotel.com',
+    website: 'www.w3hotel.com',
+    taxRegistrationNumber: 'TAX-123456789',
+    logo: ''
   }
 
   return (
@@ -269,10 +299,10 @@ export function FrontOffice({
                           </div>
                         )}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <Button size="sm" variant="outline" onClick={() => handleViewDetails(reservation)}>
                           <Eye size={16} className="mr-1" />
-                          View Details
+                          Details
                         </Button>
                         {reservation.status === 'confirmed' && (
                           <Button size="sm" onClick={() => handleCheckIn(reservation)}>
@@ -292,9 +322,12 @@ export function FrontOffice({
                             </Button>
                           </>
                         )}
-                        <Button size="sm" variant="outline" onClick={() => handleEditReservation(reservation)}>
-                          Edit
-                        </Button>
+                        {(reservation.status === 'checked-out' || (guestInvoices || []).some(inv => inv.reservationIds?.includes(reservation.id))) && (
+                          <Button size="sm" variant="outline" onClick={() => handleViewInvoice(reservation)}>
+                            <FileText size={16} className="mr-1" />
+                            Invoice
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </Card>
@@ -521,6 +554,19 @@ export function FrontOffice({
           guest={selectedGuest}
           room={rooms.find(r => r.id === selectedReservation.roomId)}
         />
+      )}
+
+      {selectedInvoice && currentUser && (
+        <Dialog open={invoiceViewerOpen} onOpenChange={setInvoiceViewerOpen}>
+          <DialogContent className="max-w-[95vw] h-[95vh] p-0">
+            <InvoiceViewerA4
+              invoice={selectedInvoice}
+              hotelInfo={hotelInfo}
+              currentUser={currentUser}
+              onClose={() => setInvoiceViewerOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   )
