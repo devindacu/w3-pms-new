@@ -49,6 +49,9 @@ import { RoomTypeDialog } from '@/components/RoomTypeDialog'
 import { RoomTypeConfigDialog } from '@/components/RoomTypeConfigDialog'
 import { RatePlanConfigDialog } from '@/components/RatePlanConfigDialog'
 import { RateCalendarView } from '@/components/RateCalendarView'
+import { SeasonDialog } from '@/components/SeasonDialog'
+import { EventDayDialog } from '@/components/EventDayDialog'
+import { CorporateAccountDialog } from '@/components/CorporateAccountDialog'
 import { formatCurrency } from '@/lib/helpers'
 
 interface RoomRevenueManagementProps {
@@ -94,11 +97,17 @@ export function RoomRevenueManagement({
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
   const [selectedRoomType, setSelectedRoomType] = useState<RoomTypeConfig | null>(null)
   const [selectedRatePlan, setSelectedRatePlan] = useState<RatePlanConfig | null>(null)
+  const [selectedSeason, setSelectedSeason] = useState<Season | null>(null)
+  const [selectedEvent, setSelectedEvent] = useState<EventDay | null>(null)
+  const [selectedCorporateAccount, setSelectedCorporateAccount] = useState<CorporateAccount | null>(null)
   const [isRoomDialogOpen, setIsRoomDialogOpen] = useState(false)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [isRoomTypeDialogOpen, setIsRoomTypeDialogOpen] = useState(false)
   const [roomTypeDialogOpen, setRoomTypeDialogOpen] = useState(false)
   const [ratePlanDialogOpen, setRatePlanDialogOpen] = useState(false)
+  const [seasonDialogOpen, setSeasonDialogOpen] = useState(false)
+  const [eventDialogOpen, setEventDialogOpen] = useState(false)
+  const [corporateDialogOpen, setCorporateDialogOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid')
 
   const floors = Array.from(new Set(rooms.map(r => r.floor))).sort((a, b) => a - b)
@@ -214,6 +223,69 @@ export function RoomRevenueManagement({
     if (confirm('Are you sure you want to delete this rate plan?')) {
       setRatePlans((current) => current.filter(rp => rp.id !== id))
       toast.success('Rate plan deleted successfully')
+    }
+  }
+
+  const handleSaveSeason = (season: Season) => {
+    setSeasons((current) => {
+      const existing = current.find(s => s.id === season.id)
+      if (existing) {
+        toast.success('Season updated successfully')
+        return current.map(s => s.id === season.id ? season : s)
+      }
+      toast.success('Season added successfully')
+      return [...current, season]
+    })
+    setSelectedSeason(null)
+    setSeasonDialogOpen(false)
+  }
+
+  const handleDeleteSeason = (id: string) => {
+    if (confirm('Are you sure you want to delete this season?')) {
+      setSeasons((current) => current.filter(s => s.id !== id))
+      toast.success('Season deleted successfully')
+    }
+  }
+
+  const handleSaveEvent = (event: EventDay) => {
+    setEventDays((current) => {
+      const existing = current.find(e => e.id === event.id)
+      if (existing) {
+        toast.success('Event updated successfully')
+        return current.map(e => e.id === event.id ? event : e)
+      }
+      toast.success('Event added successfully')
+      return [...current, event]
+    })
+    setSelectedEvent(null)
+    setEventDialogOpen(false)
+  }
+
+  const handleDeleteEvent = (id: string) => {
+    if (confirm('Are you sure you want to delete this event?')) {
+      setEventDays((current) => current.filter(e => e.id !== id))
+      toast.success('Event deleted successfully')
+    }
+  }
+
+  const handleSaveCorporateAccount = (account: CorporateAccount) => {
+    setCorporateAccounts((current) => {
+      const existing = current.find(ca => ca.id === account.id)
+      if (existing) {
+        toast.success('Corporate account updated successfully')
+        return current.map(ca => ca.id === account.id ? account : ca)
+      }
+      toast.success('Corporate account added successfully')
+      return [...current, account]
+    })
+    setSelectedCorporateAccount(null)
+    setCorporateDialogOpen(false)
+  }
+
+  const handleDeleteCorporateAccount = (id: string) => {
+    if (confirm('Are you sure you want to delete this corporate account?')) {
+      setCorporateAccounts((current) => current.filter(ca => ca.id !== id))
+      toast.success('Corporate account deleted successfully')
     }
   }
 
@@ -893,29 +965,59 @@ export function RoomRevenueManagement({
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">Seasons</h2>
-                <Button size="sm">
+                <Button size="sm" onClick={() => { setSelectedSeason(null); setSeasonDialogOpen(true) }}>
                   <Plus size={18} className="mr-2" />
                   Add Season
                 </Button>
               </div>
               {seasons.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-sm text-muted-foreground">No seasons configured</p>
+                  <CalendarIcon size={48} className="mx-auto text-muted-foreground mb-4" />
+                  <p className="text-sm text-muted-foreground mb-4">No seasons configured</p>
+                  <Button size="sm" onClick={() => { setSelectedSeason(null); setSeasonDialogOpen(true) }}>
+                    Create First Season
+                  </Button>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {seasons.map(season => (
-                    <div key={season.id} className="p-3 border rounded-lg">
+                    <div key={season.id} className="p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                       <div className="flex items-center justify-between mb-1">
                         <span className="font-medium">{season.name}</span>
                         <div className="flex items-center gap-2">
-                          <Badge className="capitalize">{season.type}</Badge>
+                          <Badge className="capitalize" variant={
+                            season.type === 'peak' ? 'destructive' :
+                            season.type === 'high' ? 'default' :
+                            season.type === 'mid' ? 'secondary' :
+                            'outline'
+                          }>{season.type}</Badge>
                           <Badge variant="secondary">{season.rateMultiplier}x</Badge>
+                          {!season.isActive && <Badge variant="destructive">Inactive</Badge>}
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground mb-2">
                         {new Date(season.startDate).toLocaleDateString()} - {new Date(season.endDate).toLocaleDateString()}
                       </p>
+                      {season.description && (
+                        <p className="text-xs text-muted-foreground mb-2">{season.description}</p>
+                      )}
+                      <div className="flex gap-2 mt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => { setSelectedSeason(season); setSeasonDialogOpen(true) }}
+                        >
+                          <PencilSimple size={14} className="mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteSeason(season.id)}
+                        >
+                          <Trash size={14} />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -925,31 +1027,65 @@ export function RoomRevenueManagement({
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">Special Events</h2>
-                <Button size="sm">
+                <Button size="sm" onClick={() => { setSelectedEvent(null); setEventDialogOpen(true) }}>
                   <Plus size={18} className="mr-2" />
                   Add Event
                 </Button>
               </div>
               {eventDays.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-sm text-muted-foreground">No special events configured</p>
+                  <CalendarIcon size={48} className="mx-auto text-muted-foreground mb-4" />
+                  <p className="text-sm text-muted-foreground mb-4">No special events configured</p>
+                  <Button size="sm" onClick={() => { setSelectedEvent(null); setEventDialogOpen(true) }}>
+                    Create First Event
+                  </Button>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {eventDays.map(event => (
-                    <div key={event.id} className="p-3 border rounded-lg">
+                  {eventDays
+                    .sort((a, b) => a.date - b.date)
+                    .map(event => (
+                    <div key={event.id} className="p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                       <div className="flex items-center justify-between mb-1">
                         <span className="font-medium">{event.name}</span>
-                        <Badge variant="destructive">{event.rateMultiplier}x</Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="destructive">{event.rateMultiplier}x</Badge>
+                          {!event.isActive && <Badge variant="secondary">Inactive</Badge>}
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(event.date).toLocaleDateString()}
+                      <p className="text-xs text-muted-foreground mb-1">
+                        {new Date(event.date).toLocaleDateString('en-US', { 
+                          weekday: 'short', 
+                          year: 'numeric', 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })}
                       </p>
+                      {event.description && (
+                        <p className="text-xs text-muted-foreground mb-1">{event.description}</p>
+                      )}
                       {event.minimumStay && (
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-accent font-medium">
                           Min stay: {event.minimumStay} nights
                         </p>
                       )}
+                      <div className="flex gap-2 mt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => { setSelectedEvent(event); setEventDialogOpen(true) }}
+                        >
+                          <PencilSimple size={14} className="mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteEvent(event.id)}
+                        >
+                          <Trash size={14} />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -962,7 +1098,7 @@ export function RoomRevenueManagement({
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-semibold">Corporate Accounts</h2>
-              <Button>
+              <Button onClick={() => { setSelectedCorporateAccount(null); setCorporateDialogOpen(true) }}>
                 <Plus size={18} className="mr-2" />
                 Add Corporate Account
               </Button>
@@ -973,21 +1109,23 @@ export function RoomRevenueManagement({
             {corporateAccounts.length === 0 ? (
               <div className="text-center py-12">
                 <Users size={48} className="mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No corporate accounts configured</p>
-                <Button className="mt-4">Add First Corporate Account</Button>
+                <p className="text-muted-foreground mb-4">No corporate accounts configured</p>
+                <Button onClick={() => { setSelectedCorporateAccount(null); setCorporateDialogOpen(true) }}>
+                  Add First Corporate Account
+                </Button>
               </div>
             ) : (
               <div className="space-y-3">
                 {corporateAccounts.map(corp => (
-                  <div key={corp.id} className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
+                  <div key={corp.id} className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center justify-between mb-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-1">
                           <h3 className="font-semibold">{corp.companyName}</h3>
                           <Badge variant="outline">{corp.code}</Badge>
                           {!corp.isActive && <Badge variant="destructive">Inactive</Badge>}
                         </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mt-2">
                           <div>
                             <span className="text-muted-foreground">Contact:</span>
                             <span className="ml-2">{corp.contactPerson}</span>
@@ -997,17 +1135,68 @@ export function RoomRevenueManagement({
                             <span className="ml-2">{corp.email}</span>
                           </div>
                           <div>
-                            <span className="text-muted-foreground">Negotiated Rates:</span>
-                            <span className="ml-2 font-medium">{corp.negotiatedRates.length}</span>
+                            <span className="text-muted-foreground">Phone:</span>
+                            <span className="ml-2">{corp.phone}</span>
                           </div>
                           <div>
-                            <span className="text-muted-foreground">Room Allotment:</span>
-                            <span className="ml-2 font-medium">{corp.roomAllotment || 'N/A'}</span>
+                            <span className="text-muted-foreground">Rates:</span>
+                            <span className="ml-2 font-medium">{corp.negotiatedRates.length}</span>
                           </div>
                         </div>
+                        {corp.roomAllotment && (
+                          <div className="mt-2 text-sm">
+                            <span className="text-muted-foreground">Room Allotment:</span>
+                            <span className="ml-2 font-medium">{corp.roomAllotment} rooms</span>
+                          </div>
+                        )}
+                        {corp.creditLimit && (
+                          <div className="mt-1 text-sm">
+                            <span className="text-muted-foreground">Credit Limit:</span>
+                            <span className="ml-2 font-medium">{formatCurrency(corp.creditLimit)}</span>
+                          </div>
+                        )}
                       </div>
-                      <Button variant="outline" size="sm">Edit</Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => { setSelectedCorporateAccount(corp); setCorporateDialogOpen(true) }}
+                        >
+                          <PencilSimple size={16} className="mr-1" />
+                          Edit
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDeleteCorporateAccount(corp.id)}
+                        >
+                          <Trash size={16} />
+                        </Button>
+                      </div>
                     </div>
+                    
+                    {corp.negotiatedRates.length > 0 && (
+                      <div className="mt-3 pt-3 border-t">
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Negotiated Rates:</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {corp.negotiatedRates.slice(0, 4).map((rate, idx) => {
+                            const roomType = roomTypes.find(rt => rt.id === rate.roomTypeId)
+                            const ratePlan = ratePlans.find(rp => rp.id === rate.ratePlanId)
+                            return (
+                              <div key={idx} className="text-xs p-2 bg-muted/50 rounded">
+                                <div className="font-medium">{roomType?.name || 'Unknown'}</div>
+                                <div className="text-muted-foreground">{ratePlan?.name || 'Unknown'}: {formatCurrency(rate.rate)}</div>
+                              </div>
+                            )
+                          })}
+                          {corp.negotiatedRates.length > 4 && (
+                            <div className="text-xs p-2 bg-muted/50 rounded flex items-center justify-center text-muted-foreground">
+                              +{corp.negotiatedRates.length - 4} more
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1053,6 +1242,29 @@ export function RoomRevenueManagement({
         roomTypes={roomTypes}
         parentRatePlans={parentRatePlansForDialog}
         currentUser={currentUser}
+      />
+
+      <SeasonDialog
+        open={seasonDialogOpen}
+        onClose={() => { setSeasonDialogOpen(false); setSelectedSeason(null) }}
+        season={selectedSeason}
+        onSave={handleSaveSeason}
+      />
+
+      <EventDayDialog
+        open={eventDialogOpen}
+        onClose={() => { setEventDialogOpen(false); setSelectedEvent(null) }}
+        event={selectedEvent}
+        onSave={handleSaveEvent}
+      />
+
+      <CorporateAccountDialog
+        open={corporateDialogOpen}
+        onClose={() => { setCorporateDialogOpen(false); setSelectedCorporateAccount(null) }}
+        account={selectedCorporateAccount}
+        onSave={handleSaveCorporateAccount}
+        roomTypes={roomTypes}
+        ratePlans={ratePlans}
       />
     </div>
   )
