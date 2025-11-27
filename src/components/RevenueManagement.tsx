@@ -11,8 +11,14 @@ import {
   Buildings,
   Percent,
   Users,
-  ChartLine
+  ChartLine,
+  PencilSimple,
+  Trash
 } from '@phosphor-icons/react'
+import { RoomTypeConfigDialog } from '@/components/RoomTypeConfigDialog'
+import { RatePlanConfigDialog } from '@/components/RatePlanConfigDialog'
+import { formatCurrency } from '@/lib/helpers'
+import { toast } from 'sonner'
 import type { 
   RoomTypeConfig,
   RatePlanConfig,
@@ -55,6 +61,10 @@ export function RevenueManagement({
   currentUser
 }: RevenueManagementProps) {
   const [activeTab, setActiveTab] = useState('overview')
+  const [roomTypeDialogOpen, setRoomTypeDialogOpen] = useState(false)
+  const [ratePlanDialogOpen, setRatePlanDialogOpen] = useState(false)
+  const [selectedRoomType, setSelectedRoomType] = useState<RoomTypeConfig | null>(null)
+  const [selectedRatePlan, setSelectedRatePlan] = useState<RatePlanConfig | null>(null)
 
   const stats = {
     activeRoomTypes: roomTypes.filter(rt => rt.isActive).length,
@@ -70,6 +80,44 @@ export function RevenueManagement({
       ? roomTypes.reduce((sum, rt) => sum + rt.baseRate, 0) / roomTypes.length 
       : 0
   }
+
+  const handleSaveRoomType = (roomType: RoomTypeConfig) => {
+    setRoomTypes((current) => {
+      const existing = current.find(rt => rt.id === roomType.id)
+      if (existing) {
+        return current.map(rt => rt.id === roomType.id ? roomType : rt)
+      }
+      return [...current, roomType]
+    })
+    setSelectedRoomType(null)
+  }
+
+  const handleDeleteRoomType = (id: string) => {
+    if (confirm('Are you sure you want to delete this room type?')) {
+      setRoomTypes((current) => current.filter(rt => rt.id !== id))
+      toast.success('Room type deleted successfully')
+    }
+  }
+
+  const handleSaveRatePlan = (ratePlan: RatePlanConfig) => {
+    setRatePlans((current) => {
+      const existing = current.find(rp => rp.id === ratePlan.id)
+      if (existing) {
+        return current.map(rp => rp.id === ratePlan.id ? ratePlan : rp)
+      }
+      return [...current, ratePlan]
+    })
+    setSelectedRatePlan(null)
+  }
+
+  const handleDeleteRatePlan = (id: string) => {
+    if (confirm('Are you sure you want to delete this rate plan?')) {
+      setRatePlans((current) => current.filter(rp => rp.id !== id))
+      toast.success('Rate plan deleted successfully')
+    }
+  }
+
+  const parentRatePlansForDialog = ratePlans.filter(rp => rp.isParent)
 
   return (
     <div className="space-y-6">
@@ -126,7 +174,7 @@ export function RevenueManagement({
           </div>
           <div className="space-y-1">
             <p className="text-2xl font-semibold">
-              ${stats.avgRoomRate.toFixed(2)}
+              {formatCurrency(stats.avgRoomRate)}
             </p>
             <p className="text-xs text-muted-foreground">
               Across all room types
@@ -209,7 +257,7 @@ export function RevenueManagement({
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-semibold">Room Type Configuration</h2>
-              <Button>
+              <Button onClick={() => { setSelectedRoomType(null); setRoomTypeDialogOpen(true) }}>
                 <Plus size={18} className="mr-2" />
                 Add Room Type
               </Button>
@@ -221,7 +269,9 @@ export function RevenueManagement({
               <div className="text-center py-12">
                 <Buildings size={48} className="mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">No room types configured</p>
-                <Button className="mt-4">Create First Room Type</Button>
+                <Button className="mt-4" onClick={() => { setSelectedRoomType(null); setRoomTypeDialogOpen(true) }}>
+                  Create First Room Type
+                </Button>
               </div>
             ) : (
               <div className="space-y-3">
@@ -238,11 +288,11 @@ export function RevenueManagement({
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                           <div>
                             <span className="text-muted-foreground">Base Rate:</span>
-                            <span className="ml-2 font-medium">${rt.baseRate}</span>
+                            <span className="ml-2 font-medium">{formatCurrency(rt.baseRate)}</span>
                           </div>
                           <div>
                             <span className="text-muted-foreground">Rack Rate:</span>
-                            <span className="ml-2 font-medium">${rt.rackRate}</span>
+                            <span className="ml-2 font-medium">{formatCurrency(rt.rackRate)}</span>
                           </div>
                           <div>
                             <span className="text-muted-foreground">Occupancy:</span>
@@ -266,7 +316,23 @@ export function RevenueManagement({
                           ))}
                         </div>
                       </div>
-                      <Button variant="outline" size="sm">Edit</Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => { setSelectedRoomType(rt); setRoomTypeDialogOpen(true) }}
+                        >
+                          <PencilSimple size={16} className="mr-1" />
+                          Edit
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDeleteRoomType(rt.id)}
+                        >
+                          <Trash size={16} />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -279,7 +345,7 @@ export function RevenueManagement({
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-semibold">Rate Plan Hierarchy</h2>
-              <Button>
+              <Button onClick={() => { setSelectedRatePlan(null); setRatePlanDialogOpen(true) }}>
                 <Plus size={18} className="mr-2" />
                 Create Rate Plan
               </Button>
@@ -291,7 +357,9 @@ export function RevenueManagement({
               <div className="text-center py-12">
                 <Percent size={48} className="mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">No rate plans configured</p>
-                <Button className="mt-4">Create First Rate Plan</Button>
+                <Button className="mt-4" onClick={() => { setSelectedRatePlan(null); setRatePlanDialogOpen(true) }}>
+                  Create First Rate Plan
+                </Button>
               </div>
             ) : (
               <div className="space-y-4">
@@ -314,11 +382,27 @@ export function RevenueManagement({
                           {parent.baseRate && (
                             <p className="text-sm mt-1">
                               <span className="text-muted-foreground">Base Rate:</span>
-                              <span className="ml-2 font-medium">${parent.baseRate}</span>
+                              <span className="ml-2 font-medium">{formatCurrency(parent.baseRate)}</span>
                             </p>
                           )}
                         </div>
-                        <Button variant="outline" size="sm">Edit</Button>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => { setSelectedRatePlan(parent); setRatePlanDialogOpen(true) }}
+                          >
+                            <PencilSimple size={16} className="mr-1" />
+                            Edit
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDeleteRatePlan(parent.id)}
+                          >
+                            <Trash size={16} />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     
@@ -346,7 +430,23 @@ export function RevenueManagement({
                                 </div>
                                 <p className="text-xs text-muted-foreground">{child.description}</p>
                               </div>
-                              <Button variant="ghost" size="sm">Edit</Button>
+                              <div className="flex gap-2">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => { setSelectedRatePlan(child); setRatePlanDialogOpen(true) }}
+                                >
+                                  <PencilSimple size={14} className="mr-1" />
+                                  Edit
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => handleDeleteRatePlan(child.id)}
+                                >
+                                  <Trash size={14} />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -518,6 +618,24 @@ export function RevenueManagement({
           </Card>
         </TabsContent>
       </Tabs>
+
+      <RoomTypeConfigDialog
+        open={roomTypeDialogOpen}
+        onClose={() => { setRoomTypeDialogOpen(false); setSelectedRoomType(null) }}
+        roomType={selectedRoomType}
+        onSave={handleSaveRoomType}
+        currentUser={currentUser}
+      />
+
+      <RatePlanConfigDialog
+        open={ratePlanDialogOpen}
+        onClose={() => { setRatePlanDialogOpen(false); setSelectedRatePlan(null) }}
+        ratePlan={selectedRatePlan}
+        onSave={handleSaveRatePlan}
+        roomTypes={roomTypes}
+        parentRatePlans={parentRatePlansForDialog}
+        currentUser={currentUser}
+      />
     </div>
   )
 }
