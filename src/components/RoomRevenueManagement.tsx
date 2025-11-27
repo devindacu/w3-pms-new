@@ -48,6 +48,7 @@ import { RoomDetailsDialog } from '@/components/RoomDetailsDialog'
 import { RoomTypeDialog } from '@/components/RoomTypeDialog'
 import { RoomTypeConfigDialog } from '@/components/RoomTypeConfigDialog'
 import { RatePlanConfigDialog } from '@/components/RatePlanConfigDialog'
+import { RateCalendarView } from '@/components/RateCalendarView'
 import { formatCurrency } from '@/lib/helpers'
 
 interface RoomRevenueManagementProps {
@@ -878,31 +879,13 @@ export function RoomRevenueManagement({
         </TabsContent>
 
         <TabsContent value="calendar">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-semibold">Rate Calendar</h2>
-              <div className="flex gap-2">
-                <Button variant="outline">
-                  <CalendarIcon size={18} className="mr-2" />
-                  Bulk Update
-                </Button>
-                <Button>
-                  <Plus size={18} className="mr-2" />
-                  Add Override
-                </Button>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground mb-6">
-              Manage daily rates, restrictions, and availability across all room types
-            </p>
-            <div className="text-center py-12">
-              <CalendarIcon size={48} className="mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-2">Rate Calendar View</p>
-              <p className="text-sm text-muted-foreground">
-                Interactive calendar with drag-drop rate updates coming soon
-              </p>
-            </div>
-          </Card>
+          <RateCalendarView
+            rateCalendar={rateCalendar}
+            setRateCalendar={setRateCalendar}
+            roomTypes={roomTypes}
+            ratePlans={ratePlans}
+            currentUser={currentUser}
+          />
         </TabsContent>
 
         <TabsContent value="seasons">
