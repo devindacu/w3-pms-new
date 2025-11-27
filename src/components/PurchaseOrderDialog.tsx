@@ -55,8 +55,8 @@ export function PurchaseOrderDialog({
   constructionMaterials,
   generalProducts
 }: PurchaseOrderDialogProps) {
-  const [supplierId, setSupplierId] = useState('')
-  const [requisitionId, setRequisitionId] = useState('')
+  const [supplierId, setSupplierId] = useState<string | undefined>(undefined)
+  const [requisitionId, setRequisitionId] = useState<string | undefined>(undefined)
   const [expectedDelivery, setExpectedDelivery] = useState('')
   const [notes, setNotes] = useState('')
   const [items, setItems] = useState<PurchaseOrderItem[]>([])
@@ -72,14 +72,14 @@ export function PurchaseOrderDialog({
   useEffect(() => {
     if (purchaseOrder) {
       setSupplierId(purchaseOrder.supplierId)
-      setRequisitionId(purchaseOrder.requisitionId || '')
+      setRequisitionId(purchaseOrder.requisitionId)
       setExpectedDelivery(purchaseOrder.expectedDelivery ? new Date(purchaseOrder.expectedDelivery).toISOString().split('T')[0] : '')
       setNotes(purchaseOrder.notes || '')
       setItems(purchaseOrder.items)
       setStatus(purchaseOrder.status)
     } else {
-      setSupplierId('')
-      setRequisitionId('')
+      setSupplierId(undefined)
+      setRequisitionId(undefined)
       setExpectedDelivery('')
       setNotes('')
       setItems([])
@@ -88,7 +88,7 @@ export function PurchaseOrderDialog({
   }, [purchaseOrder])
 
   const handleRequisitionChange = (reqId: string) => {
-    const actualReqId = reqId === "none" ? "" : reqId
+    const actualReqId = reqId === "none" ? undefined : reqId
     setRequisitionId(actualReqId)
     
     if (actualReqId) {

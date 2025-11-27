@@ -62,7 +62,7 @@ export function GRNDialog({
   generalProducts,
   onCreateDispute
 }: GRNDialogProps) {
-  const [purchaseOrderId, setPurchaseOrderId] = useState('')
+  const [purchaseOrderId, setPurchaseOrderId] = useState<string | undefined>(undefined)
   const [invoiceNumber, setInvoiceNumber] = useState('')
   const [invoiceAmount, setInvoiceAmount] = useState('')
   const [deliveryNoteNumber, setDeliveryNoteNumber] = useState('')
@@ -96,7 +96,7 @@ export function GRNDialog({
       setInvoicePhotos(grn.invoicePhotos || [])
       setDeliveryNotePhotos(grn.deliveryNotePhotos || [])
     } else {
-      setPurchaseOrderId('')
+      setPurchaseOrderId(undefined)
       setInvoiceNumber('')
       setInvoiceAmount('')
       setDeliveryNoteNumber('')

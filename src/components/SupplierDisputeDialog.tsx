@@ -68,10 +68,10 @@ export function SupplierDisputeDialog({
   currentUser,
   initialData
 }: SupplierDisputeDialogProps) {
-  const [supplierId, setSupplierId] = useState('')
-  const [purchaseOrderId, setPurchaseOrderId] = useState('')
-  const [grnId, setGrnId] = useState('')
-  const [invoiceId, setInvoiceId] = useState('')
+  const [supplierId, setSupplierId] = useState<string | undefined>(undefined)
+  const [purchaseOrderId, setPurchaseOrderId] = useState<string | undefined>(undefined)
+  const [grnId, setGrnId] = useState<string | undefined>(undefined)
+  const [invoiceId, setInvoiceId] = useState<string | undefined>(undefined)
   const [disputeType, setDisputeType] = useState<DisputeType>('quality-issue')
   const [status, setStatus] = useState<DisputeStatus>('open')
   const [priority, setPriority] = useState<DisputePriority>('medium')
@@ -106,9 +106,9 @@ export function SupplierDisputeDialog({
   useEffect(() => {
     if (dispute) {
       setSupplierId(dispute.supplierId)
-      setPurchaseOrderId(dispute.purchaseOrderId || '')
-      setGrnId(dispute.grnId || '')
-      setInvoiceId(dispute.invoiceId || '')
+      setPurchaseOrderId(dispute.purchaseOrderId)
+      setGrnId(dispute.grnId)
+      setInvoiceId(dispute.invoiceId)
       setDisputeType(dispute.disputeType)
       setStatus(dispute.status)
       setPriority(dispute.priority)
@@ -127,10 +127,10 @@ export function SupplierDisputeDialog({
       setDeadlineDate(dispute.deadlineDate ? new Date(dispute.deadlineDate).toISOString().split('T')[0] : '')
       setNotes(dispute.notes || '')
     } else if (initialData) {
-      setSupplierId(initialData.supplierId || '')
-      setPurchaseOrderId(initialData.purchaseOrderId || '')
-      setGrnId(initialData.grnId || '')
-      setInvoiceId(initialData.invoiceId || '')
+      setSupplierId(initialData.supplierId)
+      setPurchaseOrderId(initialData.purchaseOrderId)
+      setGrnId(initialData.grnId)
+      setInvoiceId(initialData.invoiceId)
       setDisputeType(initialData.disputeType || 'quality-issue')
       setPriority(initialData.priority || 'medium')
       setTitle(initialData.title || '')
@@ -144,10 +144,10 @@ export function SupplierDisputeDialog({
   }, [dispute, initialData, open])
 
   const resetForm = () => {
-    setSupplierId('')
-    setPurchaseOrderId('')
-    setGrnId('')
-    setInvoiceId('')
+    setSupplierId(undefined)
+    setPurchaseOrderId(undefined)
+    setGrnId(undefined)
+    setInvoiceId(undefined)
     setDisputeType('quality-issue')
     setStatus('open')
     setPriority('medium')
