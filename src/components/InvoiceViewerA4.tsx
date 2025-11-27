@@ -692,91 +692,97 @@ export function InvoiceViewerA4({ invoice, hotelInfo, currentUser, onClose }: In
 
       <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
         <DialogContent>
-          <div className="space-y-4">
+          <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-lg font-semibold mb-2">Share Invoice</h3>
               <p className="text-sm text-muted-foreground">Choose how you want to share this invoice</p>
             </div>
+            <Button variant="ghost" size="sm" onClick={() => setShareDialogOpen(false)}>
+              <X size={18} />
+            </Button>
+          </div>
 
-            <div className="space-y-3">
-              <Button variant="outline" className="w-full justify-start" onClick={handleCopyLink}>
-                <Copy size={18} className="mr-2" />
-                Copy Link
-              </Button>
-              
-              <Button variant="outline" className="w-full justify-start" onClick={() => {
-                setShareDialogOpen(false)
-                setEmailDialogOpen(true)
-              }}>
-                <EnvelopeSimple size={18} className="mr-2" />
-                Send via Email
-              </Button>
-              
-              <Button variant="outline" className="w-full justify-start" onClick={handleDownloadPDF}>
-                <Download size={18} className="mr-2" />
-                Download as HTML
-              </Button>
-              
-              <Button variant="outline" className="w-full justify-start" onClick={handlePrint}>
-                <Printer size={18} className="mr-2" />
-                Print
-              </Button>
-            </div>
+          <div className="space-y-3">
+            <Button variant="outline" className="w-full justify-start" onClick={handleCopyLink}>
+              <Copy size={18} className="mr-2" />
+              Copy Link
+            </Button>
+            
+            <Button variant="outline" className="w-full justify-start" onClick={() => {
+              setShareDialogOpen(false)
+              setEmailDialogOpen(true)
+            }}>
+              <EnvelopeSimple size={18} className="mr-2" />
+              Send via Email
+            </Button>
+            
+            <Button variant="outline" className="w-full justify-start" onClick={handleDownloadPDF}>
+              <Download size={18} className="mr-2" />
+              Download as HTML
+            </Button>
+            
+            <Button variant="outline" className="w-full justify-start" onClick={handlePrint}>
+              <Printer size={18} className="mr-2" />
+              Print
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
         <DialogContent>
-          <div className="space-y-4">
+          <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-lg font-semibold mb-2">Email Invoice</h3>
               <p className="text-sm text-muted-foreground">Send invoice {invoice.invoiceNumber} via email</p>
             </div>
+            <Button variant="ghost" size="sm" onClick={() => setEmailDialogOpen(false)}>
+              <X size={18} />
+            </Button>
+          </div>
 
-            <div className="space-y-3">
-              <div>
-                <Label htmlFor="email-to">To</Label>
-                <Input
-                  id="email-to"
-                  type="email"
-                  value={emailTo}
-                  onChange={(e) => setEmailTo(e.target.value)}
-                  placeholder="recipient@example.com"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="email-cc">CC (optional)</Label>
-                <Input
-                  id="email-cc"
-                  type="email"
-                  value={emailCC}
-                  onChange={(e) => setEmailCC(e.target.value)}
-                  placeholder="cc@example.com"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="email-message">Message (optional)</Label>
-                <Textarea
-                  id="email-message"
-                  value={emailMessage}
-                  onChange={(e) => setEmailMessage(e.target.value)}
-                  placeholder="Add a personal message..."
-                  rows={4}
-                />
-              </div>
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="email-to">To</Label>
+              <Input
+                id="email-to"
+                type="email"
+                value={emailTo}
+                onChange={(e) => setEmailTo(e.target.value)}
+                placeholder="recipient@example.com"
+              />
             </div>
 
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setEmailDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleEmailSend} disabled={isSending}>
-                {isSending ? 'Sending...' : 'Send Email'}
-              </Button>
+            <div>
+              <Label htmlFor="email-cc">CC (optional)</Label>
+              <Input
+                id="email-cc"
+                type="email"
+                value={emailCC}
+                onChange={(e) => setEmailCC(e.target.value)}
+                placeholder="cc@example.com"
+              />
             </div>
+
+            <div>
+              <Label htmlFor="email-message">Message (optional)</Label>
+              <Textarea
+                id="email-message"
+                value={emailMessage}
+                onChange={(e) => setEmailMessage(e.target.value)}
+                placeholder="Add a personal message..."
+                rows={4}
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2 justify-end mt-4">
+            <Button variant="outline" onClick={() => setEmailDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleEmailSend} disabled={isSending}>
+              {isSending ? 'Sending...' : 'Send Email'}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
