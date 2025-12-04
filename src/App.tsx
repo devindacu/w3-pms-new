@@ -270,6 +270,8 @@ function App() {
   const [expenses, setExpenses] = useKV<import('@/lib/types').Expense[]>('w3-hotel-expenses', [])
   const [accounts, setAccounts] = useKV<import('@/lib/types').Account[]>('w3-hotel-accounts', [])
   const [budgets, setBudgets] = useKV<import('@/lib/types').Budget[]>('w3-hotel-budgets', [])
+  const [journalEntries, setJournalEntries] = useKV<import('@/lib/types').JournalEntry[]>('w3-hotel-journal-entries', [])
+  const [chartOfAccounts, setChartOfAccounts] = useKV<import('@/lib/types').ChartOfAccount[]>('w3-hotel-chart-of-accounts', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
@@ -1114,6 +1116,11 @@ function App() {
               accounts={accounts || []}
               budgets={budgets || []}
               setBudgets={setBudgets}
+              journalEntries={journalEntries || []}
+              setJournalEntries={setJournalEntries}
+              chartOfAccounts={chartOfAccounts || []}
+              setChartOfAccounts={setChartOfAccounts}
+              currentUser={currentUser}
             />
           )}
           {currentModule === 'hr' && (

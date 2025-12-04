@@ -3351,6 +3351,296 @@ export interface Budget {
   updatedAt: number
 }
 
+export type AccountType = 'asset' | 'liability' | 'equity' | 'revenue' | 'expense'
+export type NormalBalance = 'debit' | 'credit'
+export type JournalType = 'general' | 'sales' | 'purchase' | 'cash-receipts' | 'cash-payments' | 'payroll' | 'depreciation' | 'accrual' | 'adjustment'
+export type JournalEntryStatus = 'draft' | 'pending-approval' | 'approved' | 'posted' | 'reversed' | 'rejected'
+export type FiscalPeriodStatus = 'open' | 'locked' | 'closed'
+export type ReconciliationStatus = 'unreconciled' | 'partial' | 'reconciled' | 'disputed'
+export type GLPostingSource = 'manual' | 'guest-invoice' | 'supplier-invoice' | 'payment' | 'expense' | 'payroll' | 'bank-transfer' | 'folio' | 'pos' | 'grn' | 'purchase-order' | 'depreciation' | 'system'
+
+export interface ChartOfAccount {
+  id: string
+  accountCode: string
+  accountName: string
+  accountType: AccountType
+  parentAccountId?: string
+  normalBalance: NormalBalance
+  isActive: boolean
+  isBankAccount: boolean
+  isControlAccount: boolean
+  currency: string
+  taxApplicable: boolean
+  costCenterEnabled: boolean
+  description?: string
+  reportingGroup?: string
+  mappings: {
+    posCategory?: string
+    invoiceType?: GuestInvoiceType
+    department?: Department
+    paymentMethod?: PaymentMethod
+  }
+  currentBalance: number
+  openingBalance: number
+  fiscalYearOpeningBalance: number
+  lastTransactionDate?: number
+  createdAt: number
+  updatedAt: number
+  createdBy: string
+}
+
+export interface JournalEntry {
+  id: string
+  journalNumber: string
+  journalType: JournalType
+  status: JournalEntryStatus
+  transactionDate: number
+  postingDate?: number
+  fiscalPeriod: string
+  fiscalYear: string
+  source: GLPostingSource
+  sourceDocumentType?: string
+  sourceDocumentId?: string
+  sourceDocumentNumber?: string
+  description: string
+  reference?: string
+  lines: JournalEntryLine[]
+  totalDebit: number
+  totalCredit: number
+  isBalanced: boolean
+  isRecurring: boolean
+  recurringTemplateId?: string
+  isReversal: boolean
+  reversalOfEntryId?: string
+  reversedByEntryId?: string
+  reversalReason?: string
+  attachments?: string[]
+  tags?: string[]
+  approvalWorkflow?: ApprovalStep[]
+  createdBy: string
+  createdAt: number
+  submittedBy?: string
+  submittedAt?: number
+  approvedBy?: string
+  approvedAt?: number
+  postedBy?: string
+  postedAt?: number
+  rejectedBy?: string
+  rejectedAt?: number
+  rejectionReason?: string
+  auditTrail: JournalAuditEntry[]
+}
+
+export interface JournalEntryLine {
+  id: string
+  lineNumber: number
+  accountId: string
+  accountCode: string
+  accountName: string
+  debit: number
+  credit: number
+  description?: string
+  costCenter?: string
+  department?: Department
+  taxId?: string
+  taxAmount?: number
+  currency?: string
+  exchangeRate?: number
+  baseCurrencyAmount?: number
+  reconciliationStatus: ReconciliationStatus
+  reconciledWith?: string
+  reconciledAt?: number
+  reconciledBy?: string
+}
+
+export interface GLEntry {
+  id: string
+  journalEntryId: string
+  journalNumber: string
+  lineId: string
+  accountId: string
+  accountCode: string
+  accountName: string
+  transactionDate: number
+  postingDate: number
+  fiscalPeriod: string
+  fiscalYear: string
+  debit: number
+  credit: number
+  balance: number
+  runningBalance: number
+  description: string
+  source: GLPostingSource
+  sourceDocumentId?: string
+  sourceDocumentNumber?: string
+  costCenter?: string
+  department?: Department
+  createdBy: string
+  createdAt: number
+}
+
+export interface FiscalPeriod {
+  id: string
+  periodCode: string
+  periodName: string
+  fiscalYear: string
+  startDate: number
+  endDate: number
+  status: FiscalPeriodStatus
+  isCurrentPeriod: boolean
+  closedBy?: string
+  closedAt?: number
+  lockedBy?: string
+  lockedAt?: number
+  openedBy?: string
+  openedAt?: number
+  adjustmentEntries?: string[]
+  notes?: string
+}
+
+export interface FiscalYear {
+  id: string
+  yearCode: string
+  yearName: string
+  startDate: number
+  endDate: number
+  isCurrent: boolean
+  status: 'open' | 'closed'
+  periods: string[]
+  closedBy?: string
+  closedAt?: number
+  createdAt: number
+}
+
+export interface RecurringJournalTemplate {
+  id: string
+  templateName: string
+  journalType: JournalType
+  description: string
+  frequency: 'daily' | 'weekly' | 'bi-weekly' | 'monthly' | 'quarterly' | 'yearly'
+  startDate: number
+  endDate?: number
+  nextRunDate: number
+  lastRunDate?: number
+  isActive: boolean
+  lines: RecurringJournalLine[]
+  autoApprove: boolean
+  autoPost: boolean
+  createdBy: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface RecurringJournalLine {
+  lineNumber: number
+  accountId: string
+  accountCode: string
+  accountName: string
+  debitFormula?: string
+  creditFormula?: string
+  fixedDebit?: number
+  fixedCredit?: number
+  description: string
+  costCenter?: string
+  department?: Department
+}
+
+export interface ApprovalStep {
+  stepNumber: number
+  approverRole: string
+  approverId?: string
+  approverName?: string
+  status: 'pending' | 'approved' | 'rejected' | 'skipped'
+  comments?: string
+  timestamp?: number
+}
+
+export interface JournalAuditEntry {
+  id: string
+  action: 'created' | 'updated' | 'submitted' | 'approved' | 'rejected' | 'posted' | 'reversed' | 'deleted'
+  performedBy: string
+  performedByName: string
+  timestamp: number
+  changes?: {
+    field: string
+    oldValue: any
+    newValue: any
+  }[]
+  comments?: string
+  ipAddress?: string
+}
+
+export interface BankReconciliation {
+  id: string
+  reconciliationNumber: string
+  bankAccountId: string
+  bankAccountName: string
+  statementDate: number
+  statementBalance: number
+  bookBalance: number
+  difference: number
+  status: 'in-progress' | 'completed' | 'discrepancy'
+  statementFile?: string
+  matchedTransactions: ReconciledTransaction[]
+  unmatchedBankTransactions: BankTransaction[]
+  unmatchedBookTransactions: GLEntry[]
+  adjustmentEntries?: string[]
+  reconciledBy?: string
+  reconciledAt?: number
+  reviewedBy?: string
+  reviewedAt?: number
+  notes?: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface BankTransaction {
+  id: string
+  transactionDate: number
+  valueDate: number
+  description: string
+  reference?: string
+  debit: number
+  credit: number
+  balance: number
+  transactionType?: string
+  matched: boolean
+  matchedGLEntryId?: string
+}
+
+export interface ReconciledTransaction {
+  bankTransactionId: string
+  glEntryId: string
+  matchType: 'exact' | 'partial' | 'manual'
+  matchScore?: number
+  reconciledAt: number
+  reconciledBy: string
+}
+
+export interface TrialBalance {
+  id: string
+  fiscalPeriod: string
+  fiscalYear: string
+  generatedAt: number
+  generatedBy: string
+  accounts: TrialBalanceAccount[]
+  totalDebit: number
+  totalCredit: number
+  isBalanced: boolean
+}
+
+export interface TrialBalanceAccount {
+  accountId: string
+  accountCode: string
+  accountName: string
+  accountType: AccountType
+  openingBalance: number
+  debit: number
+  credit: number
+  closingBalance: number
+  normalBalance: NormalBalance
+}
+
 export interface HotelBranding {
   id: string
   hotelName: string

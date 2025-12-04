@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   CurrencyDollar,
   Receipt,
@@ -17,14 +18,18 @@ import {
   TrendUp,
   Invoice as InvoiceIcon,
   CreditCard,
-  ChartBar
+  ChartBar,
+  Notebook,
+  Bank,
+  ListChecks
 } from '@phosphor-icons/react'
-import { type Invoice, type Payment, type Expense, type Account, type Budget } from '@/lib/types'
+import { type Invoice, type Payment, type Expense, type Account, type Budget, type JournalEntry, type ChartOfAccount, type SystemUser } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/helpers'
 import { InvoiceDialog } from './InvoiceDialog'
 import { PaymentDialog } from './PaymentDialog'
 import { ExpenseDialog } from './ExpenseDialog'
 import { BudgetDialog } from './BudgetDialog'
+import { JournalEntryDialog } from './JournalEntryDialog'
 
 interface FinanceProps {
   invoices: Invoice[]
@@ -36,6 +41,11 @@ interface FinanceProps {
   accounts: Account[]
   budgets: Budget[]
   setBudgets: (budgets: Budget[] | ((prev: Budget[]) => Budget[])) => void
+  journalEntries?: JournalEntry[]
+  setJournalEntries?: (entries: JournalEntry[] | ((prev: JournalEntry[]) => JournalEntry[])) => void
+  chartOfAccounts?: ChartOfAccount[]
+  setChartOfAccounts?: (accounts: ChartOfAccount[] | ((prev: ChartOfAccount[]) => ChartOfAccount[])) => void
+  currentUser: SystemUser
 }
 
 export function Finance({
