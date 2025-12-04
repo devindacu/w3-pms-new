@@ -10,7 +10,10 @@ import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
-import { Download, Printer, ArrowDown, ArrowUp, TrendUp, TrendDown } from '@phosphor-icons/react'
+import { Label } from '@/components/ui/label'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Download, Printer, ArrowDown, ArrowUp, TrendUp, TrendDown, CalendarBlank } from '@phosphor-icons/react'
 import { formatCurrency, formatDate } from '@/lib/helpers'
 import {
   type JournalEntry,
@@ -20,6 +23,7 @@ import {
   type ChartOfAccount
 } from '@/lib/types'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { toast } from 'sonner'
 
 interface CashFlowStatementDialogProps {
   open: boolean
@@ -68,6 +72,11 @@ interface CashFlowData {
   endingCash: number
 }
 
+interface CashFlowPeriod {
+  startDate: number
+  endDate: number
+}
+
 export function CashFlowStatementDialog({
   open,
   onOpenChange,
@@ -77,20 +86,93 @@ export function CashFlowStatementDialog({
   glEntries,
   chartOfAccounts
 }: CashFlowStatementDialogProps) {
-  const [periodType, setPeriodType] = useState<'month' | 'quarter' | 'year'>('month')
-  const [selectedPeriod, setSelectedPeriod] = useState(new Date().toISOString().substring(0, 7))
+  const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'yesterday' | 'week' | 'last-week' | 'month' | 'last-month' | 'quarter' | 'last-quarter' | 'year' | 'last-year' | 'ytd' | 'custom'>('month')
+  const [customPeriod, setCustomPeriod] = useState<CashFlowPeriod>({
+    startDate: Date.now() - 30 * 24 * 60 * 60 * 1000,
+    endDate: Date.now()
+  })
+
+  const getPeriodDates = (): CashFlowPeriod => {
+    const now = new Date()
+    const endDate = now.getTime()
+    
+    switch (selectedPeriod) {
+      case 'today':
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        return { startDate: todayStart.getTime(), endDate }
+      
+      case 'yesterday':
+        const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+        const yesterdayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 23, 59, 59)
+        return { startDate: yesterday.getTime(), endDate: yesterdayEnd.getTime() }
+      
+      case 'week':
+        const weekStart = new Date(now)
+        weekStart.setDate(now.getDate() - now.getDay())
+        weekStart.setHours(0, 0, 0, 0)
+        return { startDate: weekStart.getTime(), endDate }
+      
+      case 'last-week':
+        const lastWeekStart = new Date(now)
+        lastWeekStart.setDate(now.getDate() - now.getDay() - 7)
+        lastWeekStart.setHours(0, 0, 0, 0)
+        const lastWeekEnd = new Date(lastWeekStart)
+        lastWeekEnd.setDate(lastWeekStart.getDate() + 6)
+        lastWeekEnd.setHours(23, 59, 59, 999)
+        return { startDate: lastWeekStart.getTime(), endDate: lastWeekEnd.getTime() }
+      
+      case 'month':
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+        return { startDate: monthStart.getTime(), endDate }
+      
+      case 'last-month':
+        const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+        const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59)
+        return { startDate: lastMonthStart.getTime(), endDate: lastMonthEnd.getTime() }
+      
+      case 'quarter':
+        const quarterMonth = Math.floor(now.getMonth() / 3) * 3
+        const quarterStart = new Date(now.getFullYear(), quarterMonth, 1)
+        return { startDate: quarterStart.getTime(), endDate }
+      
+      case 'last-quarter':
+        const lastQuarterMonth = Math.floor(now.getMonth() / 3) * 3 - 3
+        const lastQuarterStart = new Date(now.getFullYear(), lastQuarterMonth, 1)
+        const lastQuarterEnd = new Date(now.getFullYear(), lastQuarterMonth + 3, 0, 23, 59, 59)
+        return { startDate: lastQuarterStart.getTime(), endDate: lastQuarterEnd.getTime() }
+      
+      case 'year':
+        const yearStart = new Date(now.getFullYear(), 0, 1)
+        return { startDate: yearStart.getTime(), endDate }
+      
+      case 'last-year':
+        const lastYearStart = new Date(now.getFullYear() - 1, 0, 1)
+        const lastYearEnd = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59)
+        return { startDate: lastYearStart.getTime(), endDate: lastYearEnd.getTime() }
+      
+      case 'ytd':
+        const ytdStart = new Date(now.getFullYear(), 0, 1)
+        return { startDate: ytdStart.getTime(), endDate }
+      
+      case 'custom':
+        return customPeriod
+      
+      default:
+        return { startDate: endDate - 30 * 24 * 60 * 60 * 1000, endDate }
+    }
+  }
+  
+  const setQuickPeriod = (days: number) => {
+    const endDate = Date.now()
+    const startDate = endDate - days * 24 * 60 * 60 * 1000
+    setCustomPeriod({ startDate, endDate })
+    setSelectedPeriod('custom')
+  }
 
   const calculateCashFlow = (): CashFlowData => {
-    const periodStart = new Date(selectedPeriod)
-    const periodEnd = new Date(periodStart)
-    
-    if (periodType === 'month') {
-      periodEnd.setMonth(periodEnd.getMonth() + 1)
-    } else if (periodType === 'quarter') {
-      periodEnd.setMonth(periodEnd.getMonth() + 3)
-    } else {
-      periodEnd.setFullYear(periodEnd.getFullYear() + 1)
-    }
+    const period = getPeriodDates()
+    const periodStart = new Date(period.startDate)
+    const periodEnd = new Date(period.endDate)
 
     const revenueAccounts = chartOfAccounts.filter(a => a.accountType === 'revenue')
     const expenseAccounts = chartOfAccounts.filter(a => a.accountType === 'expense')
@@ -234,6 +316,7 @@ export function CashFlowStatementDialog({
   }
 
   const handleDownload = () => {
+    const period = getPeriodDates()
     const reportLines: string[] = []
     
     reportLines.push('='.repeat(100))
@@ -241,7 +324,7 @@ export function CashFlowStatementDialog({
     reportLines.push('Indirect Method')
     reportLines.push('='.repeat(100))
     reportLines.push('')
-    reportLines.push(`Period: ${selectedPeriod} (${periodType})`)
+    reportLines.push(`Period: ${formatDate(period.startDate)} to ${formatDate(period.endDate)}`)
     reportLines.push(`Generated: ${formatDate(Date.now())}`)
     reportLines.push(`All amounts in LKR`)
     reportLines.push('')
@@ -327,9 +410,11 @@ export function CashFlowStatementDialog({
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `cash-flow-statement-${selectedPeriod}.txt`
+    a.download = `cash-flow-statement-${formatDate(period.startDate).replace(/\//g, '-')}-to-${formatDate(period.endDate).replace(/\//g, '-')}.txt`
     a.click()
     URL.revokeObjectURL(url)
+    
+    toast.success('Cash Flow Statement downloaded')
   }
 
   const CashFlowLine = ({ 
@@ -365,7 +450,7 @@ export function CashFlowStatementDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
+      <DialogContent className="max-w-5xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <TrendUp size={24} className="text-primary" />
@@ -374,32 +459,31 @@ export function CashFlowStatementDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium">Period Type:</label>
-              <Select value={periodType} onValueChange={(value) => setPeriodType(value as 'month' | 'quarter' | 'year')}>
-                <SelectTrigger className="w-32">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label>Period</Label>
+              <Select value={selectedPeriod} onValueChange={(v: any) => setSelectedPeriod(v)}>
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="month">Monthly</SelectItem>
-                  <SelectItem value="quarter">Quarterly</SelectItem>
-                  <SelectItem value="year">Yearly</SelectItem>
+                  <SelectItem value="today">Today</SelectItem>
+                  <SelectItem value="yesterday">Yesterday</SelectItem>
+                  <SelectItem value="week">This Week</SelectItem>
+                  <SelectItem value="last-week">Last Week</SelectItem>
+                  <SelectItem value="month">This Month</SelectItem>
+                  <SelectItem value="last-month">Last Month</SelectItem>
+                  <SelectItem value="quarter">This Quarter</SelectItem>
+                  <SelectItem value="last-quarter">Last Quarter</SelectItem>
+                  <SelectItem value="year">This Year</SelectItem>
+                  <SelectItem value="last-year">Last Year</SelectItem>
+                  <SelectItem value="ytd">Year to Date</SelectItem>
+                  <SelectItem value="custom">Custom Date Range</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium">Period:</label>
-              <input
-                type="month"
-                value={selectedPeriod}
-                onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="px-3 py-2 border rounded-md text-sm"
-              />
-            </div>
-
-            <div className="ml-auto flex gap-2">
+            <div className="flex gap-2 items-end">
               <Button variant="outline" size="sm" onClick={handlePrint}>
                 <Printer size={16} className="mr-2" />
                 Print
@@ -411,6 +495,81 @@ export function CashFlowStatementDialog({
             </div>
           </div>
 
+          {selectedPeriod === 'custom' && (
+            <Card className="p-4 border-primary/20 bg-primary/5">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-sm">Custom Date Range</h4>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setQuickPeriod(7)}>
+                      Last 7 Days
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setQuickPeriod(30)}>
+                      Last 30 Days
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setQuickPeriod(90)}>
+                      Last 90 Days
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setQuickPeriod(365)}>
+                      Last Year
+                    </Button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Start Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start">
+                          <CalendarBlank size={16} className="mr-2" />
+                          {formatDate(customPeriod.startDate)}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent>
+                        <Calendar
+                          mode="single"
+                          selected={new Date(customPeriod.startDate)}
+                          onSelect={(date) => date && setCustomPeriod(p => ({ ...p, startDate: date.getTime() }))}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div>
+                    <Label>End Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start">
+                          <CalendarBlank size={16} className="mr-2" />
+                          {formatDate(customPeriod.endDate)}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent>
+                        <Calendar
+                          mode="single"
+                          selected={new Date(customPeriod.endDate)}
+                          onSelect={(date) => date && setCustomPeriod(p => ({ ...p, endDate: date.getTime() }))}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Selected Range: {Math.ceil((customPeriod.endDate - customPeriod.startDate) / (24 * 60 * 60 * 1000))} days
+                </div>
+              </div>
+            </Card>
+          )}
+
+          <Card className="p-3 bg-muted/50">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Viewing Period:</span>
+              <span className="font-semibold">
+                {formatDate(getPeriodDates().startDate)} - {formatDate(getPeriodDates().endDate)}
+              </span>
+            </div>
+          </Card>
+
           <ScrollArea className="h-[calc(90vh-200px)]">
             <div className="space-y-6 pr-4">
               <Card className="p-6">
@@ -418,7 +577,7 @@ export function CashFlowStatementDialog({
                   <h2 className="text-2xl font-bold">CASH FLOW STATEMENT</h2>
                   <p className="text-sm text-muted-foreground">Indirect Method</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Period: {selectedPeriod} ({periodType})
+                    Period: {formatDate(getPeriodDates().startDate)} to {formatDate(getPeriodDates().endDate)}
                   </p>
                   <p className="text-xs text-muted-foreground">All amounts in LKR</p>
                 </div>

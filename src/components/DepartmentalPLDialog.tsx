@@ -102,7 +102,7 @@ export function DepartmentalPLDialog({
   journalEntries = [],
   glEntries = []
 }: DepartmentalPLDialogProps) {
-  const [selectedPeriod, setSelectedPeriod] = useState<'month' | 'quarter' | 'year' | 'custom'>('month')
+  const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'yesterday' | 'week' | 'last-week' | 'month' | 'last-month' | 'quarter' | 'last-quarter' | 'year' | 'last-year' | 'ytd' | 'custom'>('month')
   const [customPeriod, setCustomPeriod] = useState<PLPeriod>({
     startDate: Date.now() - 30 * 24 * 60 * 60 * 1000,
     endDate: Date.now()
@@ -115,18 +115,62 @@ export function DepartmentalPLDialog({
     const endDate = now.getTime()
     
     switch (selectedPeriod) {
+      case 'today':
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        return { startDate: todayStart.getTime(), endDate }
+      
+      case 'yesterday':
+        const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+        const yesterdayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 23, 59, 59)
+        return { startDate: yesterday.getTime(), endDate: yesterdayEnd.getTime() }
+      
+      case 'week':
+        const weekStart = new Date(now)
+        weekStart.setDate(now.getDate() - now.getDay())
+        weekStart.setHours(0, 0, 0, 0)
+        return { startDate: weekStart.getTime(), endDate }
+      
+      case 'last-week':
+        const lastWeekStart = new Date(now)
+        lastWeekStart.setDate(now.getDate() - now.getDay() - 7)
+        lastWeekStart.setHours(0, 0, 0, 0)
+        const lastWeekEnd = new Date(lastWeekStart)
+        lastWeekEnd.setDate(lastWeekStart.getDate() + 6)
+        lastWeekEnd.setHours(23, 59, 59, 999)
+        return { startDate: lastWeekStart.getTime(), endDate: lastWeekEnd.getTime() }
+      
       case 'month':
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
         return { startDate: monthStart.getTime(), endDate }
+      
+      case 'last-month':
+        const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+        const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59)
+        return { startDate: lastMonthStart.getTime(), endDate: lastMonthEnd.getTime() }
       
       case 'quarter':
         const quarterMonth = Math.floor(now.getMonth() / 3) * 3
         const quarterStart = new Date(now.getFullYear(), quarterMonth, 1)
         return { startDate: quarterStart.getTime(), endDate }
       
+      case 'last-quarter':
+        const lastQuarterMonth = Math.floor(now.getMonth() / 3) * 3 - 3
+        const lastQuarterStart = new Date(now.getFullYear(), lastQuarterMonth, 1)
+        const lastQuarterEnd = new Date(now.getFullYear(), lastQuarterMonth + 3, 0, 23, 59, 59)
+        return { startDate: lastQuarterStart.getTime(), endDate: lastQuarterEnd.getTime() }
+      
       case 'year':
         const yearStart = new Date(now.getFullYear(), 0, 1)
         return { startDate: yearStart.getTime(), endDate }
+      
+      case 'last-year':
+        const lastYearStart = new Date(now.getFullYear() - 1, 0, 1)
+        const lastYearEnd = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59)
+        return { startDate: lastYearStart.getTime(), endDate: lastYearEnd.getTime() }
+      
+      case 'ytd':
+        const ytdStart = new Date(now.getFullYear(), 0, 1)
+        return { startDate: ytdStart.getTime(), endDate }
       
       case 'custom':
         return customPeriod
@@ -134,6 +178,13 @@ export function DepartmentalPLDialog({
       default:
         return { startDate: endDate - 30 * 24 * 60 * 60 * 1000, endDate }
     }
+  }
+  
+  const setQuickPeriod = (days: number) => {
+    const endDate = Date.now()
+    const startDate = endDate - days * 24 * 60 * 60 * 1000
+    setCustomPeriod({ startDate, endDate })
+    setSelectedPeriod('custom')
   }
 
   const calculateDepartmentPL = (department: Department): DepartmentRevenue => {
@@ -323,63 +374,29 @@ export function DepartmentalPLDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2">
               <Label>Period</Label>
               <Select value={selectedPeriod} onValueChange={(v: any) => setSelectedPeriod(v)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="month">Current Month</SelectItem>
-                  <SelectItem value="quarter">Current Quarter</SelectItem>
-                  <SelectItem value="year">Current Year</SelectItem>
-                  <SelectItem value="custom">Custom Period</SelectItem>
+                  <SelectItem value="today">Today</SelectItem>
+                  <SelectItem value="yesterday">Yesterday</SelectItem>
+                  <SelectItem value="week">This Week</SelectItem>
+                  <SelectItem value="last-week">Last Week</SelectItem>
+                  <SelectItem value="month">This Month</SelectItem>
+                  <SelectItem value="last-month">Last Month</SelectItem>
+                  <SelectItem value="quarter">This Quarter</SelectItem>
+                  <SelectItem value="last-quarter">Last Quarter</SelectItem>
+                  <SelectItem value="year">This Year</SelectItem>
+                  <SelectItem value="last-year">Last Year</SelectItem>
+                  <SelectItem value="ytd">Year to Date</SelectItem>
+                  <SelectItem value="custom">Custom Date Range</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
-            {selectedPeriod === 'custom' && (
-              <>
-                <div>
-                  <Label>Start Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start">
-                        <CalendarBlank size={16} className="mr-2" />
-                        {formatDate(customPeriod.startDate)}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent>
-                      <Calendar
-                        mode="single"
-                        selected={new Date(customPeriod.startDate)}
-                        onSelect={(date) => date && setCustomPeriod(p => ({ ...p, startDate: date.getTime() }))}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div>
-                  <Label>End Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start">
-                        <CalendarBlank size={16} className="mr-2" />
-                        {formatDate(customPeriod.endDate)}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent>
-                      <Calendar
-                        mode="single"
-                        selected={new Date(customPeriod.endDate)}
-                        onSelect={(date) => date && setCustomPeriod(p => ({ ...p, endDate: date.getTime() }))}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </>
-            )}
 
             <div>
               <Label>Departments</Label>
@@ -394,6 +411,81 @@ export function DepartmentalPLDialog({
               </Select>
             </div>
           </div>
+
+          {selectedPeriod === 'custom' && (
+            <Card className="p-4 border-primary/20 bg-primary/5">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-sm">Custom Date Range</h4>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setQuickPeriod(7)}>
+                      Last 7 Days
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setQuickPeriod(30)}>
+                      Last 30 Days
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setQuickPeriod(90)}>
+                      Last 90 Days
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setQuickPeriod(365)}>
+                      Last Year
+                    </Button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Start Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start">
+                          <CalendarBlank size={16} className="mr-2" />
+                          {formatDate(customPeriod.startDate)}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent>
+                        <Calendar
+                          mode="single"
+                          selected={new Date(customPeriod.startDate)}
+                          onSelect={(date) => date && setCustomPeriod(p => ({ ...p, startDate: date.getTime() }))}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div>
+                    <Label>End Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start">
+                          <CalendarBlank size={16} className="mr-2" />
+                          {formatDate(customPeriod.endDate)}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent>
+                        <Calendar
+                          mode="single"
+                          selected={new Date(customPeriod.endDate)}
+                          onSelect={(date) => date && setCustomPeriod(p => ({ ...p, endDate: date.getTime() }))}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Selected Range: {Math.ceil((customPeriod.endDate - customPeriod.startDate) / (24 * 60 * 60 * 1000))} days
+                </div>
+              </div>
+            </Card>
+          )}
+          
+          <Card className="p-3 bg-muted/50">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Viewing Period:</span>
+              <span className="font-semibold">
+                {formatDate(getPeriodDates().startDate)} - {formatDate(getPeriodDates().endDate)}
+              </span>
+            </div>
+          </Card>
 
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handlePrint}>
