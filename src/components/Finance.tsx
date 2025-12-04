@@ -21,7 +21,9 @@ import {
   ChartBar,
   Notebook,
   Bank,
-  ListChecks
+  ListChecks,
+  Calendar,
+  FilePlus
 } from '@phosphor-icons/react'
 import { type Invoice, type Payment, type Expense, type Account, type Budget, type JournalEntry, type ChartOfAccount, type SystemUser } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/helpers'
@@ -30,6 +32,7 @@ import { PaymentDialog } from './PaymentDialog'
 import { ExpenseDialog } from './ExpenseDialog'
 import { BudgetDialog } from './BudgetDialog'
 import { JournalEntryDialog } from './JournalEntryDialog'
+import { toast } from 'sonner'
 
 interface FinanceProps {
   invoices: Invoice[]
@@ -57,17 +60,24 @@ export function Finance({
   setExpenses,
   accounts,
   budgets,
-  setBudgets
+  setBudgets,
+  journalEntries = [],
+  setJournalEntries,
+  chartOfAccounts = [],
+  setChartOfAccounts,
+  currentUser
 }: FinanceProps) {
   const [selectedTab, setSelectedTab] = useState('overview')
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false)
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false)
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false)
   const [budgetDialogOpen, setBudgetDialogOpen] = useState(false)
+  const [journalDialogOpen, setJournalDialogOpen] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | undefined>()
   const [selectedPayment, setSelectedPayment] = useState<Payment | undefined>()
   const [selectedExpense, setSelectedExpense] = useState<Expense | undefined>()
   const [selectedBudget, setSelectedBudget] = useState<Budget | undefined>()
+  const [selectedJournal, setSelectedJournal] = useState<JournalEntry | undefined>()
 
   const totalRevenue = invoices.reduce((sum, inv) => sum + inv.total, 0)
   const totalReceivables = invoices.reduce((sum, inv) => {
@@ -175,6 +185,107 @@ export function Finance({
     setBudgetDialogOpen(true)
   }
 
+  const handleNewJournal = () => {
+    setSelectedJournal(undefined)
+    setJournalDialogOpen(true)
+  }
+
+  const handleEditJournal = (entry: JournalEntry) => {
+    setSelectedJournal(entry)
+    setJournalDialogOpen(true)
+  }
+
+  const handlePostJournal = (entry: JournalEntry) => {
+    if (!setJournalEntries) return
+    
+    if (entry.status === 'posted') {
+      toast.warning('Entry is already posted')
+      return
+    }
+
+    if (!entry.isBalanced) {
+      toast.error('Cannot post unbalanced entry')
+      return
+    }
+
+    const updatedEntry: JournalEntry = {
+      ...entry,
+      status: 'posted',
+      postingDate: Date.now(),
+      postedBy: currentUser.id,
+      postedAt: Date.now()
+    }
+
+    setJournalEntries((prev) => prev.map((e) => (e.id === entry.id ? updatedEntry : e)))
+    toast.success(`Journal ${entry.journalNumber} posted successfully`)
+  }
+
+  const handleReverseJournal = (entry: JournalEntry) => {
+    if (!setJournalEntries) return
+    
+    if (entry.status !== 'posted') {
+      toast.error('Only posted entries can be reversed')
+      return
+    }
+
+    const reversedLines = entry.lines.map((line) => ({
+      ...line,
+      debit: line.credit,
+      credit: line.debit
+    }))
+
+    const reversal: JournalEntry = {
+      ...entry,
+      id: `je-rev-${Date.now()}`,
+      journalNumber: `REV-${entry.journalNumber}`,
+      status: 'posted',
+      transactionDate: Date.now(),
+      postingDate: Date.now(),
+      description: `Reversal of ${entry.journalNumber}: ${entry.description}`,
+      lines: reversedLines,
+      isReversal: true,
+      reversalOfEntryId: entry.id,
+      reversalReason: 'Manual reversal',
+      createdBy: currentUser.id,
+      createdAt: Date.now(),
+      postedBy: currentUser.id,
+      postedAt: Date.now(),
+      auditTrail: []
+    }
+
+    setJournalEntries((prev) => [
+      ...prev.map((e) => (e.id === entry.id ? { ...e, reversedByEntryId: reversal.id } : e)),
+      reversal
+    ])
+    
+    toast.success(`Reversal entry ${reversal.journalNumber} created`)
+  }
+
+  const calculateReports = () => {
+    const assetAccounts = chartOfAccounts.filter(a => a.accountType === 'asset')
+    const liabilityAccounts = chartOfAccounts.filter(a => a.accountType === 'liability')
+    const equityAccounts = chartOfAccounts.filter(a => a.accountType === 'equity')
+    const revenueAccounts = chartOfAccounts.filter(a => a.accountType === 'revenue')
+    const expenseAccounts = chartOfAccounts.filter(a => a.accountType === 'expense')
+
+    const totalAssets = assetAccounts.reduce((sum, acc) => sum + acc.currentBalance, 0)
+    const totalLiabilities = liabilityAccounts.reduce((sum, acc) => sum + acc.currentBalance, 0)
+    const totalEquity = equityAccounts.reduce((sum, acc) => sum + acc.currentBalance, 0)
+    const totalRevenue = revenueAccounts.reduce((sum, acc) => sum + acc.currentBalance, 0)
+    const totalExpenses = expenseAccounts.reduce((sum, acc) => sum + acc.currentBalance, 0)
+
+    return {
+      totalAssets,
+      totalLiabilities,
+      totalEquity,
+      totalRevenue,
+      totalExpenses,
+      netIncome: totalRevenue - totalExpenses
+    }
+  }
+
+  const reports = calculateReports()
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -253,13 +364,15 @@ export function Finance({
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList>
+        <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="invoices">Invoices</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="expenses">Expenses</TabsTrigger>
           <TabsTrigger value="budgets">Budgets</TabsTrigger>
-          <TabsTrigger value="accounts">Accounts</TabsTrigger>
+          <TabsTrigger value="accounts">Chart of Accounts</TabsTrigger>
+          <TabsTrigger value="journals">Journal Entries</TabsTrigger>
+          <TabsTrigger value="reports">Financial Reports</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -675,6 +788,286 @@ export function Finance({
             </div>
           </Card>
         </TabsContent>
+
+        <TabsContent value="journals" className="space-y-6">
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold">Journal Entries</h3>
+              <Button onClick={handleNewJournal}>
+                <Plus size={18} className="mr-2" />
+                New Journal Entry
+              </Button>
+            </div>
+
+            <div className="space-y-3">
+              {!journalEntries || journalEntries.length === 0 ? (
+                <div className="text-center py-12">
+                  <Notebook size={48} className="mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No journal entries yet</p>
+                  <Button onClick={handleNewJournal} className="mt-4">
+                    <Plus size={18} className="mr-2" />
+                    Create First Journal Entry
+                  </Button>
+                </div>
+              ) : (
+                journalEntries.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="p-4 bg-muted/50 rounded-lg"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <p className="font-semibold">{entry.journalNumber}</p>
+                          <Badge variant={entry.status === 'posted' ? 'default' : entry.status === 'approved' ? 'default' : 'secondary'} className={entry.status === 'posted' ? 'text-success' : entry.status === 'approved' ? 'text-accent' : ''}>
+                            {entry.status.replace('-', ' ')}
+                          </Badge>
+                          {entry.isReversal && (
+                            <Badge variant="destructive">Reversal</Badge>
+                          )}
+                          {!entry.isBalanced && (
+                            <Badge variant="destructive">Unbalanced</Badge>
+                          )}
+                        </div>
+                        <p className="text-sm mb-3">{entry.description}</p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <span className="text-muted-foreground">Type:</span>
+                            <span className="ml-2 capitalize">{entry.journalType.replace('-', ' ')}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Date:</span>
+                            <span className="ml-2">{formatDate(entry.transactionDate)}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Period:</span>
+                            <span className="ml-2">{entry.fiscalPeriod}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Lines:</span>
+                            <span className="ml-2">{entry.lines.length}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right space-y-2">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Total Debit</p>
+                          <p className="text-lg font-semibold text-success">{formatCurrency(entry.totalDebit)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Total Credit</p>
+                          <p className="text-lg font-semibold text-destructive">{formatCurrency(entry.totalCredit)}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-4">
+                      <Button size="sm" variant="outline" onClick={() => handleEditJournal(entry)}>
+                        Edit
+                      </Button>
+                      {entry.status !== 'posted' && entry.isBalanced && (
+                        <Button size="sm" variant="default" onClick={() => handlePostJournal(entry)}>
+                          <FilePlus size={16} className="mr-2" />
+                          Post
+                        </Button>
+                      )}
+                      {entry.status === 'posted' && !entry.reversedByEntryId && (
+                        <Button size="sm" variant="destructive" onClick={() => handleReverseJournal(entry)}>
+                          Reverse
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="reports" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <ChartBar size={20} />
+                Balance Sheet
+              </h3>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg">
+                    <h4 className="font-semibold">ASSETS</h4>
+                    <span className="font-semibold">{formatCurrency(reports.totalAssets)}</span>
+                  </div>
+                  {chartOfAccounts.filter(a => a.accountType === 'asset').map((account) => (
+                    <div key={account.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg ml-4">
+                      <div>
+                        <p className="font-medium">{account.accountName}</p>
+                        <p className="text-sm text-muted-foreground">#{account.accountCode}</p>
+                      </div>
+                      <p className="font-semibold">{formatCurrency(account.currentBalance)}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg">
+                    <h4 className="font-semibold">LIABILITIES</h4>
+                    <span className="font-semibold">{formatCurrency(reports.totalLiabilities)}</span>
+                  </div>
+                  {chartOfAccounts.filter(a => a.accountType === 'liability').map((account) => (
+                    <div key={account.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg ml-4">
+                      <div>
+                        <p className="font-medium">{account.accountName}</p>
+                        <p className="text-sm text-muted-foreground">#{account.accountCode}</p>
+                      </div>
+                      <p className="font-semibold">{formatCurrency(account.currentBalance)}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg">
+                    <h4 className="font-semibold">EQUITY</h4>
+                    <span className="font-semibold">{formatCurrency(reports.totalEquity)}</span>
+                  </div>
+                  {chartOfAccounts.filter(a => a.accountType === 'equity').map((account) => (
+                    <div key={account.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg ml-4">
+                      <div>
+                        <p className="font-medium">{account.accountName}</p>
+                        <p className="text-sm text-muted-foreground">#{account.accountCode}</p>
+                      </div>
+                      <p className="font-semibold">{formatCurrency(account.currentBalance)}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <Separator className="my-4" />
+
+                <div className="flex items-center justify-between p-4 bg-accent/20 rounded-lg">
+                  <span className="font-bold">Total Liabilities + Equity</span>
+                  <span className="font-bold text-lg">{formatCurrency(reports.totalLiabilities + reports.totalEquity)}</span>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <TrendUp size={20} />
+                Profit & Loss Statement
+              </h3>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 bg-success/10 rounded-lg">
+                    <h4 className="font-semibold">REVENUE</h4>
+                    <span className="font-semibold text-success">{formatCurrency(reports.totalRevenue)}</span>
+                  </div>
+                  {chartOfAccounts.filter(a => a.accountType === 'revenue').map((account) => (
+                    <div key={account.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg ml-4">
+                      <div>
+                        <p className="font-medium">{account.accountName}</p>
+                        <p className="text-sm text-muted-foreground">#{account.accountCode}</p>
+                      </div>
+                      <p className="font-semibold text-success">{formatCurrency(account.currentBalance)}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 bg-destructive/10 rounded-lg">
+                    <h4 className="font-semibold">EXPENSES</h4>
+                    <span className="font-semibold text-destructive">{formatCurrency(reports.totalExpenses)}</span>
+                  </div>
+                  {chartOfAccounts.filter(a => a.accountType === 'expense').map((account) => (
+                    <div key={account.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg ml-4">
+                      <div>
+                        <p className="font-medium">{account.accountName}</p>
+                        <p className="text-sm text-muted-foreground">#{account.accountCode}</p>
+                      </div>
+                      <p className="font-semibold text-destructive">{formatCurrency(account.currentBalance)}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <Separator className="my-4" />
+
+                <div className={`flex items-center justify-between p-4 rounded-lg ${reports.netIncome >= 0 ? 'bg-success/20' : 'bg-destructive/20'}`}>
+                  <span className="font-bold">Net Income (Loss)</span>
+                  <span className={`font-bold text-lg ${reports.netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>
+                    {formatCurrency(reports.netIncome)}
+                  </span>
+                </div>
+
+                <div className="mt-6 p-4 bg-muted rounded-lg">
+                  <h4 className="font-semibold mb-3">Key Metrics</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Revenue</p>
+                      <p className="text-lg font-semibold text-success">{formatCurrency(reports.totalRevenue)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Expenses</p>
+                      <p className="text-lg font-semibold text-destructive">{formatCurrency(reports.totalExpenses)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Profit Margin</p>
+                      <p className="text-lg font-semibold">
+                        {reports.totalRevenue > 0 ? ((reports.netIncome / reports.totalRevenue) * 100).toFixed(2) : '0.00'}%
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Expense Ratio</p>
+                      <p className="text-lg font-semibold">
+                        {reports.totalRevenue > 0 ? ((reports.totalExpenses / reports.totalRevenue) * 100).toFixed(2) : '0.00'}%
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <ListChecks size={20} />
+              Trial Balance
+            </h3>
+            <div className="space-y-2">
+              <div className="grid grid-cols-4 gap-4 p-3 bg-primary/10 rounded-lg font-semibold text-sm">
+                <div>Account Code</div>
+                <div>Account Name</div>
+                <div className="text-right">Debit</div>
+                <div className="text-right">Credit</div>
+              </div>
+              {chartOfAccounts.map((account) => {
+                const debitBalance = account.normalBalance === 'debit' ? account.currentBalance : 0
+                const creditBalance = account.normalBalance === 'credit' ? account.currentBalance : 0
+                
+                return (
+                  <div key={account.id} className="grid grid-cols-4 gap-4 p-3 bg-muted/50 rounded-lg text-sm">
+                    <div className="font-mono">{account.accountCode}</div>
+                    <div>{account.accountName}</div>
+                    <div className="text-right font-semibold">
+                      {debitBalance > 0 ? formatCurrency(debitBalance) : '-'}
+                    </div>
+                    <div className="text-right font-semibold">
+                      {creditBalance > 0 ? formatCurrency(creditBalance) : '-'}
+                    </div>
+                  </div>
+                )
+              })}
+              <Separator className="my-2" />
+              <div className="grid grid-cols-4 gap-4 p-4 bg-accent/20 rounded-lg font-bold">
+                <div className="col-span-2">TOTAL</div>
+                <div className="text-right">{formatCurrency(chartOfAccounts.filter(a => a.normalBalance === 'debit').reduce((sum, a) => sum + a.currentBalance, 0))}</div>
+                <div className="text-right">{formatCurrency(chartOfAccounts.filter(a => a.normalBalance === 'credit').reduce((sum, a) => sum + a.currentBalance, 0))}</div>
+              </div>
+            </div>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       <InvoiceDialog
@@ -729,6 +1122,26 @@ export function Finance({
           }
         }}
       />
+
+      {setJournalEntries && (
+        <JournalEntryDialog
+          open={journalDialogOpen}
+          onOpenChange={setJournalDialogOpen}
+          journalEntry={selectedJournal}
+          chartOfAccounts={chartOfAccounts}
+          currentUser={currentUser}
+          onSave={(entry) => {
+            if (selectedJournal) {
+              setJournalEntries((prev) => prev.map((e) => (e.id === entry.id ? entry : e)))
+              toast.success('Journal entry updated')
+            } else {
+              setJournalEntries((prev) => [...prev, entry])
+              toast.success('Journal entry created')
+            }
+            setJournalDialogOpen(false)
+          }}
+        />
+      )}
     </div>
   )
 }
