@@ -3367,6 +3367,8 @@ export interface HotelBranding {
   logo?: string
   logoWidth?: number
   logoHeight?: number
+  favicon?: string
+  emailHeaderLogo?: string
   tagline?: string
   colorScheme: {
     primary: string

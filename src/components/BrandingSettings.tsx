@@ -67,14 +67,24 @@ const defaultBranding: HotelBranding = {
 export function BrandingSettings({ branding, setBranding, currentUser }: BrandingSettingsProps) {
   const [formData, setFormData] = useState<HotelBranding>(branding || defaultBranding)
   const [logoPreview, setLogoPreview] = useState<string>('')
+  const [faviconPreview, setFaviconPreview] = useState<string>('')
+  const [emailHeaderLogoPreview, setEmailHeaderLogoPreview] = useState<string>('')
   const [showPreview, setShowPreview] = useState(false)
   const logoInputRef = useRef<HTMLInputElement>(null)
+  const faviconInputRef = useRef<HTMLInputElement>(null)
+  const emailHeaderLogoInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (branding) {
       setFormData(branding)
       if (branding.logo) {
         setLogoPreview(branding.logo)
+      }
+      if (branding.favicon) {
+        setFaviconPreview(branding.favicon)
+      }
+      if (branding.emailHeaderLogo) {
+        setEmailHeaderLogoPreview(branding.emailHeaderLogo)
       }
     }
   }, [branding])
@@ -98,6 +108,8 @@ export function BrandingSettings({ branding, setBranding, currentUser }: Brandin
     }))
     setFormData(defaultBranding)
     setLogoPreview('')
+    setFaviconPreview('')
+    setEmailHeaderLogoPreview('')
     toast.success('Branding settings reset to defaults')
   }
 
@@ -127,6 +139,62 @@ export function BrandingSettings({ branding, setBranding, currentUser }: Brandin
       logoInputRef.current.value = ''
     }
     toast.success('Logo removed')
+  }
+
+  const handleFaviconUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 500 * 1024) {
+        toast.error('Favicon file size must be less than 500KB')
+        return
+      }
+
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const result = reader.result as string
+        setFaviconPreview(result)
+        setFormData({ ...formData, favicon: result })
+        toast.success('Favicon uploaded successfully')
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleRemoveFavicon = () => {
+    setFaviconPreview('')
+    setFormData({ ...formData, favicon: undefined })
+    if (faviconInputRef.current) {
+      faviconInputRef.current.value = ''
+    }
+    toast.success('Favicon removed')
+  }
+
+  const handleEmailHeaderLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('Email header logo file size must be less than 2MB')
+        return
+      }
+
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const result = reader.result as string
+        setEmailHeaderLogoPreview(result)
+        setFormData({ ...formData, emailHeaderLogo: result })
+        toast.success('Email header logo uploaded successfully')
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleRemoveEmailHeaderLogo = () => {
+    setEmailHeaderLogoPreview('')
+    setFormData({ ...formData, emailHeaderLogo: undefined })
+    if (emailHeaderLogoInputRef.current) {
+      emailHeaderLogoInputRef.current.value = ''
+    }
+    toast.success('Email header logo removed')
   }
 
   const generatePresetColors = () => [
@@ -232,6 +300,120 @@ export function BrandingSettings({ branding, setBranding, currentUser }: Brandin
                       <img
                         src={logoPreview}
                         alt="Hotel Logo"
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Favicon</h3>
+            <div className="space-y-4">
+              <div className="flex flex-col md:flex-row gap-6 items-start">
+                <div className="flex-1 space-y-3">
+                  <Label htmlFor="favicon-upload">Upload Favicon</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Recommended: ICO, PNG format, 16x16, 32x32 or 64x64 pixels, max 500KB
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => faviconInputRef.current?.click()}
+                      className="gap-2"
+                    >
+                      <UploadSimple size={18} />
+                      Choose Favicon
+                    </Button>
+                    {faviconPreview && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleRemoveFavicon}
+                        className="gap-2"
+                      >
+                        <X size={18} />
+                        Remove Favicon
+                      </Button>
+                    )}
+                  </div>
+                  <input
+                    ref={faviconInputRef}
+                    id="favicon-upload"
+                    type="file"
+                    accept="image/x-icon,image/png,image/jpeg"
+                    onChange={handleFaviconUpload}
+                    className="hidden"
+                  />
+                </div>
+                
+                {faviconPreview && (
+                  <div className="flex flex-col gap-2">
+                    <Label>Favicon Preview</Label>
+                    <div className="border rounded-lg p-4 bg-white w-24 h-24 flex items-center justify-center">
+                      <img
+                        src={faviconPreview}
+                        alt="Favicon"
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Email Header Logo</h3>
+            <div className="space-y-4">
+              <div className="flex flex-col md:flex-row gap-6 items-start">
+                <div className="flex-1 space-y-3">
+                  <Label htmlFor="email-header-logo-upload">Upload Email Header Logo</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Recommended: PNG or JPG format, max 2MB, width 600px for optimal email display
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => emailHeaderLogoInputRef.current?.click()}
+                      className="gap-2"
+                    >
+                      <UploadSimple size={18} />
+                      Choose Email Header Logo
+                    </Button>
+                    {emailHeaderLogoPreview && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleRemoveEmailHeaderLogo}
+                        className="gap-2"
+                      >
+                        <X size={18} />
+                        Remove Email Header Logo
+                      </Button>
+                    )}
+                  </div>
+                  <input
+                    ref={emailHeaderLogoInputRef}
+                    id="email-header-logo-upload"
+                    type="file"
+                    accept="image/png,image/jpeg"
+                    onChange={handleEmailHeaderLogoUpload}
+                    className="hidden"
+                  />
+                </div>
+                
+                {emailHeaderLogoPreview && (
+                  <div className="flex flex-col gap-2">
+                    <Label>Email Header Logo Preview</Label>
+                    <div className="border rounded-lg p-4 bg-white w-64 h-32 flex items-center justify-center">
+                      <img
+                        src={emailHeaderLogoPreview}
+                        alt="Email Header Logo"
                         className="max-w-full max-h-full object-contain"
                       />
                     </div>
