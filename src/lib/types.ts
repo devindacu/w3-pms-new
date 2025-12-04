@@ -3375,6 +3375,12 @@ export interface HotelBranding {
     secondary: string
     accent: string
   }
+  footerGradient?: {
+    color1: string
+    color2: string
+    color3: string
+    color4: string
+  }
   invoiceFooter?: string
   termsAndConditions?: string
   paymentInstructions?: string

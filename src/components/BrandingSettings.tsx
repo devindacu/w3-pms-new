@@ -44,6 +44,12 @@ const defaultBranding: HotelBranding = {
     secondary: '#97bc62',
     accent: '#4a7c59'
   },
+  footerGradient: {
+    color1: '#2c5f2d',
+    color2: '#4a7c59',
+    color3: '#97bc62',
+    color4: '#2c5f2d'
+  },
   bankDetails: {
     bankName: 'Commercial Bank of Ceylon',
     accountName: 'W3 Hotel Pvt Ltd',
@@ -728,8 +734,197 @@ export function BrandingSettings({ branding, setBranding, currentUser }: Brandin
                 </>
               )}
             </div>
+          </Card>
 
-            <Separator className="my-6" />
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Footer Gradient Colors</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Customize the footer gradient colors to match your brand identity
+            </p>
+            
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="footerColor1">Gradient Color 1</Label>
+                  <p className="text-xs text-muted-foreground mb-2">Top-left gradient color</p>
+                  <div className="flex gap-2">
+                    <Input
+                      id="footerColor1"
+                      type="color"
+                      value={formData.footerGradient?.color1 || formData.colorScheme.primary}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        footerGradient: {
+                          color1: e.target.value,
+                          color2: formData.footerGradient?.color2 || formData.colorScheme.accent,
+                          color3: formData.footerGradient?.color3 || formData.colorScheme.secondary,
+                          color4: formData.footerGradient?.color4 || formData.colorScheme.primary
+                        }
+                      })}
+                      className="w-16 h-10 p-1"
+                    />
+                    <Input
+                      value={formData.footerGradient?.color1 || formData.colorScheme.primary}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        footerGradient: {
+                          color1: e.target.value,
+                          color2: formData.footerGradient?.color2 || formData.colorScheme.accent,
+                          color3: formData.footerGradient?.color3 || formData.colorScheme.secondary,
+                          color4: formData.footerGradient?.color4 || formData.colorScheme.primary
+                        }
+                      })}
+                      className="flex-1 font-mono text-sm"
+                      placeholder="#000000"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="footerColor2">Gradient Color 2</Label>
+                  <p className="text-xs text-muted-foreground mb-2">Middle gradient color</p>
+                  <div className="flex gap-2">
+                    <Input
+                      id="footerColor2"
+                      type="color"
+                      value={formData.footerGradient?.color2 || formData.colorScheme.accent}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        footerGradient: {
+                          color1: formData.footerGradient?.color1 || formData.colorScheme.primary,
+                          color2: e.target.value,
+                          color3: formData.footerGradient?.color3 || formData.colorScheme.secondary,
+                          color4: formData.footerGradient?.color4 || formData.colorScheme.primary
+                        }
+                      })}
+                      className="w-16 h-10 p-1"
+                    />
+                    <Input
+                      value={formData.footerGradient?.color2 || formData.colorScheme.accent}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        footerGradient: {
+                          color1: formData.footerGradient?.color1 || formData.colorScheme.primary,
+                          color2: e.target.value,
+                          color3: formData.footerGradient?.color3 || formData.colorScheme.secondary,
+                          color4: formData.footerGradient?.color4 || formData.colorScheme.primary
+                        }
+                      })}
+                      className="flex-1 font-mono text-sm"
+                      placeholder="#000000"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="footerColor3">Gradient Color 3</Label>
+                  <p className="text-xs text-muted-foreground mb-2">Middle-right gradient color</p>
+                  <div className="flex gap-2">
+                    <Input
+                      id="footerColor3"
+                      type="color"
+                      value={formData.footerGradient?.color3 || formData.colorScheme.secondary}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        footerGradient: {
+                          color1: formData.footerGradient?.color1 || formData.colorScheme.primary,
+                          color2: formData.footerGradient?.color2 || formData.colorScheme.accent,
+                          color3: e.target.value,
+                          color4: formData.footerGradient?.color4 || formData.colorScheme.primary
+                        }
+                      })}
+                      className="w-16 h-10 p-1"
+                    />
+                    <Input
+                      value={formData.footerGradient?.color3 || formData.colorScheme.secondary}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        footerGradient: {
+                          color1: formData.footerGradient?.color1 || formData.colorScheme.primary,
+                          color2: formData.footerGradient?.color2 || formData.colorScheme.accent,
+                          color3: e.target.value,
+                          color4: formData.footerGradient?.color4 || formData.colorScheme.primary
+                        }
+                      })}
+                      className="flex-1 font-mono text-sm"
+                      placeholder="#000000"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="footerColor4">Gradient Color 4</Label>
+                  <p className="text-xs text-muted-foreground mb-2">Bottom-right gradient color</p>
+                  <div className="flex gap-2">
+                    <Input
+                      id="footerColor4"
+                      type="color"
+                      value={formData.footerGradient?.color4 || formData.colorScheme.primary}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        footerGradient: {
+                          color1: formData.footerGradient?.color1 || formData.colorScheme.primary,
+                          color2: formData.footerGradient?.color2 || formData.colorScheme.accent,
+                          color3: formData.footerGradient?.color3 || formData.colorScheme.secondary,
+                          color4: e.target.value
+                        }
+                      })}
+                      className="w-16 h-10 p-1"
+                    />
+                    <Input
+                      value={formData.footerGradient?.color4 || formData.colorScheme.primary}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        footerGradient: {
+                          color1: formData.footerGradient?.color1 || formData.colorScheme.primary,
+                          color2: formData.footerGradient?.color2 || formData.colorScheme.accent,
+                          color3: formData.footerGradient?.color3 || formData.colorScheme.secondary,
+                          color4: e.target.value
+                        }
+                      })}
+                      className="flex-1 font-mono text-sm"
+                      placeholder="#000000"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div>
+                <Label className="mb-3 block">Footer Gradient Preview</Label>
+                <div 
+                  className="border rounded-lg p-6 relative overflow-hidden min-h-[120px]"
+                >
+                  <div 
+                    className="absolute inset-0"
+                    style={{
+                      background: `linear-gradient(to bottom right, ${formData.footerGradient?.color1 || formData.colorScheme.primary}15, ${formData.footerGradient?.color2 || formData.colorScheme.accent}10)`
+                    }}
+                  />
+                  <div 
+                    className="absolute inset-0"
+                    style={{
+                      background: `linear-gradient(to top right, ${formData.footerGradient?.color3 || formData.colorScheme.secondary}12, ${formData.footerGradient?.color4 || formData.colorScheme.primary}15)`
+                    }}
+                  />
+                  <div className="relative backdrop-blur-[2px] flex items-center justify-center py-4">
+                    <div className="text-center">
+                      <p className="text-sm font-medium text-foreground/80">
+                        © {new Date().getFullYear()} Design & Developed by W3 Media PVT LTD
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        This is how your footer will look with these gradient colors
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Regional Settings</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">

@@ -1224,8 +1224,22 @@ function App() {
         </div>
         
         <footer className="relative border-t border-border/50 mt-auto overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-accent/6 to-secondary/10" />
-          <div className="absolute inset-0 bg-gradient-to-tr from-success/5 via-transparent to-primary/8" />
+          <div 
+            className="absolute inset-0"
+            style={{
+              background: branding?.footerGradient 
+                ? `linear-gradient(to bottom right, ${branding.footerGradient.color1}15, ${branding.footerGradient.color2}10)`
+                : 'linear-gradient(to bottom right, var(--primary) / 8%, var(--accent) / 6%, var(--secondary) / 10%)'
+            }}
+          />
+          <div 
+            className="absolute inset-0"
+            style={{
+              background: branding?.footerGradient 
+                ? `linear-gradient(to top right, ${branding.footerGradient.color3}12, ${branding.footerGradient.color4}15)`
+                : 'linear-gradient(to top right, var(--success) / 5%, transparent, var(--primary) / 8%)'
+            }}
+          />
           <div className="relative px-4 py-4 md:px-6 lg:px-8 md:py-5 backdrop-blur-[2px]">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
               <p className="text-sm font-medium text-foreground/80">
