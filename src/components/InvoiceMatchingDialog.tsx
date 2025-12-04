@@ -25,6 +25,7 @@ import {
   type GoodsReceivedNote,
   type InvoiceMatchingResult,
   type MatchingVariance,
+  type MatchingRecommendation,
   type SupplierDispute
 } from '@/lib/types'
 import { formatCurrency, formatDate, generateId, generateNumber } from '@/lib/helpers'
@@ -198,7 +199,7 @@ export function InvoiceMatchingDialog({
     const poTotalVariance = invoice.total - po.total
     const poTotalVariancePercent = (poTotalVariance / po.total) * 100
 
-    const recommendations = []
+    const recommendations: MatchingRecommendation[] = []
     
     if (itemsMatched === invoice.items.length && Math.abs(poTotalVariancePercent) <= 5) {
       recommendations.push({

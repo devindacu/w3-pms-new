@@ -60,35 +60,40 @@ export function Finance({
   const [selectedBudget, setSelectedBudget] = useState<Budget | undefined>()
 
   const totalRevenue = invoices.reduce((sum, inv) => sum + inv.total, 0)
-  const totalReceivables = invoices.reduce((sum, inv) => sum + inv.balance, 0)
+  const totalReceivables = invoices.reduce((sum, inv) => {
+    const amountPaid = inv.items?.reduce((s, item) => s + (item.total || 0), 0) || 0
+    return sum + Math.max(0, inv.total - amountPaid)
+  }, 0)
   const totalPayables = expenses.filter(e => !e.approvedBy).reduce((sum, e) => sum + e.amount, 0)
   const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0)
   const netIncome = totalRevenue - totalExpenses
 
   const overdueInvoices = invoices.filter(inv => 
-    inv.status !== 'paid' && inv.dueDate < Date.now()
+    inv.status !== 'posted' && inv.status !== 'approved' && inv.dueDate && inv.dueDate < Date.now()
   ).length
 
-  const paidInvoices = invoices.filter(inv => inv.status === 'paid').length
-  const pendingInvoices = invoices.filter(inv => inv.status === 'sent' || inv.status === 'draft').length
+  const paidInvoices = invoices.filter(inv => inv.status === 'posted' || inv.status === 'approved').length
+  const pendingInvoices = invoices.filter(inv => inv.status === 'pending-validation' || inv.status === 'validated').length
 
   const getInvoiceStatusBadge = (status: Invoice['status']) => {
     const variants = {
-      'draft': 'secondary',
-      'sent': 'default',
-      'paid': 'default',
-      'partially-paid': 'default',
-      'overdue': 'destructive',
-      'cancelled': 'secondary'
+      'pending-validation': 'secondary',
+      'validated': 'default',
+      'matched': 'default',
+      'mismatch': 'destructive',
+      'approved': 'default',
+      'posted': 'default',
+      'rejected': 'destructive'
     } as const
     
     const colors = {
-      'draft': 'text-muted-foreground',
-      'sent': 'text-primary',
-      'paid': 'text-success',
-      'partially-paid': 'text-accent',
-      'overdue': 'text-destructive',
-      'cancelled': 'text-muted-foreground'
+      'pending-validation': 'text-muted-foreground',
+      'validated': 'text-primary',
+      'matched': 'text-success',
+      'mismatch': 'text-destructive',
+      'approved': 'text-success',
+      'posted': 'text-success',
+      'rejected': 'text-destructive'
     }
     
     return (
@@ -359,16 +364,16 @@ export function Finance({
                         </div>
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
-                            <span className="text-muted-foreground">Type:</span>
-                            <span className="ml-2 capitalize">{invoice.type.replace('-', ' ')}</span>
+                            <span className="text-muted-foreground">Supplier:</span>
+                            <span className="ml-2">{invoice.supplierName || 'N/A'}</span>
                           </div>
                           <div>
-                            <span className="text-muted-foreground">Issue Date:</span>
-                            <span className="ml-2">{formatDate(invoice.issueDate)}</span>
+                            <span className="text-muted-foreground">Invoice Date:</span>
+                            <span className="ml-2">{formatDate(invoice.invoiceDate)}</span>
                           </div>
                           <div>
                             <span className="text-muted-foreground">Due Date:</span>
-                            <span className="ml-2">{formatDate(invoice.dueDate)}</span>
+                            <span className="ml-2">{invoice.dueDate ? formatDate(invoice.dueDate) : 'N/A'}</span>
                           </div>
                           <div>
                             <span className="text-muted-foreground">Items:</span>
@@ -378,11 +383,8 @@ export function Finance({
                       </div>
                       <div className="text-right">
                         <p className="text-2xl font-semibold">{formatCurrency(invoice.total)}</p>
-                        {invoice.balance > 0 && (
-                          <p className="text-sm text-destructive">Balance: {formatCurrency(invoice.balance)}</p>
-                        )}
                         <p className="text-xs text-muted-foreground mt-1">
-                          Paid: {formatCurrency(invoice.amountPaid)}
+                          {invoice.status === 'posted' ? 'Posted' : 'Pending'}
                         </p>
                       </div>
                     </div>
@@ -514,7 +516,7 @@ export function Finance({
                           </div>
                           <div>
                             <span className="text-muted-foreground">Method:</span>
-                            <span className="ml-2 capitalize">{expense.paymentMethod.replace('-', ' ')}</span>
+                            <span className="ml-2 capitalize">{expense.paymentMethod ? expense.paymentMethod.replace('-', ' ') : 'N/A'}</span>
                           </div>
                         </div>
                       </div>

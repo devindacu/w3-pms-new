@@ -353,7 +353,7 @@ export function generatePurchaseTrends(
   const periodMap = new Map<string, { count: number; amount: number }>()
 
   purchaseOrders
-    .filter(po => po.status !== 'rejected' && po.createdAt > now - periodMs * 6)
+    .filter(po => po.status !== 'closed' && po.createdAt > now - periodMs * 6)
     .forEach(po => {
       const date = new Date(po.createdAt)
       const key = period === 'daily' 
@@ -408,7 +408,7 @@ export function generateBudgetUtilization(
 
   return budgets.map(budget => {
     const spent = purchaseOrders
-      .filter(po => po.status !== 'rejected')
+      .filter(po => po.status !== 'closed')
       .reduce((sum, po) => {
         return sum + po.items.reduce((s, item) => s + (item.quantity * item.unitPrice), 0)
       }, 0) / budgets.length

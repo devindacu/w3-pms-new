@@ -43,7 +43,15 @@ export function InvoiceViewDialog({ open, onOpenChange, invoice, branding, curre
         <div className="mt-4">
           <InvoiceViewerA4
             invoice={invoice}
-            hotelInfo={branding}
+            hotelInfo={{
+              name: branding.hotelName,
+              address: branding.hotelAddress,
+              phone: branding.hotelPhone,
+              email: branding.hotelEmail,
+              website: branding.hotelWebsite,
+              taxRegistrationNumber: branding.taxRegistrationNumber,
+              logo: branding.logo
+            }}
             currentUser={currentUser}
           />
         </div>
