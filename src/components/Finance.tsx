@@ -47,6 +47,7 @@ import { JournalEntryDialog } from './JournalEntryDialog'
 import { BankReconciliationDialog } from './BankReconciliationDialog'
 import { ARAgingDialog } from './ARAgingDialog'
 import { CashFlowStatementDialog } from './CashFlowStatementDialog'
+import { DepartmentalPLDialog } from './DepartmentalPLDialog'
 import { toast } from 'sonner'
 
 interface FinanceProps {
@@ -101,6 +102,7 @@ export function Finance({
   const [reconciliationDialogOpen, setReconciliationDialogOpen] = useState(false)
   const [arAgingDialogOpen, setArAgingDialogOpen] = useState(false)
   const [cashFlowDialogOpen, setCashFlowDialogOpen] = useState(false)
+  const [departmentalPLDialogOpen, setDepartmentalPLDialogOpen] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | undefined>()
   const [selectedPayment, setSelectedPayment] = useState<Payment | undefined>()
   const [selectedExpense, setSelectedExpense] = useState<Expense | undefined>()
@@ -1062,7 +1064,7 @@ export function Finance({
               <FileText size={16} className="mr-2" />
               Tax Summary
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setDepartmentalPLDialogOpen(true)}>
               <FileText size={16} className="mr-2" />
               Departmental P&L
             </Button>
@@ -1460,6 +1462,15 @@ export function Finance({
         expenses={expenses}
         glEntries={glEntries}
         chartOfAccounts={chartOfAccounts}
+      />
+
+      <DepartmentalPLDialog
+        open={departmentalPLDialogOpen}
+        onOpenChange={setDepartmentalPLDialogOpen}
+        guestInvoices={guestInvoices}
+        expenses={expenses}
+        journalEntries={journalEntries}
+        glEntries={glEntries}
       />
     </div>
   )
