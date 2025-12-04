@@ -1223,22 +1223,24 @@ function App() {
           )}
         </div>
         
-        <footer className="border-t border-border/50 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 mt-auto shadow-inner">
-          <div className="px-4 py-4 md:px-6 lg:px-8 md:py-5">
+        <footer className="relative border-t border-border/50 mt-auto overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-accent/6 to-secondary/10" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-success/5 via-transparent to-primary/8" />
+          <div className="relative px-4 py-4 md:px-6 lg:px-8 md:py-5 backdrop-blur-[2px]">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
-              <p className="text-sm font-medium text-foreground/70">
+              <p className="text-sm font-medium text-foreground/80">
                 © {new Date().getFullYear()} Design & Developed by
               </p>
               <a 
                 href="https://www.w3media.lk/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:opacity-80 transition-all duration-300 hover:scale-105"
+                className="flex items-center gap-2 hover:opacity-90 transition-all duration-300 hover:scale-105 filter hover:brightness-110"
               >
                 <img 
                   src={w3MediaLogo}
                   alt="W3 Media PVT LTD" 
-                  className="h-6 md:h-7 drop-shadow-sm"
+                  className="h-6 md:h-7 drop-shadow-md"
                 />
               </a>
             </div>
