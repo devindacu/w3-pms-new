@@ -22,7 +22,8 @@ import {
   CheckCircle,
   Warning,
   Link as LinkIcon,
-  FileArrowDown
+  FileArrowDown,
+  Sparkle
 } from '@phosphor-icons/react'
 import type { 
   BankReconciliation, 
@@ -34,6 +35,7 @@ import type {
   SystemUser
 } from '@/lib/types'
 import { formatCurrency, formatDate, generateNumber } from '@/lib/helpers'
+import { BankStatementImport } from './BankStatementImport'
 
 interface BankReconciliationDialogProps {
   open: boolean
@@ -65,6 +67,7 @@ export function BankReconciliationDialog({
   const [matchedPairs, setMatchedPairs] = useState<ReconciledTransaction[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [matchMode, setMatchMode] = useState<'auto' | 'manual'>('auto')
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
 
   useEffect(() => {
     if (reconciliation) {
@@ -87,6 +90,23 @@ export function BankReconciliationDialog({
     setSelectedGLEntries(new Set())
     setMatchedPairs([])
     setSearchTerm('')
+  }
+
+  const handleImportComplete = (data: {
+    bankTransactions: BankTransaction[]
+    matchedTransactions: ReconciledTransaction[]
+    unmatchedBankTransactions: BankTransaction[]
+    unmatchedGLEntries: GLEntry[]
+    selectedAccountId: string
+    statementDate: number
+    statementBalance: number
+  }) => {
+    setSelectedAccount(data.selectedAccountId)
+    setStatementDate(data.statementDate)
+    setStatementBalance(data.statementBalance.toString())
+    setBankTransactions(data.bankTransactions)
+    setMatchedPairs(data.matchedTransactions)
+    toast.success(`Import complete: ${data.matchedTransactions.length} transactions matched`)
   }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -370,19 +390,10 @@ export function BankReconciliationDialog({
               className="pl-10"
             />
           </div>
-          <Label htmlFor="upload-statement" className="cursor-pointer">
-            <Button type="button" variant="outline" onClick={() => document.getElementById('upload-statement')?.click()}>
-              <Upload size={18} className="mr-2" />
-              Import CSV
-            </Button>
-          </Label>
-          <input
-            id="upload-statement"
-            type="file"
-            accept=".csv"
-            onChange={handleFileUpload}
-            className="hidden"
-          />
+          <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
+            <Sparkle size={18} className="mr-2" />
+            Smart Import CSV
+          </Button>
           <Button variant="outline" onClick={performAutoMatching}>
             <CheckCircle size={18} className="mr-2" />
             Auto Match
@@ -567,6 +578,15 @@ export function BankReconciliationDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      <BankStatementImport
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        bankAccounts={bankAccounts}
+        journalEntries={journalEntries}
+        glEntries={glEntries}
+        onComplete={handleImportComplete}
+      />
     </Dialog>
   )
 }
