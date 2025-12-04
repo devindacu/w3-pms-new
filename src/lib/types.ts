@@ -3390,3 +3390,20 @@ export interface HotelBranding {
   updatedAt: number
   updatedBy: string
 }
+
+export type EmailTemplateCategory = 'invoice' | 'batch' | 'reminder' | 'confirmation'
+
+export interface EmailTemplate {
+  id: string
+  name: string
+  code: string
+  category: EmailTemplateCategory
+  subject: string
+  body: string
+  isDefault: boolean
+  isActive: boolean
+  variables: string[]
+  createdAt: number
+  updatedAt: number
+  createdBy: string
+}

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useKV } from '@github/spark/hooks'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -17,9 +18,10 @@ import {
   CheckCircle,
   Warning,
   XCircle,
-  Sparkle
+  Sparkle,
+  Eye
 } from '@phosphor-icons/react'
-import type { GuestInvoice, SystemUser } from '@/lib/types'
+import type { GuestInvoice, SystemUser, EmailTemplate } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/helpers'
 import { toast } from 'sonner'
 
@@ -36,6 +38,7 @@ interface BatchInvoiceOperationsProps {
 type BatchOperation = 'print' | 'email' | 'export' | null
 
 interface EmailSettings {
+  templateId?: string
   subject: string
   body: string
   cc?: string
@@ -51,6 +54,7 @@ export function BatchInvoiceOperations({
   currentUser,
   onUpdate
 }: BatchInvoiceOperationsProps) {
+  const [templates] = useKV<EmailTemplate[]>('w3-hotel-email-templates', [])
   const [operation, setOperation] = useState<BatchOperation>(null)
   const [processing, setProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -59,11 +63,65 @@ export function BatchInvoiceOperations({
     subject: 'Your Invoice from W3 Hotel & Resorts',
     body: 'Dear Guest,\n\nPlease find attached your invoice.\n\nThank you for choosing W3 Hotel & Resorts.\n\nBest regards,\nW3 Hotel Team'
   })
+  const [previewOpen, setPreviewOpen] = useState(false)
   const [results, setResults] = useState<{ success: number; failed: number; errors: string[] }>({
     success: 0,
     failed: 0,
     errors: []
   })
+
+  const activeTemplates = (templates || []).filter(t => t.isActive && (t.category === 'batch' || t.category === 'invoice'))
+  
+  useEffect(() => {
+    if (activeTemplates.length > 0 && !emailSettings.templateId) {
+      const defaultTemplate = activeTemplates.find(t => t.isDefault) || activeTemplates[0]
+      if (defaultTemplate) {
+        setEmailSettings({
+          templateId: defaultTemplate.id,
+          subject: defaultTemplate.subject,
+          body: defaultTemplate.body
+        })
+      }
+    }
+  }, [templates])
+
+  const handleTemplateChange = (templateId: string) => {
+    const template = activeTemplates.find(t => t.id === templateId)
+    if (template) {
+      setEmailSettings({
+        templateId: template.id,
+        subject: template.subject,
+        body: template.body,
+        cc: emailSettings.cc,
+        bcc: emailSettings.bcc
+      })
+    }
+  }
+
+  const replaceVariables = (text: string, invoice?: GuestInvoice): string => {
+    let result = text
+    result = result.replace(/{{hotelName}}/g, hotelInfo.name || 'W3 Hotel & Resorts')
+    result = result.replace(/{{hotelAddress}}/g, hotelInfo.address || '')
+    result = result.replace(/{{hotelPhone}}/g, hotelInfo.phone || '')
+    result = result.replace(/{{hotelEmail}}/g, hotelInfo.email || '')
+    
+    if (invoice) {
+      result = result.replace(/{{guestName}}/g, invoice.guestName)
+      result = result.replace(/{{invoiceNumber}}/g, invoice.invoiceNumber)
+      result = result.replace(/{{invoiceDate}}/g, formatDate(invoice.invoiceDate))
+      result = result.replace(/{{grandTotal}}/g, formatCurrency(invoice.grandTotal))
+      result = result.replace(/{{amountDue}}/g, formatCurrency(invoice.amountDue))
+      result = result.replace(/{{roomNumber}}/g, invoice.roomNumber || 'N/A')
+      result = result.replace(/{{checkInDate}}/g, invoice.checkInDate ? formatDate(invoice.checkInDate) : 'N/A')
+      result = result.replace(/{{checkOutDate}}/g, invoice.checkOutDate ? formatDate(invoice.checkOutDate) : 'N/A')
+      result = result.replace(/{{subtotal}}/g, formatCurrency(invoice.subtotal))
+      result = result.replace(/{{serviceCharge}}/g, formatCurrency(invoice.serviceChargeAmount))
+      result = result.replace(/{{tax}}/g, formatCurrency(invoice.totalTax))
+      result = result.replace(/{{amountPaid}}/g, formatCurrency(invoice.totalPaid))
+    }
+    
+    return result
+  }
 
   const handlePrintAll = async () => {
     setProcessing(true)
@@ -303,7 +361,8 @@ export function BatchInvoiceOperations({
   const totalDue = selectedInvoices.reduce((sum, inv) => sum + inv.amountDue, 0)
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <>
+      <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -392,12 +451,47 @@ export function BatchInvoiceOperations({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold">Email Settings</h3>
-                <Button variant="ghost" size="sm" onClick={() => setOperation(null)}>
-                  Back
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setPreviewOpen(true)}
+                  >
+                    <Eye size={16} className="mr-2" />
+                    Preview
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setOperation(null)}>
+                    Back
+                  </Button>
+                </div>
               </div>
               
               <div className="space-y-3">
+                {activeTemplates.length > 0 && (
+                  <div>
+                    <Label htmlFor="email-template">Email Template</Label>
+                    <Select
+                      value={emailSettings.templateId || ''}
+                      onValueChange={handleTemplateChange}
+                    >
+                      <SelectTrigger id="email-template">
+                        <SelectValue placeholder="Select a template" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {activeTemplates.map(template => (
+                          <SelectItem key={template.id} value={template.id}>
+                            {template.name}
+                            {template.isDefault && ' (Default)'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Configure templates in Settings → Email Templates
+                    </p>
+                  </div>
+                )}
+
                 <div>
                   <Label htmlFor="email-subject">Subject</Label>
                   <Input
@@ -405,6 +499,9 @@ export function BatchInvoiceOperations({
                     value={emailSettings.subject}
                     onChange={e => setEmailSettings({ ...emailSettings, subject: e.target.value })}
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Use {`{{variableName}}`} for dynamic content
+                  </p>
                 </div>
                 
                 <div>
@@ -413,8 +510,12 @@ export function BatchInvoiceOperations({
                     id="email-body"
                     value={emailSettings.body}
                     onChange={e => setEmailSettings({ ...emailSettings, body: e.target.value })}
-                    rows={6}
+                    rows={8}
+                    className="font-mono text-sm"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Available variables: {`{{hotelName}}`}, {`{{guestName}}`}, {`{{invoiceNumber}}`}, {`{{grandTotal}}`}, etc.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -567,6 +668,69 @@ export function BatchInvoiceOperations({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Email Preview</DialogTitle>
+          <DialogDescription>
+            Preview of how the email will look with sample data from the first invoice
+          </DialogDescription>
+        </DialogHeader>
+
+        {selectedInvoices.length > 0 && (
+          <div className="space-y-4">
+            <div>
+              <Label className="text-xs text-muted-foreground">Subject</Label>
+              <div className="p-3 bg-muted/50 rounded-lg font-medium">
+                {replaceVariables(emailSettings.subject, selectedInvoices[0])}
+              </div>
+            </div>
+
+            <Separator />
+
+            <div>
+              <Label className="text-xs text-muted-foreground">Body</Label>
+              <div className="p-4 bg-muted/50 rounded-lg whitespace-pre-wrap font-sans text-sm">
+                {replaceVariables(emailSettings.body, selectedInvoices[0])}
+              </div>
+            </div>
+
+            {(emailSettings.cc || emailSettings.bcc) && (
+              <>
+                <Separator />
+                <div className="grid grid-cols-2 gap-4">
+                  {emailSettings.cc && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">CC</Label>
+                      <div className="text-sm">{emailSettings.cc}</div>
+                    </div>
+                  )}
+                  {emailSettings.bcc && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">BCC</Label>
+                      <div className="text-sm">{emailSettings.bcc}</div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-800">
+                <strong>Note:</strong> This preview uses data from the first selected invoice. 
+                Each email will be personalized with the recipient's specific invoice details.
+              </p>
+            </div>
+          </div>
+        )}
+
+        <DialogFooter>
+          <Button onClick={() => setPreviewOpen(false)}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }
 

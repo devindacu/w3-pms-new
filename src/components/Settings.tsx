@@ -5,12 +5,14 @@ import { BrandingSettings } from '@/components/BrandingSettings'
 import { SystemSettings } from '@/components/SystemSettings'
 import { TaxSettings } from '@/components/TaxSettings'
 import { UserPreferences } from '@/components/UserPreferences'
+import { EmailTemplateSettings } from '@/components/EmailTemplateSettings'
 import type { HotelBranding, TaxConfiguration, ServiceChargeConfiguration, SystemUser } from '@/lib/types'
 import { 
   Palette,
   Gear,
   Receipt,
-  User
+  User,
+  EnvelopeSimple
 } from '@phosphor-icons/react'
 
 interface SettingsProps {
@@ -42,7 +44,7 @@ export function Settings({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
           <TabsTrigger value="branding" className="gap-2">
             <Palette size={18} />
             <span className="hidden sm:inline">Branding</span>
@@ -54,6 +56,10 @@ export function Settings({
           <TabsTrigger value="tax" className="gap-2">
             <Receipt size={18} />
             <span className="hidden sm:inline">Tax & Charges</span>
+          </TabsTrigger>
+          <TabsTrigger value="email-templates" className="gap-2">
+            <EnvelopeSimple size={18} />
+            <span className="hidden sm:inline">Email Templates</span>
           </TabsTrigger>
           <TabsTrigger value="preferences" className="gap-2">
             <User size={18} />
@@ -85,6 +91,10 @@ export function Settings({
             setServiceCharge={setServiceCharge}
             currentUser={currentUser}
           />
+        </TabsContent>
+
+        <TabsContent value="email-templates" className="mt-6">
+          <EmailTemplateSettings currentUser={currentUser} />
         </TabsContent>
 
         <TabsContent value="preferences" className="mt-6">
