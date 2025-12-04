@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
@@ -22,7 +23,9 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  Warning
+  Warning,
+  Sparkle,
+  SelectionAll
 } from '@phosphor-icons/react'
 import type { GuestInvoice, SystemUser, GuestInvoiceStatus, GuestInvoiceType } from '@/lib/types'
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/helpers'
@@ -31,6 +34,7 @@ import { GuestInvoiceViewDialog } from './GuestInvoiceViewDialog'
 import { GuestInvoiceEditDialog } from './GuestInvoiceEditDialog'
 import { InvoiceDownloadDialog } from './InvoiceDownloadDialog'
 import { InvoiceShareDialog } from './InvoiceShareDialog'
+import { BatchInvoiceOperations } from './BatchInvoiceOperations'
 
 interface GuestInvoiceManagementProps {
   invoices: GuestInvoice[]
@@ -57,6 +61,8 @@ export function GuestInvoiceManagement({ invoices, setInvoices, currentUser }: G
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [downloadDialogOpen, setDownloadDialogOpen] = useState(false)
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
+  const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set())
+  const [batchOperationsOpen, setBatchOperationsOpen] = useState(false)
 
   const filteredInvoices = invoices.filter(inv => {
     const matchesSearch =
@@ -121,6 +127,46 @@ export function GuestInvoiceManagement({ invoices, setInvoices, currentUser }: G
     setShareDialogOpen(true)
   }
 
+  const toggleSelectInvoice = (invoiceId: string) => {
+    setSelectedInvoices(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(invoiceId)) {
+        newSet.delete(invoiceId)
+      } else {
+        newSet.add(invoiceId)
+      }
+      return newSet
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedInvoices.size === filteredInvoices.length) {
+      setSelectedInvoices(new Set())
+    } else {
+      setSelectedInvoices(new Set(filteredInvoices.map(inv => inv.id)))
+    }
+  }
+
+  const handleBatchUpdate = (invoiceIds: string[], updates: Partial<GuestInvoice>) => {
+    setInvoices(invoices =>
+      invoices.map(inv => {
+        if (invoiceIds.includes(inv.id)) {
+          return {
+            ...inv,
+            ...updates,
+            deliveryMethods: updates.deliveryMethods
+              ? [...(inv.deliveryMethods || []), ...updates.deliveryMethods]
+              : inv.deliveryMethods,
+            auditTrail: updates.auditTrail
+              ? [...(inv.auditTrail || []), ...updates.auditTrail]
+              : inv.auditTrail
+          }
+        }
+        return inv
+      })
+    )
+  }
+
   const getStatusBadge = (status: GuestInvoiceStatus) => {
     const variants: Record<GuestInvoiceStatus, { variant: any; icon: any; label: string }> = {
       draft: { variant: 'secondary', icon: <Clock size={14} />, label: 'Draft' },
@@ -164,6 +210,12 @@ export function GuestInvoiceManagement({ invoices, setInvoices, currentUser }: G
             View, edit, download, and share guest invoices
           </p>
         </div>
+        {selectedInvoices.size > 0 && (
+          <Button onClick={() => setBatchOperationsOpen(true)} className="gap-2">
+            <Sparkle size={20} />
+            Batch Operations ({selectedInvoices.size})
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -240,6 +292,12 @@ export function GuestInvoiceManagement({ invoices, setInvoices, currentUser }: G
               <SelectItem value="proforma">Proforma</SelectItem>
             </SelectContent>
           </Select>
+          {filteredInvoices.length > 0 && (
+            <Button variant="outline" onClick={toggleSelectAll} className="gap-2">
+              <SelectionAll size={18} />
+              {selectedInvoices.size === filteredInvoices.length ? 'Deselect All' : 'Select All'}
+            </Button>
+          )}
         </div>
 
         <div className="space-y-3">
@@ -252,16 +310,22 @@ export function GuestInvoiceManagement({ invoices, setInvoices, currentUser }: G
             filteredInvoices.map(invoice => (
               <Card key={invoice.id} className="p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-lg">{invoice.invoiceNumber}</h3>
-                      {getStatusBadge(invoice.status)}
-                      {invoice.amountDue > 0 && invoice.status !== 'cancelled' && (
-                        <Badge variant="outline" className="text-destructive border-destructive">
-                          Due: {formatCurrency(invoice.amountDue)}
-                        </Badge>
-                      )}
-                    </div>
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      checked={selectedInvoices.has(invoice.id)}
+                      onCheckedChange={() => toggleSelectInvoice(invoice.id)}
+                      className="mt-1"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-semibold text-lg">{invoice.invoiceNumber}</h3>
+                        {getStatusBadge(invoice.status)}
+                        {invoice.amountDue > 0 && invoice.status !== 'cancelled' && (
+                          <Badge variant="outline" className="text-destructive border-destructive">
+                            Due: {formatCurrency(invoice.amountDue)}
+                          </Badge>
+                        )}
+                      </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
                       <div>
                         <span className="font-medium">Guest:</span> {invoice.guestName}
@@ -288,6 +352,7 @@ export function GuestInvoiceManagement({ invoices, setInvoices, currentUser }: G
                           <span className="font-medium">Email:</span> {invoice.guestEmail}
                         </div>
                       )}
+                      </div>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -391,6 +456,16 @@ export function GuestInvoiceManagement({ invoices, setInvoices, currentUser }: G
           />
         </>
       )}
+
+      <BatchInvoiceOperations
+        open={batchOperationsOpen}
+        onOpenChange={setBatchOperationsOpen}
+        selectedInvoices={invoices.filter(inv => selectedInvoices.has(inv.id))}
+        onClearSelection={() => setSelectedInvoices(new Set())}
+        hotelInfo={hotelInfo}
+        currentUser={currentUser}
+        onUpdate={handleBatchUpdate}
+      />
     </div>
   )
 }
