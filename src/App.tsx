@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import w3MediaLogo from '@/assets/images/W3Media-Web-Green.png'
+import w3PMSLogo from '@/assets/images/W3-PMS.png'
 import {
   Gauge,
   Bed,
@@ -742,9 +743,12 @@ function App() {
   const SidebarContent = () => (
     <>
       <div className="px-3 py-4 mb-4">
-        <div>
-          <h2 className="text-xl font-semibold">W3 Hotel PMS</h2>
-          <p className="text-xs text-muted-foreground mt-1">Unified Management</p>
+        <div className="flex items-center gap-3">
+          <img 
+            src={w3PMSLogo}
+            alt="W3 Hotel PMS" 
+            className="h-12 w-auto object-contain"
+          />
         </div>
       </div>
 
@@ -973,7 +977,11 @@ function App() {
                 <List size={24} />
               </Button>
             </SheetTrigger>
-            <h1 className="text-lg font-semibold">W3 Hotel PMS</h1>
+            <img 
+              src={w3PMSLogo}
+              alt="W3 Hotel PMS" 
+              className="h-8 w-auto object-contain"
+            />
             <NotificationPanel
               notifications={notifications || []}
               onMarkAsRead={handleMarkAsRead}
