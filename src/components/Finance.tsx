@@ -46,6 +46,7 @@ import { BudgetDialog } from './BudgetDialog'
 import { JournalEntryDialog } from './JournalEntryDialog'
 import { BankReconciliationDialog } from './BankReconciliationDialog'
 import { ARAgingDialog } from './ARAgingDialog'
+import { CashFlowStatementDialog } from './CashFlowStatementDialog'
 import { toast } from 'sonner'
 
 interface FinanceProps {
@@ -99,6 +100,7 @@ export function Finance({
   const [journalDialogOpen, setJournalDialogOpen] = useState(false)
   const [reconciliationDialogOpen, setReconciliationDialogOpen] = useState(false)
   const [arAgingDialogOpen, setArAgingDialogOpen] = useState(false)
+  const [cashFlowDialogOpen, setCashFlowDialogOpen] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | undefined>()
   const [selectedPayment, setSelectedPayment] = useState<Payment | undefined>()
   const [selectedExpense, setSelectedExpense] = useState<Expense | undefined>()
@@ -1052,7 +1054,7 @@ export function Finance({
               <FileText size={16} className="mr-2" />
               AP Aging
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setCashFlowDialogOpen(true)}>
               <FileText size={16} className="mr-2" />
               Cash Flow
             </Button>
@@ -1448,6 +1450,16 @@ export function Finance({
         open={arAgingDialogOpen}
         onOpenChange={setArAgingDialogOpen}
         invoices={guestInvoices}
+      />
+
+      <CashFlowStatementDialog
+        open={cashFlowDialogOpen}
+        onOpenChange={setCashFlowDialogOpen}
+        journalEntries={journalEntries}
+        payments={payments}
+        expenses={expenses}
+        glEntries={glEntries}
+        chartOfAccounts={chartOfAccounts}
       />
     </div>
   )
