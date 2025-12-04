@@ -6,14 +6,24 @@ import { SystemSettings } from '@/components/SystemSettings'
 import { TaxSettings } from '@/components/TaxSettings'
 import { UserPreferences } from '@/components/UserPreferences'
 import { EmailTemplateManagement } from '@/components/EmailTemplateSettings'
-import type { HotelBranding, TaxConfiguration, ServiceChargeConfiguration, SystemUser } from '@/lib/types'
+import { EmailTemplateAnalyticsComponent } from '@/components/EmailTemplateAnalytics'
+import type { 
+  HotelBranding, 
+  TaxConfiguration, 
+  ServiceChargeConfiguration, 
+  SystemUser,
+  EmailTemplateAnalytics,
+  EmailSentRecord,
+  EmailCampaignAnalytics
+} from '@/lib/types'
 import type { EmailTemplate } from '@/lib/invoiceEmailTemplates'
 import { 
   Palette,
   Gear,
   Receipt,
   User,
-  EnvelopeSimple
+  EnvelopeSimple,
+  ChartBar
 } from '@phosphor-icons/react'
 
 interface SettingsProps {
@@ -25,6 +35,9 @@ interface SettingsProps {
   setServiceCharge: (update: (current: ServiceChargeConfiguration | null) => ServiceChargeConfiguration) => void
   emailTemplates: EmailTemplate[]
   setEmailTemplates: (update: (current: EmailTemplate[]) => EmailTemplate[]) => void
+  emailAnalytics: EmailTemplateAnalytics[]
+  campaignAnalytics: EmailCampaignAnalytics[]
+  emailRecords: EmailSentRecord[]
   currentUser: SystemUser
 }
 
@@ -37,6 +50,9 @@ export function Settings({
   setServiceCharge,
   emailTemplates,
   setEmailTemplates,
+  emailAnalytics,
+  campaignAnalytics,
+  emailRecords,
   currentUser
 }: SettingsProps) {
   const [activeTab, setActiveTab] = useState('branding')
@@ -49,7 +65,7 @@ export function Settings({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
           <TabsTrigger value="branding" className="gap-2">
             <Palette size={18} />
             <span className="hidden sm:inline">Branding</span>
@@ -64,7 +80,11 @@ export function Settings({
           </TabsTrigger>
           <TabsTrigger value="email-templates" className="gap-2">
             <EnvelopeSimple size={18} />
-            <span className="hidden sm:inline">Email Templates</span>
+            <span className="hidden sm:inline">Templates</span>
+          </TabsTrigger>
+          <TabsTrigger value="email-analytics" className="gap-2">
+            <ChartBar size={18} />
+            <span className="hidden sm:inline">Analytics</span>
           </TabsTrigger>
           <TabsTrigger value="preferences" className="gap-2">
             <User size={18} />
@@ -104,6 +124,14 @@ export function Settings({
             setTemplates={setEmailTemplates}
             branding={branding}
             currentUser={currentUser}
+          />
+        </TabsContent>
+
+        <TabsContent value="email-analytics" className="mt-6">
+          <EmailTemplateAnalyticsComponent
+            templateAnalytics={emailAnalytics}
+            campaignAnalytics={campaignAnalytics}
+            emailRecords={emailRecords}
           />
         </TabsContent>
 

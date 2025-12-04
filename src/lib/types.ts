@@ -3407,3 +3407,162 @@ export interface EmailTemplate {
   updatedAt: number
   createdBy: string
 }
+
+export interface EmailTrackingEvent {
+  id: string
+  emailSentId: string
+  eventType: 'sent' | 'delivered' | 'opened' | 'clicked' | 'bounced' | 'complained' | 'unsubscribed'
+  timestamp: number
+  recipientEmail: string
+  linkClicked?: string
+  userAgent?: string
+  ipAddress?: string
+  metadata?: Record<string, any>
+}
+
+export interface EmailSentRecord {
+  id: string
+  templateId: string
+  templateName: string
+  templateCategory: EmailTemplateCategory
+  recipientEmail: string
+  recipientName?: string
+  guestId?: string
+  invoiceId?: string
+  batchId?: string
+  subject: string
+  sentAt: number
+  sentBy: string
+  status: 'sent' | 'delivered' | 'failed'
+  failureReason?: string
+  trackingId: string
+  trackingLinks: EmailTrackingLink[]
+  events: EmailTrackingEvent[]
+  metadata?: Record<string, any>
+}
+
+export interface EmailTrackingLink {
+  id: string
+  originalUrl: string
+  trackingUrl: string
+  linkText?: string
+  linkType: 'payment' | 'booking' | 'review' | 'portal' | 'custom'
+  clicks: number
+  uniqueClicks: number
+  firstClickAt?: number
+  lastClickAt?: number
+}
+
+export interface EmailTemplateAnalytics {
+  templateId: string
+  templateName: string
+  templateCategory: EmailTemplateCategory
+  period: 'daily' | 'weekly' | 'monthly' | 'all-time'
+  startDate?: number
+  endDate?: number
+  totalSent: number
+  totalDelivered: number
+  totalBounced: number
+  totalOpened: number
+  totalClicked: number
+  totalComplained: number
+  totalUnsubscribed: number
+  uniqueOpens: number
+  uniqueClicks: number
+  deliveryRate: number
+  openRate: number
+  clickRate: number
+  clickToOpenRate: number
+  bounceRate: number
+  complaintRate: number
+  unsubscribeRate: number
+  averageTimeToOpen?: number
+  averageTimeToClick?: number
+  topLinks: {
+    url: string
+    linkText?: string
+    clicks: number
+    uniqueClicks: number
+  }[]
+  opensByHour: {
+    hour: number
+    opens: number
+  }[]
+  clicksByHour: {
+    hour: number
+    clicks: number
+  }[]
+  deviceBreakdown: {
+    desktop: number
+    mobile: number
+    tablet: number
+    unknown: number
+  }
+  calculatedAt: number
+}
+
+export interface EmailCampaignAnalytics {
+  batchId: string
+  batchName?: string
+  campaignType: 'invoice-batch' | 'marketing' | 'reminder' | 'notification'
+  templateId: string
+  templateName: string
+  sentAt: number
+  sentBy: string
+  totalRecipients: number
+  totalSent: number
+  totalDelivered: number
+  totalBounced: number
+  totalOpened: number
+  totalClicked: number
+  totalFailed: number
+  deliveryRate: number
+  openRate: number
+  clickRate: number
+  clickToOpenRate: number
+  bounceRate: number
+  revenue?: number
+  conversions?: number
+  conversionRate?: number
+  costPerClick?: number
+  roi?: number
+  calculatedAt: number
+}
+
+export interface EmailAnalyticsSummary {
+  period: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'all-time'
+  startDate?: number
+  endDate?: number
+  totalEmailsSent: number
+  totalDelivered: number
+  totalOpened: number
+  totalClicked: number
+  totalBounced: number
+  averageDeliveryRate: number
+  averageOpenRate: number
+  averageClickRate: number
+  averageBounceRate: number
+  topPerformingTemplates: {
+    templateId: string
+    templateName: string
+    openRate: number
+    clickRate: number
+    sent: number
+  }[]
+  bottomPerformingTemplates: {
+    templateId: string
+    templateName: string
+    openRate: number
+    clickRate: number
+    sent: number
+  }[]
+  templateComparison: {
+    templateId: string
+    templateName: string
+    sent: number
+    openRate: number
+    clickRate: number
+    trend: 'up' | 'down' | 'stable'
+  }[]
+  calculatedAt: number
+}

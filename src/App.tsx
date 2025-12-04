@@ -124,6 +124,7 @@ import {
 import { sampleGuestInvoices } from '@/lib/guestInvoiceSampleData'
 import { sampleOTAConnections, sampleChannelPerformance } from '@/lib/channelManagerSampleData'
 import { sampleEmailTemplates } from '@/lib/emailTemplateSampleData'
+import { sampleEmailTemplateAnalytics, sampleCampaignAnalytics, sampleEmailSentRecords } from '@/lib/emailAnalyticsSampleData'
 import { ConstructionManagement } from '@/components/ConstructionManagement'
 import { SupplierManagement } from '@/components/SupplierManagement'
 import { InventoryManagement } from '@/components/InventoryManagement'
@@ -173,7 +174,10 @@ import type {
   GuestInvoice,
   HotelBranding,
   TaxConfiguration,
-  ServiceChargeConfiguration
+  ServiceChargeConfiguration,
+  EmailTemplateAnalytics,
+  EmailSentRecord,
+  EmailCampaignAnalytics
 } from '@/lib/types'
 
 type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoices' | 'settings'
@@ -252,6 +256,9 @@ function App() {
   const [taxes, setTaxes] = useKV<TaxConfiguration[]>('w3-hotel-taxes', [])
   const [serviceCharge, setServiceCharge] = useKV<ServiceChargeConfiguration | null>('w3-hotel-service-charge', null)
   const [emailTemplates, setEmailTemplates] = useKV<import('@/lib/invoiceEmailTemplates').EmailTemplate[]>('w3-hotel-email-templates', [])
+  const [emailAnalytics, setEmailAnalytics] = useKV<EmailTemplateAnalytics[]>('w3-hotel-email-analytics', [])
+  const [campaignAnalytics, setCampaignAnalytics] = useKV<EmailCampaignAnalytics[]>('w3-hotel-campaign-analytics', [])
+  const [emailRecords, setEmailRecords] = useKV<EmailSentRecord[]>('w3-hotel-email-records', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
@@ -408,6 +415,9 @@ function App() {
     setChannelPerformance(sampleChannelPerformance)
     setGuestInvoices(sampleGuestInvoices)
     setEmailTemplates(sampleEmailTemplates)
+    setEmailAnalytics(sampleEmailTemplateAnalytics)
+    setCampaignAnalytics(sampleCampaignAnalytics)
+    setEmailRecords(sampleEmailSentRecords)
     toast.success('Sample data loaded successfully')
   }
 
@@ -1204,6 +1214,9 @@ function App() {
               setServiceCharge={setServiceCharge}
               emailTemplates={emailTemplates || []}
               setEmailTemplates={setEmailTemplates}
+              emailAnalytics={emailAnalytics || []}
+              campaignAnalytics={campaignAnalytics || []}
+              emailRecords={emailRecords || []}
               currentUser={currentUser}
             />
           )}
