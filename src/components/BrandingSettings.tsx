@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,7 +14,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Buildings, Palette, FileText, Bank } from '@phosphor-icons/react'
+import { Badge } from '@/components/ui/badge'
+import { Buildings, Palette, FileText, Bank, UploadSimple, Image as ImageIcon, X, Eye } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import type { HotelBranding, SystemUser } from '@/lib/types'
 
@@ -65,10 +66,16 @@ const defaultBranding: HotelBranding = {
 
 export function BrandingSettings({ branding, setBranding, currentUser }: BrandingSettingsProps) {
   const [formData, setFormData] = useState<HotelBranding>(branding || defaultBranding)
+  const [logoPreview, setLogoPreview] = useState<string>('')
+  const [showPreview, setShowPreview] = useState(false)
+  const logoInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (branding) {
       setFormData(branding)
+      if (branding.logo) {
+        setLogoPreview(branding.logo)
+      }
     }
   }, [branding])
 
@@ -90,7 +97,53 @@ export function BrandingSettings({ branding, setBranding, currentUser }: Brandin
       updatedBy: currentUser.userId
     }))
     setFormData(defaultBranding)
+    setLogoPreview('')
     toast.success('Branding settings reset to defaults')
+  }
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('Logo file size must be less than 2MB')
+        return
+      }
+
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const result = reader.result as string
+        setLogoPreview(result)
+        setFormData({ ...formData, logo: result })
+        toast.success('Logo uploaded successfully')
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleRemoveLogo = () => {
+    setLogoPreview('')
+    setFormData({ ...formData, logo: undefined })
+    if (logoInputRef.current) {
+      logoInputRef.current.value = ''
+    }
+    toast.success('Logo removed')
+  }
+
+  const generatePresetColors = () => [
+    { name: 'Forest Green', primary: '#2c5f2d', secondary: '#97bc62', accent: '#4a7c59' },
+    { name: 'Ocean Blue', primary: '#1e3a8a', secondary: '#60a5fa', accent: '#3b82f6' },
+    { name: 'Sunset Orange', primary: '#c2410c', secondary: '#fb923c', accent: '#ea580c' },
+    { name: 'Royal Purple', primary: '#6b21a8', secondary: '#a78bfa', accent: '#7c3aed' },
+    { name: 'Elegant Gold', primary: '#854d0e', secondary: '#fbbf24', accent: '#ca8a04' },
+    { name: 'Modern Teal', primary: '#115e59', secondary: '#5eead4', accent: '#14b8a6' },
+  ]
+
+  const applyPreset = (preset: { primary: string; secondary: string; accent: string }) => {
+    setFormData({
+      ...formData,
+      colorScheme: preset
+    })
+    toast.success('Color preset applied')
   }
 
   return (
@@ -131,6 +184,63 @@ export function BrandingSettings({ branding, setBranding, currentUser }: Brandin
         </TabsList>
 
         <TabsContent value="hotel" className="space-y-6">
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Hotel Logo</h3>
+            <div className="space-y-4">
+              <div className="flex flex-col md:flex-row gap-6 items-start">
+                <div className="flex-1 space-y-3">
+                  <Label htmlFor="logo-upload">Upload Logo</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Recommended: PNG or SVG format, max 2MB, transparent background for best results
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => logoInputRef.current?.click()}
+                      className="gap-2"
+                    >
+                      <UploadSimple size={18} />
+                      Choose Logo
+                    </Button>
+                    {logoPreview && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleRemoveLogo}
+                        className="gap-2"
+                      >
+                        <X size={18} />
+                        Remove Logo
+                      </Button>
+                    )}
+                  </div>
+                  <input
+                    ref={logoInputRef}
+                    id="logo-upload"
+                    type="file"
+                    accept="image/png,image/jpeg,image/svg+xml"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                  />
+                </div>
+                
+                {logoPreview && (
+                  <div className="flex flex-col gap-2">
+                    <Label>Logo Preview</Label>
+                    <div className="border rounded-lg p-4 bg-white w-48 h-32 flex items-center justify-center">
+                      <img
+                        src={logoPreview}
+                        alt="Hotel Logo"
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Hotel Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -248,79 +358,193 @@ export function BrandingSettings({ branding, setBranding, currentUser }: Brandin
 
         <TabsContent value="colors" className="space-y-6">
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Color Scheme</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="primaryColor">Primary Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="primaryColor"
-                    type="color"
-                    value={formData.colorScheme.primary}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      colorScheme: { ...formData.colorScheme, primary: e.target.value }
-                    })}
-                    className="w-16 h-10 p-1"
-                  />
-                  <Input
-                    value={formData.colorScheme.primary}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      colorScheme: { ...formData.colorScheme, primary: e.target.value }
-                    })}
-                    className="flex-1"
-                  />
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Color Scheme</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPreview(!showPreview)}
+                className="gap-2"
+              >
+                <Eye size={16} />
+                {showPreview ? 'Hide' : 'Show'} Preview
+              </Button>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <Label className="mb-3 block">Color Presets</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {generatePresetColors().map((preset) => (
+                    <button
+                      key={preset.name}
+                      type="button"
+                      onClick={() => applyPreset(preset)}
+                      className="border rounded-lg p-3 hover:border-primary transition-colors text-left"
+                    >
+                      <div className="flex gap-2 mb-2">
+                        <div
+                          className="w-8 h-8 rounded"
+                          style={{ backgroundColor: preset.primary }}
+                        />
+                        <div
+                          className="w-8 h-8 rounded"
+                          style={{ backgroundColor: preset.secondary }}
+                        />
+                        <div
+                          className="w-8 h-8 rounded"
+                          style={{ backgroundColor: preset.accent }}
+                        />
+                      </div>
+                      <span className="text-sm font-medium">{preset.name}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="secondaryColor">Secondary Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="secondaryColor"
-                    type="color"
-                    value={formData.colorScheme.secondary}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      colorScheme: { ...formData.colorScheme, secondary: e.target.value }
-                    })}
-                    className="w-16 h-10 p-1"
-                  />
-                  <Input
-                    value={formData.colorScheme.secondary}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      colorScheme: { ...formData.colorScheme, secondary: e.target.value }
-                    })}
-                    className="flex-1"
-                  />
+              <Separator />
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="primaryColor">Primary Color</Label>
+                  <p className="text-xs text-muted-foreground mb-2">Main brand color for headers and key elements</p>
+                  <div className="flex gap-2">
+                    <Input
+                      id="primaryColor"
+                      type="color"
+                      value={formData.colorScheme.primary}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        colorScheme: { ...formData.colorScheme, primary: e.target.value }
+                      })}
+                      className="w-16 h-10 p-1"
+                    />
+                    <Input
+                      value={formData.colorScheme.primary}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        colorScheme: { ...formData.colorScheme, primary: e.target.value }
+                      })}
+                      className="flex-1 font-mono"
+                      placeholder="#000000"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="secondaryColor">Secondary Color</Label>
+                  <p className="text-xs text-muted-foreground mb-2">Supporting color for accents and highlights</p>
+                  <div className="flex gap-2">
+                    <Input
+                      id="secondaryColor"
+                      type="color"
+                      value={formData.colorScheme.secondary}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        colorScheme: { ...formData.colorScheme, secondary: e.target.value }
+                      })}
+                      className="w-16 h-10 p-1"
+                    />
+                    <Input
+                      value={formData.colorScheme.secondary}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        colorScheme: { ...formData.colorScheme, secondary: e.target.value }
+                      })}
+                      className="flex-1 font-mono"
+                      placeholder="#000000"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="accentColor">Accent Color</Label>
+                  <p className="text-xs text-muted-foreground mb-2">Color for buttons and interactive elements</p>
+                  <div className="flex gap-2">
+                    <Input
+                      id="accentColor"
+                      type="color"
+                      value={formData.colorScheme.accent}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        colorScheme: { ...formData.colorScheme, accent: e.target.value }
+                      })}
+                      className="w-16 h-10 p-1"
+                    />
+                    <Input
+                      value={formData.colorScheme.accent}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        colorScheme: { ...formData.colorScheme, accent: e.target.value }
+                      })}
+                      className="flex-1 font-mono"
+                      placeholder="#000000"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="accentColor">Accent Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="accentColor"
-                    type="color"
-                    value={formData.colorScheme.accent}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      colorScheme: { ...formData.colorScheme, accent: e.target.value }
-                    })}
-                    className="w-16 h-10 p-1"
-                  />
-                  <Input
-                    value={formData.colorScheme.accent}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      colorScheme: { ...formData.colorScheme, accent: e.target.value }
-                    })}
-                    className="flex-1"
-                  />
-                </div>
-              </div>
+              {showPreview && (
+                <>
+                  <Separator />
+                  <div>
+                    <Label className="mb-3 block">Live Preview</Label>
+                    <div className="border rounded-lg p-6 space-y-4">
+                      <div
+                        className="p-4 rounded-lg text-white"
+                        style={{ backgroundColor: formData.colorScheme.primary }}
+                      >
+                        <h4 className="text-lg font-semibold mb-1">{formData.hotelName}</h4>
+                        <p className="text-sm opacity-90">{formData.tagline}</p>
+                      </div>
+                      
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          className="px-4 py-2 rounded font-medium text-white"
+                          style={{ backgroundColor: formData.colorScheme.accent }}
+                        >
+                          Book Now
+                        </button>
+                        <button
+                          type="button"
+                          className="px-4 py-2 rounded font-medium border"
+                          style={{
+                            borderColor: formData.colorScheme.secondary,
+                            color: formData.colorScheme.secondary
+                          }}
+                        >
+                          Learn More
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="p-3 rounded border text-center">
+                          <div
+                            className="w-12 h-12 rounded-full mx-auto mb-2"
+                            style={{ backgroundColor: formData.colorScheme.primary }}
+                          />
+                          <p className="text-xs font-medium">Primary</p>
+                        </div>
+                        <div className="p-3 rounded border text-center">
+                          <div
+                            className="w-12 h-12 rounded-full mx-auto mb-2"
+                            style={{ backgroundColor: formData.colorScheme.secondary }}
+                          />
+                          <p className="text-xs font-medium">Secondary</p>
+                        </div>
+                        <div className="p-3 rounded border text-center">
+                          <div
+                            className="w-12 h-12 rounded-full mx-auto mb-2"
+                            style={{ backgroundColor: formData.colorScheme.accent }}
+                          />
+                          <p className="text-xs font-medium">Accent</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             <Separator className="my-6" />
