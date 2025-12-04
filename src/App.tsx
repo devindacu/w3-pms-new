@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import w3MediaLogo from '@/assets/images/W3Media-Web-Green.png'
 import {
   Gauge,
   Bed,
@@ -1224,17 +1225,23 @@ function App() {
         
         <footer className="border-t bg-card mt-auto">
           <div className="px-4 py-3 md:px-6 lg:px-8">
-            <p className="text-center text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Design & Developed by{' '}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
+              <p className="text-sm text-muted-foreground">
+                © {new Date().getFullYear()} Design & Developed by
+              </p>
               <a 
                 href="https://www.w3media.lk/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="font-medium text-primary hover:underline transition-colors"
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
               >
-                W3 Media PVT LTD
+                <img 
+                  src={w3MediaLogo}
+                  alt="W3 Media PVT LTD" 
+                  className="h-6 md:h-7"
+                />
               </a>
-            </p>
+            </div>
           </div>
         </footer>
       </main>
