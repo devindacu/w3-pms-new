@@ -883,6 +883,26 @@ function App() {
             <Buildings size={18} className="mr-2" />
             Channel Manager
           </Button>
+
+          <Separator className="my-2" />
+
+          <Button
+            variant={currentModule === 'invoices' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('invoices')}
+          >
+            <Receipt size={18} className="mr-2" />
+            Invoices
+          </Button>
+
+          <Button
+            variant={currentModule === 'settings' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('settings')}
+          >
+            <UserGear size={18} className="mr-2" />
+            Settings
+          </Button>
         </nav>
       </>
   )
@@ -1165,6 +1185,8 @@ function App() {
               currentUser={currentUser}
             />
           )}
+          {currentModule === 'invoices' && renderComingSoon('Invoices', <Receipt size={64} />)}
+          {currentModule === 'settings' && renderComingSoon('Settings', <UserGear size={64} />)}
         </div>
       </main>
       </Sheet>
