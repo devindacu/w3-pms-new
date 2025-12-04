@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Plus, Trash } from '@phosphor-icons/react'
 import { toast } from 'sonner'
-import { type Budget, type BudgetCategory, type BudgetPeriod, type Department, type ExpenseCategory } from '@/lib/types'
+import { type Budget, type BudgetCategoryItem, type BudgetPeriod, type Department, type ExpenseCategory } from '@/lib/types'
 
 interface BudgetDialogProps {
   open: boolean
@@ -31,7 +31,7 @@ export function BudgetDialog({ open, onOpenChange, budget, onSave }: BudgetDialo
     createdBy: 'admin'
   })
 
-  const [categories, setCategories] = useState<Partial<BudgetCategory>[]>([])
+  const [categories, setCategories] = useState<Partial<BudgetCategoryItem>[]>([])
 
   useEffect(() => {
     if (budget) {
@@ -83,7 +83,7 @@ export function BudgetDialog({ open, onOpenChange, budget, onSave }: BudgetDialo
     setCategories(categories.filter((_, i) => i !== index))
   }
 
-  const handleCategoryChange = (index: number, field: keyof BudgetCategory, value: any) => {
+  const handleCategoryChange = (index: number, field: keyof BudgetCategoryItem, value: any) => {
     const newCategories = [...categories]
     newCategories[index] = { ...newCategories[index], [field]: value }
     
@@ -107,7 +107,7 @@ export function BudgetDialog({ open, onOpenChange, budget, onSave }: BudgetDialo
       return
     }
 
-    const completeCategories: BudgetCategory[] = categories.map(cat => ({
+    const completeCategories: BudgetCategoryItem[] = categories.map(cat => ({
       id: cat.id || `budcat-${Date.now()}`,
       category: cat.category as ExpenseCategory,
       budgetedAmount: cat.budgetedAmount || 0,
@@ -116,6 +116,7 @@ export function BudgetDialog({ open, onOpenChange, budget, onSave }: BudgetDialo
       notes: cat.notes
     }))
 
+    const now = Date.now()
     const newBudget: Budget = {
       id: budget?.id || `bud-${Date.now()}`,
       budgetName: formData.budgetName!,
@@ -130,6 +131,7 @@ export function BudgetDialog({ open, onOpenChange, budget, onSave }: BudgetDialo
       status: formData.status!,
       createdAt: formData.createdAt!,
       createdBy: formData.createdBy!,
+      updatedAt: now,
       approvedBy: formData.approvedBy,
       approvedAt: formData.approvedAt
     }

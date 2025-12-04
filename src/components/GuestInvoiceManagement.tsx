@@ -365,7 +365,7 @@ export function GuestInvoiceManagement({ invoices, setInvoices, currentUser }: G
                           ...(inv.deliveryMethods || []),
                           {
                             method,
-                            status: method === 'email' ? 'emailed' : 'shared',
+                            status: method === 'email' ? 'emailed' : 'downloaded',
                             recipient,
                             attemptedAt: Date.now(),
                             deliveredAt: Date.now(),
@@ -377,7 +377,7 @@ export function GuestInvoiceManagement({ invoices, setInvoices, currentUser }: G
                           ...(inv.auditTrail || []),
                           {
                             id: `audit-${Date.now()}`,
-                            action: 'shared',
+                            action: method === 'email' ? 'emailed' : 'printed',
                             description: `Invoice shared via ${method} to ${recipient}`,
                             performedBy: currentUser.id,
                             performedAt: Date.now()

@@ -72,18 +72,25 @@ export function RoomTypeDialog({
       return
     }
 
+    const now = Date.now()
     const roomTypeData: RoomTypeConfig = {
       id: roomType?.id || `rt-${Date.now()}`,
       name: formData.name,
       code: formData.code,
       description: formData.description,
       baseRate: Number(formData.baseRate) || 0,
+      rackRate: Number(formData.rackRate || formData.baseRate) || 0,
       maxOccupancy: Number(formData.maxOccupancy) || 2,
+      baseOccupancy: Number(formData.baseOccupancy || 2),
       size: formData.size ? Number(formData.size) : undefined,
       amenities: formData.amenities || [],
+      bedding: formData.bedding || ['queen'],
+      viewTypes: formData.viewTypes || ['city'],
+      sortOrder: formData.sortOrder || 0,
       isActive: formData.isActive ?? true,
-      createdAt: roomType?.createdAt || Date.now(),
-      updatedAt: Date.now()
+      createdAt: roomType?.createdAt || now,
+      updatedAt: now,
+      createdBy: roomType?.createdBy || 'admin'
     }
 
     onSave(roomTypeData)

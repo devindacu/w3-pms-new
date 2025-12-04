@@ -31,7 +31,7 @@ interface InvoiceShareDialogProps {
     website?: string
     taxRegistrationNumber?: string
   }
-  onShare: (method: 'email' | 'link' | 'print', recipient?: string) => void
+  onShare: (method: 'email' | 'download' | 'print' | 'sms' | 'whatsapp' | 'portal', recipient?: string) => void
 }
 
 export function InvoiceShareDialog({
@@ -84,7 +84,7 @@ export function InvoiceShareDialog({
     toast.success('Link copied to clipboard')
     setTimeout(() => setLinkCopied(false), 2000)
     
-    onShare('link', shareableLink)
+    onShare('download', shareableLink)
   }
 
   return (
@@ -254,7 +254,7 @@ export function InvoiceShareDialog({
                       `https://wa.me/?text=Invoice ${invoice.invoiceNumber}: ${link}`,
                       '_blank'
                     )
-                    onShare('link', 'whatsapp')
+                    onShare('whatsapp', 'whatsapp')
                   }}
                 >
                   WhatsApp
@@ -268,7 +268,7 @@ export function InvoiceShareDialog({
                       `sms:?&body=Invoice ${invoice.invoiceNumber}: ${link}`,
                       '_blank'
                     )
-                    onShare('link', 'sms')
+                    onShare('sms', 'sms')
                   }}
                 >
                   SMS
