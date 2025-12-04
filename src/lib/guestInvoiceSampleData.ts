@@ -4,16 +4,16 @@ import { generateId, generateNumber } from './helpers'
 export const sampleTaxConfigurations: TaxConfiguration[] = [
   {
     id: generateId(),
-    name: 'GST',
-    type: 'gst',
-    rate: 12,
+    name: 'VAT',
+    type: 'vat',
+    rate: 15,
     isInclusive: false,
     isActive: true,
     isCompoundTax: false,
-    appliesTo: ['front-office', 'fnb', 'housekeeping'],
+    appliesTo: ['front-office', 'fnb', 'housekeeping', 'kitchen', 'engineering', 'finance', 'hr', 'admin'],
     calculationOrder: 1,
     taxableOnServiceCharge: true,
-    registrationNumber: 'GST123456789',
+    registrationNumber: 'VAT-LK-123456789',
     createdAt: Date.now() - 90 * 24 * 60 * 60 * 1000,
     updatedAt: Date.now()
   },
@@ -49,23 +49,286 @@ export const sampleServiceChargeConfig: ServiceChargeConfiguration = {
 
 export const sampleGuestInvoices: GuestInvoice[] = [
   {
-    id: generateId(),
+    id: 'invoice-1',
     invoiceNumber: 'INV-2024-001',
     invoiceType: 'guest-folio',
     status: 'final',
-    folioIds: [generateId()],
-    reservationIds: [generateId()],
-    guestId: generateId(),
+    folioIds: ['folio-1'],
+    reservationIds: ['res-1'],
+    guestId: 'guest-1',
     guestName: 'John Smith',
-    guestAddress: '123 Main Street, New York, NY 10001',
+    guestAddress: '123 Main Street, Colombo 03, Sri Lanka',
     guestEmail: 'john.smith@email.com',
-    guestPhone: '+1 (555) 123-4567',
-    roomNumber: '301',
+    guestPhone: '+94-77-1234567',
+    roomNumber: '102',
+    checkInDate: Date.now() - 3 * 24 * 60 * 60 * 1000,
+    checkOutDate: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    invoiceDate: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    dueDate: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    currency: 'LKR',
+    exchangeRate: 1,
+    lineItems: [
+      {
+        id: generateId(),
+        date: Date.now() - 3 * 24 * 60 * 60 * 1000,
+        itemType: 'room-charge',
+        department: 'front-office',
+        description: 'Standard Room - Night 1',
+        quantity: 1,
+        unit: 'night',
+        unitPrice: 18500,
+        lineTotal: 18500,
+        discountAmount: 0,
+        netAmount: 18500,
+        taxable: true,
+        serviceChargeApplicable: false,
+        serviceChargeAmount: 0,
+        taxLines: [
+          {
+            taxType: 'vat',
+            taxName: 'VAT',
+            taxRate: 15,
+            taxableAmount: 18500,
+            taxAmount: 2775,
+            isInclusive: false
+          }
+        ],
+        totalTax: 2775,
+        lineGrandTotal: 21275,
+        postedBy: 'user-1',
+        postedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+        isSplit: false,
+        isVoided: false
+      },
+      {
+        id: generateId(),
+        date: Date.now() - 2 * 24 * 60 * 60 * 1000,
+        itemType: 'room-charge',
+        department: 'front-office',
+        description: 'Standard Room - Night 2',
+        quantity: 1,
+        unit: 'night',
+        unitPrice: 18500,
+        lineTotal: 18500,
+        discountAmount: 0,
+        netAmount: 18500,
+        taxable: true,
+        serviceChargeApplicable: false,
+        serviceChargeAmount: 0,
+        taxLines: [
+          {
+            taxType: 'vat',
+            taxName: 'VAT',
+            taxRate: 15,
+            taxableAmount: 18500,
+            taxAmount: 2775,
+            isInclusive: false
+          }
+        ],
+        totalTax: 2775,
+        lineGrandTotal: 21275,
+        postedBy: 'user-1',
+        postedAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
+        isSplit: false,
+        isVoided: false
+      },
+      {
+        id: generateId(),
+        date: Date.now() - 2 * 24 * 60 * 60 * 1000,
+        itemType: 'fnb-restaurant',
+        department: 'fnb',
+        description: 'Breakfast Buffet',
+        quantity: 2,
+        unit: 'pax',
+        unitPrice: 2500,
+        lineTotal: 5000,
+        discountAmount: 0,
+        netAmount: 5000,
+        taxable: true,
+        serviceChargeApplicable: true,
+        serviceChargeAmount: 500,
+        taxLines: [
+          {
+            taxType: 'vat',
+            taxName: 'VAT',
+            taxRate: 15,
+            taxableAmount: 5500,
+            taxAmount: 825,
+            isInclusive: false
+          }
+        ],
+        totalTax: 825,
+        lineGrandTotal: 6325,
+        postedBy: 'user-1',
+        postedAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
+        isSplit: false,
+        isVoided: false
+      },
+      {
+        id: generateId(),
+        date: Date.now() - 2 * 24 * 60 * 60 * 1000,
+        itemType: 'fnb-minibar',
+        department: 'fnb',
+        description: 'Mini Bar Consumption',
+        quantity: 1,
+        unit: 'item',
+        unitPrice: 1800,
+        lineTotal: 1800,
+        discountAmount: 0,
+        netAmount: 1800,
+        taxable: true,
+        serviceChargeApplicable: false,
+        serviceChargeAmount: 0,
+        taxLines: [
+          {
+            taxType: 'vat',
+            taxName: 'VAT',
+            taxRate: 15,
+            taxableAmount: 1800,
+            taxAmount: 270,
+            isInclusive: false
+          }
+        ],
+        totalTax: 270,
+        lineGrandTotal: 2070,
+        postedBy: 'user-1',
+        postedAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
+        isSplit: false,
+        isVoided: false
+      }
+    ],
+    subtotal: 43800,
+    discounts: [],
+    totalDiscount: 0,
+    serviceChargeRate: 10,
+    serviceChargeAmount: 500,
+    taxLines: [
+      {
+        taxType: 'vat',
+        taxName: 'VAT',
+        taxRate: 15,
+        taxableAmount: 44300,
+        taxAmount: 6645,
+        isInclusive: false
+      }
+    ],
+    totalTax: 6645,
+    grandTotal: 50945,
+    payments: [
+      {
+        id: generateId(),
+        paymentDate: Date.now() - 1 * 24 * 60 * 60 * 1000,
+        paymentType: 'card',
+        amount: 50945,
+        currency: 'LKR',
+        exchangeRate: 1,
+        amountInBaseCurrency: 50945,
+        reference: 'CARD-****-5678',
+        cardType: 'Mastercard',
+        cardLast4: '5678',
+        receivedBy: 'user-1',
+        receivedAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
+        isRefunded: false
+      }
+    ],
+    totalPaid: 50945,
+    amountDue: 0,
+    creditNotes: [],
+    debitNotes: [],
+    prepayments: [
+      {
+        prepaymentId: generateId(),
+        reservationId: 'res-1',
+        amount: 18500,
+        appliedBy: 'user-1',
+        appliedAt: Date.now() - 3 * 24 * 60 * 60 * 1000
+      }
+    ],
+    netAmountDue: 0,
+    isPostedToAccounts: true,
+    postedToAccountsBy: 'user-1',
+    postedToAccountsAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    deliveryMethods: [
+      {
+        method: 'email',
+        status: 'emailed',
+        recipient: 'john.smith@email.com',
+        attemptedAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
+        deliveredAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
+        retryCount: 0,
+        deliveredBy: 'user-1'
+      },
+      {
+        method: 'print',
+        status: 'printed',
+        attemptedAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
+        deliveredAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
+        retryCount: 0,
+        deliveredBy: 'user-1'
+      }
+    ],
+    emailDeliveryStatus: 'emailed',
+    emailDeliveredAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    printedBy: 'user-1',
+    printedAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    auditTrail: [
+      {
+        id: generateId(),
+        action: 'created',
+        description: 'Invoice created from guest folio',
+        performedBy: 'user-1',
+        performedAt: Date.now() - 1 * 24 * 60 * 60 * 1000
+      },
+      {
+        id: generateId(),
+        action: 'finalized',
+        description: 'Invoice finalized and posted to accounts',
+        performedBy: 'user-1',
+        performedAt: Date.now() - 1 * 24 * 60 * 60 * 1000
+      },
+      {
+        id: generateId(),
+        action: 'payment-received',
+        description: 'Payment received via credit card',
+        performedBy: 'user-1',
+        performedAt: Date.now() - 1 * 24 * 60 * 60 * 1000
+      },
+      {
+        id: generateId(),
+        action: 'emailed',
+        description: 'Invoice emailed to guest',
+        performedBy: 'user-1',
+        performedAt: Date.now() - 1 * 24 * 60 * 60 * 1000
+      }
+    ],
+    isGroupMaster: false,
+    isTaxExempt: false,
+    paymentInstructions: 'Thank you for your payment.',
+    termsAndConditions: 'All charges are non-refundable unless otherwise stated.',
+    createdBy: 'user-1',
+    createdAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    finalizedBy: 'user-1',
+    finalizedAt: Date.now() - 1 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'invoice-2',
+    invoiceNumber: 'INV-2024-002',
+    invoiceType: 'guest-folio',
+    status: 'final',
+    folioIds: ['folio-2'],
+    reservationIds: ['res-2'],
+    guestId: 'guest-2',
+    guestName: 'Sarah Johnson',
+    guestAddress: '456 Beach Road, Galle 80000, Sri Lanka',
+    guestEmail: 'sarah.j@email.com',
+    guestPhone: '+94-71-9876543',
+    roomNumber: '104',
     checkInDate: Date.now() - 5 * 24 * 60 * 60 * 1000,
     checkOutDate: Date.now() - 2 * 24 * 60 * 60 * 1000,
     invoiceDate: Date.now() - 2 * 24 * 60 * 60 * 1000,
-    dueDate: Date.now() + 28 * 24 * 60 * 60 * 1000,
-    currency: 'USD',
+    dueDate: Date.now() - 2 * 24 * 60 * 60 * 1000,
+    currency: 'LKR',
     exchangeRate: 1,
     lineItems: [
       {
@@ -73,29 +336,29 @@ export const sampleGuestInvoices: GuestInvoice[] = [
         date: Date.now() - 5 * 24 * 60 * 60 * 1000,
         itemType: 'room-charge',
         department: 'front-office',
-        description: 'Deluxe Room - 3 Nights',
-        quantity: 3,
+        description: 'Deluxe Room - Night 1',
+        quantity: 1,
         unit: 'night',
-        unitPrice: 250,
-        lineTotal: 750,
+        unitPrice: 28000,
+        lineTotal: 28000,
         discountAmount: 0,
-        netAmount: 750,
+        netAmount: 28000,
         taxable: true,
         serviceChargeApplicable: false,
         serviceChargeAmount: 0,
         taxLines: [
           {
-            taxType: 'gst',
-            taxName: 'GST',
-            taxRate: 12,
-            taxableAmount: 750,
-            taxAmount: 90,
+            taxType: 'vat',
+            taxName: 'VAT',
+            taxRate: 15,
+            taxableAmount: 28000,
+            taxAmount: 4200,
             isInclusive: false
           }
         ],
-        totalTax: 90,
-        lineGrandTotal: 840,
-        postedBy: 'user-001',
+        totalTax: 4200,
+        lineGrandTotal: 32200,
+        postedBy: 'user-1',
         postedAt: Date.now() - 5 * 24 * 60 * 60 * 1000,
         isSplit: false,
         isVoided: false
@@ -103,31 +366,31 @@ export const sampleGuestInvoices: GuestInvoice[] = [
       {
         id: generateId(),
         date: Date.now() - 4 * 24 * 60 * 60 * 1000,
-        itemType: 'fnb-restaurant',
-        department: 'fnb',
-        description: 'Dinner - Main Restaurant',
+        itemType: 'room-charge',
+        department: 'front-office',
+        description: 'Deluxe Room - Night 2',
         quantity: 1,
-        unit: 'meal',
-        unitPrice: 85,
-        lineTotal: 85,
+        unit: 'night',
+        unitPrice: 28000,
+        lineTotal: 28000,
         discountAmount: 0,
-        netAmount: 85,
+        netAmount: 28000,
         taxable: true,
-        serviceChargeApplicable: true,
-        serviceChargeAmount: 8.5,
+        serviceChargeApplicable: false,
+        serviceChargeAmount: 0,
         taxLines: [
           {
-            taxType: 'gst',
-            taxName: 'GST',
-            taxRate: 12,
-            taxableAmount: 93.5,
-            taxAmount: 11.22,
+            taxType: 'vat',
+            taxName: 'VAT',
+            taxRate: 15,
+            taxableAmount: 28000,
+            taxAmount: 4200,
             isInclusive: false
           }
         ],
-        totalTax: 11.22,
-        lineGrandTotal: 104.72,
-        postedBy: 'user-001',
+        totalTax: 4200,
+        lineGrandTotal: 32200,
+        postedBy: 'user-1',
         postedAt: Date.now() - 4 * 24 * 60 * 60 * 1000,
         isSplit: false,
         isVoided: false
@@ -135,346 +398,507 @@ export const sampleGuestInvoices: GuestInvoice[] = [
       {
         id: generateId(),
         date: Date.now() - 3 * 24 * 60 * 60 * 1000,
-        itemType: 'laundry',
-        department: 'housekeeping',
-        description: 'Laundry Service',
+        itemType: 'room-charge',
+        department: 'front-office',
+        description: 'Deluxe Room - Night 3',
         quantity: 1,
-        unit: 'service',
-        unitPrice: 35,
-        lineTotal: 35,
+        unit: 'night',
+        unitPrice: 28000,
+        lineTotal: 28000,
         discountAmount: 0,
-        netAmount: 35,
+        netAmount: 28000,
         taxable: true,
         serviceChargeApplicable: false,
         serviceChargeAmount: 0,
         taxLines: [
           {
-            taxType: 'gst',
-            taxName: 'GST',
-            taxRate: 12,
-            taxableAmount: 35,
-            taxAmount: 4.2,
+            taxType: 'vat',
+            taxName: 'VAT',
+            taxRate: 15,
+            taxableAmount: 28000,
+            taxAmount: 4200,
             isInclusive: false
           }
         ],
-        totalTax: 4.2,
-        lineGrandTotal: 39.2,
-        postedBy: 'user-001',
+        totalTax: 4200,
+        lineGrandTotal: 32200,
+        postedBy: 'user-1',
+        postedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+        isSplit: false,
+        isVoided: false
+      },
+      {
+        id: generateId(),
+        date: Date.now() - 4 * 24 * 60 * 60 * 1000,
+        itemType: 'extra-service',
+        department: 'housekeeping',
+        description: 'Extra Bed for Child',
+        quantity: 3,
+        unit: 'night',
+        unitPrice: 3000,
+        lineTotal: 9000,
+        discountAmount: 0,
+        netAmount: 9000,
+        taxable: true,
+        serviceChargeApplicable: false,
+        serviceChargeAmount: 0,
+        taxLines: [
+          {
+            taxType: 'vat',
+            taxName: 'VAT',
+            taxRate: 15,
+            taxableAmount: 9000,
+            taxAmount: 1350,
+            isInclusive: false
+          }
+        ],
+        totalTax: 1350,
+        lineGrandTotal: 10350,
+        postedBy: 'user-1',
+        postedAt: Date.now() - 4 * 24 * 60 * 60 * 1000,
+        isSplit: false,
+        isVoided: false
+      },
+      {
+        id: generateId(),
+        date: Date.now() - 3 * 24 * 60 * 60 * 1000,
+        itemType: 'fnb-restaurant',
+        department: 'fnb',
+        description: 'Lunch - Poolside Restaurant',
+        quantity: 1,
+        unit: 'meal',
+        unitPrice: 8500,
+        lineTotal: 8500,
+        discountAmount: 0,
+        netAmount: 8500,
+        taxable: true,
+        serviceChargeApplicable: true,
+        serviceChargeAmount: 850,
+        taxLines: [
+          {
+            taxType: 'vat',
+            taxName: 'VAT',
+            taxRate: 15,
+            taxableAmount: 9350,
+            taxAmount: 1402.5,
+            isInclusive: false
+          }
+        ],
+        totalTax: 1402.5,
+        lineGrandTotal: 10752.5,
+        postedBy: 'user-1',
+        postedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+        isSplit: false,
+        isVoided: false
+      },
+      {
+        id: generateId(),
+        date: Date.now() - 3 * 24 * 60 * 60 * 1000,
+        itemType: 'spa',
+        department: 'housekeeping',
+        description: 'Couple Spa Package - 90 mins',
+        quantity: 1,
+        unit: 'service',
+        unitPrice: 15000,
+        lineTotal: 15000,
+        discountAmount: 1500,
+        netAmount: 13500,
+        taxable: true,
+        serviceChargeApplicable: false,
+        serviceChargeAmount: 0,
+        taxLines: [
+          {
+            taxType: 'vat',
+            taxName: 'VAT',
+            taxRate: 15,
+            taxableAmount: 13500,
+            taxAmount: 2025,
+            isInclusive: false
+          }
+        ],
+        totalTax: 2025,
+        lineGrandTotal: 15525,
+        postedBy: 'user-1',
         postedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
         isSplit: false,
         isVoided: false
       }
     ],
-    subtotal: 870,
-    discounts: [],
-    totalDiscount: 0,
-    serviceChargeRate: 10,
-    serviceChargeAmount: 8.5,
-    taxLines: [
-      {
-        taxType: 'gst',
-        taxName: 'GST',
-        taxRate: 12,
-        taxableAmount: 878.5,
-        taxAmount: 105.42,
-        isInclusive: false
-      }
-    ],
-    totalTax: 105.42,
-    grandTotal: 983.92,
-    payments: [
-      {
-        id: generateId(),
-        paymentDate: Date.now() - 2 * 24 * 60 * 60 * 1000,
-        paymentType: 'card',
-        amount: 983.92,
-        currency: 'USD',
-        exchangeRate: 1,
-        amountInBaseCurrency: 983.92,
-        reference: 'CARD-****-1234',
-        cardType: 'Visa',
-        cardLast4: '1234',
-        receivedBy: 'user-001',
-        receivedAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-        isRefunded: false
-      }
-    ],
-    totalPaid: 983.92,
-    amountDue: 0,
-    creditNotes: [],
-    debitNotes: [],
-    prepayments: [],
-    netAmountDue: 0,
-    isPostedToAccounts: true,
-    postedToAccountsBy: 'user-001',
-    postedToAccountsAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-    deliveryMethods: [
-      {
-        method: 'email',
-        status: 'emailed',
-        recipient: 'john.smith@email.com',
-        attemptedAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-        deliveredAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-        retryCount: 0,
-        deliveredBy: 'user-001'
-      },
-      {
-        method: 'print',
-        status: 'printed',
-        attemptedAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-        deliveredAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-        retryCount: 0,
-        deliveredBy: 'user-001'
-      }
-    ],
-    emailDeliveryStatus: 'emailed',
-    emailDeliveredAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-    printedBy: 'user-001',
-    printedAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-    auditTrail: [
-      {
-        id: generateId(),
-        action: 'created',
-        description: 'Invoice created from guest folio',
-        performedBy: 'user-001',
-        performedAt: Date.now() - 2 * 24 * 60 * 60 * 1000
-      },
-      {
-        id: generateId(),
-        action: 'finalized',
-        description: 'Invoice finalized and posted to accounts',
-        performedBy: 'user-001',
-        performedAt: Date.now() - 2 * 24 * 60 * 60 * 1000
-      },
-      {
-        id: generateId(),
-        action: 'payment-received',
-        description: 'Payment received via credit card',
-        performedBy: 'user-001',
-        performedAt: Date.now() - 2 * 24 * 60 * 60 * 1000
-      }
-    ],
-    isGroupMaster: false,
-    isTaxExempt: false,
-    paymentInstructions: 'Payment due within 30 days. Please reference invoice number when making payment.',
-    termsAndConditions: 'All charges are non-refundable unless otherwise stated. Late payment may incur additional charges.',
-    createdBy: 'user-001',
-    createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-    updatedAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-    finalizedBy: 'user-001',
-    finalizedAt: Date.now() - 2 * 24 * 60 * 60 * 1000
-  },
-  {
-    id: generateId(),
-    invoiceNumber: 'INV-2024-002',
-    invoiceType: 'guest-folio',
-    status: 'final',
-    folioIds: [generateId()],
-    reservationIds: [generateId()],
-    guestId: generateId(),
-    guestName: 'Sarah Johnson',
-    guestEmail: 'sarah.j@email.com',
-    guestPhone: '+1 (555) 987-6543',
-    roomNumber: '215',
-    checkInDate: Date.now() - 2 * 24 * 60 * 60 * 1000,
-    checkOutDate: Date.now(),
-    invoiceDate: Date.now(),
-    dueDate: Date.now() + 30 * 24 * 60 * 60 * 1000,
-    currency: 'USD',
-    exchangeRate: 1,
-    lineItems: [
-      {
-        id: generateId(),
-        date: Date.now() - 2 * 24 * 60 * 60 * 1000,
-        itemType: 'room-charge',
-        department: 'front-office',
-        description: 'Standard Room - 2 Nights',
-        quantity: 2,
-        unit: 'night',
-        unitPrice: 180,
-        lineTotal: 360,
-        discountAmount: 0,
-        netAmount: 360,
-        taxable: true,
-        serviceChargeApplicable: false,
-        serviceChargeAmount: 0,
-        taxLines: [
-          {
-            taxType: 'gst',
-            taxName: 'GST',
-            taxRate: 12,
-            taxableAmount: 360,
-            taxAmount: 43.2,
-            isInclusive: false
-          }
-        ],
-        totalTax: 43.2,
-        lineGrandTotal: 403.2,
-        postedBy: 'user-001',
-        postedAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-        isSplit: false,
-        isVoided: false
-      }
-    ],
-    subtotal: 360,
-    discounts: [],
-    totalDiscount: 0,
-    serviceChargeRate: 0,
-    serviceChargeAmount: 0,
-    taxLines: [
-      {
-        taxType: 'gst',
-        taxName: 'GST',
-        taxRate: 12,
-        taxableAmount: 360,
-        taxAmount: 43.2,
-        isInclusive: false
-      }
-    ],
-    totalTax: 43.2,
-    grandTotal: 403.2,
-    payments: [],
-    totalPaid: 0,
-    amountDue: 403.2,
-    creditNotes: [],
-    debitNotes: [],
-    prepayments: [],
-    netAmountDue: 403.2,
-    isPostedToAccounts: true,
-    postedToAccountsBy: 'user-001',
-    postedToAccountsAt: Date.now(),
-    deliveryMethods: [],
-    auditTrail: [
-      {
-        id: generateId(),
-        action: 'created',
-        description: 'Invoice created from guest folio',
-        performedBy: 'user-001',
-        performedAt: Date.now()
-      }
-    ],
-    isGroupMaster: false,
-    isTaxExempt: false,
-    paymentInstructions: 'Payment due within 30 days.',
-    createdBy: 'user-001',
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-    finalizedBy: 'user-001',
-    finalizedAt: Date.now()
-  },
-  {
-    id: generateId(),
-    invoiceNumber: 'INV-2024-003',
-    invoiceType: 'guest-folio',
-    status: 'draft',
-    folioIds: [generateId()],
-    reservationIds: [generateId()],
-    guestId: generateId(),
-    guestName: 'Michael Brown',
-    guestEmail: 'mbrown@email.com',
-    guestPhone: '+1 (555) 456-7890',
-    companyName: 'Brown Enterprises Inc.',
-    companyGSTNumber: 'GST-987654321',
-    roomNumber: '412',
-    checkInDate: Date.now() - 1 * 24 * 60 * 60 * 1000,
-    checkOutDate: Date.now() + 2 * 24 * 60 * 60 * 1000,
-    invoiceDate: Date.now(),
-    currency: 'USD',
-    exchangeRate: 1,
-    lineItems: [
-      {
-        id: generateId(),
-        date: Date.now() - 1 * 24 * 60 * 60 * 1000,
-        itemType: 'room-charge',
-        department: 'front-office',
-        description: 'Executive Suite - 3 Nights',
-        quantity: 3,
-        unit: 'night',
-        unitPrice: 450,
-        lineTotal: 1350,
-        discountAmount: 135,
-        netAmount: 1215,
-        taxable: true,
-        serviceChargeApplicable: false,
-        serviceChargeAmount: 0,
-        taxLines: [
-          {
-            taxType: 'gst',
-            taxName: 'GST',
-            taxRate: 12,
-            taxableAmount: 1215,
-            taxAmount: 145.8,
-            isInclusive: false
-          }
-        ],
-        totalTax: 145.8,
-        lineGrandTotal: 1360.8,
-        postedBy: 'user-001',
-        postedAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
-        isSplit: false,
-        isVoided: false
-      }
-    ],
-    subtotal: 1350,
+    subtotal: 93000,
     discounts: [
       {
         id: generateId(),
         type: 'percentage',
         scope: 'line-item',
-        description: 'Corporate discount - 10%',
+        description: '10% Spa Discount - Booking.com Offer',
         value: 10,
-        amount: 135,
-        appliedBy: 'user-001',
-        appliedAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
+        amount: 1500,
+        appliedBy: 'user-1',
+        appliedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
         approvalRequired: false
       }
     ],
-    totalDiscount: 135,
-    serviceChargeRate: 0,
-    serviceChargeAmount: 0,
+    totalDiscount: 1500,
+    serviceChargeRate: 10,
+    serviceChargeAmount: 850,
     taxLines: [
       {
-        taxType: 'gst',
-        taxName: 'GST',
-        taxRate: 12,
-        taxableAmount: 1215,
-        taxAmount: 145.8,
+        taxType: 'vat',
+        taxName: 'VAT',
+        taxRate: 15,
+        taxableAmount: 92350,
+        taxAmount: 13852.5,
         isInclusive: false
       }
     ],
-    totalTax: 145.8,
-    grandTotal: 1360.8,
-    payments: [],
-    totalPaid: 0,
-    amountDue: 1360.8,
+    totalTax: 13852.5,
+    grandTotal: 106202.5,
+    payments: [
+      {
+        id: generateId(),
+        paymentDate: Date.now() - 2 * 24 * 60 * 60 * 1000,
+        paymentType: 'card',
+        amount: 106202.5,
+        currency: 'LKR',
+        exchangeRate: 1,
+        amountInBaseCurrency: 106202.5,
+        reference: 'CARD-****-9012',
+        cardType: 'Visa',
+        cardLast4: '9012',
+        receivedBy: 'user-1',
+        receivedAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
+        isRefunded: false
+      }
+    ],
+    totalPaid: 106202.5,
+    amountDue: 0,
     creditNotes: [],
     debitNotes: [],
-    prepayments: [],
-    netAmountDue: 1360.8,
-    isPostedToAccounts: false,
-    deliveryMethods: [],
+    prepayments: [
+      {
+        prepaymentId: generateId(),
+        reservationId: 'res-2',
+        amount: 28000,
+        appliedBy: 'user-1',
+        appliedAt: Date.now() - 5 * 24 * 60 * 60 * 1000
+      }
+    ],
+    netAmountDue: 0,
+    isPostedToAccounts: true,
+    postedToAccountsBy: 'user-1',
+    postedToAccountsAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
+    deliveryMethods: [
+      {
+        method: 'email',
+        status: 'emailed',
+        recipient: 'sarah.j@email.com',
+        attemptedAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
+        deliveredAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
+        retryCount: 0,
+        deliveredBy: 'user-1'
+      }
+    ],
+    emailDeliveryStatus: 'emailed',
+    emailDeliveredAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
     auditTrail: [
       {
         id: generateId(),
         action: 'created',
         description: 'Invoice created from guest folio',
-        performedBy: 'user-001',
-        performedAt: Date.now()
+        performedBy: 'user-1',
+        performedAt: Date.now() - 2 * 24 * 60 * 60 * 1000
       },
       {
         id: generateId(),
         action: 'discount-applied',
-        description: 'Corporate discount applied - 10%',
-        performedBy: 'user-001',
-        performedAt: Date.now()
+        description: 'Spa discount applied',
+        performedBy: 'user-1',
+        performedAt: Date.now() - 2 * 24 * 60 * 60 * 1000
+      },
+      {
+        id: generateId(),
+        action: 'finalized',
+        description: 'Invoice finalized',
+        performedBy: 'user-1',
+        performedAt: Date.now() - 2 * 24 * 60 * 60 * 1000
+      },
+      {
+        id: generateId(),
+        action: 'payment-received',
+        description: 'Payment received via card',
+        performedBy: 'user-1',
+        performedAt: Date.now() - 2 * 24 * 60 * 60 * 1000
       }
     ],
     isGroupMaster: false,
     isTaxExempt: false,
-    specialInstructions: 'Corporate billing - invoice to be sent to company address',
-    paymentInstructions: 'Net 30 payment terms as per corporate agreement.',
-    createdBy: 'user-001',
-    createdAt: Date.now(),
-    updatedAt: Date.now()
+    paymentInstructions: 'Thank you for staying with us.',
+    termsAndConditions: 'All charges are non-refundable unless otherwise stated.',
+    createdBy: 'user-1',
+    createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
+    finalizedBy: 'user-1',
+    finalizedAt: Date.now() - 2 * 24 * 60 * 60 * 1000
+  },
+  {
+    id: 'invoice-3',
+    invoiceNumber: 'INV-2024-003',
+    invoiceType: 'guest-folio',
+    status: 'final',
+    folioIds: ['folio-3'],
+    reservationIds: ['res-3'],
+    guestId: 'guest-3',
+    guestName: 'Michael Chen',
+    guestAddress: '789 Orchard Boulevard, Singapore 238858',
+    guestEmail: 'mchen@email.com',
+    guestPhone: '+65-9123-4567',
+    roomNumber: '203',
+    checkInDate: Date.now() - 7 * 24 * 60 * 60 * 1000,
+    checkOutDate: Date.now() - 3 * 24 * 60 * 60 * 1000,
+    invoiceDate: Date.now() - 3 * 24 * 60 * 60 * 1000,
+    dueDate: Date.now() - 3 * 24 * 60 * 60 * 1000,
+    currency: 'LKR',
+    exchangeRate: 1,
+    lineItems: [
+      {
+        id: generateId(),
+        date: Date.now() - 7 * 24 * 60 * 60 * 1000,
+        itemType: 'room-charge',
+        department: 'front-office',
+        description: 'Suite Room - 4 Nights',
+        quantity: 4,
+        unit: 'night',
+        unitPrice: 42000,
+        lineTotal: 168000,
+        discountAmount: 0,
+        netAmount: 168000,
+        taxable: true,
+        serviceChargeApplicable: false,
+        serviceChargeAmount: 0,
+        taxLines: [
+          {
+            taxType: 'vat',
+            taxName: 'VAT',
+            taxRate: 15,
+            taxableAmount: 168000,
+            taxAmount: 25200,
+            isInclusive: false
+          }
+        ],
+        totalTax: 25200,
+        lineGrandTotal: 193200,
+        postedBy: 'user-1',
+        postedAt: Date.now() - 7 * 24 * 60 * 60 * 1000,
+        isSplit: false,
+        isVoided: false
+      },
+      {
+        id: generateId(),
+        date: Date.now() - 6 * 24 * 60 * 60 * 1000,
+        itemType: 'fnb-restaurant',
+        department: 'fnb',
+        description: 'Honeymoon Dinner - Beachfront',
+        quantity: 1,
+        unit: 'meal',
+        unitPrice: 18000,
+        lineTotal: 18000,
+        discountAmount: 0,
+        netAmount: 18000,
+        taxable: true,
+        serviceChargeApplicable: true,
+        serviceChargeAmount: 1800,
+        taxLines: [
+          {
+            taxType: 'vat',
+            taxName: 'VAT',
+            taxRate: 15,
+            taxableAmount: 19800,
+            taxAmount: 2970,
+            isInclusive: false
+          }
+        ],
+        totalTax: 2970,
+        lineGrandTotal: 22770,
+        postedBy: 'user-1',
+        postedAt: Date.now() - 6 * 24 * 60 * 60 * 1000,
+        isSplit: false,
+        isVoided: false
+      },
+      {
+        id: generateId(),
+        date: Date.now() - 5 * 24 * 60 * 60 * 1000,
+        itemType: 'fnb-room-service',
+        department: 'fnb',
+        description: 'Breakfast in Bed - 4 Days',
+        quantity: 4,
+        unit: 'service',
+        unitPrice: 3500,
+        lineTotal: 14000,
+        discountAmount: 0,
+        netAmount: 14000,
+        taxable: true,
+        serviceChargeApplicable: true,
+        serviceChargeAmount: 1400,
+        taxLines: [
+          {
+            taxType: 'vat',
+            taxName: 'VAT',
+            taxRate: 15,
+            taxableAmount: 15400,
+            taxAmount: 2310,
+            isInclusive: false
+          }
+        ],
+        totalTax: 2310,
+        lineGrandTotal: 17710,
+        postedBy: 'user-1',
+        postedAt: Date.now() - 5 * 24 * 60 * 60 * 1000,
+        isSplit: false,
+        isVoided: false
+      },
+      {
+        id: generateId(),
+        date: Date.now() - 4 * 24 * 60 * 60 * 1000,
+        itemType: 'extra-service',
+        department: 'housekeeping',
+        description: 'Late Checkout Fee (Until 6 PM)',
+        quantity: 1,
+        unit: 'service',
+        unitPrice: 8000,
+        lineTotal: 8000,
+        discountAmount: 0,
+        netAmount: 8000,
+        taxable: true,
+        serviceChargeApplicable: false,
+        serviceChargeAmount: 0,
+        taxLines: [
+          {
+            taxType: 'vat',
+            taxName: 'VAT',
+            taxRate: 15,
+            taxableAmount: 8000,
+            taxAmount: 1200,
+            isInclusive: false
+          }
+        ],
+        totalTax: 1200,
+        lineGrandTotal: 9200,
+        postedBy: 'user-1',
+        postedAt: Date.now() - 4 * 24 * 60 * 60 * 1000,
+        isSplit: false,
+        isVoided: false
+      }
+    ],
+    subtotal: 208000,
+    discounts: [],
+    totalDiscount: 0,
+    serviceChargeRate: 10,
+    serviceChargeAmount: 3200,
+    taxLines: [
+      {
+        taxType: 'vat',
+        taxName: 'VAT',
+        taxRate: 15,
+        taxableAmount: 211200,
+        taxAmount: 31680,
+        isInclusive: false
+      }
+    ],
+    totalTax: 31680,
+    grandTotal: 242880,
+    payments: [
+      {
+        id: generateId(),
+        paymentDate: Date.now() - 3 * 24 * 60 * 60 * 1000,
+        paymentType: 'cash',
+        amount: 242880,
+        currency: 'LKR',
+        exchangeRate: 1,
+        amountInBaseCurrency: 242880,
+        receivedBy: 'user-1',
+        receivedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+        isRefunded: false
+      }
+    ],
+    totalPaid: 242880,
+    amountDue: 0,
+    creditNotes: [],
+    debitNotes: [],
+    prepayments: [
+      {
+        prepaymentId: generateId(),
+        reservationId: 'res-3',
+        amount: 42000,
+        appliedBy: 'user-1',
+        appliedAt: Date.now() - 7 * 24 * 60 * 60 * 1000
+      }
+    ],
+    netAmountDue: 0,
+    isPostedToAccounts: true,
+    postedToAccountsBy: 'user-1',
+    postedToAccountsAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+    deliveryMethods: [
+      {
+        method: 'email',
+        status: 'emailed',
+        recipient: 'mchen@email.com',
+        attemptedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+        deliveredAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+        retryCount: 0,
+        deliveredBy: 'user-1'
+      },
+      {
+        method: 'print',
+        status: 'printed',
+        attemptedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+        deliveredAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+        retryCount: 0,
+        deliveredBy: 'user-1'
+      }
+    ],
+    emailDeliveryStatus: 'emailed',
+    emailDeliveredAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+    printedBy: 'user-1',
+    printedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+    auditTrail: [
+      {
+        id: generateId(),
+        action: 'created',
+        description: 'Invoice created from honeymoon package reservation',
+        performedBy: 'user-1',
+        performedAt: Date.now() - 3 * 24 * 60 * 60 * 1000
+      },
+      {
+        id: generateId(),
+        action: 'finalized',
+        description: 'Invoice finalized',
+        performedBy: 'user-1',
+        performedAt: Date.now() - 3 * 24 * 60 * 60 * 1000
+      },
+      {
+        id: generateId(),
+        action: 'payment-received',
+        description: 'Payment received via cash',
+        performedBy: 'user-1',
+        performedAt: Date.now() - 3 * 24 * 60 * 60 * 1000
+      },
+      {
+        id: generateId(),
+        action: 'printed',
+        description: 'Invoice printed for guest',
+        performedBy: 'user-1',
+        performedAt: Date.now() - 3 * 24 * 60 * 60 * 1000
+      }
+    ],
+    isGroupMaster: false,
+    isTaxExempt: false,
+    specialInstructions: 'Honeymoon Package - Thank you for choosing us for your special occasion!',
+    paymentInstructions: 'Thank you for your payment.',
+    termsAndConditions: 'All charges are non-refundable unless otherwise stated.',
+    createdBy: 'user-1',
+    createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+    finalizedBy: 'user-1',
+    finalizedAt: Date.now() - 3 * 24 * 60 * 60 * 1000
   }
 ]
