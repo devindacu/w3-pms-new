@@ -25,13 +25,25 @@ import {
   Calendar,
   FilePlus
 } from '@phosphor-icons/react'
-import { type Invoice, type Payment, type Expense, type Account, type Budget, type JournalEntry, type ChartOfAccount, type SystemUser } from '@/lib/types'
+import { 
+  type Invoice, 
+  type Payment, 
+  type Expense, 
+  type Account, 
+  type Budget, 
+  type JournalEntry, 
+  type ChartOfAccount, 
+  type SystemUser,
+  type GLEntry,
+  type BankReconciliation
+} from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/helpers'
 import { InvoiceDialog } from './InvoiceDialog'
 import { PaymentDialog } from './PaymentDialog'
 import { ExpenseDialog } from './ExpenseDialog'
 import { BudgetDialog } from './BudgetDialog'
 import { JournalEntryDialog } from './JournalEntryDialog'
+import { BankReconciliationDialog } from './BankReconciliationDialog'
 import { toast } from 'sonner'
 
 interface FinanceProps {
@@ -48,6 +60,10 @@ interface FinanceProps {
   setJournalEntries?: (entries: JournalEntry[] | ((prev: JournalEntry[]) => JournalEntry[])) => void
   chartOfAccounts?: ChartOfAccount[]
   setChartOfAccounts?: (accounts: ChartOfAccount[] | ((prev: ChartOfAccount[]) => ChartOfAccount[])) => void
+  glEntries?: GLEntry[]
+  setGLEntries?: (entries: GLEntry[] | ((prev: GLEntry[]) => GLEntry[])) => void
+  bankReconciliations?: BankReconciliation[]
+  setBankReconciliations?: (reconciliations: BankReconciliation[] | ((prev: BankReconciliation[]) => BankReconciliation[])) => void
   currentUser: SystemUser
 }
 
@@ -65,6 +81,10 @@ export function Finance({
   setJournalEntries,
   chartOfAccounts = [],
   setChartOfAccounts,
+  glEntries = [],
+  setGLEntries,
+  bankReconciliations = [],
+  setBankReconciliations,
   currentUser
 }: FinanceProps) {
   const [selectedTab, setSelectedTab] = useState('overview')
@@ -73,11 +93,13 @@ export function Finance({
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false)
   const [budgetDialogOpen, setBudgetDialogOpen] = useState(false)
   const [journalDialogOpen, setJournalDialogOpen] = useState(false)
+  const [reconciliationDialogOpen, setReconciliationDialogOpen] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | undefined>()
   const [selectedPayment, setSelectedPayment] = useState<Payment | undefined>()
   const [selectedExpense, setSelectedExpense] = useState<Expense | undefined>()
   const [selectedBudget, setSelectedBudget] = useState<Budget | undefined>()
   const [selectedJournal, setSelectedJournal] = useState<JournalEntry | undefined>()
+  const [selectedReconciliation, setSelectedReconciliation] = useState<BankReconciliation | undefined>()
 
   const totalRevenue = invoices.reduce((sum, inv) => sum + inv.total, 0)
   const totalReceivables = invoices.reduce((sum, inv) => {
@@ -193,6 +215,16 @@ export function Finance({
   const handleEditJournal = (entry: JournalEntry) => {
     setSelectedJournal(entry)
     setJournalDialogOpen(true)
+  }
+
+  const handleNewReconciliation = () => {
+    setSelectedReconciliation(undefined)
+    setReconciliationDialogOpen(true)
+  }
+
+  const handleEditReconciliation = (reconciliation: BankReconciliation) => {
+    setSelectedReconciliation(reconciliation)
+    setReconciliationDialogOpen(true)
   }
 
   const handlePostJournal = (entry: JournalEntry) => {
@@ -372,6 +404,7 @@ export function Finance({
           <TabsTrigger value="budgets">Budgets</TabsTrigger>
           <TabsTrigger value="accounts">Chart of Accounts</TabsTrigger>
           <TabsTrigger value="journals">Journal Entries</TabsTrigger>
+          <TabsTrigger value="reconciliation">Bank Reconciliation</TabsTrigger>
           <TabsTrigger value="reports">Financial Reports</TabsTrigger>
         </TabsList>
 
@@ -1068,6 +1101,80 @@ export function Finance({
             </div>
           </Card>
         </TabsContent>
+
+        <TabsContent value="reconciliation" className="space-y-6">
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold">Bank Reconciliations</h3>
+              <Button onClick={handleNewReconciliation}>
+                <Plus size={18} className="mr-2" />
+                New Reconciliation
+              </Button>
+            </div>
+
+            <div className="space-y-3">
+              {bankReconciliations.length === 0 ? (
+                <div className="text-center py-12">
+                  <Bank size={48} className="mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No bank reconciliations yet</p>
+                  <Button onClick={handleNewReconciliation} className="mt-4">
+                    <Plus size={18} className="mr-2" />
+                    Start First Reconciliation
+                  </Button>
+                </div>
+              ) : (
+                bankReconciliations.map((reconciliation) => (
+                  <div
+                    key={reconciliation.id}
+                    className="p-4 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted transition-colors"
+                    onClick={() => handleEditReconciliation(reconciliation)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <p className="font-semibold">{reconciliation.reconciliationNumber}</p>
+                          <Badge variant={
+                            reconciliation.status === 'completed' ? 'default' :
+                            reconciliation.status === 'in-progress' ? 'secondary' : 'destructive'
+                          }>
+                            {reconciliation.status.replace('-', ' ')}
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-muted-foreground">Bank Account:</span>
+                            <span className="ml-2">{reconciliation.bankAccountName}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Statement Date:</span>
+                            <span className="ml-2">{formatDate(reconciliation.statementDate)}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Book Balance:</span>
+                            <span className="ml-2">{formatCurrency(reconciliation.bookBalance)}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Statement Balance:</span>
+                            <span className="ml-2">{formatCurrency(reconciliation.statementBalance)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-muted-foreground mb-1">Difference</p>
+                        <p className={`text-2xl font-semibold ${Math.abs(reconciliation.difference) < 0.01 ? 'text-success' : 'text-destructive'}`}>
+                          {formatCurrency(reconciliation.difference)}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {reconciliation.matchedTransactions.length} matched
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       <InvoiceDialog
@@ -1139,6 +1246,26 @@ export function Finance({
               toast.success('Journal entry created')
             }
             setJournalDialogOpen(false)
+          }}
+        />
+      )}
+
+      {setBankReconciliations && (
+        <BankReconciliationDialog
+          open={reconciliationDialogOpen}
+          onOpenChange={setReconciliationDialogOpen}
+          reconciliation={selectedReconciliation}
+          bankAccounts={chartOfAccounts}
+          journalEntries={journalEntries}
+          glEntries={glEntries}
+          currentUser={currentUser}
+          onSave={(reconciliation) => {
+            if (selectedReconciliation) {
+              setBankReconciliations((prev) => prev.map((r) => (r.id === reconciliation.id ? reconciliation : r)))
+            } else {
+              setBankReconciliations((prev) => [...prev, reconciliation])
+            }
+            setReconciliationDialogOpen(false)
           }}
         />
       )}

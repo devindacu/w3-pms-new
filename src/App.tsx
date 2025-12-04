@@ -272,6 +272,8 @@ function App() {
   const [budgets, setBudgets] = useKV<import('@/lib/types').Budget[]>('w3-hotel-budgets', [])
   const [journalEntries, setJournalEntries] = useKV<import('@/lib/types').JournalEntry[]>('w3-hotel-journal-entries', [])
   const [chartOfAccounts, setChartOfAccounts] = useKV<import('@/lib/types').ChartOfAccount[]>('w3-hotel-chart-of-accounts', [])
+  const [glEntries, setGLEntries] = useKV<import('@/lib/types').GLEntry[]>('w3-hotel-gl-entries', [])
+  const [bankReconciliations, setBankReconciliations] = useKV<import('@/lib/types').BankReconciliation[]>('w3-hotel-bank-reconciliations', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
@@ -1120,6 +1122,10 @@ function App() {
               setJournalEntries={setJournalEntries}
               chartOfAccounts={chartOfAccounts || []}
               setChartOfAccounts={setChartOfAccounts}
+              glEntries={glEntries || []}
+              setGLEntries={setGLEntries}
+              bankReconciliations={bankReconciliations || []}
+              setBankReconciliations={setBankReconciliations}
               currentUser={currentUser}
             />
           )}
