@@ -1,43 +1,43 @@
 import { useEffect, useRef } from 'react'
 
+export function useNotificationSound(enabled: boolean = true) {
+  const audioContextRef = useRef<AudioContext | null>(null)
 
+  useEffect(() => {
     if (!enabled) return
 
+    if (typeof window !== 'undefined' && 'AudioContext' in window) {
+      audioContextRef.current = new AudioContext()
     }
+
     return () => {
-
-    }
-
-    i
-
-      const oscill
-
-      gainNode.connect(ctx.destination)
-      l
-
-        case 's
-
-        case 'warning':
-          duration = 0.2
-
-         
-        case 'info':
-          duration = 0.1
+      if (audioContextRef.current) {
+        audioContextRef.current.close()
       }
-
-
-      gainNode.gain.exponentialRampToVa
-
-    } catch (error) {
     }
+  }, [enabled])
 
-}
+  const playNotificationSound = (type: 'success' | 'warning' | 'error' | 'info' = 'info') => {
+    if (!enabled || !audioContextRef.current) return
 
+    try {
+      const ctx = audioContextRef.current
+      const oscillator = ctx.createOscillator()
+      const gainNode = ctx.createGain()
 
+      oscillator.connect(gainNode)
+      gainNode.connect(ctx.destination)
 
+      let frequency = 600
+      let duration = 0.15
 
-
-
+      switch (type) {
+        case 'success':
+          frequency = 880
+          duration = 0.2
+          break
+        case 'warning':
+          frequency = 660
           duration = 0.2
           break
         case 'error':

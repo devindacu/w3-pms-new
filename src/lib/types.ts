@@ -3265,3 +3265,85 @@ export interface InvoiceValidationResult {
   totalCalculationVerified: boolean
   paymentBalanceVerified: boolean
 }
+
+export type BudgetCategoryType = 'salary' | 'utilities' | 'supplies' | 'maintenance' | 'marketing' | 'inventory' | 'food-beverage' | 'housekeeping' | 'administrative' | 'other'
+export type BudgetPeriod = 'monthly' | 'quarterly' | 'yearly'
+export type ExpenseCategory = 'salary' | 'utilities' | 'supplies' | 'maintenance' | 'marketing' | 'food-beverage' | 'housekeeping' | 'administrative' | 'travel' | 'entertainment' | 'other'
+
+export interface Payment {
+  id: string
+  paymentNumber: string
+  invoiceId?: string
+  guestId?: string
+  supplierId?: string
+  amount: number
+  method: PaymentMethod
+  status: PaymentStatus
+  reference?: string
+  notes?: string
+  processedAt: number
+  processedBy: string
+  reconciled: boolean
+  reconciledAt?: number
+  reconciledBy?: string
+}
+
+export interface Expense {
+  id: string
+  expenseNumber: string
+  category: ExpenseCategory
+  department: Department
+  amount: number
+  description: string
+  date: number
+  expenseDate: number
+  supplierId?: string
+  invoiceNumber?: string
+  receiptUrl?: string
+  paymentMethod?: PaymentMethod
+  approvedBy?: string
+  approvedAt?: number
+  status: 'pending' | 'approved' | 'rejected' | 'paid'
+  createdBy: string
+  createdAt: number
+}
+
+export interface Account {
+  id: string
+  accountNumber: string
+  accountName: string
+  accountType: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense'
+  balance: number
+  currency: string
+  isActive: boolean
+  createdAt: number
+  updatedAt: number
+}
+
+export interface BudgetCategoryItem {
+  id?: string
+  category: ExpenseCategory
+  budgetedAmount: number
+  actualAmount: number
+  variance: number
+  notes?: string
+}
+
+export interface Budget {
+  id: string
+  budgetName: string
+  department: Department
+  period: BudgetPeriod
+  startDate: number
+  endDate: number
+  totalBudget: number
+  totalActual: number
+  variance: number
+  categories: BudgetCategoryItem[]
+  status: 'draft' | 'approved' | 'active' | 'closed'
+  approvedBy?: string
+  approvedAt?: number
+  createdBy: string
+  createdAt: number
+  updatedAt: number
+}
