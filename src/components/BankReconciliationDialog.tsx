@@ -68,6 +68,8 @@ export function BankReconciliationDialog({
   const [searchTerm, setSearchTerm] = useState('')
   const [matchMode, setMatchMode] = useState<'auto' | 'manual'>('auto')
   const [importDialogOpen, setImportDialogOpen] = useState(false)
+  const [showMatchSuggestions, setShowMatchSuggestions] = useState(false)
+  const [selectedMatchPair, setSelectedMatchPair] = useState<{bankId: string, glId: string} | null>(null)
 
   useEffect(() => {
     if (reconciliation) {
@@ -176,37 +178,98 @@ export function BankReconciliationDialog({
     return bankTransactions.filter(txn => !matchedBankIds.has(txn.id))
   }
 
+  const calculateMatchScore = (bankTxn: BankTransaction, glEntry: GLEntry): number => {
+    let score = 0
+    const bankAmount = bankTxn.credit > 0 ? bankTxn.credit : -bankTxn.debit
+    const glAmount = glEntry.credit > 0 ? glEntry.credit : -glEntry.debit
+    
+    if (Math.abs(bankAmount - glAmount) < 0.01) {
+      score += 50
+    } else if (Math.abs(bankAmount - glAmount) < 1) {
+      score += 30
+    } else if (Math.abs(bankAmount - glAmount) < 10) {
+      score += 10
+    }
+    
+    const dateDiff = Math.abs(bankTxn.transactionDate - glEntry.transactionDate)
+    const daysDiff = dateDiff / (24 * 60 * 60 * 1000)
+    
+    if (daysDiff === 0) {
+      score += 30
+    } else if (daysDiff <= 1) {
+      score += 20
+    } else if (daysDiff <= 3) {
+      score += 10
+    } else if (daysDiff <= 7) {
+      score += 5
+    }
+    
+    const bankDesc = bankTxn.description.toLowerCase()
+    const glDesc = glEntry.description.toLowerCase()
+    const bankRef = bankTxn.reference?.toLowerCase() || ''
+    const glRef = glEntry.sourceDocumentNumber?.toLowerCase() || ''
+    
+    if (bankDesc.includes(glDesc) || glDesc.includes(bankDesc)) {
+      score += 15
+    }
+    
+    if (bankRef && glRef && (bankRef.includes(glRef) || glRef.includes(bankRef))) {
+      score += 5
+    }
+    
+    return Math.min(score, 100)
+  }
+
+  const getSuggestedMatches = (bankTxn: BankTransaction): Array<{glEntry: GLEntry, score: number}> => {
+    const availableGL = getAvailableGLEntries()
+    const suggestions = availableGL
+      .map(gl => ({
+        glEntry: gl,
+        score: calculateMatchScore(bankTxn, gl)
+      }))
+      .filter(s => s.score >= 40)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5)
+    
+    return suggestions
+  }
+
   const performAutoMatching = () => {
     const unmatchedBank = getUnmatchedBankTransactions()
     const availableGL = getAvailableGLEntries()
     const newMatches: ReconciledTransaction[] = []
+    const usedGLIds = new Set<string>()
 
     unmatchedBank.forEach(bankTxn => {
-      const amount = bankTxn.credit > 0 ? bankTxn.credit : -bankTxn.debit
+      const suggestions = availableGL
+        .filter(gl => !usedGLIds.has(gl.id))
+        .map(gl => ({
+          gl,
+          score: calculateMatchScore(bankTxn, gl)
+        }))
+        .filter(s => s.score >= 85)
+        .sort((a, b) => b.score - a.score)
       
-      const exactMatch = availableGL.find(gl => {
-        const glAmount = gl.credit > 0 ? gl.credit : -gl.debit
-        return Math.abs(glAmount - amount) < 0.01 &&
-               Math.abs(gl.transactionDate - bankTxn.transactionDate) < 7 * 24 * 60 * 60 * 1000
-      })
-
-      if (exactMatch) {
+      if (suggestions.length > 0) {
+        const bestMatch = suggestions[0]
         newMatches.push({
           bankTransactionId: bankTxn.id,
-          glEntryId: exactMatch.id,
-          matchType: 'exact',
-          matchScore: 100,
+          glEntryId: bestMatch.gl.id,
+          matchType: bestMatch.score === 100 ? 'exact' : 'fuzzy',
+          matchScore: bestMatch.score,
           reconciledAt: Date.now(),
           reconciledBy: currentUser.id
         })
+        usedGLIds.add(bestMatch.gl.id)
       }
     })
 
     if (newMatches.length > 0) {
       setMatchedPairs([...matchedPairs, ...newMatches])
-      toast.success(`Auto-matched ${newMatches.length} transactions`)
+      toast.success(`Auto-matched ${newMatches.length} transactions (${newMatches.filter(m => m.matchType === 'exact').length} exact, ${newMatches.filter(m => m.matchType === 'fuzzy').length} fuzzy)`)
     } else {
       toast.info('No automatic matches found')
+      setShowMatchSuggestions(true)
     }
   }
 
@@ -216,8 +279,48 @@ export function BankReconciliationDialog({
       return
     }
 
+    if (selectedBankTxns.size === 1 && selectedGLEntries.size > 1) {
+      const bankId = Array.from(selectedBankTxns)[0]
+      const glIds = Array.from(selectedGLEntries)
+      
+      const newMatch: ReconciledTransaction = {
+        bankTransactionId: bankId,
+        glEntryId: glIds[0],
+        matchType: 'manual-one-to-many',
+        relatedGLEntryIds: glIds.slice(1),
+        reconciledAt: Date.now(),
+        reconciledBy: currentUser.id
+      }
+      
+      setMatchedPairs([...matchedPairs, newMatch])
+      setSelectedBankTxns(new Set())
+      setSelectedGLEntries(new Set())
+      toast.success(`Matched 1 bank transaction to ${glIds.length} GL entries`)
+      return
+    }
+
+    if (selectedBankTxns.size > 1 && selectedGLEntries.size === 1) {
+      const bankIds = Array.from(selectedBankTxns)
+      const glId = Array.from(selectedGLEntries)[0]
+      
+      const newMatch: ReconciledTransaction = {
+        bankTransactionId: bankIds[0],
+        glEntryId: glId,
+        matchType: 'manual-many-to-one',
+        relatedBankTransactionIds: bankIds.slice(1),
+        reconciledAt: Date.now(),
+        reconciledBy: currentUser.id
+      }
+      
+      setMatchedPairs([...matchedPairs, newMatch])
+      setSelectedBankTxns(new Set())
+      setSelectedGLEntries(new Set())
+      toast.success(`Matched ${bankIds.length} bank transactions to 1 GL entry`)
+      return
+    }
+
     if (selectedBankTxns.size !== selectedGLEntries.size) {
-      toast.error('Number of selected bank transactions and GL entries must match')
+      toast.error('For multiple matches, select equal numbers or use one-to-many/many-to-one matching')
       return
     }
 
@@ -236,6 +339,19 @@ export function BankReconciliationDialog({
     setSelectedBankTxns(new Set())
     setSelectedGLEntries(new Set())
     toast.success(`Manually matched ${newMatches.length} transactions`)
+  }
+
+  const handleSuggestedMatch = (bankId: string, glId: string) => {
+    const newMatch: ReconciledTransaction = {
+      bankTransactionId: bankId,
+      glEntryId: glId,
+      matchType: 'suggested',
+      reconciledAt: Date.now(),
+      reconciledBy: currentUser.id
+    }
+    
+    setMatchedPairs([...matchedPairs, newMatch])
+    toast.success('Suggested match accepted')
   }
 
   const handleUnmatch = (matchId: string) => {
@@ -405,12 +521,15 @@ export function BankReconciliationDialog({
         </div>
 
         <Tabs defaultValue="unmatched" className="flex-1 overflow-hidden flex flex-col">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="unmatched">
               Unmatched ({unmatchedBankList.length} Bank / {unmatchedGLList.length} Book)
             </TabsTrigger>
             <TabsTrigger value="matched">
               Matched ({matchedPairs.length})
+            </TabsTrigger>
+            <TabsTrigger value="suggestions">
+              Suggestions
             </TabsTrigger>
           </TabsList>
 
@@ -516,7 +635,8 @@ export function BankReconciliationDialog({
                     <TableHead>GL Date</TableHead>
                     <TableHead>GL Description</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
-                    <TableHead>Type</TableHead>
+                    <TableHead>Match Type</TableHead>
+                    <TableHead>Score</TableHead>
                     <TableHead className="w-12"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -531,14 +651,36 @@ export function BankReconciliationDialog({
                     return (
                       <TableRow key={`${match.bankTransactionId}-${match.glEntryId}`}>
                         <TableCell className="text-sm">{formatDate(bankTxn.transactionDate)}</TableCell>
-                        <TableCell className="text-sm">{bankTxn.description}</TableCell>
+                        <TableCell className="text-sm">
+                          <div>{bankTxn.description}</div>
+                          {bankTxn.reference && (
+                            <div className="text-xs text-muted-foreground">Ref: {bankTxn.reference}</div>
+                          )}
+                        </TableCell>
                         <TableCell className="text-sm">{formatDate(glEntry.transactionDate)}</TableCell>
-                        <TableCell className="text-sm">{glEntry.description}</TableCell>
+                        <TableCell className="text-sm">
+                          <div>{glEntry.description}</div>
+                          {glEntry.sourceDocumentNumber && (
+                            <div className="text-xs text-muted-foreground">Doc: {glEntry.sourceDocumentNumber}</div>
+                          )}
+                        </TableCell>
                         <TableCell className="text-right text-sm">{formatCurrency(amount)}</TableCell>
                         <TableCell>
-                          <Badge variant={match.matchType === 'exact' ? 'default' : match.matchType === 'manual' ? 'secondary' : 'outline'}>
+                          <Badge variant={
+                            match.matchType === 'exact' ? 'default' : 
+                            match.matchType === 'fuzzy' ? 'secondary' :
+                            match.matchType === 'suggested' ? 'outline' :
+                            'secondary'
+                          }>
                             {match.matchType}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {match.matchScore && (
+                            <Badge variant={match.matchScore >= 90 ? 'default' : match.matchScore >= 70 ? 'secondary' : 'outline'}>
+                              {match.matchScore}%
+                            </Badge>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Button
@@ -554,6 +696,69 @@ export function BankReconciliationDialog({
                   })}
                 </TableBody>
               </Table>
+            </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="suggestions" className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full">
+              <div className="space-y-4 p-4">
+                {unmatchedBankList.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-8">
+                    All bank transactions have been matched
+                  </div>
+                ) : (
+                  unmatchedBankList.slice(0, 10).map(bankTxn => {
+                    const suggestions = getSuggestedMatches(bankTxn)
+                    
+                    if (suggestions.length === 0) return null
+
+                    return (
+                      <Card key={bankTxn.id} className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <div className="font-medium">{bankTxn.description}</div>
+                            <div className="text-sm text-muted-foreground mt-1">
+                              {formatDate(bankTxn.transactionDate)} • {formatCurrency(bankTxn.credit > 0 ? bankTxn.credit : bankTxn.debit)}
+                            </div>
+                            {bankTxn.reference && (
+                              <div className="text-xs text-muted-foreground mt-1">Ref: {bankTxn.reference}</div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <Separator className="my-2" />
+                        
+                        <div className="space-y-2">
+                          <div className="text-sm font-medium text-muted-foreground">Suggested Matches:</div>
+                          {suggestions.map(({glEntry, score}) => (
+                            <div key={glEntry.id} className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm">{glEntry.description}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {formatDate(glEntry.transactionDate)} • {formatCurrency(glEntry.credit > 0 ? glEntry.credit : glEntry.debit)}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 ml-4">
+                                <Badge variant={score >= 90 ? 'default' : score >= 70 ? 'secondary' : 'outline'}>
+                                  {score}%
+                                </Badge>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleSuggestedMatch(bankTxn.id, glEntry.id)}
+                                >
+                                  <Check size={14} className="mr-1" />
+                                  Match
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </Card>
+                    )
+                  })
+                )}
+              </div>
             </ScrollArea>
           </TabsContent>
         </Tabs>

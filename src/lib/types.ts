@@ -3611,10 +3611,12 @@ export interface BankTransaction {
 export interface ReconciledTransaction {
   bankTransactionId: string
   glEntryId: string
-  matchType: 'exact' | 'partial' | 'manual'
+  matchType: 'exact' | 'partial' | 'manual' | 'fuzzy' | 'suggested' | 'manual-one-to-many' | 'manual-many-to-one'
   matchScore?: number
   reconciledAt: number
   reconciledBy: string
+  relatedBankTransactionIds?: string[]
+  relatedGLEntryIds?: string[]
 }
 
 export interface TrialBalance {
