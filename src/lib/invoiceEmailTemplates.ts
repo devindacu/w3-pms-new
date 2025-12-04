@@ -63,6 +63,10 @@ export const AVAILABLE_VARIABLES: TemplateVariable[] = [
   
   { key: '{{current_date}}', name: 'Current Date', description: 'Today\'s date', example: 'January 20, 2024', category: 'dates' },
   { key: '{{current_time}}', name: 'Current Time', description: 'Current time', example: '2:30 PM', category: 'dates' },
+  
+  { key: '{{brand_primary_color}}', name: 'Primary Brand Color', description: 'Hotel primary brand color', example: '#2c5f2d', category: 'custom' },
+  { key: '{{brand_secondary_color}}', name: 'Secondary Brand Color', description: 'Hotel secondary brand color', example: '#97bc62', category: 'custom' },
+  { key: '{{brand_accent_color}}', name: 'Accent Brand Color', description: 'Hotel accent brand color', example: '#4a7c59', category: 'custom' },
 ]
 
 export const DEFAULT_TEMPLATES: Omit<EmailTemplate, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>[] = [
@@ -116,21 +120,21 @@ Tax Registration: {{tax_registration}}`,
     body {
       font-family: 'IBM Plex Sans', Arial, sans-serif;
       line-height: 1.6;
-      color: #2d4a3e;
+      color: #333333;
       max-width: 600px;
       margin: 0 auto;
       padding: 0;
-      background-color: #f5f8f6;
+      background-color: #f5f5f5;
     }
     .container {
       background-color: #ffffff;
       margin: 20px auto;
       border-radius: 8px;
       overflow: hidden;
-      box-shadow: 0 2px 8px rgba(45, 74, 62, 0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
     .header {
-      background: linear-gradient(135deg, #2d7a4e 0%, #3a9e68 100%);
+      background: {{brand_primary_color}};
       color: #ffffff;
       padding: 30px;
       text-align: center;
@@ -150,19 +154,19 @@ Tax Registration: {{tax_registration}}`,
     }
     .greeting {
       font-size: 16px;
-      color: #2d4a3e;
+      color: #333333;
       margin-bottom: 20px;
     }
     .info-card {
       background-color: #f9fafa;
-      border-left: 4px solid #2d7a4e;
+      border-left: 4px solid {{brand_primary_color}};
       padding: 20px;
       margin: 20px 0;
       border-radius: 4px;
     }
     .info-card h3 {
       margin: 0 0 15px 0;
-      color: #2d7a4e;
+      color: {{brand_primary_color}};
       font-size: 18px;
       font-weight: 600;
     }
@@ -176,20 +180,20 @@ Tax Registration: {{tax_registration}}`,
       border-bottom: none;
     }
     .info-label {
-      color: #6b7f76;
+      color: #666666;
       font-size: 14px;
     }
     .info-value {
-      color: #2d4a3e;
+      color: #333333;
       font-weight: 600;
       font-size: 14px;
     }
     .total-section {
-      background: linear-gradient(135deg, #f1f8f4 0%, #e8f5e9 100%);
+      background-color: #f9fafa;
       padding: 20px;
       margin: 20px 0;
       border-radius: 4px;
-      border: 2px solid #2d7a4e;
+      border: 2px solid {{brand_primary_color}};
     }
     .total-row {
       display: flex;
@@ -198,23 +202,23 @@ Tax Registration: {{tax_registration}}`,
       font-size: 16px;
     }
     .total-row.grand {
-      border-top: 2px solid #2d7a4e;
+      border-top: 2px solid {{brand_primary_color}};
       margin-top: 10px;
       padding-top: 15px;
       font-size: 20px;
       font-weight: 700;
-      color: #2d7a4e;
+      color: {{brand_primary_color}};
     }
     .payment-info {
-      background-color: #fff8e1;
-      border: 2px solid #ffc107;
+      background-color: #fffbf0;
+      border: 2px solid {{brand_accent_color}};
       border-radius: 4px;
       padding: 20px;
       margin: 20px 0;
     }
     .payment-info h3 {
       margin: 0 0 15px 0;
-      color: #f57c00;
+      color: {{brand_primary_color}};
       font-size: 18px;
     }
     .payment-method {
@@ -222,11 +226,11 @@ Tax Registration: {{tax_registration}}`,
       padding: 15px;
       margin: 10px 0;
       border-radius: 4px;
-      border-left: 3px solid #ffc107;
+      border-left: 3px solid {{brand_accent_color}};
     }
     .button {
       display: inline-block;
-      background: #2d7a4e;
+      background: {{brand_primary_color}};
       color: white;
       padding: 12px 30px;
       text-decoration: none;
@@ -236,7 +240,7 @@ Tax Registration: {{tax_registration}}`,
       text-align: center;
     }
     .button:hover {
-      background: #246038;
+      opacity: 0.9;
     }
     .footer {
       background-color: #f9fafa;
@@ -247,17 +251,17 @@ Tax Registration: {{tax_registration}}`,
     .footer p {
       margin: 5px 0;
       font-size: 13px;
-      color: #6b7f76;
+      color: #666666;
     }
     .footer .hotel-name {
       font-weight: 700;
-      color: #2d7a4e;
+      color: {{brand_primary_color}};
       font-size: 16px;
       margin-bottom: 10px;
     }
     .divider {
       height: 1px;
-      background: linear-gradient(to right, transparent, #2d7a4e, transparent);
+      background: linear-gradient(to right, transparent, {{brand_primary_color}}, transparent);
       margin: 30px 0;
     }
   </style>
@@ -344,9 +348,9 @@ Tax Registration: {{tax_registration}}`,
       
       <div class="divider"></div>
       
-      <p style="color: #666; font-size: 14px;">Should you have any questions regarding this invoice, please don't hesitate to contact us at <a href="mailto:{{hotel_email}}" style="color: #2d7a4e;">{{hotel_email}}</a> or call us at {{hotel_phone}}.</p>
+      <p style="color: #666; font-size: 14px;">Should you have any questions regarding this invoice, please don't hesitate to contact us at <a href="mailto:{{hotel_email}}" style="color: {{brand_primary_color}};">{{hotel_email}}</a> or call us at {{hotel_phone}}.</p>
       
-      <p style="color: #2d7a4e; font-weight: 600; margin-top: 20px;">We hope you enjoyed your stay and look forward to welcoming you back soon!</p>
+      <p style="color: {{brand_primary_color}}; font-weight: 600; margin-top: 20px;">We hope you enjoyed your stay and look forward to welcoming you back soon!</p>
     </div>
     
     <div class="footer">
@@ -387,10 +391,10 @@ Best regards,
 <html>
 <head>
   <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: #2d7a4e; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    body { font-family: 'IBM Plex Sans', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: {{brand_primary_color}}; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
     .content { background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none; border-radius: 0 0 8px 8px; }
-    .total { font-size: 20px; font-weight: bold; color: #2d7a4e; margin-top: 20px; }
+    .total { font-size: 20px; font-weight: bold; color: {{brand_primary_color}}; margin-top: 20px; }
   </style>
 </head>
 <body>
@@ -435,10 +439,10 @@ Best regards,
 <html>
 <head>
   <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: linear-gradient(135deg, #d84315 0%, #ff6f00 100%); color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-    .content { background: #fff8e1; padding: 20px; border: 2px solid #ff6f00; border-top: none; border-radius: 0 0 8px 8px; }
-    .total { font-size: 20px; font-weight: bold; color: #d84315; margin-top: 20px; }
+    body { font-family: 'IBM Plex Sans', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: {{brand_accent_color}}; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #fffef8; padding: 20px; border: 2px solid {{brand_accent_color}}; border-top: none; border-radius: 0 0 8px 8px; }
+    .total { font-size: 20px; font-weight: bold; color: {{brand_accent_color}}; margin-top: 20px; }
   </style>
 </head>
 <body>
@@ -492,12 +496,12 @@ Best regards,
 <html>
 <head>
   <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 650px; margin: 0 auto; padding: 20px; }
-    .header { background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%); color: white; padding: 25px; text-align: center; border-radius: 8px 8px 0 0; }
-    .content { background: #f5f5f5; padding: 25px; border: 2px solid #2196f3; border-top: none; border-radius: 0 0 8px 8px; }
-    .info-box { background: white; padding: 20px; margin: 15px 0; border-radius: 4px; border-left: 4px solid #1976d2; }
-    .total-box { background: #e3f2fd; padding: 20px; margin: 20px 0; border-radius: 4px; border: 2px solid #1976d2; }
-    .total { font-size: 22px; font-weight: bold; color: #1976d2; }
+    body { font-family: 'IBM Plex Sans', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 650px; margin: 0 auto; padding: 20px; }
+    .header { background: {{brand_secondary_color}}; color: white; padding: 25px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #f5f5f5; padding: 25px; border: 2px solid {{brand_secondary_color}}; border-top: none; border-radius: 0 0 8px 8px; }
+    .info-box { background: white; padding: 20px; margin: 15px 0; border-radius: 4px; border-left: 4px solid {{brand_primary_color}}; }
+    .total-box { background: #f0f9ff; padding: 20px; margin: 20px 0; border-radius: 4px; border: 2px solid {{brand_primary_color}}; }
+    .total { font-size: 22px; font-weight: bold; color: {{brand_primary_color}}; }
   </style>
 </head>
 <body>
@@ -564,11 +568,11 @@ Best regards,
 <html>
 <head>
   <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: linear-gradient(135deg, #7b1fa2 0%, #9c27b0 100%); color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-    .watermark { text-align: center; font-size: 32px; color: #9c27b0; opacity: 0.1; transform: rotate(-15deg); margin: 30px 0; }
-    .content { background: #f3e5f5; padding: 20px; border: 2px dashed #9c27b0; border-top: none; border-radius: 0 0 8px 8px; }
-    .notice { background: #fff3e0; border-left: 4px solid #ff9800; padding: 15px; margin: 20px 0; border-radius: 4px; }
+    body { font-family: 'IBM Plex Sans', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: {{brand_secondary_color}}; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    .watermark { text-align: center; font-size: 32px; color: {{brand_secondary_color}}; opacity: 0.1; transform: rotate(-15deg); margin: 30px 0; }
+    .content { background: #fafafa; padding: 20px; border: 2px dashed {{brand_secondary_color}}; border-top: none; border-radius: 0 0 8px 8px; }
+    .notice { background: #fffbf0; border-left: 4px solid {{brand_accent_color}}; padding: 15px; margin: 20px 0; border-radius: 4px; }
   </style>
 </head>
 <body>
@@ -586,7 +590,7 @@ Best regards,
     <strong>Expected Check-in:</strong> {{check_in_date}}<br>
     <strong>Expected Check-out:</strong> {{check_out_date}}</p>
     
-    <p style="font-size: 20px; font-weight: bold; color: #7b1fa2; margin: 20px 0;">Estimated Total: {{grand_total}}</p>
+    <p style="font-size: 20px; font-weight: bold; color: {{brand_primary_color}}; margin: 20px 0;">Estimated Total: {{grand_total}}</p>
     
     <div class="notice">
       <strong>⚠️ Important Notice:</strong><br>
@@ -625,10 +629,10 @@ Best regards,
 <html>
 <head>
   <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: linear-gradient(135deg, #388e3c 0%, #4caf50 100%); color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-    .content { background: #e8f5e9; padding: 20px; border: 2px solid #4caf50; border-top: none; border-radius: 0 0 8px 8px; }
-    .credit-amount { font-size: 24px; font-weight: bold; color: #388e3c; text-align: center; margin: 25px 0; padding: 20px; background: white; border-radius: 8px; }
+    body { font-family: 'IBM Plex Sans', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: {{brand_accent_color}}; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #f0fcf5; padding: 20px; border: 2px solid {{brand_accent_color}}; border-top: none; border-radius: 0 0 8px 8px; }
+    .credit-amount { font-size: 24px; font-weight: bold; color: {{brand_accent_color}}; text-align: center; margin: 25px 0; padding: 20px; background: white; border-radius: 8px; border: 2px solid {{brand_accent_color}}; }
   </style>
 </head>
 <body>
@@ -671,6 +675,10 @@ export function replaceVariables(
   const nightsStayed = invoice.checkInDate && invoice.checkOutDate
     ? Math.ceil((invoice.checkOutDate - invoice.checkInDate) / (1000 * 60 * 60 * 24))
     : 0
+
+  const primaryColor = branding?.colorScheme?.primary || '#2c5f2d'
+  const secondaryColor = branding?.colorScheme?.secondary || '#97bc62'
+  const accentColor = branding?.colorScheme?.accent || '#4a7c59'
 
   const variables: Record<string, string> = {
     '{{guest_name}}': invoice.guestName,
@@ -729,6 +737,10 @@ export function replaceVariables(
     '{{current_time}}': new Date().toLocaleTimeString('en-US', { 
       hour: 'numeric', minute: '2-digit', hour12: true 
     }),
+
+    '{{brand_primary_color}}': primaryColor,
+    '{{brand_secondary_color}}': secondaryColor,
+    '{{brand_accent_color}}': accentColor,
   }
 
   Object.entries(variables).forEach(([key, value]) => {
