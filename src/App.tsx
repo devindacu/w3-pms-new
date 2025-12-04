@@ -143,6 +143,7 @@ import { ChannelManager } from '@/components/ChannelManager'
 import { RoomRevenueManagement } from '@/components/RoomRevenueManagement'
 import { ExtraServicesManagement } from '@/components/ExtraServicesManagement'
 import { Analytics } from '@/components/Analytics'
+import { Settings } from '@/components/Settings'
 import type {
   GuestProfile,
   GuestComplaint,
@@ -169,7 +170,9 @@ import type {
   RateCalendar,
   OccupancyPricing,
   GuestInvoice,
-  HotelBranding
+  HotelBranding,
+  TaxConfiguration,
+  ServiceChargeConfiguration
 } from '@/lib/types'
 
 type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoices' | 'settings'
@@ -245,6 +248,8 @@ function App() {
   const [occupancyPricing, setOccupancyPricing] = useKV<OccupancyPricing[]>('w3-hotel-occupancy-pricing', [])
   const [guestInvoices, setGuestInvoices] = useKV<GuestInvoice[]>('w3-hotel-guest-invoices', [])
   const [branding, setBranding] = useKV<HotelBranding | null>('w3-hotel-branding', null)
+  const [taxes, setTaxes] = useKV<TaxConfiguration[]>('w3-hotel-taxes', [])
+  const [serviceCharge, setServiceCharge] = useKV<ServiceChargeConfiguration | null>('w3-hotel-service-charge', null)
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
@@ -1186,7 +1191,17 @@ function App() {
             />
           )}
           {currentModule === 'invoices' && renderComingSoon('Invoices', <Receipt size={64} />)}
-          {currentModule === 'settings' && renderComingSoon('Settings', <UserGear size={64} />)}
+          {currentModule === 'settings' && (
+            <Settings
+              branding={branding || null}
+              setBranding={setBranding}
+              taxes={taxes || []}
+              setTaxes={setTaxes}
+              serviceCharge={serviceCharge || null}
+              setServiceCharge={setServiceCharge}
+              currentUser={currentUser}
+            />
+          )}
         </div>
       </main>
       </Sheet>
