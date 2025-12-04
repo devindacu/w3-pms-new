@@ -123,6 +123,7 @@ import {
 } from '@/lib/sampleData'
 import { sampleGuestInvoices } from '@/lib/guestInvoiceSampleData'
 import { sampleOTAConnections, sampleChannelPerformance } from '@/lib/channelManagerSampleData'
+import { sampleEmailTemplates } from '@/lib/emailTemplateSampleData'
 import { ConstructionManagement } from '@/components/ConstructionManagement'
 import { SupplierManagement } from '@/components/SupplierManagement'
 import { InventoryManagement } from '@/components/InventoryManagement'
@@ -406,6 +407,7 @@ function App() {
     setOTAConnections(sampleOTAConnections)
     setChannelPerformance(sampleChannelPerformance)
     setGuestInvoices(sampleGuestInvoices)
+    setEmailTemplates(sampleEmailTemplates)
     toast.success('Sample data loaded successfully')
   }
 
