@@ -81,7 +81,7 @@ export function GuestInvoiceEditDialog({
           ...(editedInvoice.auditTrail || []),
           {
             id: `audit-${Date.now()}`,
-            action: 'modified',
+            action: 'updated',
             description: 'Invoice modified',
             performedBy: currentUser.id,
             performedAt: Date.now()

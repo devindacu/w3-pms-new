@@ -27,9 +27,9 @@ import { toast } from 'sonner'
 
 interface ExtraServicesManagementProps {
   services: ExtraService[]
-  setServices: (services: ExtraService[]) => void
+  setServices: (services: ExtraService[] | ((prev: ExtraService[]) => ExtraService[])) => void
   categories: ExtraServiceCategory[]
-  setCategories: (categories: ExtraServiceCategory[]) => void
+  setCategories: (categories: ExtraServiceCategory[] | ((prev: ExtraServiceCategory[]) => ExtraServiceCategory[])) => void
   currentUser: { id: string; firstName: string; lastName: string }
 }
 

@@ -124,11 +124,12 @@ export function GuestInvoiceManagement({ invoices, setInvoices, currentUser }: G
   const getStatusBadge = (status: GuestInvoiceStatus) => {
     const variants: Record<GuestInvoiceStatus, { variant: any; icon: any; label: string }> = {
       draft: { variant: 'secondary', icon: <Clock size={14} />, label: 'Draft' },
+      interim: { variant: 'secondary', icon: <Clock size={14} />, label: 'Interim' },
       final: { variant: 'default', icon: <CheckCircle size={14} />, label: 'Final' },
       posted: { variant: 'default', icon: <FileText size={14} />, label: 'Posted' },
-      paid: { variant: 'default', icon: <CheckCircle size={14} />, label: 'Paid' },
-      'partially-paid': { variant: 'secondary', icon: <Warning size={14} />, label: 'Partially Paid' },
-      void: { variant: 'destructive', icon: <XCircle size={14} />, label: 'Void' }
+      cancelled: { variant: 'destructive', icon: <XCircle size={14} />, label: 'Cancelled' },
+      refunded: { variant: 'destructive', icon: <XCircle size={14} />, label: 'Refunded' },
+      'partially-refunded': { variant: 'secondary', icon: <Warning size={14} />, label: 'Partially Refunded' }
     }
 
     const config = variants[status]
@@ -144,13 +145,13 @@ export function GuestInvoiceManagement({ invoices, setInvoices, currentUser }: G
     total: invoices.length,
     draft: invoices.filter(i => i.status === 'draft').length,
     final: invoices.filter(i => i.status === 'final').length,
-    paid: invoices.filter(i => i.status === 'paid').length,
-    outstanding: invoices.filter(i => i.amountDue > 0 && i.status !== 'void').length,
+    posted: invoices.filter(i => i.status === 'posted').length,
+    outstanding: invoices.filter(i => i.amountDue > 0 && i.status !== 'cancelled').length,
     totalRevenue: invoices
-      .filter(i => i.status !== 'void')
+      .filter(i => i.status !== 'cancelled')
       .reduce((sum, inv) => sum + inv.grandTotal, 0),
     totalOutstanding: invoices
-      .filter(i => i.status !== 'void')
+      .filter(i => i.status !== 'cancelled')
       .reduce((sum, inv) => sum + inv.amountDue, 0)
   }
 
@@ -184,10 +185,10 @@ export function GuestInvoiceManagement({ invoices, setInvoices, currentUser }: G
 
         <Card className="p-4 border-l-4 border-l-success">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">Paid Invoices</span>
+            <span className="text-sm text-muted-foreground">Posted Invoices</span>
             <CheckCircle size={20} className="text-success" />
           </div>
-          <p className="text-2xl font-semibold">{stats.paid}</p>
+          <p className="text-2xl font-semibold">{stats.posted}</p>
         </Card>
 
         <Card className="p-4 border-l-4 border-l-destructive">
@@ -217,11 +218,12 @@ export function GuestInvoiceManagement({ invoices, setInvoices, currentUser }: G
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="interim">Interim</SelectItem>
               <SelectItem value="final">Final</SelectItem>
               <SelectItem value="posted">Posted</SelectItem>
-              <SelectItem value="paid">Paid</SelectItem>
-              <SelectItem value="partially-paid">Partially Paid</SelectItem>
-              <SelectItem value="void">Void</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+              <SelectItem value="refunded">Refunded</SelectItem>
+              <SelectItem value="partially-refunded">Partially Refunded</SelectItem>
             </SelectContent>
           </Select>
           <Select value={typeFilter} onValueChange={(value: any) => setTypeFilter(value)}>
@@ -254,7 +256,7 @@ export function GuestInvoiceManagement({ invoices, setInvoices, currentUser }: G
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="font-semibold text-lg">{invoice.invoiceNumber}</h3>
                       {getStatusBadge(invoice.status)}
-                      {invoice.amountDue > 0 && invoice.status !== 'void' && (
+                      {invoice.amountDue > 0 && invoice.status !== 'cancelled' && (
                         <Badge variant="outline" className="text-destructive border-destructive">
                           Due: {formatCurrency(invoice.amountDue)}
                         </Badge>

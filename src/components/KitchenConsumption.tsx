@@ -21,7 +21,7 @@ import { DailyReportDialog } from './DailyReportDialog'
 
 interface KitchenConsumptionProps {
   consumptionLogs: KitchenConsumptionLog[]
-  setConsumptionLogs: (logs: KitchenConsumptionLog[]) => void
+  setConsumptionLogs: (logs: KitchenConsumptionLog[] | ((prev: KitchenConsumptionLog[]) => KitchenConsumptionLog[])) => void
   recipes: Recipe[]
   foodItems: FoodItem[]
   orders: Order[]

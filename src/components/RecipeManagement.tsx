@@ -24,9 +24,9 @@ import { MenuDialog } from './MenuDialog'
 
 interface RecipeManagementProps {
   recipes: Recipe[]
-  setRecipes: (recipes: Recipe[]) => void
+  setRecipes: (recipes: Recipe[] | ((prev: Recipe[]) => Recipe[])) => void
   menus: Menu[]
-  setMenus: (menus: Menu[]) => void
+  setMenus: (menus: Menu[] | ((prev: Menu[]) => Menu[])) => void
   foodItems: FoodItem[]
   suppliers: Supplier[]
 }
