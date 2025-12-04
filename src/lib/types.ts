@@ -3347,3 +3347,43 @@ export interface Budget {
   createdAt: number
   updatedAt: number
 }
+
+export interface HotelBranding {
+  id: string
+  hotelName: string
+  hotelAddress: string
+  hotelCity: string
+  hotelState: string
+  hotelCountry: string
+  hotelPostalCode: string
+  hotelPhone: string
+  hotelEmail: string
+  hotelWebsite?: string
+  taxRegistrationNumber?: string
+  businessRegistrationNumber?: string
+  logo?: string
+  logoWidth?: number
+  logoHeight?: number
+  tagline?: string
+  colorScheme: {
+    primary: string
+    secondary: string
+    accent: string
+  }
+  invoiceFooter?: string
+  termsAndConditions?: string
+  paymentInstructions?: string
+  bankDetails: BankingDetails
+  showQRCode: boolean
+  qrCodeContent?: string
+  currency: string
+  currencySymbol: string
+  currencyPosition: 'before' | 'after'
+  decimalPlaces: number
+  dateFormat: string
+  timeFormat: string
+  timezone: string
+  createdAt: number
+  updatedAt: number
+  updatedBy: string
+}
