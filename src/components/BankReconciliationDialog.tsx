@@ -383,6 +383,277 @@ export function BankReconciliationDialog({
     return stmt - book + unmatchedBankTotal - unmatchedGLTotal
   }
 
+  const exportReconciliationReport = () => {
+    if (!selectedAccount) {
+      toast.error('Please select a bank account')
+      return
+    }
+
+    const account = bankAccounts.find(a => a.id === selectedAccount)
+    const difference = calculateDifference()
+    const unmatchedBank = getUnmatchedBankTransactions()
+    const unmatchedGL = getAvailableGLEntries()
+
+    const reportLines: string[] = []
+    
+    reportLines.push('='.repeat(120))
+    reportLines.push('BANK RECONCILIATION REPORT')
+    reportLines.push('='.repeat(120))
+    reportLines.push('')
+    reportLines.push(`Reconciliation Number: ${reconciliation?.reconciliationNumber || generateNumber('REC')}`)
+    reportLines.push(`Bank Account: ${account?.accountCode} - ${account?.accountName}`)
+    reportLines.push(`Statement Date: ${formatDate(statementDate)}`)
+    reportLines.push(`Generated: ${formatDate(Date.now())}`)
+    reportLines.push(`Prepared By: ${currentUser.firstName} ${currentUser.lastName}`)
+    reportLines.push('')
+    reportLines.push('-'.repeat(120))
+    reportLines.push('RECONCILIATION SUMMARY')
+    reportLines.push('-'.repeat(120))
+    reportLines.push('')
+    reportLines.push(`Book Balance (GL):                ${formatCurrency(calculateBookBalance()).padStart(20)}`)
+    reportLines.push(`Statement Balance (Bank):         ${formatCurrency(parseFloat(statementBalance) || 0).padStart(20)}`)
+    reportLines.push(`Difference:                       ${formatCurrency(difference).padStart(20)} ${Math.abs(difference) < 0.01 ? '✓ RECONCILED' : '✗ DISCREPANCY'}`)
+    reportLines.push('')
+    reportLines.push(`Total Matched Transactions:       ${matchedPairs.length.toString().padStart(20)}`)
+    reportLines.push(`Unmatched Bank Transactions:      ${unmatchedBank.length.toString().padStart(20)}`)
+    reportLines.push(`Unmatched Book Transactions:      ${unmatchedGL.length.toString().padStart(20)}`)
+    reportLines.push('')
+    
+    reportLines.push('='.repeat(120))
+    reportLines.push('MATCHED TRANSACTIONS')
+    reportLines.push('='.repeat(120))
+    reportLines.push('')
+    
+    if (matchedPairs.length > 0) {
+      reportLines.push('Bank Date   | Bank Description                           | GL Date     | GL Description                             | Amount         | Match Type | Score')
+      reportLines.push('-'.repeat(120))
+      
+      matchedPairs.forEach(match => {
+        const bankTxn = bankTransactions.find(t => t.id === match.bankTransactionId)
+        const glEntry = glEntries.find(e => e.id === match.glEntryId)
+        
+        if (bankTxn && glEntry) {
+          const amount = bankTxn.credit > 0 ? bankTxn.credit : bankTxn.debit
+          const bankDate = formatDate(bankTxn.transactionDate).substring(0, 10)
+          const glDate = formatDate(glEntry.transactionDate).substring(0, 10)
+          const bankDesc = bankTxn.description.substring(0, 42).padEnd(42)
+          const glDesc = glEntry.description.substring(0, 42).padEnd(42)
+          const amtStr = formatCurrency(amount).padStart(14)
+          const matchType = match.matchType.padEnd(10)
+          const score = match.matchScore ? `${match.matchScore}%` : 'N/A'
+          
+          reportLines.push(`${bankDate} | ${bankDesc} | ${glDate} | ${glDesc} | ${amtStr} | ${matchType} | ${score}`)
+          
+          if (bankTxn.reference) {
+            reportLines.push(`           | Ref: ${bankTxn.reference}`)
+          }
+          if (glEntry.sourceDocumentNumber) {
+            reportLines.push(`           |                                            |             | Doc: ${glEntry.sourceDocumentNumber}`)
+          }
+        }
+      })
+      
+      const totalMatched = matchedPairs.reduce((sum, match) => {
+        const bankTxn = bankTransactions.find(t => t.id === match.bankTransactionId)
+        if (bankTxn) {
+          return sum + (bankTxn.credit > 0 ? bankTxn.credit : bankTxn.debit)
+        }
+        return sum
+      }, 0)
+      
+      reportLines.push('-'.repeat(120))
+      reportLines.push(`Total Matched Amount: ${formatCurrency(totalMatched).padStart(99)}`)
+    } else {
+      reportLines.push('No matched transactions')
+    }
+    
+    reportLines.push('')
+    reportLines.push('='.repeat(120))
+    reportLines.push('UNMATCHED BANK TRANSACTIONS (Outstanding Items)')
+    reportLines.push('='.repeat(120))
+    reportLines.push('')
+    
+    if (unmatchedBank.length > 0) {
+      reportLines.push('Date       | Description                                                      | Reference           | Debit          | Credit         | Balance')
+      reportLines.push('-'.repeat(120))
+      
+      unmatchedBank.forEach(txn => {
+        const date = formatDate(txn.transactionDate).substring(0, 10)
+        const desc = txn.description.substring(0, 68).padEnd(68)
+        const ref = (txn.reference || '').substring(0, 19).padEnd(19)
+        const debit = txn.debit > 0 ? formatCurrency(txn.debit).padStart(14) : '-'.padStart(14)
+        const credit = txn.credit > 0 ? formatCurrency(txn.credit).padStart(14) : '-'.padStart(14)
+        const balance = formatCurrency(txn.balance).padStart(14)
+        
+        reportLines.push(`${date} | ${desc} | ${ref} | ${debit} | ${credit} | ${balance}`)
+      })
+      
+      const totalDebit = unmatchedBank.reduce((sum, txn) => sum + txn.debit, 0)
+      const totalCredit = unmatchedBank.reduce((sum, txn) => sum + txn.credit, 0)
+      
+      reportLines.push('-'.repeat(120))
+      reportLines.push(`Total Unmatched Bank: ${formatCurrency(totalDebit).padStart(14)} | ${formatCurrency(totalCredit).padStart(14)} | Net: ${formatCurrency(totalCredit - totalDebit)}`)
+    } else {
+      reportLines.push('No unmatched bank transactions - All items reconciled')
+    }
+    
+    reportLines.push('')
+    reportLines.push('='.repeat(120))
+    reportLines.push('UNMATCHED BOOK TRANSACTIONS (Outstanding Items)')
+    reportLines.push('='.repeat(120))
+    reportLines.push('')
+    
+    if (unmatchedGL.length > 0) {
+      reportLines.push('Date       | Description                                                      | Document No.        | Debit          | Credit         | Account')
+      reportLines.push('-'.repeat(120))
+      
+      unmatchedGL.forEach(entry => {
+        const date = formatDate(entry.transactionDate).substring(0, 10)
+        const desc = entry.description.substring(0, 68).padEnd(68)
+        const docNo = (entry.sourceDocumentNumber || '').substring(0, 19).padEnd(19)
+        const debit = entry.debit > 0 ? formatCurrency(entry.debit).padStart(14) : '-'.padStart(14)
+        const credit = entry.credit > 0 ? formatCurrency(entry.credit).padStart(14) : '-'.padStart(14)
+        const accountName = entry.accountName?.substring(0, 14) || 'N/A'
+        
+        reportLines.push(`${date} | ${desc} | ${docNo} | ${debit} | ${credit} | ${accountName}`)
+      })
+      
+      const totalDebit = unmatchedGL.reduce((sum, entry) => sum + entry.debit, 0)
+      const totalCredit = unmatchedGL.reduce((sum, entry) => sum + entry.credit, 0)
+      
+      reportLines.push('-'.repeat(120))
+      reportLines.push(`Total Unmatched Book: ${formatCurrency(totalDebit).padStart(14)} | ${formatCurrency(totalCredit).padStart(14)} | Net: ${formatCurrency(totalCredit - totalDebit)}`)
+    } else {
+      reportLines.push('No unmatched book transactions - All items reconciled')
+    }
+    
+    reportLines.push('')
+    reportLines.push('='.repeat(120))
+    reportLines.push('RECONCILIATION STATUS')
+    reportLines.push('='.repeat(120))
+    reportLines.push('')
+    
+    const status = Math.abs(difference) < 0.01 ? 'COMPLETED' : matchedPairs.length > 0 ? 'IN PROGRESS' : 'DISCREPANCY'
+    
+    reportLines.push(`Status: ${status}`)
+    
+    if (Math.abs(difference) < 0.01) {
+      reportLines.push('✓ Bank account is fully reconciled. All transactions match.')
+    } else if (matchedPairs.length > 0) {
+      reportLines.push(`⚠ Reconciliation in progress. ${unmatchedBank.length} bank items and ${unmatchedGL.length} book items remain unmatched.`)
+    } else {
+      reportLines.push(`✗ Significant discrepancy detected. Review unmatched transactions.`)
+    }
+    
+    reportLines.push('')
+    reportLines.push('Notes:')
+    reportLines.push('- Matched transactions represent items that have cleared both the bank and the books')
+    reportLines.push('- Unmatched bank transactions may include deposits in transit or outstanding checks')
+    reportLines.push('- Unmatched book transactions may include items not yet reflected on the bank statement')
+    reportLines.push('- All amounts are in LKR (Sri Lankan Rupees)')
+    reportLines.push('')
+    reportLines.push('='.repeat(120))
+    reportLines.push(`End of Report - Generated on ${formatDate(Date.now())}`)
+    reportLines.push('='.repeat(120))
+    
+    const reportContent = reportLines.join('\n')
+    const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `Bank_Reconciliation_${account?.accountCode}_${formatDate(statementDate).replace(/\//g, '-')}.txt`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    
+    toast.success('Reconciliation report exported successfully')
+  }
+
+  const exportReconciliationCSV = () => {
+    if (!selectedAccount) {
+      toast.error('Please select a bank account')
+      return
+    }
+
+    const account = bankAccounts.find(a => a.id === selectedAccount)
+    const csvLines: string[] = []
+    
+    csvLines.push('Bank Reconciliation Report - CSV Export')
+    csvLines.push(`Account,${account?.accountCode} - ${account?.accountName}`)
+    csvLines.push(`Statement Date,${formatDate(statementDate)}`)
+    csvLines.push(`Book Balance,${calculateBookBalance()}`)
+    csvLines.push(`Statement Balance,${parseFloat(statementBalance) || 0}`)
+    csvLines.push(`Difference,${calculateDifference()}`)
+    csvLines.push('')
+    
+    csvLines.push('Matched Transactions')
+    csvLines.push('Bank Date,Bank Description,Bank Reference,GL Date,GL Description,GL Document,Amount,Match Type,Match Score')
+    
+    matchedPairs.forEach(match => {
+      const bankTxn = bankTransactions.find(t => t.id === match.bankTransactionId)
+      const glEntry = glEntries.find(e => e.id === match.glEntryId)
+      
+      if (bankTxn && glEntry) {
+        const amount = bankTxn.credit > 0 ? bankTxn.credit : bankTxn.debit
+        csvLines.push([
+          formatDate(bankTxn.transactionDate),
+          `"${bankTxn.description}"`,
+          `"${bankTxn.reference || ''}"`,
+          formatDate(glEntry.transactionDate),
+          `"${glEntry.description}"`,
+          `"${glEntry.sourceDocumentNumber || ''}"`,
+          amount,
+          match.matchType,
+          match.matchScore || ''
+        ].join(','))
+      }
+    })
+    
+    csvLines.push('')
+    csvLines.push('Unmatched Bank Transactions')
+    csvLines.push('Date,Description,Reference,Debit,Credit,Balance')
+    
+    getUnmatchedBankTransactions().forEach(txn => {
+      csvLines.push([
+        formatDate(txn.transactionDate),
+        `"${txn.description}"`,
+        `"${txn.reference || ''}"`,
+        txn.debit,
+        txn.credit,
+        txn.balance
+      ].join(','))
+    })
+    
+    csvLines.push('')
+    csvLines.push('Unmatched Book Transactions')
+    csvLines.push('Date,Description,Document No,Debit,Credit,Account')
+    
+    getAvailableGLEntries().forEach(entry => {
+      csvLines.push([
+        formatDate(entry.transactionDate),
+        `"${entry.description}"`,
+        `"${entry.sourceDocumentNumber || ''}"`,
+        entry.debit,
+        entry.credit,
+        `"${entry.accountName || ''}"`
+      ].join(','))
+    })
+    
+    const csvContent = csvLines.join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `Bank_Reconciliation_${account?.accountCode}_${formatDate(statementDate).replace(/\//g, '-')}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    
+    toast.success('Reconciliation CSV exported successfully')
+  }
+
   const handleSave = () => {
     if (!selectedAccount) {
       toast.error('Please select a bank account')
@@ -765,22 +1036,42 @@ export function BankReconciliationDialog({
 
         <Separator className="my-2" />
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>
-            {Math.abs(calculateDifference()) < 0.01 ? (
-              <>
-                <CheckCircle size={18} className="mr-2" />
-                Complete Reconciliation
-              </>
-            ) : (
-              <>
-                Save Reconciliation
-              </>
-            )}
-          </Button>
+        <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+          <div className="flex gap-2 sm:mr-auto">
+            <Button 
+              variant="outline" 
+              onClick={exportReconciliationReport}
+              disabled={!selectedAccount}
+            >
+              <Download size={18} className="mr-2" />
+              Export Report (TXT)
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={exportReconciliationCSV}
+              disabled={!selectedAccount}
+            >
+              <FileArrowDown size={18} className="mr-2" />
+              Export CSV
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave}>
+              {Math.abs(calculateDifference()) < 0.01 ? (
+                <>
+                  <CheckCircle size={18} className="mr-2" />
+                  Complete Reconciliation
+                </>
+              ) : (
+                <>
+                  Save Reconciliation
+                </>
+              )}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
 

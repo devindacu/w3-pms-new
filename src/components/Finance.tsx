@@ -23,7 +23,8 @@ import {
   Bank,
   ListChecks,
   Calendar,
-  FilePlus
+  FilePlus,
+  Check
 } from '@phosphor-icons/react'
 import { 
   type Invoice, 
@@ -225,6 +226,127 @@ export function Finance({
   const handleEditReconciliation = (reconciliation: BankReconciliation) => {
     setSelectedReconciliation(reconciliation)
     setReconciliationDialogOpen(true)
+  }
+
+  const exportReconciliationReport = (reconciliation: BankReconciliation) => {
+    const reportLines: string[] = []
+    
+    reportLines.push('='.repeat(120))
+    reportLines.push('BANK RECONCILIATION REPORT')
+    reportLines.push('='.repeat(120))
+    reportLines.push('')
+    reportLines.push(`Reconciliation Number: ${reconciliation.reconciliationNumber}`)
+    reportLines.push(`Bank Account: ${reconciliation.bankAccountName}`)
+    reportLines.push(`Statement Date: ${formatDate(reconciliation.statementDate)}`)
+    reportLines.push(`Generated: ${formatDate(Date.now())}`)
+    reportLines.push('')
+    reportLines.push('-'.repeat(120))
+    reportLines.push('RECONCILIATION SUMMARY')
+    reportLines.push('-'.repeat(120))
+    reportLines.push('')
+    reportLines.push(`Book Balance (GL):                ${formatCurrency(reconciliation.bookBalance).padStart(20)}`)
+    reportLines.push(`Statement Balance (Bank):         ${formatCurrency(reconciliation.statementBalance).padStart(20)}`)
+    reportLines.push(`Difference:                       ${formatCurrency(reconciliation.difference).padStart(20)} ${Math.abs(reconciliation.difference) < 0.01 ? '✓ RECONCILED' : '✗ DISCREPANCY'}`)
+    reportLines.push('')
+    reportLines.push(`Total Matched Transactions:       ${reconciliation.matchedTransactions.length.toString().padStart(20)}`)
+    reportLines.push(`Unmatched Bank Transactions:      ${reconciliation.unmatchedBankTransactions.length.toString().padStart(20)}`)
+    reportLines.push(`Unmatched Book Transactions:      ${reconciliation.unmatchedBookTransactions.length.toString().padStart(20)}`)
+    reportLines.push('')
+    
+    reportLines.push('='.repeat(120))
+    reportLines.push('MATCHED TRANSACTIONS')
+    reportLines.push('='.repeat(120))
+    reportLines.push('')
+    
+    if (reconciliation.matchedTransactions.length > 0) {
+      reportLines.push('Bank Date   | Bank Description                           | GL Date     | GL Description                             | Amount         | Match Type')
+      reportLines.push('-'.repeat(120))
+      
+      reconciliation.matchedTransactions.forEach(match => {
+        const bankTxn = reconciliation.unmatchedBankTransactions.find(t => t.id === match.bankTransactionId) ||
+                       { transactionDate: 0, description: 'N/A', credit: 0, debit: 0, reference: undefined }
+        const glEntry = reconciliation.unmatchedBookTransactions.find(e => e.id === match.glEntryId) ||
+                       { transactionDate: 0, description: 'N/A', credit: 0, debit: 0, sourceDocumentNumber: undefined }
+        
+        const amount = bankTxn.credit > 0 ? bankTxn.credit : bankTxn.debit
+        const bankDate = formatDate(bankTxn.transactionDate).substring(0, 10)
+        const glDate = formatDate(glEntry.transactionDate).substring(0, 10)
+        const bankDesc = bankTxn.description.substring(0, 42).padEnd(42)
+        const glDesc = glEntry.description.substring(0, 42).padEnd(42)
+        const amtStr = formatCurrency(amount).padStart(14)
+        const matchType = match.matchType.padEnd(10)
+        
+        reportLines.push(`${bankDate} | ${bankDesc} | ${glDate} | ${glDesc} | ${amtStr} | ${matchType}`)
+      })
+      
+      reportLines.push('-'.repeat(120))
+    } else {
+      reportLines.push('No matched transactions')
+    }
+    
+    reportLines.push('')
+    reportLines.push('='.repeat(120))
+    reportLines.push('UNMATCHED BANK TRANSACTIONS')
+    reportLines.push('='.repeat(120))
+    reportLines.push('')
+    
+    if (reconciliation.unmatchedBankTransactions.length > 0) {
+      reportLines.push('Date       | Description                                                      | Reference           | Debit          | Credit')
+      reportLines.push('-'.repeat(120))
+      
+      reconciliation.unmatchedBankTransactions.forEach(txn => {
+        const date = formatDate(txn.transactionDate).substring(0, 10)
+        const desc = txn.description.substring(0, 68).padEnd(68)
+        const ref = (txn.reference || '').substring(0, 19).padEnd(19)
+        const debit = txn.debit > 0 ? formatCurrency(txn.debit).padStart(14) : '-'.padStart(14)
+        const credit = txn.credit > 0 ? formatCurrency(txn.credit).padStart(14) : '-'.padStart(14)
+        
+        reportLines.push(`${date} | ${desc} | ${ref} | ${debit} | ${credit}`)
+      })
+    } else {
+      reportLines.push('No unmatched bank transactions')
+    }
+    
+    reportLines.push('')
+    reportLines.push('='.repeat(120))
+    reportLines.push('UNMATCHED BOOK TRANSACTIONS')
+    reportLines.push('='.repeat(120))
+    reportLines.push('')
+    
+    if (reconciliation.unmatchedBookTransactions.length > 0) {
+      reportLines.push('Date       | Description                                                      | Document No.        | Debit          | Credit')
+      reportLines.push('-'.repeat(120))
+      
+      reconciliation.unmatchedBookTransactions.forEach(entry => {
+        const date = formatDate(entry.transactionDate).substring(0, 10)
+        const desc = entry.description.substring(0, 68).padEnd(68)
+        const docNo = (entry.sourceDocumentNumber || '').substring(0, 19).padEnd(19)
+        const debit = entry.debit > 0 ? formatCurrency(entry.debit).padStart(14) : '-'.padStart(14)
+        const credit = entry.credit > 0 ? formatCurrency(entry.credit).padStart(14) : '-'.padStart(14)
+        
+        reportLines.push(`${date} | ${desc} | ${docNo} | ${debit} | ${credit}`)
+      })
+    } else {
+      reportLines.push('No unmatched book transactions')
+    }
+    
+    reportLines.push('')
+    reportLines.push('='.repeat(120))
+    reportLines.push(`Status: ${reconciliation.status.toUpperCase()}`)
+    reportLines.push('='.repeat(120))
+    
+    const reportContent = reportLines.join('\n')
+    const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `Bank_Reconciliation_${reconciliation.reconciliationNumber}_${formatDate(reconciliation.statementDate).replace(/\//g, '-')}.txt`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    
+    toast.success('Reconciliation report exported successfully')
   }
 
   const handlePostJournal = (entry: JournalEntry) => {
@@ -1126,11 +1248,13 @@ export function Finance({
                 bankReconciliations.map((reconciliation) => (
                   <div
                     key={reconciliation.id}
-                    className="p-4 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted transition-colors"
-                    onClick={() => handleEditReconciliation(reconciliation)}
+                    className="p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
                   >
                     <div className="flex items-start justify-between">
-                      <div className="flex-1">
+                      <div 
+                        className="flex-1 cursor-pointer"
+                        onClick={() => handleEditReconciliation(reconciliation)}
+                      >
                         <div className="flex items-center gap-3 mb-2">
                           <p className="font-semibold">{reconciliation.reconciliationNumber}</p>
                           <Badge variant={
@@ -1139,6 +1263,12 @@ export function Finance({
                           }>
                             {reconciliation.status.replace('-', ' ')}
                           </Badge>
+                          {Math.abs(reconciliation.difference) < 0.01 && (
+                            <Badge variant="default" className="text-success">
+                              <Check size={14} className="mr-1" />
+                              Balanced
+                            </Badge>
+                          )}
                         </div>
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
@@ -1159,14 +1289,27 @@ export function Finance({
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground mb-1">Difference</p>
-                        <p className={`text-2xl font-semibold ${Math.abs(reconciliation.difference) < 0.01 ? 'text-success' : 'text-destructive'}`}>
-                          {formatCurrency(reconciliation.difference)}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {reconciliation.matchedTransactions.length} matched
-                        </p>
+                      <div className="text-right flex flex-col items-end gap-2">
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1">Difference</p>
+                          <p className={`text-2xl font-semibold ${Math.abs(reconciliation.difference) < 0.01 ? 'text-success' : 'text-destructive'}`}>
+                            {formatCurrency(reconciliation.difference)}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {reconciliation.matchedTransactions.length} matched • {reconciliation.unmatchedBankTransactions.length} unmatched
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            exportReconciliationReport(reconciliation)
+                          }}
+                        >
+                          <Download size={16} className="mr-2" />
+                          Export Report
+                        </Button>
                       </div>
                     </div>
                   </div>
