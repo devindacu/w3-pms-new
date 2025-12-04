@@ -1223,22 +1223,22 @@ function App() {
           )}
         </div>
         
-        <footer className="border-t bg-card mt-auto">
-          <div className="px-4 py-3 md:px-6 lg:px-8">
+        <footer className="border-t border-border/50 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 mt-auto shadow-inner">
+          <div className="px-4 py-4 md:px-6 lg:px-8 md:py-5">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm font-medium text-foreground/70">
                 © {new Date().getFullYear()} Design & Developed by
               </p>
               <a 
                 href="https://www.w3media.lk/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                className="flex items-center gap-2 hover:opacity-80 transition-all duration-300 hover:scale-105"
               >
                 <img 
                   src={w3MediaLogo}
                   alt="W3 Media PVT LTD" 
-                  className="h-6 md:h-7"
+                  className="h-6 md:h-7 drop-shadow-sm"
                 />
               </a>
             </div>
