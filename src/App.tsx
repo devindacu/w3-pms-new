@@ -1221,6 +1221,22 @@ function App() {
             />
           )}
         </div>
+        
+        <footer className="border-t bg-card mt-auto">
+          <div className="px-4 py-3 md:px-6 lg:px-8">
+            <p className="text-center text-sm text-muted-foreground">
+              Design & Developed by{' '}
+              <a 
+                href="https://www.w3media.lk/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="font-medium text-primary hover:underline transition-colors"
+              >
+                W3 Media PVT LTD
+              </a>
+            </p>
+          </div>
+        </footer>
       </main>
       </Sheet>
 
