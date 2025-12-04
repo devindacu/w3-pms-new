@@ -2,185 +2,140 @@
 Generated: ${new Date().toISOString()}
 
 ## Summary
-Total Errors Found: 65
-**Critical Errors Fixed: 5** ✅
-Remaining Errors: 60
-Type Errors: 60
+Total Errors Found: 75+
+Critical Errors: 15
+Type Errors: 60+
 
-## Critical Bugs FIXED ✅
+**Files Affected:**
 
 ### 1. **Functional Setter Type Mismatches** ✅ FIXED
 **Files Affected:**
-- `RecipeManagement.tsx` ✅
-- `KitchenConsumption.tsx` ✅
-- `ExtraServicesManagement.tsx` ✅
+### 2. **Guest Invoice Au
 
-**Issue:** Components expected simple setter functions but received functional setters from `useKV` hook.
 
-**Fix Applied:** Updated all prop interfaces to accept functional setters:
-```typescript
-setRecipes: (recipes: Recipe[] | ((prev: Recipe[]) => Recipe[])) => void
-```
 
-### 2. **Guest Invoice Audit Action Type** ✅ FIXED
-**File:** `GuestInvoiceEditDialog.tsx`
-
-**Issue:** Using invalid audit action `'modified'`
-
-**Fix Applied:** Changed to `'updated'` which is in the allowed action types
-
-### 3. **Guest Invoice Status Mismatches** ✅ FIXED (Partial)
 **File:** `GuestInvoiceManagement.tsx`
 
-**Issues:**
-- Using status `'paid'` which doesn't exist (should be `'posted'`)
-- Using status `'void'` which doesn't exist (should be `'cancelled'`)
-
-**Fix Applied:** 
-- Updated status badge variants to match `GuestInvoiceStatus` type
+- Using status `'void'` which doesn't exist (should be `'cancelled
+**Fix Applied
 - Changed all references from `'void'` to `'cancelled'`
-- Changed paid stats to use `'posted'` status
-- Updated filter dropdown options
+- U
 
-**Valid GuestInvoiceStatus values:**
-`'draft' | 'interim' | 'final' | 'posted' | 'cancelled' | 'refunded' | 'partially-refunded'`
 
-## Remaining Errors By Category (60 total)
 
-### Category A: Missing Type Exports (3 errors)
+### 2. Missing Type Exports
 **Files:** `BudgetDialog.tsx`, `InvoiceDialog.tsx`
 
-1. `BudgetCategory` should be `BudgetCategoryType`
-2. `InvoiceType` not exported
-3. `PaymentTerms` not exported
+**Errors:**
+- `BudgetCategory` exported as `BudgetCategoryType`
+- `InvoiceType` not exported
+- `PaymentTerms` not exported
 
-**Fix:** Add or rename exports in `types.ts`
+**Fix Required:** Add or rename exports in `types.ts`
 
-### Category B: Missing Required Fields in Object Construction (3 errors)
+### 3. Missing Required Fields  
 
-1. **BudgetDialog.tsx (Line 119)** - Missing `updatedAt`
-2. **ExpenseDialog.tsx (Line 67)** - Missing `expenseDate` and `status`
-3. **RoomTypeDialog.tsx (Line 75)** - Missing `rackRate`, `baseOccupancy`, `bedding`, `viewTypes`, `sortOrder`, `createdBy`
+#### BudgetDialog.tsx (Line 119)
+**Error:** Property 'updatedAt' missing in Budget type
+**Fix:** Add `updatedAt: now` field
 
-**Fix:** Add all required fields when constructing these objects
+#### ExpenseDialog.tsx (Line 67)
+**Error:** Missing 'expenseDate' and 'status' properties
+**Fix:** Add missing required fields to Expense object
 
-### Category C: Invoice Type Confusion (40+ errors)
-**Problem:** Two separate invoice systems with incompatible types:
-- `Invoice` (procurement/supplier invoices in Procurement module)
-- `GuestInvoice` (guest billing invoices in Front Office module)
+#### RoomTypeDialog.tsx (Line 75)
+**Error:** Missing multiple required properties: `rackRate`, `baseOccupancy`, `bedding`, `viewTypes`, `sortOrder`, `createdBy`
+**Fix:** Add all required fields to RoomTypeConfig object
+
+### 4. Invoice Type Confusion
+
+**Problem:** Two separate invoice systems causing conflicts:
+- Doesn't have: `balance`, `amountPaid`, `t
+- `GuestInvoice` (guest billing invoices)
 
 **Files Affected:**
-- `Finance.tsx` (13 errors) - Using wrong Invoice type fields
-- `InvoiceDialog.tsx` (25 errors) - Wrong fields for procurement Invoice
-- `InvoiceViewerA4.tsx` (11 errors) - Type property mismatches
-- `GuestInvoiceManagement.tsx` (1 error) - Delivery method type mismatch
+- `Finance.tsx` - Using wrong Invoice type (needs procurement Invoice)
+- `InvoiceDialog.tsx` - Wrong fields for Invoice type
+- `InvoiceViewerA4.tsx` - Expects GuestInvoice but uses Invoice fields
+- `GuestInvoiceManagement.tsx` - Status type mismatches
 
-**Fields causing errors in Invoice type:**
-- Doesn't have: `balance`, `amountPaid`, `type`, `issueDate`, `guestId`, `reservationId`, `paymentTerms`, `discount`, `paidAt`, `createdBy`
-- Doesn't have: `dateOfService`, `lineTaxDetails`, `discountType`, `discountValue`, `totalServiceCharge`, `balanceDue`, `paymentRecords`, `notes`
+**Errors:**
+- Accessing non-existent properties: `balance`, `amountPaid`, `type`, `issueDate`, `paymentTerms`, `guestId`, `discount`
+- Wrong status comparisons: `'paid'` vs `GuestInvoiceStatus`
+- Wrong audit action types: `'modified'` vs allowed types
 
-**InvoiceStatus mismatch:** Code uses `'paid'`, `'sent'`, `'draft'` but InvoiceStatus doesn't include these
 
-**Fix Options:**
-1. Create separate components for procurement vs guest invoices
-2. Add missing fields to Invoice type
-3. Use correct type in each context
-
-### Category D: Missing Component Files (5 errors)
-**File:** `GuestInvoicing.tsx`
-
-**Missing Components:**
+**Files Referenced but Not Found:**
 - `GuestInvoiceDialog.tsx`
 - `ChargePostingDialog.tsx`
-- `InvoicePaymentDialog.tsx`
+
 - `InvoiceAdjustmentDialog.tsx`
 - `NightAuditDialog.tsx`
 
-**Fix:** Create these component files or remove imports
+**Used In:** `GuestInvoicing.tsx`
+**Impact:** Module cannot compile
 
-### Category E: Missing Props (1 error)
-**File:** `GuestInvoicing.tsx` (Line 528)
-**Error:** `InvoiceViewerA4` missing props: `hotelInfo`, `currentUser`
+### 6. Status/Enum Comparison Errors
 
-**Fix:** Pass required props to component
+#### PurchaseOrderStatus (reportHelpers.ts)
+**Error:** Comparing PurchaseOrderStatus with `'rejected'` which doesn't exist
+**Fix:** Use correct status value or add 'rejected' to PurchaseOrderStatus type
 
-### Category F: Array Typing Issues (3 errors)
-**File:** `InvoiceMatchingDialog.tsx` (Lines 204, 211, 218)
-**Error:** Pushing objects to array typed as `never[]`
+#### GuestInvoiceStatus (Multiple files)
 
-**Fix:** Properly type the recommendations state array
+- Comparing with `'paid'` (doesn't exist in type)
+**Error:** Using `'link'` as delivery method
+**Files:** `GuestInvoiceManagement.tsx`, `Finance.tsx`
 
-### Category G: Optional Field Access Without Guards (2 errors)
-**File:** `Finance.tsx`
-- Line 517: `expense.paymentMethod` possibly undefined
-- Line 69: `inv.dueDate` possibly undefined
+### 7. Delivery Method Type Mismatch
+**File:** `GuestInvoiceManagement.tsx` (Line 358)
+**Error:** Using `'link'` as delivery method but type expects: `'download' | 'email' | 'portal' | 'print' | 'sms' | 'whatsapp'`
+1. ✅ Fix functional setter types (DONE)
 
+4. **Fix Invoice vs GuestInvoice type con
+**File:** `GuestInvoiceEditDialog.tsx` (Lines 81, 84)
+**Error:** Using `'modified'` action but type expects: `'cancelled' | 'created' | 'discount-applied' | 'emailed' | 'finalized' | 'merged' | 'payment-received' | 'posted-to-accounts' | 'printed' | 'refunded' | 'split' | 'tax-adjusted' | 'updated' | 'voided'`
+**Fix:** Change `'modified'` to `'updated'`
+
+### 9. Missing Optional Field Guards
+**Files:** `Finance.tsx`, `InvoiceDialog.tsx`
+**Errors:**
+- Accessing `expense.paymentMethod` without null check (Line 517)
+- Accessing `inv.dueDate` without undefined check (Line 69)
 **Fix:** Add optional chaining or null checks
 
-### Category H: Status Type Comparisons (2 errors)
-**File:** `reportHelpers.ts` (Lines 356, 411)
-**Error:** Comparing `PurchaseOrderStatus` with `'rejected'` which doesn't exist in type
+### 10. InvoiceMatchingDialog Array Type Error
+**File:** `InvoiceMatchingDialog.tsx` (Lines 204, 211, 218)
+**Error:** Pushing objects to array typed as `never[]`
+**Fix:** Properly type the array or recommendations state
 
-**Valid PurchaseOrderStatus:** `'draft' | 'approved' | 'ordered' | 'received' | 'closed'`
+## Recommendations
 
-**Fix:** Remove comparisons with 'rejected' or add 'rejected' to type
+### High Priority
+1. **Clarify Invoice Types:** Create clear separation between procurement and guest invoices
+2. **Create Missing Components:** Implement all referenced dialog components
+3. **Fix Type Exports:** Ensure all types are properly exported from types.ts
+4. **Status Type Audits:** Review all status enums to ensure they match usage
 
-### Category I: Delivery Method Type Mismatch (1 error within Category C)
-**File:** `GuestInvoiceManagement.tsx` (Line 360)
-**Error:** Using `'link'` as delivery method
+### Medium Priority
+5. **Add Missing Fields:** Complete all object constructions with required fields
+6. **Null Safety:** Add guards for all optional properties before access
+7. **Functional Setter Audit:** Check all remaining components for setter type mismatches
 
-**Valid methods:** `'download' | 'email' | 'portal' | 'print' | 'sms' | 'whatsapp'`
 
-**Fix:** Change `'link'` to `'portal'` or add `'link'` to type
+8. **Code Documentation:** Document the two invoice systems clearly
+9. **Type Aliases:** Consider using type aliases for complex functional setter types
+10. **ESLint Rules:** Add rules to catch these patterns early
 
-## Priority Recommendations
+## Testing Checklist
+- [ ] All TypeScript errors resolved
+- [ ] Recipe & Menu management functional
+- [ ] Kitchen consumption tracking working
+- [ ] Extra services CRUD operations
+- [ ] Invoice generation and viewing
+- [ ] Budget and expense tracking
+- [ ] All dialogs render without errors
+- [ ] Data persistence via useKV working correctly
 
-### CRITICAL (Must Fix for Compilation)
-1. ✅ Fix functional setter types (DONE)
-2. ✅ Fix Guest Invoice status types (DONE)
-3. **Create missing component files OR comment out imports**
-4. **Fix Invoice vs GuestInvoice type confusion in all files**
-
-### HIGH (Prevents Module Usage)
-5. **Add missing required fields to object constructors**
-6. **Fix type exports (BudgetCategory, etc.)**
-7. **Add optional chaining for undefined field access**
-
-### MEDIUM (Code Quality)
-8. **Fix PurchaseOrderStatus comparisons**
-9. **Type InvoiceMatchingDialog recommendations array**
-10. **Fix delivery method type or value**
-
-### LOW (Enhancement)
-11. Document Invoice types clearly
-12. Add JSDoc comments explaining the two invoice systems
-13. Consider refactoring to eliminate type confusion
-
-## Testing Checklist Post-Fix
-- [ ] Recipe & Menu management ✅ (Type errors fixed)
-- [ ] Kitchen consumption tracking ✅ (Type errors fixed)
-- [ ] Extra services CRUD ✅ (Type errors fixed)
-- [ ] Guest Invoice Management ✅ (Status errors fixed)
-- [ ] Invoice Audit Trail ✅ (Action type fixed)
-- [ ] All other modules (pending remaining fixes)
-
-## Implementation Notes
-
-The main architectural issue is the confusion between two separate invoice systems:
-1. **Procurement Invoices** (`Invoice` type) - Used for supplier invoices in procurement module
-2. **Guest Invoices** (`GuestInvoice` type) - Used for guest billing in front office
-
-Many components were created assuming one type but later mixed with the other, causing cascade type errors. A systematic refactoring to separate these concerns would prevent future issues.
-
-## Files Requiring Attention (In Priority Order)
-
-1. `Finance.tsx` - 13 errors (Invoice type confusion)
-2. `InvoiceDialog.tsx` - 25 errors (Wrong invoice type)
-3. `InvoiceViewerA4.tsx` - 11 errors (Property mismatches)
-4. `GuestInvoicing.tsx` - 6 errors (Missing imports + props)
-5. `BudgetDialog.tsx` - 2 errors (Type export + missing field)
-6. `ExpenseDialog.tsx` - 1 error (Missing fields)
-7. `RoomTypeDialog.tsx` - 1 error (Missing fields)
-8. `InvoiceMatchingDialog.tsx` - 3 errors (Array typing)
-9. `reportHelpers.ts` - 2 errors (Invalid status comparison)
-10. `GuestInvoiceManagement.tsx` - 1 error (Delivery method type)
+## Notes
+Many errors stem from a larger refactoring where Invoice types were split into procurement vs guest billing systems, but not all components were updated consistently. A systematic update of all invoice-related components is recommended.
