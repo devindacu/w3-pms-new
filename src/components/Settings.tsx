@@ -102,6 +102,7 @@ export function Settings({
           <EmailTemplateManagement 
             templates={emailTemplates}
             setTemplates={setEmailTemplates}
+            branding={branding}
             currentUser={currentUser}
           />
         </TabsContent>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -22,24 +22,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Plus, Pencil, Trash, Copy, Eye, Sparkle, EnvelopeSimple } from '@phosphor-icons/react'
+import { Plus, Pencil, Trash, Copy, Eye, Sparkle, EnvelopeSimple, PaintBrush } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { EmailTemplate, AVAILABLE_VARIABLES, TemplateVariable, DEFAULT_TEMPLATES } from '@/lib/invoiceEmailTemplates'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Switch } from '@/components/ui/switch'
+import type { HotelBranding } from '@/lib/types'
 
 interface EmailTemplateManagementProps {
   templates: EmailTemplate[]
   setTemplates: React.Dispatch<React.SetStateAction<EmailTemplate[]>>
+  branding?: HotelBranding | null
   currentUser: { id: string; firstName: string; lastName: string }
 }
 
-export function EmailTemplateManagement({ templates, setTemplates, currentUser }: EmailTemplateManagementProps) {
+export function EmailTemplateManagement({ templates, setTemplates, branding, currentUser }: EmailTemplateManagementProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null)
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false)
   const [previewTemplate, setPreviewTemplate] = useState<EmailTemplate | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'guest' | 'invoice' | 'hotel' | 'payment' | 'dates'>('all')
+
+  const applyBrandingToTemplate = (htmlContent: string): string => {
+    if (!branding) return htmlContent
+    
+    const primaryColor = branding.colorScheme?.primary || '#2c5f2d'
+    const secondaryColor = branding.colorScheme?.secondary || '#97bc62'
+    const accentColor = branding.colorScheme?.accent || '#4a7c59'
+    
+    return htmlContent
+      .replace(/{{primary_color}}/g, primaryColor)
+      .replace(/{{secondary_color}}/g, secondaryColor)
+      .replace(/{{accent_color}}/g, accentColor)
+      .replace(/{{hotel_name}}/g, branding.hotelName || 'Hotel Name')
+      .replace(/{{hotel_address}}/g, branding.hotelAddress || '')
+      .replace(/{{hotel_phone}}/g, branding.hotelPhone || '')
+      .replace(/{{hotel_email}}/g, branding.hotelEmail || '')
+      .replace(/{{hotel_website}}/g, branding.hotelWebsite || '')
+  }
 
   const handleAddTemplate = () => {
     setEditingTemplate(null)
@@ -225,6 +245,7 @@ export function EmailTemplateManagement({ templates, setTemplates, currentUser }
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         template={editingTemplate}
+        branding={branding}
         onSave={(template) => {
           if (editingTemplate) {
             setTemplates((current) =>
@@ -241,43 +262,89 @@ export function EmailTemplateManagement({ templates, setTemplates, currentUser }
       />
 
       <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
+        <DialogContent className="max-w-5xl max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle>Template Preview: {previewTemplate?.name}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye size={20} />
+              Template Preview: {previewTemplate?.name}
+            </DialogTitle>
             <DialogDescription>
-              This is how the email will look with sample data
+              Live preview with current branding colors {branding && '- Colors update automatically'}
             </DialogDescription>
           </DialogHeader>
           
           {previewTemplate && (
-            <Tabs defaultValue="html" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="html">HTML Preview</TabsTrigger>
-                <TabsTrigger value="text">Plain Text</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="html" className="border rounded-lg p-4 bg-white">
-                <div className="mb-4 p-3 bg-muted rounded">
-                  <p className="text-sm font-semibold">Subject:</p>
-                  <p className="text-sm">{previewTemplate.subject}</p>
-                </div>
-                <ScrollArea className="h-[500px]">
-                  <div dangerouslySetInnerHTML={{ __html: previewTemplate.bodyHtml }} />
-                </ScrollArea>
-              </TabsContent>
-              
-              <TabsContent value="text">
-                <div className="mb-4 p-3 bg-muted rounded">
-                  <p className="text-sm font-semibold">Subject:</p>
-                  <p className="text-sm">{previewTemplate.subject}</p>
-                </div>
-                <ScrollArea className="h-[500px]">
-                  <pre className="text-sm whitespace-pre-wrap font-mono p-4 bg-muted rounded">
-                    {previewTemplate.bodyPlainText}
-                  </pre>
-                </ScrollArea>
-              </TabsContent>
-            </Tabs>
+            <div className="space-y-4">
+              {branding && (
+                <Card className="p-4 bg-muted/50">
+                  <div className="flex items-center gap-2 mb-3">
+                    <PaintBrush size={18} />
+                    <h4 className="font-semibold">Current Branding Colors</h4>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Primary</p>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-8 h-8 rounded border" 
+                          style={{ backgroundColor: branding.colorScheme?.primary || '#2c5f2d' }}
+                        />
+                        <code className="text-xs">{branding.colorScheme?.primary || '#2c5f2d'}</code>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Secondary</p>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-8 h-8 rounded border" 
+                          style={{ backgroundColor: branding.colorScheme?.secondary || '#97bc62' }}
+                        />
+                        <code className="text-xs">{branding.colorScheme?.secondary || '#97bc62'}</code>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Accent</p>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-8 h-8 rounded border" 
+                          style={{ backgroundColor: branding.colorScheme?.accent || '#4a7c59' }}
+                        />
+                        <code className="text-xs">{branding.colorScheme?.accent || '#4a7c59'}</code>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              )}
+
+              <Tabs defaultValue="html" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="html">HTML Preview (Live Branding)</TabsTrigger>
+                  <TabsTrigger value="text">Plain Text</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="html" className="border rounded-lg p-4 bg-white">
+                  <div className="mb-4 p-3 bg-muted rounded">
+                    <p className="text-sm font-semibold">Subject:</p>
+                    <p className="text-sm">{applyBrandingToTemplate(previewTemplate.subject)}</p>
+                  </div>
+                  <ScrollArea className="h-[500px]">
+                    <div dangerouslySetInnerHTML={{ __html: applyBrandingToTemplate(previewTemplate.bodyHtml) }} />
+                  </ScrollArea>
+                </TabsContent>
+                
+                <TabsContent value="text">
+                  <div className="mb-4 p-3 bg-muted rounded">
+                    <p className="text-sm font-semibold">Subject:</p>
+                    <p className="text-sm">{applyBrandingToTemplate(previewTemplate.subject)}</p>
+                  </div>
+                  <ScrollArea className="h-[500px]">
+                    <pre className="text-sm whitespace-pre-wrap font-mono p-4 bg-muted rounded">
+                      {applyBrandingToTemplate(previewTemplate.bodyPlainText)}
+                    </pre>
+                  </ScrollArea>
+                </TabsContent>
+              </Tabs>
+            </div>
           )}
         </DialogContent>
       </Dialog>
@@ -289,11 +356,12 @@ interface TemplateEditorDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   template: EmailTemplate | null
+  branding?: HotelBranding | null
   onSave: (template: EmailTemplate) => void
   currentUser: { id: string; firstName: string; lastName: string }
 }
 
-function TemplateEditorDialog({ open, onOpenChange, template, onSave, currentUser }: TemplateEditorDialogProps) {
+function TemplateEditorDialog({ open, onOpenChange, template, branding, onSave, currentUser }: TemplateEditorDialogProps) {
   const [formData, setFormData] = useState<Partial<EmailTemplate>>(
     template || {
       name: '',
@@ -307,6 +375,28 @@ function TemplateEditorDialog({ open, onOpenChange, template, onSave, currentUse
     }
   )
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'guest' | 'invoice' | 'hotel' | 'payment' | 'dates'>('all')
+  const [showLivePreview, setShowLivePreview] = useState(false)
+
+  const applyBrandingToPreview = (htmlContent: string): string => {
+    if (!branding) return htmlContent
+    
+    const primaryColor = branding.colorScheme?.primary || '#2c5f2d'
+    const secondaryColor = branding.colorScheme?.secondary || '#97bc62'
+    const accentColor = branding.colorScheme?.accent || '#4a7c59'
+    
+    return htmlContent
+      .replace(/{{primary_color}}/g, primaryColor)
+      .replace(/{{secondary_color}}/g, secondaryColor)
+      .replace(/{{accent_color}}/g, accentColor)
+      .replace(/{{hotel_name}}/g, branding.hotelName || 'Hotel Name')
+      .replace(/{{hotel_address}}/g, branding.hotelAddress || '')
+      .replace(/{{hotel_phone}}/g, branding.hotelPhone || '')
+      .replace(/{{hotel_email}}/g, branding.hotelEmail || '')
+      .replace(/{{hotel_website}}/g, branding.hotelWebsite || '')
+      .replace(/{{guest_name}}/g, 'John Smith')
+      .replace(/{{invoice_number}}/g, 'INV-2024-001')
+      .replace(/{{total_amount}}/g, 'LKR 25,000.00')
+  }
 
   const handleSave = () => {
     if (!formData.name || !formData.subject || !formData.bodyPlainText) {
@@ -434,7 +524,20 @@ function TemplateEditorDialog({ open, onOpenChange, template, onSave, currentUse
             </div>
 
             <div>
-              <Label htmlFor="bodyHtml">HTML Body (optional)</Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="bodyHtml">HTML Body (optional)</Label>
+                {branding && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowLivePreview(!showLivePreview)}
+                  >
+                    <Eye size={16} className="mr-1" />
+                    {showLivePreview ? 'Hide' : 'Show'} Live Preview
+                  </Button>
+                )}
+              </div>
               <Textarea
                 id="bodyHtml"
                 value={formData.bodyHtml || ''}
@@ -444,10 +547,85 @@ function TemplateEditorDialog({ open, onOpenChange, template, onSave, currentUse
                 className="font-mono text-sm"
               />
             </div>
+
+            {showLivePreview && branding && formData.bodyHtml && (
+              <Card className="p-4 border-2">
+                <div className="mb-3 flex items-center gap-2">
+                  <PaintBrush size={18} className="text-primary" />
+                  <h4 className="font-semibold">Live Preview with Branding</h4>
+                </div>
+                <div className="grid grid-cols-3 gap-2 mb-4 p-2 bg-muted/50 rounded">
+                  <div className="text-xs">
+                    <p className="text-muted-foreground mb-1">Primary</p>
+                    <div className="flex items-center gap-1">
+                      <div 
+                        className="w-4 h-4 rounded border" 
+                        style={{ backgroundColor: branding.colorScheme?.primary || '#2c5f2d' }}
+                      />
+                      <code className="text-[10px]">{branding.colorScheme?.primary}</code>
+                    </div>
+                  </div>
+                  <div className="text-xs">
+                    <p className="text-muted-foreground mb-1">Secondary</p>
+                    <div className="flex items-center gap-1">
+                      <div 
+                        className="w-4 h-4 rounded border" 
+                        style={{ backgroundColor: branding.colorScheme?.secondary || '#97bc62' }}
+                      />
+                      <code className="text-[10px]">{branding.colorScheme?.secondary}</code>
+                    </div>
+                  </div>
+                  <div className="text-xs">
+                    <p className="text-muted-foreground mb-1">Accent</p>
+                    <div className="flex items-center gap-1">
+                      <div 
+                        className="w-4 h-4 rounded border" 
+                        style={{ backgroundColor: branding.colorScheme?.accent || '#4a7c59' }}
+                      />
+                      <code className="text-[10px]">{branding.colorScheme?.accent}</code>
+                    </div>
+                  </div>
+                </div>
+                <ScrollArea className="h-[300px] border rounded p-3 bg-white">
+                  <div dangerouslySetInnerHTML={{ __html: applyBrandingToPreview(formData.bodyHtml) }} />
+                </ScrollArea>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Colors and hotel info update automatically from Settings → Branding
+                </p>
+              </Card>
+            )}
           </div>
 
           <div className="col-span-1 border-l pl-6">
             <h3 className="font-semibold mb-3">Available Variables</h3>
+            
+            {branding && (
+              <Card className="p-3 mb-3 bg-primary/5 border-primary/20">
+                <div className="flex items-start gap-2 mb-2">
+                  <PaintBrush size={16} className="text-primary mt-0.5" />
+                  <div>
+                    <p className="text-xs font-semibold">Branding Colors</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Use these color variables in your HTML:
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-1 mt-2">
+                  <code className="text-xs block px-2 py-1 bg-white rounded border">
+                    {`{{primary_color}}`}
+                  </code>
+                  <code className="text-xs block px-2 py-1 bg-white rounded border">
+                    {`{{secondary_color}}`}
+                  </code>
+                  <code className="text-xs block px-2 py-1 bg-white rounded border">
+                    {`{{accent_color}}`}
+                  </code>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Colors sync automatically with Settings → Branding
+                </p>
+              </Card>
+            )}
             
             <Select value={selectedCategory} onValueChange={(value: any) => setSelectedCategory(value)}>
               <SelectTrigger className="mb-3">
@@ -463,7 +641,7 @@ function TemplateEditorDialog({ open, onOpenChange, template, onSave, currentUse
               </SelectContent>
             </Select>
 
-            <ScrollArea className="h-[600px]">
+            <ScrollArea className={branding ? "h-[480px]" : "h-[600px]"}>
               <div className="space-y-3">
                 {filteredVariables.map((variable) => (
                   <Card key={variable.key} className="p-3">
