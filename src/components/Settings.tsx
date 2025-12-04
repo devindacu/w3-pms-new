@@ -5,8 +5,9 @@ import { BrandingSettings } from '@/components/BrandingSettings'
 import { SystemSettings } from '@/components/SystemSettings'
 import { TaxSettings } from '@/components/TaxSettings'
 import { UserPreferences } from '@/components/UserPreferences'
-import { EmailTemplateSettings } from '@/components/EmailTemplateSettings'
+import { EmailTemplateManagement } from '@/components/EmailTemplateSettings'
 import type { HotelBranding, TaxConfiguration, ServiceChargeConfiguration, SystemUser } from '@/lib/types'
+import type { EmailTemplate } from '@/lib/invoiceEmailTemplates'
 import { 
   Palette,
   Gear,
@@ -22,6 +23,8 @@ interface SettingsProps {
   setTaxes: (update: (current: TaxConfiguration[]) => TaxConfiguration[]) => void
   serviceCharge: ServiceChargeConfiguration | null
   setServiceCharge: (update: (current: ServiceChargeConfiguration | null) => ServiceChargeConfiguration) => void
+  emailTemplates: EmailTemplate[]
+  setEmailTemplates: (update: (current: EmailTemplate[]) => EmailTemplate[]) => void
   currentUser: SystemUser
 }
 
@@ -32,6 +35,8 @@ export function Settings({
   setTaxes,
   serviceCharge,
   setServiceCharge,
+  emailTemplates,
+  setEmailTemplates,
   currentUser
 }: SettingsProps) {
   const [activeTab, setActiveTab] = useState('branding')
@@ -94,7 +99,11 @@ export function Settings({
         </TabsContent>
 
         <TabsContent value="email-templates" className="mt-6">
-          <EmailTemplateSettings currentUser={currentUser} />
+          <EmailTemplateManagement 
+            templates={emailTemplates}
+            setTemplates={setEmailTemplates}
+            currentUser={currentUser}
+          />
         </TabsContent>
 
         <TabsContent value="preferences" className="mt-6">

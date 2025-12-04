@@ -1,0 +1,769 @@
+import { GuestInvoice, HotelBranding } from './types'
+import { formatCurrency } from './helpers'
+
+export interface EmailTemplate {
+  id: string
+  name: string
+  invoiceType: 'all' | 'guest-folio' | 'room-only' | 'fnb' | 'extras' | 'group-master' | 'proforma' | 'credit-note' | 'debit-note'
+  subject: string
+  bodyPlainText: string
+  bodyHtml: string
+  isActive: boolean
+  isDefault: boolean
+  variables: TemplateVariable[]
+  createdAt: number
+  updatedAt: number
+  createdBy: string
+}
+
+export interface TemplateVariable {
+  key: string
+  name: string
+  description: string
+  example: string
+  category: 'guest' | 'invoice' | 'hotel' | 'payment' | 'dates' | 'custom'
+}
+
+export const AVAILABLE_VARIABLES: TemplateVariable[] = [
+  { key: '{{guest_name}}', name: 'Guest Name', description: 'Full name of the guest', example: 'John Doe', category: 'guest' },
+  { key: '{{guest_first_name}}', name: 'Guest First Name', description: 'First name only', example: 'John', category: 'guest' },
+  { key: '{{guest_email}}', name: 'Guest Email', description: 'Guest email address', example: 'john@example.com', category: 'guest' },
+  { key: '{{guest_phone}}', name: 'Guest Phone', description: 'Guest phone number', example: '+94 77 123 4567', category: 'guest' },
+  { key: '{{company_name}}', name: 'Company Name', description: 'Corporate guest company name', example: 'ABC Corp Ltd', category: 'guest' },
+  
+  { key: '{{invoice_number}}', name: 'Invoice Number', description: 'Unique invoice number', example: 'INV-2024-0001', category: 'invoice' },
+  { key: '{{invoice_type}}', name: 'Invoice Type', description: 'Type of invoice', example: 'Guest Folio Invoice', category: 'invoice' },
+  { key: '{{invoice_date}}', name: 'Invoice Date', description: 'Date invoice was issued', example: 'January 15, 2024', category: 'invoice' },
+  { key: '{{due_date}}', name: 'Due Date', description: 'Payment due date', example: 'January 30, 2024', category: 'invoice' },
+  { key: '{{subtotal}}', name: 'Subtotal', description: 'Total before tax and service charge', example: 'LKR 50,000.00', category: 'invoice' },
+  { key: '{{service_charge}}', name: 'Service Charge', description: 'Service charge amount', example: 'LKR 5,000.00', category: 'invoice' },
+  { key: '{{tax_amount}}', name: 'Tax Amount', description: 'Total tax amount', example: 'LKR 8,250.00', category: 'invoice' },
+  { key: '{{grand_total}}', name: 'Grand Total', description: 'Final total amount', example: 'LKR 63,250.00', category: 'invoice' },
+  { key: '{{amount_paid}}', name: 'Amount Paid', description: 'Total amount already paid', example: 'LKR 20,000.00', category: 'invoice' },
+  { key: '{{amount_due}}', name: 'Amount Due', description: 'Remaining amount to pay', example: 'LKR 43,250.00', category: 'invoice' },
+  { key: '{{currency}}', name: 'Currency', description: 'Invoice currency', example: 'LKR', category: 'invoice' },
+  
+  { key: '{{room_number}}', name: 'Room Number', description: 'Guest room number', example: '301', category: 'invoice' },
+  { key: '{{check_in_date}}', name: 'Check-in Date', description: 'Guest check-in date', example: 'January 10, 2024', category: 'dates' },
+  { key: '{{check_out_date}}', name: 'Check-out Date', description: 'Guest check-out date', example: 'January 15, 2024', category: 'dates' },
+  { key: '{{nights_stayed}}', name: 'Nights Stayed', description: 'Number of nights', example: '5 nights', category: 'dates' },
+  
+  { key: '{{hotel_name}}', name: 'Hotel Name', description: 'Name of the hotel', example: 'W3 Hotel & Resort', category: 'hotel' },
+  { key: '{{hotel_address}}', name: 'Hotel Address', description: 'Hotel physical address', example: '123 Beach Road, Colombo', category: 'hotel' },
+  { key: '{{hotel_phone}}', name: 'Hotel Phone', description: 'Hotel contact number', example: '+94 11 234 5678', category: 'hotel' },
+  { key: '{{hotel_email}}', name: 'Hotel Email', description: 'Hotel email address', example: 'info@w3hotel.com', category: 'hotel' },
+  { key: '{{hotel_website}}', name: 'Hotel Website', description: 'Hotel website URL', example: 'www.w3hotel.com', category: 'hotel' },
+  { key: '{{tax_registration}}', name: 'Tax Registration', description: 'Hotel tax/VAT number', example: 'VAT-123456789', category: 'hotel' },
+  
+  { key: '{{payment_link}}', name: 'Payment Link', description: 'Online payment URL', example: 'https://pay.w3hotel.com/inv123', category: 'payment' },
+  { key: '{{bank_name}}', name: 'Bank Name', description: 'Hotel bank name', example: 'Commercial Bank', category: 'payment' },
+  { key: '{{account_number}}', name: 'Account Number', description: 'Hotel bank account number', example: '1234567890', category: 'payment' },
+  { key: '{{account_name}}', name: 'Account Name', description: 'Bank account holder name', example: 'W3 Hotels (Pvt) Ltd', category: 'payment' },
+  { key: '{{swift_code}}', name: 'SWIFT Code', description: 'Bank SWIFT/BIC code', example: 'CCEYLKLX', category: 'payment' },
+  
+  { key: '{{current_date}}', name: 'Current Date', description: 'Today\'s date', example: 'January 20, 2024', category: 'dates' },
+  { key: '{{current_time}}', name: 'Current Time', description: 'Current time', example: '2:30 PM', category: 'dates' },
+]
+
+export const DEFAULT_TEMPLATES: Omit<EmailTemplate, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>[] = [
+  {
+    name: 'Standard Guest Invoice',
+    invoiceType: 'guest-folio',
+    subject: 'Your Invoice from {{hotel_name}} - {{invoice_number}}',
+    bodyPlainText: `Dear {{guest_name}},
+
+Thank you for staying with us at {{hotel_name}}. Please find attached your invoice for your recent stay.
+
+Invoice Details:
+- Invoice Number: {{invoice_number}}
+- Invoice Date: {{invoice_date}}
+- Room Number: {{room_number}}
+- Check-in: {{check_in_date}}
+- Check-out: {{check_out_date}}
+
+Amount Summary:
+- Subtotal: {{subtotal}}
+- Service Charge: {{service_charge}}
+- Tax: {{tax_amount}}
+- Grand Total: {{grand_total}}
+- Amount Paid: {{amount_paid}}
+- Balance Due: {{amount_due}}
+
+{{#if amount_due > 0}}
+Payment Information:
+Please settle the outstanding balance within {{payment_terms}} days. You can make payment through:
+- Bank Transfer: {{bank_name}}, Account: {{account_number}}
+- Online Payment: {{payment_link}}
+{{/if}}
+
+Should you have any questions regarding this invoice, please don't hesitate to contact us at {{hotel_email}} or {{hotel_phone}}.
+
+We hope you enjoyed your stay and look forward to welcoming you back soon!
+
+Best regards,
+{{hotel_name}} Team
+
+---
+{{hotel_name}}
+{{hotel_address}}
+Tel: {{hotel_phone}} | Email: {{hotel_email}}
+{{hotel_website}}
+Tax Registration: {{tax_registration}}`,
+    bodyHtml: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: 'IBM Plex Sans', Arial, sans-serif;
+      line-height: 1.6;
+      color: #2d4a3e;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0;
+      background-color: #f5f8f6;
+    }
+    .container {
+      background-color: #ffffff;
+      margin: 20px auto;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(45, 74, 62, 0.1);
+    }
+    .header {
+      background: linear-gradient(135deg, #2d7a4e 0%, #3a9e68 100%);
+      color: #ffffff;
+      padding: 30px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 600;
+    }
+    .header p {
+      margin: 10px 0 0 0;
+      font-size: 14px;
+      opacity: 0.95;
+    }
+    .content {
+      padding: 30px;
+    }
+    .greeting {
+      font-size: 16px;
+      color: #2d4a3e;
+      margin-bottom: 20px;
+    }
+    .info-card {
+      background-color: #f9fafa;
+      border-left: 4px solid #2d7a4e;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    .info-card h3 {
+      margin: 0 0 15px 0;
+      color: #2d7a4e;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #e8ebe9;
+    }
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    .info-label {
+      color: #6b7f76;
+      font-size: 14px;
+    }
+    .info-value {
+      color: #2d4a3e;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .total-section {
+      background: linear-gradient(135deg, #f1f8f4 0%, #e8f5e9 100%);
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 4px;
+      border: 2px solid #2d7a4e;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      font-size: 16px;
+    }
+    .total-row.grand {
+      border-top: 2px solid #2d7a4e;
+      margin-top: 10px;
+      padding-top: 15px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #2d7a4e;
+    }
+    .payment-info {
+      background-color: #fff8e1;
+      border: 2px solid #ffc107;
+      border-radius: 4px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .payment-info h3 {
+      margin: 0 0 15px 0;
+      color: #f57c00;
+      font-size: 18px;
+    }
+    .payment-method {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 4px;
+      border-left: 3px solid #ffc107;
+    }
+    .button {
+      display: inline-block;
+      background: #2d7a4e;
+      color: white;
+      padding: 12px 30px;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: 600;
+      margin: 10px 0;
+      text-align: center;
+    }
+    .button:hover {
+      background: #246038;
+    }
+    .footer {
+      background-color: #f9fafa;
+      padding: 30px;
+      text-align: center;
+      border-top: 1px solid #e8ebe9;
+    }
+    .footer p {
+      margin: 5px 0;
+      font-size: 13px;
+      color: #6b7f76;
+    }
+    .footer .hotel-name {
+      font-weight: 700;
+      color: #2d7a4e;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, #2d7a4e, transparent);
+      margin: 30px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>{{hotel_name}}</h1>
+      <p>Invoice & Statement</p>
+    </div>
+    
+    <div class="content">
+      <p class="greeting">Dear {{guest_name}},</p>
+      
+      <p>Thank you for staying with us at <strong>{{hotel_name}}</strong>. Please find your invoice details below for your recent stay.</p>
+      
+      <div class="info-card">
+        <h3>📋 Invoice Details</h3>
+        <div class="info-row">
+          <span class="info-label">Invoice Number:</span>
+          <span class="info-value">{{invoice_number}}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Invoice Date:</span>
+          <span class="info-value">{{invoice_date}}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Room Number:</span>
+          <span class="info-value">{{room_number}}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Check-in:</span>
+          <span class="info-value">{{check_in_date}}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Check-out:</span>
+          <span class="info-value">{{check_out_date}}</span>
+        </div>
+      </div>
+      
+      <div class="total-section">
+        <div class="total-row">
+          <span>Subtotal:</span>
+          <span>{{subtotal}}</span>
+        </div>
+        <div class="total-row">
+          <span>Service Charge:</span>
+          <span>{{service_charge}}</span>
+        </div>
+        <div class="total-row">
+          <span>Tax:</span>
+          <span>{{tax_amount}}</span>
+        </div>
+        <div class="total-row grand">
+          <span>Grand Total:</span>
+          <span>{{grand_total}}</span>
+        </div>
+        <div class="total-row" style="color: #388e3c;">
+          <span>Amount Paid:</span>
+          <span>{{amount_paid}}</span>
+        </div>
+        <div class="total-row" style="color: #f57c00; font-weight: 600;">
+          <span>Balance Due:</span>
+          <span>{{amount_due}}</span>
+        </div>
+      </div>
+      
+      <div class="payment-info">
+        <h3>💳 Payment Information</h3>
+        <p style="margin: 0 0 15px 0; color: #666;">Please settle the outstanding balance at your earliest convenience.</p>
+        
+        <div class="payment-method">
+          <strong>Bank Transfer</strong><br>
+          Bank: {{bank_name}}<br>
+          Account Name: {{account_name}}<br>
+          Account Number: {{account_number}}<br>
+          SWIFT Code: {{swift_code}}
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+          <a href="{{payment_link}}" class="button">Pay Online Now</a>
+        </div>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <p style="color: #666; font-size: 14px;">Should you have any questions regarding this invoice, please don't hesitate to contact us at <a href="mailto:{{hotel_email}}" style="color: #2d7a4e;">{{hotel_email}}</a> or call us at {{hotel_phone}}.</p>
+      
+      <p style="color: #2d7a4e; font-weight: 600; margin-top: 20px;">We hope you enjoyed your stay and look forward to welcoming you back soon!</p>
+    </div>
+    
+    <div class="footer">
+      <p class="hotel-name">{{hotel_name}}</p>
+      <p>{{hotel_address}}</p>
+      <p>Tel: {{hotel_phone}} | Email: {{hotel_email}}</p>
+      <p>{{hotel_website}}</p>
+      <p style="margin-top: 15px; font-size: 12px;">Tax Registration: {{tax_registration}}</p>
+    </div>
+  </div>
+</body>
+</html>`,
+    isActive: true,
+    isDefault: true,
+    variables: AVAILABLE_VARIABLES,
+  },
+  {
+    name: 'Room Only Invoice',
+    invoiceType: 'room-only',
+    subject: 'Room Charges Invoice - {{invoice_number}}',
+    bodyPlainText: `Dear {{guest_name}},
+
+Please find your room charges invoice attached.
+
+Invoice Number: {{invoice_number}}
+Date: {{invoice_date}}
+Room: {{room_number}}
+Stay Period: {{check_in_date}} to {{check_out_date}}
+Total Nights: {{nights_stayed}}
+
+Total Amount: {{grand_total}}
+
+Thank you for choosing {{hotel_name}}.
+
+Best regards,
+{{hotel_name}} Team`,
+    bodyHtml: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: #2d7a4e; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none; border-radius: 0 0 8px 8px; }
+    .total { font-size: 20px; font-weight: bold; color: #2d7a4e; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>{{hotel_name}}</h1>
+    <p>Room Charges Invoice</p>
+  </div>
+  <div class="content">
+    <p>Dear {{guest_name}},</p>
+    <p>Please find your room charges invoice details below.</p>
+    <p><strong>Invoice Number:</strong> {{invoice_number}}<br>
+    <strong>Date:</strong> {{invoice_date}}<br>
+    <strong>Room:</strong> {{room_number}}<br>
+    <strong>Stay Period:</strong> {{check_in_date}} to {{check_out_date}}</p>
+    <p class="total">Total Amount: {{grand_total}}</p>
+    <p>Thank you for choosing {{hotel_name}}.</p>
+  </div>
+</body>
+</html>`,
+    isActive: true,
+    isDefault: false,
+    variables: AVAILABLE_VARIABLES,
+  },
+  {
+    name: 'F&B Invoice',
+    invoiceType: 'fnb',
+    subject: 'F&B Invoice from {{hotel_name}} - {{invoice_number}}',
+    bodyPlainText: `Dear {{guest_name}},
+
+Thank you for dining with us. Please find your F&B invoice attached.
+
+Invoice Number: {{invoice_number}}
+Date: {{invoice_date}}
+
+Amount: {{grand_total}}
+
+We hope you enjoyed your meal and look forward to serving you again.
+
+Best regards,
+{{hotel_name}} Restaurant Team`,
+    bodyHtml: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #d84315 0%, #ff6f00 100%); color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #fff8e1; padding: 20px; border: 2px solid #ff6f00; border-top: none; border-radius: 0 0 8px 8px; }
+    .total { font-size: 20px; font-weight: bold; color: #d84315; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🍽️ {{hotel_name}}</h1>
+    <p>Restaurant & Bar Invoice</p>
+  </div>
+  <div class="content">
+    <p>Dear {{guest_name}},</p>
+    <p>Thank you for dining with us. Please find your F&B invoice details below.</p>
+    <p><strong>Invoice Number:</strong> {{invoice_number}}<br>
+    <strong>Date:</strong> {{invoice_date}}</p>
+    <p class="total">Total Amount: {{grand_total}}</p>
+    <p>We hope you enjoyed your meal and look forward to serving you again soon!</p>
+  </div>
+</body>
+</html>`,
+    isActive: true,
+    isDefault: false,
+    variables: AVAILABLE_VARIABLES,
+  },
+  {
+    name: 'Group Master Invoice',
+    invoiceType: 'group-master',
+    subject: 'Group Invoice - {{invoice_number}} - {{hotel_name}}',
+    bodyPlainText: `Dear {{guest_name}},
+
+Please find attached the consolidated invoice for your group booking at {{hotel_name}}.
+
+Invoice Number: {{invoice_number}}
+Invoice Date: {{invoice_date}}
+Group Check-in: {{check_in_date}}
+Group Check-out: {{check_out_date}}
+
+Total Amount: {{grand_total}}
+Amount Paid: {{amount_paid}}
+Balance Due: {{amount_due}}
+
+Payment is due by {{due_date}}.
+
+Bank Details:
+{{bank_name}}
+Account: {{account_number}}
+SWIFT: {{swift_code}}
+
+Thank you for choosing {{hotel_name}} for your group event.
+
+Best regards,
+{{hotel_name}} Group Sales Team`,
+    bodyHtml: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 650px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%); color: white; padding: 25px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #f5f5f5; padding: 25px; border: 2px solid #2196f3; border-top: none; border-radius: 0 0 8px 8px; }
+    .info-box { background: white; padding: 20px; margin: 15px 0; border-radius: 4px; border-left: 4px solid #1976d2; }
+    .total-box { background: #e3f2fd; padding: 20px; margin: 20px 0; border-radius: 4px; border: 2px solid #1976d2; }
+    .total { font-size: 22px; font-weight: bold; color: #1976d2; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>{{hotel_name}}</h1>
+    <p>Group Master Invoice</p>
+  </div>
+  <div class="content">
+    <p>Dear {{guest_name}},</p>
+    <p>Please find attached the consolidated invoice for your group booking.</p>
+    
+    <div class="info-box">
+      <p><strong>Invoice Number:</strong> {{invoice_number}}<br>
+      <strong>Invoice Date:</strong> {{invoice_date}}<br>
+      <strong>Group Check-in:</strong> {{check_in_date}}<br>
+      <strong>Group Check-out:</strong> {{check_out_date}}</p>
+    </div>
+    
+    <div class="total-box">
+      <p class="total">Total Amount: {{grand_total}}</p>
+      <p><strong>Amount Paid:</strong> {{amount_paid}}<br>
+      <strong>Balance Due:</strong> <span style="color: #d32f2f;">{{amount_due}}</span></p>
+      <p><strong>Payment Due Date:</strong> {{due_date}}</p>
+    </div>
+    
+    <div class="info-box">
+      <h3>Bank Transfer Details</h3>
+      <p><strong>Bank:</strong> {{bank_name}}<br>
+      <strong>Account Name:</strong> {{account_name}}<br>
+      <strong>Account Number:</strong> {{account_number}}<br>
+      <strong>SWIFT Code:</strong> {{swift_code}}</p>
+    </div>
+    
+    <p>Thank you for choosing {{hotel_name}} for your group event.</p>
+  </div>
+</body>
+</html>`,
+    isActive: true,
+    isDefault: false,
+    variables: AVAILABLE_VARIABLES,
+  },
+  {
+    name: 'Proforma Invoice',
+    invoiceType: 'proforma',
+    subject: 'Proforma Invoice - {{invoice_number}} - {{hotel_name}}',
+    bodyPlainText: `Dear {{guest_name}},
+
+Please find attached the proforma invoice for your upcoming stay at {{hotel_name}}.
+
+Proforma Invoice Number: {{invoice_number}}
+Issue Date: {{invoice_date}}
+Expected Check-in: {{check_in_date}}
+Expected Check-out: {{check_out_date}}
+
+Estimated Total: {{grand_total}}
+
+This is a preliminary invoice and not a demand for payment. Final charges may vary based on actual consumption and services used.
+
+For reservations or inquiries, please contact us at {{hotel_email}} or {{hotel_phone}}.
+
+Best regards,
+{{hotel_name}} Reservations Team`,
+    bodyHtml: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #7b1fa2 0%, #9c27b0 100%); color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    .watermark { text-align: center; font-size: 32px; color: #9c27b0; opacity: 0.1; transform: rotate(-15deg); margin: 30px 0; }
+    .content { background: #f3e5f5; padding: 20px; border: 2px dashed #9c27b0; border-top: none; border-radius: 0 0 8px 8px; }
+    .notice { background: #fff3e0; border-left: 4px solid #ff9800; padding: 15px; margin: 20px 0; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>{{hotel_name}}</h1>
+    <p>Proforma Invoice (Quotation)</p>
+  </div>
+  <div class="watermark">PROFORMA</div>
+  <div class="content">
+    <p>Dear {{guest_name}},</p>
+    <p>Please find the proforma invoice for your upcoming stay.</p>
+    
+    <p><strong>Proforma Invoice Number:</strong> {{invoice_number}}<br>
+    <strong>Issue Date:</strong> {{invoice_date}}<br>
+    <strong>Expected Check-in:</strong> {{check_in_date}}<br>
+    <strong>Expected Check-out:</strong> {{check_out_date}}</p>
+    
+    <p style="font-size: 20px; font-weight: bold; color: #7b1fa2; margin: 20px 0;">Estimated Total: {{grand_total}}</p>
+    
+    <div class="notice">
+      <strong>⚠️ Important Notice:</strong><br>
+      This is a preliminary invoice for reference only and not a demand for payment. Final charges may vary based on actual consumption and services used during your stay.
+    </div>
+    
+    <p>For reservations or inquiries, please contact us at {{hotel_email}} or {{hotel_phone}}.</p>
+  </div>
+</body>
+</html>`,
+    isActive: true,
+    isDefault: false,
+    variables: AVAILABLE_VARIABLES,
+  },
+  {
+    name: 'Credit Note',
+    invoiceType: 'credit-note',
+    subject: 'Credit Note Issued - {{invoice_number}} - {{hotel_name}}',
+    bodyPlainText: `Dear {{guest_name}},
+
+A credit note has been issued for your account.
+
+Credit Note Number: {{invoice_number}}
+Date: {{invoice_date}}
+Original Invoice: [Reference]
+
+Credit Amount: {{grand_total}}
+
+This credit will be applied to your account and can be used for future stays or refunded as per our refund policy.
+
+If you have any questions, please contact us at {{hotel_email}}.
+
+Best regards,
+{{hotel_name}} Accounts Team`,
+    bodyHtml: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #388e3c 0%, #4caf50 100%); color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #e8f5e9; padding: 20px; border: 2px solid #4caf50; border-top: none; border-radius: 0 0 8px 8px; }
+    .credit-amount { font-size: 24px; font-weight: bold; color: #388e3c; text-align: center; margin: 25px 0; padding: 20px; background: white; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>{{hotel_name}}</h1>
+    <p>Credit Note</p>
+  </div>
+  <div class="content">
+    <p>Dear {{guest_name}},</p>
+    <p>A credit note has been issued for your account.</p>
+    
+    <p><strong>Credit Note Number:</strong> {{invoice_number}}<br>
+    <strong>Date:</strong> {{invoice_date}}</p>
+    
+    <div class="credit-amount">
+      Credit Amount<br>
+      {{grand_total}}
+    </div>
+    
+    <p>This credit will be applied to your account and can be used for future stays or refunded as per our refund policy.</p>
+    
+    <p>If you have any questions, please contact us at {{hotel_email}}.</p>
+  </div>
+</body>
+</html>`,
+    isActive: true,
+    isDefault: false,
+    variables: AVAILABLE_VARIABLES,
+  },
+]
+
+export function replaceVariables(
+  template: string,
+  invoice: GuestInvoice,
+  branding?: HotelBranding | null
+): string {
+  let result = template
+
+  const firstName = invoice.guestName.split(' ')[0] || invoice.guestName
+  const nightsStayed = invoice.checkInDate && invoice.checkOutDate
+    ? Math.ceil((invoice.checkOutDate - invoice.checkInDate) / (1000 * 60 * 60 * 24))
+    : 0
+
+  const variables: Record<string, string> = {
+    '{{guest_name}}': invoice.guestName,
+    '{{guest_first_name}}': firstName,
+    '{{guest_email}}': invoice.guestEmail || '',
+    '{{guest_phone}}': invoice.guestPhone || '',
+    '{{company_name}}': invoice.companyName || '',
+    
+    '{{invoice_number}}': invoice.invoiceNumber,
+    '{{invoice_type}}': formatInvoiceType(invoice.invoiceType),
+    '{{invoice_date}}': new Date(invoice.invoiceDate).toLocaleDateString('en-US', { 
+      year: 'numeric', month: 'long', day: 'numeric' 
+    }),
+    '{{due_date}}': invoice.dueDate 
+      ? new Date(invoice.dueDate).toLocaleDateString('en-US', { 
+          year: 'numeric', month: 'long', day: 'numeric' 
+        })
+      : 'On receipt',
+    '{{subtotal}}': formatCurrency(invoice.subtotal),
+    '{{service_charge}}': formatCurrency(invoice.serviceChargeAmount),
+    '{{tax_amount}}': formatCurrency(invoice.totalTax),
+    '{{grand_total}}': formatCurrency(invoice.grandTotal),
+    '{{amount_paid}}': formatCurrency(invoice.totalPaid),
+    '{{amount_due}}': formatCurrency(invoice.amountDue),
+    '{{currency}}': invoice.currency,
+    
+    '{{room_number}}': invoice.roomNumber || 'N/A',
+    '{{check_in_date}}': invoice.checkInDate 
+      ? new Date(invoice.checkInDate).toLocaleDateString('en-US', { 
+          year: 'numeric', month: 'long', day: 'numeric' 
+        })
+      : '',
+    '{{check_out_date}}': invoice.checkOutDate 
+      ? new Date(invoice.checkOutDate).toLocaleDateString('en-US', { 
+          year: 'numeric', month: 'long', day: 'numeric' 
+        })
+      : '',
+    '{{nights_stayed}}': nightsStayed > 0 ? `${nightsStayed} night${nightsStayed > 1 ? 's' : ''}` : '',
+    
+    '{{hotel_name}}': branding?.hotelName || 'W3 Hotel',
+    '{{hotel_address}}': branding?.hotelAddress || '',
+    '{{hotel_phone}}': branding?.hotelPhone || '',
+    '{{hotel_email}}': branding?.hotelEmail || '',
+    '{{hotel_website}}': branding?.hotelWebsite || '',
+    '{{tax_registration}}': branding?.taxRegistrationNumber || '',
+    
+    '{{payment_link}}': `https://pay.hotel.com/invoice/${invoice.invoiceNumber}`,
+    '{{bank_name}}': invoice.bankDetails?.bankName || branding?.bankDetails?.bankName || '',
+    '{{account_number}}': invoice.bankDetails?.accountNumber || branding?.bankDetails?.accountNumber || '',
+    '{{account_name}}': invoice.bankDetails?.accountName || branding?.bankDetails?.accountName || '',
+    '{{swift_code}}': invoice.bankDetails?.swiftCode || branding?.bankDetails?.swiftCode || '',
+    
+    '{{current_date}}': new Date().toLocaleDateString('en-US', { 
+      year: 'numeric', month: 'long', day: 'numeric' 
+    }),
+    '{{current_time}}': new Date().toLocaleTimeString('en-US', { 
+      hour: 'numeric', minute: '2-digit', hour12: true 
+    }),
+  }
+
+  Object.entries(variables).forEach(([key, value]) => {
+    result = result.replace(new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), value)
+  })
+
+  return result
+}
+
+function formatInvoiceType(type: string): string {
+  const typeMap: Record<string, string> = {
+    'guest-folio': 'Guest Folio Invoice',
+    'room-only': 'Room Only Invoice',
+    'fnb': 'F&B Invoice',
+    'extras': 'Extras Invoice',
+    'group-master': 'Group Master Account',
+    'proforma': 'Proforma Invoice',
+    'credit-note': 'Credit Note',
+    'debit-note': 'Debit Note',
+  }
+  return typeMap[type] || type
+}
+
+export function generateInvoiceEmail(
+  invoice: GuestInvoice,
+  template: EmailTemplate,
+  branding?: HotelBranding | null
+): {
+  subject: string
+  bodyPlainText: string
+  bodyHtml: string
+} {
+  return {
+    subject: replaceVariables(template.subject, invoice, branding),
+    bodyPlainText: replaceVariables(template.bodyPlainText, invoice, branding),
+    bodyHtml: replaceVariables(template.bodyHtml, invoice, branding),
+  }
+}

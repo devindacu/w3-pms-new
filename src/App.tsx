@@ -250,6 +250,7 @@ function App() {
   const [branding, setBranding] = useKV<HotelBranding | null>('w3-hotel-branding', null)
   const [taxes, setTaxes] = useKV<TaxConfiguration[]>('w3-hotel-taxes', [])
   const [serviceCharge, setServiceCharge] = useKV<ServiceChargeConfiguration | null>('w3-hotel-service-charge', null)
+  const [emailTemplates, setEmailTemplates] = useKV<import('@/lib/invoiceEmailTemplates').EmailTemplate[]>('w3-hotel-email-templates', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
@@ -1199,6 +1200,8 @@ function App() {
               setTaxes={setTaxes}
               serviceCharge={serviceCharge || null}
               setServiceCharge={setServiceCharge}
+              emailTemplates={emailTemplates || []}
+              setEmailTemplates={setEmailTemplates}
               currentUser={currentUser}
             />
           )}
