@@ -45,6 +45,7 @@ import { ExpenseDialog } from './ExpenseDialog'
 import { BudgetDialog } from './BudgetDialog'
 import { JournalEntryDialog } from './JournalEntryDialog'
 import { BankReconciliationDialog } from './BankReconciliationDialog'
+import { ARAgingDialog } from './ARAgingDialog'
 import { toast } from 'sonner'
 
 interface FinanceProps {
@@ -65,6 +66,7 @@ interface FinanceProps {
   setGLEntries?: (entries: GLEntry[] | ((prev: GLEntry[]) => GLEntry[])) => void
   bankReconciliations?: BankReconciliation[]
   setBankReconciliations?: (reconciliations: BankReconciliation[] | ((prev: BankReconciliation[]) => BankReconciliation[])) => void
+  guestInvoices?: import('@/lib/types').GuestInvoice[]
   currentUser: SystemUser
 }
 
@@ -86,6 +88,7 @@ export function Finance({
   setGLEntries,
   bankReconciliations = [],
   setBankReconciliations,
+  guestInvoices = [],
   currentUser
 }: FinanceProps) {
   const [selectedTab, setSelectedTab] = useState('overview')
@@ -95,6 +98,7 @@ export function Finance({
   const [budgetDialogOpen, setBudgetDialogOpen] = useState(false)
   const [journalDialogOpen, setJournalDialogOpen] = useState(false)
   const [reconciliationDialogOpen, setReconciliationDialogOpen] = useState(false)
+  const [arAgingDialogOpen, setArAgingDialogOpen] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | undefined>()
   const [selectedPayment, setSelectedPayment] = useState<Payment | undefined>()
   const [selectedExpense, setSelectedExpense] = useState<Expense | undefined>()
@@ -1039,6 +1043,33 @@ export function Finance({
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-6">
+          <div className="mb-6 flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => setArAgingDialogOpen(true)}>
+              <FileText size={16} className="mr-2" />
+              AR Aging
+            </Button>
+            <Button variant="outline" size="sm">
+              <FileText size={16} className="mr-2" />
+              AP Aging
+            </Button>
+            <Button variant="outline" size="sm">
+              <FileText size={16} className="mr-2" />
+              Cash Flow
+            </Button>
+            <Button variant="outline" size="sm">
+              <FileText size={16} className="mr-2" />
+              Tax Summary
+            </Button>
+            <Button variant="outline" size="sm">
+              <FileText size={16} className="mr-2" />
+              Departmental P&L
+            </Button>
+            <Button variant="outline" size="sm">
+              <Download size={16} className="mr-2" />
+              Export All Reports
+            </Button>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="p-6">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -1412,6 +1443,12 @@ export function Finance({
           }}
         />
       )}
+
+      <ARAgingDialog
+        open={arAgingDialogOpen}
+        onOpenChange={setArAgingDialogOpen}
+        invoices={guestInvoices}
+      />
     </div>
   )
 }

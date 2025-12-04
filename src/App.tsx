@@ -1134,6 +1134,7 @@ function App() {
               setGLEntries={setGLEntries}
               bankReconciliations={bankReconciliations || []}
               setBankReconciliations={setBankReconciliations}
+              guestInvoices={guestInvoices || []}
               currentUser={currentUser}
             />
           )}
