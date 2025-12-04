@@ -120,7 +120,11 @@ import {
   samplePerformanceReviews,
   sampleRequisitions,
   samplePurchaseOrders,
-  sampleGRNs
+  sampleGRNs,
+  samplePayments,
+  sampleExpenses,
+  sampleAccounts,
+  sampleBudgets
 } from '@/lib/sampleData'
 import { sampleGuestInvoices } from '@/lib/guestInvoiceSampleData'
 import { sampleOTAConnections, sampleChannelPerformance } from '@/lib/channelManagerSampleData'
@@ -147,6 +151,7 @@ import { RoomRevenueManagement } from '@/components/RoomRevenueManagement'
 import { ExtraServicesManagement } from '@/components/ExtraServicesManagement'
 import { Analytics } from '@/components/Analytics'
 import { Settings } from '@/components/Settings'
+import { Finance } from '@/components/Finance'
 import type {
   GuestProfile,
   GuestComplaint,
@@ -260,6 +265,11 @@ function App() {
   const [emailAnalytics, setEmailAnalytics] = useKV<EmailTemplateAnalytics[]>('w3-hotel-email-analytics', [])
   const [campaignAnalytics, setCampaignAnalytics] = useKV<EmailCampaignAnalytics[]>('w3-hotel-campaign-analytics', [])
   const [emailRecords, setEmailRecords] = useKV<EmailSentRecord[]>('w3-hotel-email-records', [])
+  
+  const [payments, setPayments] = useKV<import('@/lib/types').Payment[]>('w3-hotel-payments', [])
+  const [expenses, setExpenses] = useKV<import('@/lib/types').Expense[]>('w3-hotel-expenses', [])
+  const [accounts, setAccounts] = useKV<import('@/lib/types').Account[]>('w3-hotel-accounts', [])
+  const [budgets, setBudgets] = useKV<import('@/lib/types').Budget[]>('w3-hotel-budgets', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
@@ -419,6 +429,10 @@ function App() {
     setEmailAnalytics(sampleEmailTemplateAnalytics)
     setCampaignAnalytics(sampleCampaignAnalytics)
     setEmailRecords(sampleEmailSentRecords)
+    setPayments(samplePayments)
+    setExpenses(sampleExpenses)
+    setAccounts(sampleAccounts)
+    setBudgets(sampleBudgets)
     toast.success('Sample data loaded successfully')
   }
 
@@ -1089,7 +1103,19 @@ function App() {
               employees={employees || []}
             />
           )}
-          {currentModule === 'finance' && renderComingSoon('Finance & Accounting', <CurrencyDollar size={64} />)}
+          {currentModule === 'finance' && (
+            <Finance
+              invoices={invoices || []}
+              setInvoices={setInvoices}
+              payments={payments || []}
+              setPayments={setPayments}
+              expenses={expenses || []}
+              setExpenses={setExpenses}
+              accounts={accounts || []}
+              budgets={budgets || []}
+              setBudgets={setBudgets}
+            />
+          )}
           {currentModule === 'hr' && (
             <HRManagement
               employees={employees || []}
