@@ -41,11 +41,6 @@ import type {
   GuestInvoiceType
 } from '@/lib/types'
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/helpers'
-import { GuestInvoiceDialog } from '@/components/GuestInvoiceDialog'
-import { ChargePostingDialog } from '@/components/ChargePostingDialog'
-import { InvoicePaymentDialog } from '@/components/InvoicePaymentDialog'
-import { InvoiceAdjustmentDialog } from '@/components/InvoiceAdjustmentDialog'
-import { NightAuditDialog } from '@/components/NightAuditDialog'
 import { InvoiceViewerA4 } from '@/components/InvoiceViewerA4'
 
 interface GuestInvoicingProps {
@@ -457,76 +452,27 @@ export function GuestInvoicing({
         </TabsContent>
       </Tabs>
 
-      <GuestInvoiceDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        invoice={selectedInvoice}
-        folios={folios}
-        guests={guests}
-        reservations={reservations}
-        extraServices={extraServices}
-        serviceCategories={serviceCategories}
-        folioExtraServices={folioExtraServices}
-        currentUser={currentUser}
-        onSave={(invoice) => {
-          if (selectedInvoice) {
-            setInvoices((invoices) => invoices.map(i => i.id === invoice.id ? invoice : i))
-          } else {
-            setInvoices((invoices) => [...invoices, invoice])
-          }
-        }}
-      />
-
-      <ChargePostingDialog
-        open={isChargeDialogOpen}
-        onOpenChange={setIsChargeDialogOpen}
-        folio={selectedFolio}
-        folios={folios}
-        setFolios={setFolios}
-        guests={guests}
-        reservations={reservations}
-        orders={orders}
-        extraServices={extraServices}
-        serviceCategories={serviceCategories}
-        folioExtraServices={folioExtraServices}
-        setFolioExtraServices={setFolioExtraServices}
-        currentUser={currentUser}
-      />
-
-      <InvoicePaymentDialog
-        open={isPaymentDialogOpen}
-        onOpenChange={setIsPaymentDialogOpen}
-        invoice={selectedInvoice}
-        currentUser={currentUser}
-        onSave={(invoice) => {
-          setInvoices((invoices) => invoices.map(i => i.id === invoice.id ? invoice : i))
-        }}
-      />
-
-      <InvoiceAdjustmentDialog
-        open={isAdjustmentDialogOpen}
-        onOpenChange={setIsAdjustmentDialogOpen}
-        invoice={selectedInvoice}
-        currentUser={currentUser}
-        onSave={(invoice) => {
-          setInvoices((invoices) => invoices.map(i => i.id === invoice.id ? invoice : i))
-        }}
-      />
-
-      <NightAuditDialog
-        open={isNightAuditDialogOpen}
-        onOpenChange={setIsNightAuditDialogOpen}
-        folios={folios}
-        setFolios={setFolios}
-        invoices={invoices}
-        setInvoices={setInvoices}
-        reservations={reservations}
-        currentUser={currentUser}
-      />
+      {/* TODO: Implement missing dialogs
+      <GuestInvoiceDialog... />
+      <ChargePostingDialog... />
+      <InvoicePaymentDialog... />
+      <InvoiceAdjustmentDialog... />
+      <NightAuditDialog... />
+      */}
 
       {selectedInvoice && (
         <InvoiceViewerA4
           invoice={selectedInvoice}
+          hotelInfo={{
+            name: "W3 Hotel",
+            address: "Hotel Address",
+            phone: "+123456789",
+            email: "info@w3hotel.com",
+            website: "www.w3hotel.com",
+            taxRegistrationNumber: "TAX123456",
+            logo: ""
+          }}
+          currentUser={currentUser}
         />
       )}
     </div>

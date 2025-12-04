@@ -544,17 +544,17 @@ export function InvoiceViewerA4({ invoice, hotelInfo, currentUser, onClose }: In
                           Dept: {item.department.toUpperCase()}
                         </div>
                       )}
-                      {item.dateOfService && (
+                      {item.date && (
                         <div className="text-xs text-muted-foreground">
-                          Service Date: {new Date(item.dateOfService).toLocaleDateString()}
+                          Service Date: {new Date(item.date).toLocaleDateString()}
                         </div>
                       )}
                     </td>
                     <td className="center">{item.quantity}</td>
                     <td className="right">{formatCurrency(item.unitPrice)}</td>
                     <td className="right">
-                      {item.lineTaxDetails && item.lineTaxDetails.length > 0
-                        ? formatCurrency(item.lineTaxDetails.reduce((sum, tax) => sum + tax.taxAmount, 0))
+                      {item.taxLines && item.taxLines.length > 0
+                        ? formatCurrency(item.taxLines.reduce((sum, tax) => sum + tax.taxAmount, 0))
                         : '-'}
                     </td>
                     <td className="right font-semibold">{formatCurrency(item.lineTotal)}</td>
@@ -601,15 +601,15 @@ export function InvoiceViewerA4({ invoice, hotelInfo, currentUser, onClose }: In
                       <tr key={discount.id}>
                         <td className="text-success">
                           Discount: {discount.description}
-                          {discount.discountType === 'percentage' && ` (${discount.discountValue}%)`}
+                          {discount.type === 'percentage' && ` (${discount.value}%)`}
                         </td>
-                        <td className="right text-success">-{formatCurrency(discount.discountAmount)}</td>
+                        <td className="right text-success">-{formatCurrency(discount.amount)}</td>
                       </tr>
                     ))}
-                    {invoice.totalServiceCharge > 0 && (
+                    {invoice.serviceChargeAmount > 0 && (
                       <tr>
                         <td>Service Charge</td>
-                        <td className="right">{formatCurrency(invoice.totalServiceCharge)}</td>
+                        <td className="right">{formatCurrency(invoice.serviceChargeAmount)}</td>
                       </tr>
                     )}
                     {invoice.totalTax > 0 && (
@@ -630,7 +630,7 @@ export function InvoiceViewerA4({ invoice, hotelInfo, currentUser, onClose }: In
                         </tr>
                         <tr className="total">
                           <td>Balance Due</td>
-                          <td className="right">{formatCurrency(invoice.balanceDue)}</td>
+                          <td className="right">{formatCurrency(invoice.amountDue)}</td>
                         </tr>
                       </>
                     )}
@@ -645,7 +645,7 @@ export function InvoiceViewerA4({ invoice, hotelInfo, currentUser, onClose }: In
               </div>
             </div>
 
-            {invoice.paymentRecords && invoice.paymentRecords.length > 0 && (
+            {invoice.payments && invoice.payments.length > 0 && (
               <div className="payment-records">
                 <h4>Payment History</h4>
                 <table>
@@ -658,11 +658,11 @@ export function InvoiceViewerA4({ invoice, hotelInfo, currentUser, onClose }: In
                     </tr>
                   </thead>
                   <tbody>
-                    {invoice.paymentRecords.map((payment) => (
+                    {invoice.payments.map((payment) => (
                       <tr key={payment.id}>
                         <td>{new Date(payment.paymentDate).toLocaleDateString()}</td>
-                        <td className="capitalize">{payment.paymentMethod.replace('-', ' ')}</td>
-                        <td>{payment.referenceNumber || '-'}</td>
+                        <td className="capitalize">{payment.paymentType.replace('-', ' ')}</td>
+                        <td>{payment.reference || '-'}</td>
                         <td className="right font-semibold">{formatCurrency(payment.amount)}</td>
                       </tr>
                     ))}
@@ -671,10 +671,10 @@ export function InvoiceViewerA4({ invoice, hotelInfo, currentUser, onClose }: In
               </div>
             )}
 
-            {invoice.notes && (
+            {invoice.internalNotes && (
               <div className="notes">
                 <h4>Notes</h4>
-                <p>{invoice.notes}</p>
+                <p>{invoice.internalNotes}</p>
               </div>
             )}
 

@@ -3266,9 +3266,12 @@ export interface InvoiceValidationResult {
   paymentBalanceVerified: boolean
 }
 
-export type BudgetCategoryType = 'salary' | 'utilities' | 'supplies' | 'maintenance' | 'marketing' | 'inventory' | 'food-beverage' | 'housekeeping' | 'administrative' | 'other'
+export type BudgetCategory = 'salary' | 'utilities' | 'supplies' | 'maintenance' | 'marketing' | 'inventory' | 'food-beverage' | 'housekeeping' | 'administrative' | 'other'
+export type BudgetCategoryType = BudgetCategory
 export type BudgetPeriod = 'monthly' | 'quarterly' | 'yearly'
 export type ExpenseCategory = 'salary' | 'utilities' | 'supplies' | 'maintenance' | 'marketing' | 'food-beverage' | 'housekeeping' | 'administrative' | 'travel' | 'entertainment' | 'other'
+export type InvoiceType = GuestInvoiceType
+export type PaymentTerms = string
 
 export interface Payment {
   id: string
