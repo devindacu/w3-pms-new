@@ -24,8 +24,10 @@ import {
   ListChecks,
   Calendar,
   FilePlus,
-  Check
+  Check,
+  Package
 } from '@phosphor-icons/react'
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { 
   type Invoice, 
   type Payment, 
@@ -474,6 +476,58 @@ export function Finance({
 
   const reports = calculateReports()
 
+  const calculateInvoiceAnalytics = () => {
+    const approvedInvoices = invoices.filter(inv => inv.status === 'approved' || inv.status === 'posted')
+    
+    const monthlyData: Record<string, { month: string; total: number; count: number }> = {}
+    const supplierData: Record<string, { supplier: string; total: number; count: number }> = {}
+    
+    approvedInvoices.forEach(invoice => {
+      const date = new Date(invoice.invoiceDate)
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+      const monthLabel = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
+      
+      if (!monthlyData[monthKey]) {
+        monthlyData[monthKey] = { month: monthLabel, total: 0, count: 0 }
+      }
+      monthlyData[monthKey].total += invoice.total
+      monthlyData[monthKey].count += 1
+      
+      const supplierName = invoice.supplierName || 'Unknown'
+      if (!supplierData[supplierName]) {
+        supplierData[supplierName] = { supplier: supplierName, total: 0, count: 0 }
+      }
+      supplierData[supplierName].total += invoice.total
+      supplierData[supplierName].count += 1
+    })
+    
+    const trendData = Object.entries(monthlyData)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-12)
+      .map(([_, data]) => data)
+    
+    const topSuppliers = Object.values(supplierData)
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 10)
+    
+    return { trendData, topSuppliers, approvedInvoices }
+  }
+
+  const { trendData, topSuppliers, approvedInvoices } = calculateInvoiceAnalytics()
+
+  const CHART_COLORS = [
+    'oklch(0.35 0.18 140)',
+    'oklch(0.45 0.15 120)',
+    'oklch(0.30 0.20 150)',
+    'oklch(0.55 0.12 130)',
+    'oklch(0.40 0.16 125)',
+    'oklch(0.50 0.14 135)',
+    'oklch(0.60 0.10 110)',
+    'oklch(0.25 0.22 145)',
+    'oklch(0.65 0.08 115)',
+    'oklch(0.35 0.19 155)'
+  ]
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -614,6 +668,227 @@ export function Finance({
                   <span className="text-lg font-semibold text-accent">
                     {payments.filter(p => !p.reconciled).length}
                   </span>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold">Approved Invoice Trends</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Monthly approved invoice amounts (Last 12 months)</p>
+                </div>
+                <TrendUp size={20} className="text-primary" />
+              </div>
+              {trendData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={trendData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.85 0.05 140)" />
+                    <XAxis 
+                      dataKey="month" 
+                      stroke="oklch(0.45 0.08 140)"
+                      fontSize={12}
+                    />
+                    <YAxis 
+                      stroke="oklch(0.45 0.08 140)"
+                      fontSize={12}
+                      tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                    />
+                    <Tooltip 
+                      formatter={(value: number) => formatCurrency(value)}
+                      contentStyle={{
+                        backgroundColor: 'oklch(0.99 0.003 140)',
+                        border: '1px solid oklch(0.85 0.05 140)',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="total" 
+                      stroke="oklch(0.35 0.18 140)" 
+                      strokeWidth={3}
+                      name="Approved Amount"
+                      dot={{ fill: 'oklch(0.35 0.18 140)', r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  <div className="text-center">
+                    <ChartLine size={48} className="mx-auto mb-2 opacity-50" />
+                    <p>No approved invoices yet</p>
+                  </div>
+                </div>
+              )}
+            </Card>
+
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold">Top Suppliers by Approved Amount</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Top 10 suppliers by total approved invoices</p>
+                </div>
+                <Package size={20} className="text-primary" />
+              </div>
+              {topSuppliers.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={topSuppliers} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.85 0.05 140)" />
+                    <XAxis 
+                      type="number"
+                      stroke="oklch(0.45 0.08 140)"
+                      fontSize={12}
+                      tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                    />
+                    <YAxis 
+                      type="category"
+                      dataKey="supplier" 
+                      stroke="oklch(0.45 0.08 140)"
+                      fontSize={11}
+                      width={120}
+                    />
+                    <Tooltip 
+                      formatter={(value: number, name: string) => {
+                        if (name === 'total') return [formatCurrency(value), 'Total Amount']
+                        return [value, 'Invoice Count']
+                      }}
+                      contentStyle={{
+                        backgroundColor: 'oklch(0.99 0.003 140)',
+                        border: '1px solid oklch(0.85 0.05 140)',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <Legend />
+                    <Bar 
+                      dataKey="total" 
+                      fill="oklch(0.35 0.18 140)" 
+                      name="Approved Amount"
+                      radius={[0, 4, 4, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  <div className="text-center">
+                    <Package size={48} className="mx-auto mb-2 opacity-50" />
+                    <p>No supplier data available</p>
+                  </div>
+                </div>
+              )}
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold">Top 5 Suppliers - Details</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Breakdown of approved invoices</p>
+                </div>
+                <ChartBar size={20} className="text-primary" />
+              </div>
+              {topSuppliers.length > 0 ? (
+                <div className="space-y-4">
+                  {topSuppliers.slice(0, 5).map((supplier, index) => {
+                    const percentage = (supplier.total / topSuppliers.reduce((sum, s) => sum + s.total, 0)) * 100
+                    return (
+                      <div key={supplier.supplier} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
+                            />
+                            <span className="font-medium text-sm">{supplier.supplier}</span>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold">{formatCurrency(supplier.total)}</p>
+                            <p className="text-xs text-muted-foreground">{supplier.count} invoices</p>
+                          </div>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div 
+                            className="h-2 rounded-full transition-all"
+                            style={{ 
+                              width: `${percentage}%`,
+                              backgroundColor: CHART_COLORS[index % CHART_COLORS.length]
+                            }}
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground text-right">{percentage.toFixed(1)}% of total</p>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  <div className="text-center">
+                    <ChartBar size={48} className="mx-auto mb-2 opacity-50" />
+                    <p>No supplier data available</p>
+                  </div>
+                </div>
+              )}
+            </Card>
+
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold">Approved Invoice Statistics</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Summary of approved invoices</p>
+                </div>
+                <Receipt size={20} className="text-primary" />
+              </div>
+              <div className="space-y-6">
+                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Total Approved Invoices</span>
+                    <Check size={20} className="text-success" />
+                  </div>
+                  <p className="text-3xl font-semibold text-primary">{approvedInvoices.length}</p>
+                </div>
+                
+                <div className="p-4 bg-success/5 rounded-lg border border-success/20">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Total Approved Amount</span>
+                    <CurrencyDollar size={20} className="text-success" />
+                  </div>
+                  <p className="text-3xl font-semibold text-success">
+                    {formatCurrency(approvedInvoices.reduce((sum, inv) => sum + inv.total, 0))}
+                  </p>
+                </div>
+                
+                <div className="p-4 bg-accent/5 rounded-lg border border-accent/20">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Average Invoice Amount</span>
+                    <TrendUp size={20} className="text-accent" />
+                  </div>
+                  <p className="text-3xl font-semibold text-accent">
+                    {formatCurrency(approvedInvoices.length > 0 
+                      ? approvedInvoices.reduce((sum, inv) => sum + inv.total, 0) / approvedInvoices.length 
+                      : 0
+                    )}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Unique Suppliers</p>
+                    <p className="text-xl font-semibold">{topSuppliers.length}</p>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">This Month</p>
+                    <p className="text-xl font-semibold">
+                      {approvedInvoices.filter(inv => {
+                        const invDate = new Date(inv.invoiceDate)
+                        const now = new Date()
+                        return invDate.getMonth() === now.getMonth() && invDate.getFullYear() === now.getFullYear()
+                      }).length}
+                    </p>
+                  </div>
                 </div>
               </div>
             </Card>
