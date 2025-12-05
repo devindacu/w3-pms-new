@@ -72,7 +72,16 @@ export function PaymentDialog({ open, onOpenChange, payment, invoices, onSave }:
       processedBy: formData.processedBy!,
       reconciled: formData.reconciled || false,
       reconciledAt: formData.reconciledAt,
-      reconciledBy: formData.reconciledBy
+      reconciledBy: formData.reconciledBy,
+      isRefunded: payment?.isRefunded || false,
+      isRefund: payment?.isRefund || false,
+      refundedAmount: payment?.refundedAmount,
+      refundedAt: payment?.refundedAt,
+      refundedBy: payment?.refundedBy,
+      refundReference: payment?.refundReference,
+      refundReason: payment?.refundReason,
+      partialRefunds: payment?.partialRefunds,
+      originalPaymentId: payment?.originalPaymentId
     }
 
     onSave(newPayment)

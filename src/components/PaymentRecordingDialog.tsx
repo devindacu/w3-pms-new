@@ -102,7 +102,9 @@ export function PaymentRecordingDialog({
         notes: notes || undefined,
         processedAt: new Date(paymentDate).getTime(),
         processedBy: currentUser.id,
-        reconciled: false
+        reconciled: false,
+        isRefunded: false,
+        isRefund: false
       }
 
       onPaymentRecorded(payment)

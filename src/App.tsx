@@ -1349,6 +1349,17 @@ function App() {
                   <PaymentTracking
                     payments={payments || []}
                     invoices={guestInvoices || []}
+                    onUpdatePayment={(payment) => {
+                      setPayments((prev) => 
+                        (prev || []).map(p => p.id === payment.id ? payment : p)
+                      )
+                    }}
+                    onUpdateInvoice={(invoice) => {
+                      setGuestInvoices((prev) => 
+                        (prev || []).map(inv => inv.id === invoice.id ? invoice : inv)
+                      )
+                    }}
+                    currentUser={currentUser}
                   />
                 </TabsContent>
 

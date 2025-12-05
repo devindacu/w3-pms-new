@@ -3463,6 +3463,35 @@ export interface Payment {
   reconciled: boolean
   reconciledAt?: number
   reconciledBy?: string
+  isRefunded: boolean
+  refundedAmount?: number
+  refundedAt?: number
+  refundedBy?: string
+  refundReference?: string
+  refundReason?: string
+  partialRefunds?: PaymentRefund[]
+  originalPaymentId?: string
+  isRefund: boolean
+}
+
+export interface PaymentRefund {
+  id: string
+  refundNumber: string
+  originalPaymentId: string
+  originalPaymentNumber: string
+  amount: number
+  refundMethod: PaymentMethod
+  reason: string
+  notes?: string
+  approvedBy?: string
+  approvedAt?: number
+  processedBy: string
+  processedAt: number
+  invoiceId?: string
+  guestId?: string
+  reference?: string
+  status: 'pending' | 'approved' | 'processed' | 'cancelled'
+  createdAt: number
 }
 
 export interface Expense {

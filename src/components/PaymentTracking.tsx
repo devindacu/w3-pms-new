@@ -18,6 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { format, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns'
 import {
   MagnifyingGlass,
@@ -31,26 +38,56 @@ import {
   Clock,
   CalendarBlank,
   FunnelSimple,
-  Receipt
+  Receipt,
+  ArrowLeft,
+  DotsThree,
+  Eye,
+  Info
 } from '@phosphor-icons/react'
-import type { Payment, PaymentMethod, PaymentStatus, GuestInvoice } from '@/lib/types'
+import type { Payment, PaymentMethod, PaymentStatus, GuestInvoice, PaymentRefund, SystemUser } from '@/lib/types'
 import { formatCurrency } from '@/lib/helpers'
 import { toast } from 'sonner'
 import { ResponsiveDataView, type Column } from '@/components/ResponsiveDataView'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { PaymentRefundDialog } from '@/components/PaymentRefundDialog'
 
 interface PaymentTrackingProps {
   payments: Payment[]
   invoices: GuestInvoice[]
+  onUpdatePayment: (payment: Payment) => void
+  onUpdateInvoice: (invoice: GuestInvoice) => void
+  currentUser: SystemUser
 }
 
-export function PaymentTracking({ payments, invoices }: PaymentTrackingProps) {
+export function PaymentTracking({ payments, invoices, onUpdatePayment, onUpdateInvoice, currentUser }: PaymentTrackingProps) {
   const isMobile = useIsMobile()
   const [searchTerm, setSearchTerm] = useState('')
   const [methodFilter, setMethodFilter] = useState<PaymentMethod | 'all'>('all')
   const [statusFilter, setStatusFilter] = useState<PaymentStatus | 'all'>('all')
   const [dateRangeFilter, setDateRangeFilter] = useState<'all' | 'today' | 'this-month' | 'this-year'>('all')
   const [reconciledFilter, setReconciledFilter] = useState<'all' | 'reconciled' | 'pending'>('all')
+  const [refundDialogOpen, setRefundDialogOpen] = useState(false)
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null)
+
+  const handleRefundClick = (payment: Payment) => {
+    if (payment.isRefunded) {
+      toast.error('This payment has already been fully refunded')
+      return
+    }
+    if (payment.isRefund) {
+      toast.error('Cannot refund a refund payment')
+      return
+    }
+    setSelectedPayment(payment)
+    setRefundDialogOpen(true)
+  }
+
+  const handleRefundProcessed = (refund: PaymentRefund, updatedPayment: Payment, updatedInvoice?: GuestInvoice) => {
+    onUpdatePayment(updatedPayment)
+    if (updatedInvoice) {
+      onUpdateInvoice(updatedInvoice)
+    }
+  }
 
   const getInvoiceDetails = (invoiceId?: string) => {
     if (!invoiceId) return null
@@ -227,7 +264,21 @@ export function PaymentTracking({ payments, invoices }: PaymentTrackingProps) {
       key: 'amount', 
       label: 'Amount', 
       sortable: true,
-      render: (payment) => <span className="font-bold text-success">{formatCurrency(payment.amount)}</span>
+      render: (payment) => (
+        <div className="space-y-1">
+          <div className="font-bold text-success">{formatCurrency(payment.amount)}</div>
+          {payment.isRefunded && payment.refundedAmount && (
+            <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20 text-xs">
+              Refunded: {formatCurrency(payment.refundedAmount)}
+            </Badge>
+          )}
+          {payment.isRefund && (
+            <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20 text-xs">
+              Refund Payment
+            </Badge>
+          )}
+        </div>
+      )
     },
     { 
       key: 'invoiceId', 
@@ -291,6 +342,48 @@ export function PaymentTracking({ payments, invoices }: PaymentTrackingProps) {
             <span className="text-sm">Pending</span>
           </div>
         )
+      )
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      sortable: false,
+      render: (payment) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm">
+              <DotsThree size={20} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem>
+              <Eye size={16} className="mr-2" />
+              View Details
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            {!payment.isRefunded && !payment.isRefund && (
+              <DropdownMenuItem 
+                onClick={() => handleRefundClick(payment)}
+                className="text-destructive focus:text-destructive"
+              >
+                <ArrowLeft size={16} className="mr-2" />
+                Process Refund
+              </DropdownMenuItem>
+            )}
+            {payment.isRefunded && (
+              <DropdownMenuItem disabled>
+                <Info size={16} className="mr-2" />
+                Fully Refunded
+              </DropdownMenuItem>
+            )}
+            {payment.isRefund && (
+              <DropdownMenuItem disabled>
+                <Info size={16} className="mr-2" />
+                Refund Payment
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       )
     }
   ]
@@ -431,6 +524,17 @@ export function PaymentTracking({ payments, invoices }: PaymentTrackingProps) {
         enableFiltering={false}
         enableSorting={true}
       />
+
+      {selectedPayment && (
+        <PaymentRefundDialog
+          open={refundDialogOpen}
+          onOpenChange={setRefundDialogOpen}
+          payment={selectedPayment}
+          invoice={getInvoiceDetails(selectedPayment.invoiceId) || undefined}
+          currentUser={currentUser}
+          onRefund={handleRefundProcessed}
+        />
+      )}
     </div>
   )
 }

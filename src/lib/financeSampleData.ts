@@ -18,7 +18,9 @@ export const samplePayments: Payment[] = [
     processedBy: 'Emily Rodriguez',
     reconciled: true,
     reconciledAt: Date.now() - 4 * 24 * 60 * 60 * 1000,
-    reconciledBy: 'Sarah Chen'
+    reconciledBy: 'Sarah Chen',
+    isRefunded: false,
+    isRefund: false
   },
   {
     id: 'pay-2',
@@ -32,7 +34,9 @@ export const samplePayments: Payment[] = [
     processedBy: 'John Davis',
     reconciled: true,
     reconciledAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
-    reconciledBy: 'Sarah Chen'
+    reconciledBy: 'Sarah Chen',
+    isRefunded: false,
+    isRefund: false
   },
   {
     id: 'pay-3',
@@ -46,7 +50,9 @@ export const samplePayments: Payment[] = [
     processedBy: 'Emily Rodriguez',
     reconciled: true,
     reconciledAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-    reconciledBy: 'Sarah Chen'
+    reconciledBy: 'Sarah Chen',
+    isRefunded: false,
+    isRefund: false
   },
   {
     id: 'pay-4',
@@ -58,7 +64,9 @@ export const samplePayments: Payment[] = [
     notes: 'Room service and spa',
     processedAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
     processedBy: 'John Davis',
-    reconciled: false
+    reconciled: false,
+    isRefunded: false,
+    isRefund: false
   },
   {
     id: 'pay-5',
@@ -70,7 +78,9 @@ export const samplePayments: Payment[] = [
     notes: 'Conference room booking',
     processedAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
     processedBy: 'Emily Rodriguez',
-    reconciled: false
+    reconciled: false,
+    isRefunded: false,
+    isRefund: false
   },
   {
     id: 'pay-6',
@@ -82,7 +92,9 @@ export const samplePayments: Payment[] = [
     notes: 'Partial payment for group booking',
     processedAt: Date.now() - 12 * 60 * 60 * 1000,
     processedBy: 'John Davis',
-    reconciled: false
+    reconciled: false,
+    isRefunded: false,
+    isRefund: false
   }
 ]
 

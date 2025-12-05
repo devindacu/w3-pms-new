@@ -103,6 +103,8 @@ export function InvoicePaymentDialog({
       processedAt: Date.now(),
       processedBy: currentUser,
       reconciled: false,
+      isRefunded: false,
+      isRefund: false,
       ...(paymentMethod === 'card' && {
         authorizationCode,
         cardType,
