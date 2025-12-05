@@ -627,25 +627,25 @@ export function exportJournalEntriesToPDF(entries: JournalEntry[], dateRange?: s
 }
 
 export function exportBudgetsToPDF(budgets: Budget[]) {
-  const totalBudgeted = budgets.reduce((sum, b) => sum + b.budgetedAmount, 0)
-  const totalActual = budgets.reduce((sum, b) => sum + b.actualAmount, 0)
+  const totalBudgeted = budgets.reduce((sum, b) => sum + b.totalBudget, 0)
+  const totalActual = budgets.reduce((sum, b) => sum + b.totalActual, 0)
   const totalVariance = totalActual - totalBudgeted
   
   const tableRows = budgets.map(budget => {
-    const variance = budget.actualAmount - budget.budgetedAmount
-    const variancePercent = budget.budgetedAmount > 0 
-      ? ((variance / budget.budgetedAmount) * 100).toFixed(1)
+    const variance = budget.variance
+    const variancePercent = budget.totalBudget > 0 
+      ? ((variance / budget.totalBudget) * 100).toFixed(1)
       : '0.0'
     
     return `
       <tr>
         <td>${budget.budgetName}</td>
-        <td>${budget.category}</td>
         <td>${budget.department}</td>
-        <td>${budget.fiscalYear}</td>
         <td>${budget.period}</td>
-        <td class="text-right">${formatCurrency(budget.budgetedAmount)}</td>
-        <td class="text-right">${formatCurrency(budget.actualAmount)}</td>
+        <td>${new Date(budget.startDate).toLocaleDateString()}</td>
+        <td>${new Date(budget.endDate).toLocaleDateString()}</td>
+        <td class="text-right">${formatCurrency(budget.totalBudget)}</td>
+        <td class="text-right">${formatCurrency(budget.totalActual)}</td>
         <td class="text-right" style="color: ${variance >= 0 ? '#721c24' : '#155724'}">
           ${variance >= 0 ? '+' : ''}${formatCurrency(variance)}
         </td>
@@ -691,10 +691,10 @@ export function exportBudgetsToPDF(budgets: Budget[]) {
       <thead>
         <tr>
           <th>Budget Name</th>
-          <th>Category</th>
           <th>Department</th>
-          <th>Fiscal Year</th>
           <th>Period</th>
+          <th>Start Date</th>
+          <th>End Date</th>
           <th class="text-right">Budgeted</th>
           <th class="text-right">Actual</th>
           <th class="text-right">Variance</th>

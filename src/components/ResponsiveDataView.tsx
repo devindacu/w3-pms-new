@@ -1,37 +1,33 @@
 import { useState } from 'react'
-import { Table, TableBody, TableCell, Table
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { List, SquaresFour } from '@phosphor-ic
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
 import { List, SquaresFour } from '@phosphor-icons/react'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-  className?: string
+export interface Column<T> {
+  key: string | keyof T
   label: string
-}
   render?: (item: T) => React.ReactNode
-  data: T[]
   hideOnMobile?: boolean
   mobileLabel?: string
+  className?: string
 }
 
-  onRowClick,
-  tableClas
-  allowViewToggle = tr
-  const [viewMode, setViewMode] = u
-  const getValue = (item: T, key: string | keyof T
-      const keys = key.split('.'
-      for (const k of k
-      }
-    }
-  }
- 
+export interface ResponsiveDataViewProps<T> {
+  data: T[]
+  columns: Column<T>[]
+  onRowClick?: (item: T) => void
+  emptyMessage?: string
+  tableClassName?: string
+  cardClassName?: string
+  allowViewToggle?: boolean
+}
 
-      </Card>
-  }
-  const Ta
-      <Table>
-          <TableRow>
+export function ResponsiveDataView<T>({
+  data,
+  columns,
   onRowClick,
   emptyMessage = 'No data available',
   tableClassName,
@@ -66,80 +62,89 @@ import { List, SquaresFour } from '@phosphor-icons/react'
         <TableHeader>
           <TableRow>
             {columns.filter(col => !col.hideOnMobile).map((column, index) => (
-            </TabsList>
-        </div>
-
+              <TableHead key={index} className={column.className}>
+                {column.label}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {data.map((item, rowIndex) => (
+            <TableRow
+              key={rowIndex}
+              onClick={() => onRowClick?.(item)}
+              className={onRowClick ? 'cursor-pointer hover:bg-muted/50' : ''}
+            >
+              {columns.filter(col => !col.hideOnMobile).map((column, colIndex) => (
+                <TableCell key={colIndex} className={column.className}>
+                  {column.render ? column.render(item) : getValue(item, column.key)}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
+  )
+
+  const CardView = () => (
+    <div className="space-y-3">
+      {data.map((item, index) => (
+        <Card
+          key={index}
+          className={`p-4 ${onRowClick ? 'cursor-pointer hover:bg-muted/50' : ''} ${cardClassName || ''}`}
+          onClick={() => onRowClick?.(item)}
+        >
+          <div className="space-y-3">
+            {columns.map((column, colIndex) => {
+              const value = column.render ? column.render(item) : getValue(item, column.key)
+              return (
+                <div key={colIndex} className="mobile-card-field">
+                  <span className="mobile-card-label">
+                    {column.mobileLabel || column.label}:
+                  </span>
+                  <span className="mobile-card-value">{value}</span>
+                </div>
+              )
+            })}
+          </div>
+        </Card>
+      ))}
+    </div>
+  )
+
+  return (
+    <div className="space-y-4">
+      {allowViewToggle && (
+        <div className="flex justify-end">
+          <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'table' | 'cards')}>
+            <TabsList>
+              <TabsTrigger value="table" className="gap-2">
+                <List size={16} />
+                <span className="hidden sm:inline">Table</span>
+              </TabsTrigger>
+              <TabsTrigger value="cards" className="gap-2">
+                <SquaresFour size={16} />
+                <span className="hidden sm:inline">Cards</span>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      )}
+
+      <div className="hidden md:block">
+        <TableView />
+      </div>
+
+      <div className="md:hidden">
+        <CardView />
+      </div>
+
+      {allowViewToggle && (
+        <div className="hidden md:block">
+          {viewMode === 'cards' ? <CardView /> : <TableView />}
+        </div>
+      )}
+    </div>
+  )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

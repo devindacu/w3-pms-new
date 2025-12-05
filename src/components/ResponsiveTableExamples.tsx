@@ -155,11 +155,9 @@ export function ResponsiveTableExample() {
         <ResponsiveDataView
           data={filteredData}
           columns={columns}
-          keyExtractor={(item) => item.id}
           onRowClick={(item) => setSelectedItem(item)}
           emptyMessage="No items found"
           allowViewToggle={true}
-          defaultView="table"
         />
       </Card>
 
