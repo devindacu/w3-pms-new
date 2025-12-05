@@ -1280,7 +1280,8 @@ export interface ActivityLog {
   metadata?: Record<string, any>
 }
 
-export type InvoiceStatus = 'pending-validation' | 'validated' | 'matched' | 'mismatch' | 'approved' | 'posted' | 'rejected'
+export type InvoiceType = 'standard' | 'credit-note' | 'debit-note' | 'proforma' | 'recurring'
+export type InvoiceStatus = 'draft' | 'pending-validation' | 'validated' | 'matched' | 'mismatch' | 'approved' | 'paid' | 'partially-paid' | 'overdue' | 'posted' | 'rejected' | 'disputed' | 'cancelled'
 export type InvoiceMismatchType = 'price-variance' | 'quantity-variance' | 'item-missing' | 'no-po-match' | 'no-grn-match' | 'total-variance'
 
 export interface Invoice {
@@ -1290,24 +1291,43 @@ export interface Invoice {
   supplierName?: string
   purchaseOrderId?: string
   grnId?: string
+  type: InvoiceType
+  status: InvoiceStatus
   invoiceDate: number
-  dueDate?: number
+  issueDate: number
+  dueDate: number
+  receivedDate?: number
+  paymentTerms: PaymentTerms
   subtotal: number
   tax: number
+  taxRate: number
+  taxAmount: number
+  discountAmount?: number
+  discountPercentage?: number
   total: number
-  status: InvoiceStatus
+  amountPaid: number
+  balance: number
+  currency: string
+  exchangeRate: number
   items: InvoiceItem[]
   scannedImageUrl?: string
+  attachments?: string[]
   ocrData?: OCRData
   mismatches?: InvoiceMismatch[]
+  matchingResult?: InvoiceMatchingResult
   validatedBy?: string
   validatedAt?: number
   approvedBy?: string
   approvedAt?: number
   postedAt?: number
   postedToAccountsBy?: string
+  paidBy?: string
+  paidAt?: number
+  paymentReference?: string
   rejectionReason?: string
   notes?: string
+  internalNotes?: string
+  createdBy: string
   createdAt: number
   updatedAt: number
 }
@@ -1315,16 +1335,178 @@ export interface Invoice {
 export interface InvoiceItem {
   id: string
   itemName: string
+  name: string
   description?: string
   quantity: number
   unit: string
   unitPrice: number
+  subtotal: number
+  taxRate: number
+  taxAmount: number
   total: number
   poItemId?: string
   grnItemId?: string
-  inventoryItemId?: string
-  variance?: number
+  inventoryItemId: string
+  variance?: ItemVariance
   varianceReason?: string
+}
+
+export interface ItemVariance {
+  quantityVariance: number
+  quantityVariancePercentage: number
+  priceVariance: number
+  priceVariancePercentage: number
+  totalVariance: number
+  totalVariancePercentage: number
+  reason?: string
+}
+
+export interface InvoiceMatchingResult {
+  id: string
+  invoiceId: string
+  purchaseOrderId?: string
+  grnId?: string
+  matchStatus: 'fully-matched' | 'partially-matched' | 'not-matched' | 'variance-within-tolerance' | 'needs-review' | 'approved-with-variance' | 'rejected'
+  overallVariance: number
+  variancePercentage: number
+  toleranceThreshold: number
+  itemsMatched: number
+  itemsMismatched: number
+  itemsMissing: number
+  itemsAdditional: number
+  quantityVariances: MatchingVariance[]
+  priceVariances: MatchingVariance[]
+  totalVariances: MatchingVariance[]
+  recommendations: MatchingRecommendation[]
+  requiresApproval: boolean
+  approvalLevel: 'auto-approve' | 'manager' | 'senior-manager' | 'director' | 'cfo'
+  matchedBy?: string
+  matchedAt: number
+  approvedBy?: string
+  approvedAt?: number
+  rejectedBy?: string
+  rejectedAt?: number
+  rejectionReason?: string
+  notes?: string
+  auditTrail: MatchingAuditEntry[]
+}
+
+export interface MatchingVariance {
+  itemId: string
+  itemName: string
+  field: 'quantity' | 'price' | 'total' | 'tax' | 'unit' | 'description'
+  poValue?: number
+  grnValue?: number
+  invoiceValue?: number
+  variance: number
+  variancePercentage: number
+  isWithinTolerance: boolean
+  requiresAction: boolean
+  suggestedAction?: string
+  actionTaken?: string
+  resolvedBy?: string
+  resolvedAt?: number
+}
+
+export interface MatchingRecommendation {
+  type: 'approve' | 'reject' | 'create-dispute' | 'request-clarification' | 'adjust-tolerance' | 'contact-supplier' | 'create-debit-note' | 'create-credit-note'
+  priority: 'info' | 'warning' | 'action-required' | 'critical'
+  message: string
+  actionLabel?: string
+  actionData?: any
+}
+
+export interface MatchingAuditEntry {
+  id: string
+  timestamp: number
+  action: 'created' | 'matched' | 'approved' | 'rejected' | 'variance-accepted' | 'dispute-created' | 'updated' | 'tolerance-adjusted'
+  performedBy: string
+  performedByName: string
+  details?: string
+  previousStatus?: string
+  newStatus?: string
+  changes?: {
+    field: string
+    oldValue: any
+    newValue: any
+  }[]
+}
+
+export interface ThreeWayMatch {
+  id: string
+  poNumber: string
+  grnNumber: string
+  invoiceNumber: string
+  purchaseOrder: PurchaseOrder
+  grn: GoodsReceivedNote
+  invoice: Invoice
+  matchingResult: InvoiceMatchingResult
+  createdAt: number
+  updatedAt: number
+}
+
+export interface MatchingToleranceConfig {
+  id: string
+  quantityTolerancePercentage: number
+  priceTolerancePercentage: number
+  totalTolerancePercentage: number
+  quantityToleranceAmount?: number
+  priceToleranceAmount?: number
+  totalToleranceAmount?: number
+  autoApproveWithinTolerance: boolean
+  requireApprovalThreshold: number
+  requireSeniorApprovalThreshold: number
+  requireDirectorApprovalThreshold: number
+  appliesTo?: {
+    supplierIds?: string[]
+    categoryIds?: string[]
+    departments?: Department[]
+  }
+  isActive: boolean
+  createdAt: number
+  updatedAt: number
+  createdBy: string
+}
+
+export interface VarianceReport {
+  id: string
+  reportNumber: string
+  reportType: 'po-grn' | 'grn-invoice' | 'po-invoice' | 'three-way'
+  period: {
+    from: number
+    to: number
+  }
+  totalVariances: number
+  totalVarianceAmount: number
+  totalVariancePercentage: number
+  variancesByCategory: {
+    category: string
+    count: number
+    totalAmount: number
+    percentage: number
+  }[]
+  variancesBySupplier: {
+    supplierId: string
+    supplierName: string
+    count: number
+    totalAmount: number
+    percentage: number
+  }[]
+  topVariances: {
+    invoiceNumber: string
+    supplierId: string
+    supplierName: string
+    varianceAmount: number
+    variancePercentage: number
+    status: string
+  }[]
+  varianceTrends: {
+    date: number
+    count: number
+    amount: number
+  }[]
+  generatedBy: string
+  generatedAt: number
 }
 
 export interface OCRData {
@@ -1967,52 +2149,7 @@ export interface DisputeCommunication {
   notes?: string
 }
 
-export interface InvoiceMatchingResult {
-  id: string
-  invoiceId: string
-  purchaseOrderId?: string
-  grnId?: string
-  matchStatus: 'fully-matched' | 'partially-matched' | 'not-matched' | 'variance-within-tolerance' | 'needs-review'
-  overallVariance: number
-  variancePercentage: number
-  toleranceThreshold: number
-  itemsMatched: number
-  itemsMismatched: number
-  itemsMissing: number
-  quantityVariances: MatchingVariance[]
-  priceVariances: MatchingVariance[]
-  totalVariances: MatchingVariance[]
-  recommendations: MatchingRecommendation[]
-  requiresApproval: boolean
-  approvalLevel: 'auto-approve' | 'manager' | 'senior-manager' | 'director'
-  matchedBy?: string
-  matchedAt: number
-  approvedBy?: string
-  approvedAt?: number
-  notes?: string
-}
 
-export interface MatchingVariance {
-  itemId: string
-  itemName: string
-  field: 'quantity' | 'price' | 'total' | 'tax'
-  poValue?: number
-  grnValue?: number
-  invoiceValue?: number
-  variance: number
-  variancePercentage: number
-  isWithinTolerance: boolean
-  requiresAction: boolean
-  suggestedAction?: string
-}
-
-export interface MatchingRecommendation {
-  type: 'approve' | 'reject' | 'create-dispute' | 'request-clarification' | 'adjust-tolerance'
-  priority: 'info' | 'warning' | 'action-required'
-  message: string
-  actionLabel?: string
-  actionData?: any
-}
 
 export type LoyaltyTier = 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond'
 export type GuestSegment = 'vip' | 'corporate' | 'leisure' | 'group' | 'wedding' | 'repeat' | 'new'
