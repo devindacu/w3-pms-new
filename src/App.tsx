@@ -1322,25 +1322,25 @@ function App() {
         
         <footer className="relative border-t border-border/50 mt-auto overflow-hidden">
           <div 
-            className="absolute inset-0"
+            className="absolute inset-0 opacity-100"
             style={{
               background: branding?.footerGradient 
                 ? `linear-gradient(to bottom right, ${branding.footerGradient.color1}15, ${branding.footerGradient.color2}10)`
-                : 'linear-gradient(to bottom right, var(--primary) / 8%, var(--accent) / 6%, var(--secondary) / 10%)'
+                : 'linear-gradient(to bottom right, oklch(0.35 0.18 140 / 8%), oklch(0.45 0.15 120 / 6%), oklch(0.88 0.08 140 / 10%))'
             }}
           />
           <div 
-            className="absolute inset-0"
+            className="absolute inset-0 opacity-100"
             style={{
               background: branding?.footerGradient 
                 ? `linear-gradient(to top right, ${branding.footerGradient.color3}12, ${branding.footerGradient.color4}15)`
-                : 'linear-gradient(to top right, var(--success) / 5%, transparent, var(--primary) / 8%)'
+                : 'linear-gradient(to top right, oklch(0.65 0.15 150 / 5%), transparent, oklch(0.35 0.18 140 / 8%))'
             }}
           />
           <div className="relative px-4 py-4 md:px-6 lg:px-8 md:py-5 backdrop-blur-[2px]">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
               <p className="text-sm font-medium text-foreground/80">
-                © {new Date().getFullYear()} Design & Developed by
+                © {new Date().getFullYear()} {branding?.hotelName || 'W3 Hotel'} - Design & Developed by
               </p>
               <a 
                 href="https://www.w3media.lk/" 
