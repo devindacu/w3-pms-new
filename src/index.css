@@ -13,23 +13,148 @@
 
 @layer components {
   [data-radix-dialog-content] {
-    @apply max-h-[90vh] overflow-hidden flex flex-col;
+    @apply max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col;
   }
   
   .dialog-content-wrapper {
-    @apply overflow-y-auto flex-1;
+    @apply overflow-y-auto flex-1 min-h-0;
   }
   
   .dialog-header-fixed {
-    @apply sticky top-0 bg-background z-10 pb-4 border-b;
+    @apply sticky top-0 bg-background z-10 pb-3 sm:pb-4 border-b shrink-0;
   }
   
   .dialog-footer-fixed {
-    @apply sticky bottom-0 bg-background z-10 pt-4 border-t mt-4;
+    @apply sticky bottom-0 bg-background z-10 pt-3 sm:pt-4 border-t shrink-0;
   }
   
   .dialog-body-scrollable {
-    @apply overflow-y-auto flex-1 px-6 py-4;
+    @apply overflow-y-auto overflow-x-hidden flex-1 px-3 sm:px-6 py-3 sm:py-4 min-h-0;
+  }
+
+  .dialog-grid-1 {
+    @apply grid grid-cols-1 gap-3 sm:gap-4;
+  }
+
+  .dialog-grid-2 {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4;
+  }
+
+  .dialog-grid-3 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4;
+  }
+
+  .dialog-grid-4 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4;
+  }
+
+  .dialog-form-field {
+    @apply space-y-1.5 sm:space-y-2;
+  }
+
+  .dialog-form-label {
+    @apply text-xs sm:text-sm font-medium;
+  }
+
+  .dialog-form-input {
+    @apply text-sm sm:text-base h-9 sm:h-10;
+  }
+
+  .dialog-form-textarea {
+    @apply text-sm sm:text-base min-h-[80px] sm:min-h-[100px];
+  }
+
+  .dialog-button {
+    @apply h-9 sm:h-10 text-sm px-3 sm:px-4;
+  }
+
+  .dialog-button-sm {
+    @apply h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3;
+  }
+
+  .dialog-section {
+    @apply space-y-3 sm:space-y-4;
+  }
+
+  .dialog-section-title {
+    @apply text-sm sm:text-base font-semibold;
+  }
+
+  .dialog-tabs-content {
+    @apply mt-3 sm:mt-4 space-y-3 sm:space-y-4;
+  }
+
+  .dialog-card {
+    @apply p-3 sm:p-4 rounded-lg border bg-card;
+  }
+
+  .dialog-stat-card {
+    @apply p-3 sm:p-4 rounded-lg border;
+  }
+
+  .responsive-table-container {
+    @apply overflow-x-auto -mx-3 sm:mx-0;
+  }
+
+  .responsive-table {
+    @apply min-w-full text-xs sm:text-sm;
+  }
+
+  .responsive-table th {
+    @apply px-2 sm:px-4 py-2 sm:py-3;
+  }
+
+  .responsive-table td {
+    @apply px-2 sm:px-4 py-2 sm:py-3;
+  }
+
+  .responsive-card-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4;
+  }
+
+  .responsive-stat-grid {
+    @apply grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4;
+  }
+
+  .mobile-stack {
+    @apply flex flex-col sm:flex-row gap-2 sm:gap-3;
+  }
+
+  .mobile-full-width {
+    @apply w-full sm:w-auto;
+  }
+
+  .mobile-hide {
+    @apply hidden sm:block;
+  }
+
+  .mobile-show {
+    @apply block sm:hidden;
+  }
+
+  @media (max-width: 640px) {
+    [data-radix-dialog-content] {
+      margin: 0.5rem;
+      width: calc(100vw - 1rem);
+    }
+
+    .dialog-responsive-stack > * {
+      @apply w-full;
+    }
+
+    .badge {
+      @apply text-xs px-2 py-0.5;
+    }
+
+    .table-actions {
+      @apply flex flex-col gap-1;
+    }
+  }
+
+  @media (min-width: 640px) and (max-width: 1024px) {
+    .tablet-optimize {
+      @apply text-sm;
+    }
   }
 }
 
