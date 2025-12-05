@@ -3,8 +3,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { List, SquaresFour } from '@phosphor-icons/react'
+import { List, SquaresFour, CaretUp, CaretDown } from '@phosphor-icons/react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useTableFilterSort, type SortConfig } from '@/hooks/use-table-filter-sort'
+import { TableFilterSort, type FilterField, type SortField } from '@/components/TableFilterSort'
 
 export interface Column<T> {
   key: string | keyof T
@@ -13,6 +15,11 @@ export interface Column<T> {
   hideOnMobile?: boolean
   mobileLabel?: string
   className?: string
+  sortable?: boolean
+  filterable?: boolean
+  filterType?: 'text' | 'number' | 'date' | 'select' | 'boolean' | 'range' | 'dateRange'
+  filterOptions?: { label: string; value: string | number | boolean }[]
+  filterOperators?: ('equals' | 'contains' | 'startsWith' | 'endsWith' | 'gt' | 'gte' | 'lt' | 'lte' | 'between')[]
 }
 
 export interface ResponsiveDataViewProps<T> {
@@ -23,9 +30,12 @@ export interface ResponsiveDataViewProps<T> {
   tableClassName?: string
   cardClassName?: string
   allowViewToggle?: boolean
+  enableFiltering?: boolean
+  enableSorting?: boolean
+  defaultSort?: SortConfig
 }
 
-export function ResponsiveDataView<T>({
+export function ResponsiveDataView<T extends Record<string, any>>({
   data,
   columns,
   onRowClick,
@@ -33,8 +43,38 @@ export function ResponsiveDataView<T>({
   tableClassName,
   cardClassName,
   allowViewToggle = true,
+  enableFiltering = true,
+  enableSorting = true,
+  defaultSort,
 }: ResponsiveDataViewProps<T>) {
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table')
+
+  const filterFields: FilterField[] = columns
+    .filter(col => col.filterable !== false)
+    .map(col => ({
+      field: String(col.key),
+      label: col.label,
+      type: col.filterType,
+      options: col.filterOptions,
+      operators: col.filterOperators,
+    }))
+
+  const sortFields: SortField[] = columns
+    .filter(col => col.sortable !== false)
+    .map(col => ({
+      field: String(col.key),
+      label: col.label,
+    }))
+
+  const {
+    filteredAndSortedData,
+    filters,
+    sortConfig,
+    addFilter,
+    removeFilter,
+    clearFilters,
+    setSort,
+  } = useTableFilterSort(data, defaultSort)
 
   const getValue = (item: T, key: string | keyof T): any => {
     if (typeof key === 'string' && key.includes('.')) {
@@ -47,6 +87,25 @@ export function ResponsiveDataView<T>({
     }
     return (item as any)[key]
   }
+
+  const handleHeaderClick = (column: Column<T>) => {
+    if (enableSorting && column.sortable !== false) {
+      setSort(String(column.key))
+    }
+  }
+
+  const getSortIcon = (column: Column<T>) => {
+    if (!enableSorting || column.sortable === false) return null
+    if (sortConfig?.field !== String(column.key)) return null
+    
+    return sortConfig.direction === 'asc' ? (
+      <CaretUp size={14} className="inline ml-1" />
+    ) : (
+      <CaretDown size={14} className="inline ml-1" />
+    )
+  }
+
+  const displayData = filteredAndSortedData
 
   if (data.length === 0) {
     return (
@@ -62,14 +121,21 @@ export function ResponsiveDataView<T>({
         <TableHeader>
           <TableRow>
             {columns.filter(col => !col.hideOnMobile).map((column, index) => (
-              <TableHead key={index} className={column.className}>
-                {column.label}
+              <TableHead 
+                key={index} 
+                className={`${column.className || ''} ${enableSorting && column.sortable !== false ? 'cursor-pointer select-none hover:bg-muted/50' : ''}`}
+                onClick={() => handleHeaderClick(column)}
+              >
+                <div className="flex items-center gap-1">
+                  {column.label}
+                  {getSortIcon(column)}
+                </div>
               </TableHead>
             ))}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((item, rowIndex) => (
+          {displayData.map((item, rowIndex) => (
             <TableRow
               key={rowIndex}
               onClick={() => onRowClick?.(item)}
@@ -89,7 +155,7 @@ export function ResponsiveDataView<T>({
 
   const CardView = () => (
     <div className="space-y-3">
-      {data.map((item, index) => (
+      {displayData.map((item, index) => (
         <Card
           key={index}
           className={`p-4 ${onRowClick ? 'cursor-pointer hover:bg-muted/50' : ''} ${cardClassName || ''}`}
@@ -115,6 +181,21 @@ export function ResponsiveDataView<T>({
 
   return (
     <div className="space-y-4">
+      {(enableFiltering || enableSorting) && (
+        <TableFilterSort
+          filterFields={enableFiltering ? filterFields : []}
+          sortFields={enableSorting ? sortFields : []}
+          filters={filters}
+          sortConfig={sortConfig}
+          onAddFilter={addFilter}
+          onRemoveFilter={removeFilter}
+          onClearFilters={clearFilters}
+          onSetSort={setSort}
+          resultCount={displayData.length}
+          totalCount={data.length}
+        />
+      )}
+
       {allowViewToggle && (
         <div className="flex justify-end">
           <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'table' | 'cards')}>
