@@ -1002,11 +1002,11 @@ function App() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <aside className="hidden lg:block w-64 border-r bg-card p-4 space-y-2 overflow-y-auto fixed left-0 top-0 bottom-0 z-40">
-          <SidebarContent />
-        </aside>
+      <aside className="hidden lg:block w-64 border-r bg-card p-4 space-y-2 overflow-y-auto fixed left-0 top-0 bottom-0 z-40">
+        <SidebarContent />
+      </aside>
 
+      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
         <SheetContent side="left" className="w-64 p-4 overflow-y-auto">
           <SidebarContent />
         </SheetContent>
@@ -1543,7 +1543,7 @@ function App() {
             </div>
           </div>
         </footer>
-      </main>
+        </main>
       </Sheet>
 
       <Toaster position="top-right" richColors />
