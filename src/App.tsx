@@ -817,6 +817,15 @@ function App() {
           </Button>
 
           <Button
+            variant={currentModule === 'crm' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('crm')}
+          >
+            <Users size={18} className="mr-2" />
+            Guest Relations
+          </Button>
+
+          <Button
             variant={currentModule === 'extra-services' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('extra-services')}
@@ -841,15 +850,6 @@ function App() {
           >
             <ForkKnife size={18} className="mr-2" />
             F&B / POS
-          </Button>
-
-          <Button
-            variant={currentModule === 'crm' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('crm')}
-          >
-            <Users size={18} className="mr-2" />
-            CRM & Guest Relations
           </Button>
 
           <Separator className="my-2" />
@@ -1041,6 +1041,8 @@ function App() {
             <FrontOffice
               guests={guests || []}
               setGuests={setGuests}
+              guestProfiles={guestProfiles || []}
+              setGuestProfiles={setGuestProfiles}
               reservations={reservations || []}
               setReservations={setReservations}
               rooms={rooms || []}

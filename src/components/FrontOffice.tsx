@@ -42,7 +42,8 @@ import {
   type GuestInvoiceStatus,
   type TaxConfiguration,
   type ServiceChargeConfiguration,
-  type InvoiceLineItem
+  type InvoiceLineItem,
+  type GuestProfile
 } from '@/lib/types'
 import { formatDate, formatCurrency, calculateNights, generateId } from '@/lib/helpers'
 import { 
@@ -53,7 +54,7 @@ import {
   validateInvoice,
   createInvoiceAuditEntry
 } from '@/lib/invoiceHelpers'
-import { GuestDialog } from './GuestDialog'
+import { GuestProfileDialog } from './GuestProfileDialog'
 import { ReservationDialog } from './ReservationDialog'
 import { CheckInDialog } from './CheckInDialog'
 import { CheckOutDialog } from './CheckOutDialog'
@@ -66,6 +67,8 @@ import { toast } from 'sonner'
 interface FrontOfficeProps {
   guests: Guest[]
   setGuests: (guests: Guest[] | ((prev: Guest[]) => Guest[])) => void
+  guestProfiles?: GuestProfile[]
+  setGuestProfiles?: (profiles: GuestProfile[] | ((prev: GuestProfile[]) => GuestProfile[])) => void
   reservations: Reservation[]
   setReservations: (reservations: Reservation[] | ((prev: Reservation[]) => Reservation[])) => void
   rooms: Room[]
@@ -81,7 +84,9 @@ interface FrontOfficeProps {
 
 export function FrontOffice({ 
   guests, 
-  setGuests, 
+  setGuests,
+  guestProfiles,
+  setGuestProfiles,
   reservations, 
   setReservations,
   rooms,
@@ -95,6 +100,7 @@ export function FrontOffice({
   currentUser
 }: FrontOfficeProps) {
   const [guestInvoices, setGuestInvoices] = useKV<GuestInvoice[]>('w3-hotel-guest-invoices', [])
+  const [selectedGuestProfile, setSelectedGuestProfile] = useState<GuestProfile | null>(null)
   
   const [searchQuery, setSearchQuery] = useState('')
   const [invoiceSearchQuery, setInvoiceSearchQuery] = useState('')
@@ -158,13 +164,152 @@ export function FrontOffice({
   }
 
   const handleEditGuest = (guest: Guest) => {
-    setSelectedGuest(guest)
+    const profile = (guestProfiles || []).find(p => p.guestId === guest.id)
+    if (profile) {
+      setSelectedGuestProfile(profile)
+    } else {
+      const newProfile: GuestProfile = {
+        id: generateId(),
+        guestId: guest.id,
+        firstName: guest.firstName,
+        lastName: guest.lastName,
+        email: guest.email,
+        phone: guest.phone,
+        nationality: guest.nationality,
+        idType: guest.idType,
+        idNumber: guest.idNumber,
+        address: guest.address,
+        preferences: {
+          notesForStaff: guest.preferences?.join(', ')
+        },
+        loyaltyInfo: {
+          tier: 'bronze',
+          points: guest.loyaltyPoints || 0,
+          lifetimePoints: guest.loyaltyPoints || 0,
+          pointsToNextTier: 1000,
+          tierSince: Date.now(),
+          tierBenefits: [],
+          enrolledDate: Date.now()
+        },
+        segments: [],
+        communicationPreference: [],
+        doNotDisturb: false,
+        blacklisted: false,
+        totalStays: guest.totalStays || 0,
+        totalNights: 0,
+        totalSpent: guest.totalSpent || 0,
+        averageSpendPerStay: 0,
+        createdAt: guest.createdAt,
+        updatedAt: guest.updatedAt,
+        createdBy: currentUser?.userId || 'system'
+      }
+      setSelectedGuestProfile(newProfile)
+    }
     setGuestDialogOpen(true)
   }
 
   const handleNewGuest = () => {
-    setSelectedGuest(undefined)
+    setSelectedGuestProfile(null)
     setGuestDialogOpen(true)
+  }
+
+  const handleSaveGuestProfile = (profileData: Partial<GuestProfile>) => {
+    if (selectedGuestProfile) {
+      const updatedProfile: GuestProfile = {
+        ...selectedGuestProfile,
+        ...profileData,
+        updatedAt: Date.now()
+      }
+      
+      if (setGuestProfiles) {
+        setGuestProfiles((prev) =>
+          prev.map(p => p.id === updatedProfile.id ? updatedProfile : p)
+        )
+      }
+      
+      const guest = guests.find(g => g.id === updatedProfile.guestId)
+      if (guest) {
+        setGuests((prev) =>
+          prev.map(g =>
+            g.id === updatedProfile.guestId
+              ? {
+                  ...g,
+                  firstName: updatedProfile.firstName,
+                  lastName: updatedProfile.lastName,
+                  email: updatedProfile.email,
+                  phone: updatedProfile.phone,
+                  nationality: updatedProfile.nationality,
+                  idType: updatedProfile.idType,
+                  idNumber: updatedProfile.idNumber,
+                  address: updatedProfile.address,
+                  loyaltyPoints: updatedProfile.loyaltyInfo.points,
+                  totalStays: updatedProfile.totalStays,
+                  totalSpent: updatedProfile.totalSpent,
+                  updatedAt: Date.now()
+                }
+              : g
+          )
+        )
+      }
+      
+      toast.success('Guest profile updated successfully')
+    } else {
+      const guestId = generateId()
+      const newGuest: Guest = {
+        id: guestId,
+        firstName: profileData.firstName || '',
+        lastName: profileData.lastName || '',
+        email: profileData.email,
+        phone: profileData.phone || '',
+        nationality: profileData.nationality,
+        idType: profileData.idType,
+        idNumber: profileData.idNumber,
+        address: profileData.address,
+        loyaltyPoints: 0,
+        totalStays: 0,
+        totalSpent: 0,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      }
+      
+      const newProfile: GuestProfile = {
+        id: generateId(),
+        guestId: guestId,
+        ...profileData,
+        firstName: profileData.firstName || '',
+        lastName: profileData.lastName || '',
+        phone: profileData.phone || '',
+        preferences: profileData.preferences || {},
+        loyaltyInfo: profileData.loyaltyInfo || {
+          tier: 'bronze',
+          points: 0,
+          lifetimePoints: 0,
+          pointsToNextTier: 1000,
+          tierSince: Date.now(),
+          tierBenefits: [],
+          enrolledDate: Date.now()
+        },
+        segments: profileData.segments || [],
+        communicationPreference: profileData.communicationPreference || [],
+        doNotDisturb: profileData.doNotDisturb || false,
+        blacklisted: profileData.blacklisted || false,
+        totalStays: 0,
+        totalNights: 0,
+        totalSpent: 0,
+        averageSpendPerStay: 0,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        createdBy: currentUser?.userId || 'system'
+      } as GuestProfile
+      
+      setGuests((prev) => [...prev, newGuest])
+      
+      if (setGuestProfiles) {
+        setGuestProfiles((prev) => [...prev, newProfile])
+      }
+      
+      toast.success('Guest profile created successfully')
+    }
   }
 
   const handleNewReservation = () => {
@@ -463,7 +608,7 @@ export function FrontOffice({
             <TabsTrigger value="reservations">Reservations</TabsTrigger>
             <TabsTrigger value="arrivals">Arrivals Today</TabsTrigger>
             <TabsTrigger value="departures">Departures Today</TabsTrigger>
-            <TabsTrigger value="guests">Guest Directory</TabsTrigger>
+            <TabsTrigger value="guests">Guest Relations</TabsTrigger>
             <TabsTrigger value="invoices">
               <Receipt size={16} className="mr-1" />
               Invoices {pendingFolios.length > 0 && <Badge variant="destructive" className="ml-2">{pendingFolios.length}</Badge>}
@@ -1044,12 +1189,11 @@ export function FrontOffice({
         </DialogContent>
       </Dialog>
 
-      <GuestDialog
+      <GuestProfileDialog
         open={guestDialogOpen}
         onOpenChange={setGuestDialogOpen}
-        guest={selectedGuest}
-        guests={guests}
-        setGuests={setGuests}
+        profile={selectedGuestProfile}
+        onSave={handleSaveGuestProfile}
       />
 
       <ReservationDialog
