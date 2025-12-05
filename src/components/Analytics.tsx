@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import { useKV } from '@github/spark/hooks'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -8,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { toast } from 'sonner'
 import {
   ChartBar,
   FileText,
@@ -21,7 +23,8 @@ import {
   Download,
   Printer,
   FunnelSimple,
-  ArrowsClockwise
+  ArrowsClockwise,
+  X
 } from '@phosphor-icons/react'
 import { formatCurrency, formatPercent } from '@/lib/helpers'
 import {
@@ -60,6 +63,7 @@ import type {
   KitchenConsumptionLog,
   PurchaseOrder
 } from '@/lib/types'
+import { AdvancedFilterDialog, type AdvancedFilter, type FilterField } from '@/components/AdvancedFilterDialog'
 
 interface AnalyticsProps {
   orders: Order[]
@@ -89,9 +93,60 @@ export function Analytics({
   const [category, setCategory] = useState<ReportCategory>('operational')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [activeFilter, setActiveFilter] = useState<AdvancedFilter | null>(null)
+  const [savedFilters, setSavedFilters] = useKV<AdvancedFilter[]>('analytics-saved-filters', [])
+
+  const filterFields: FilterField[] = useMemo(() => {
+    const supplierOptions = suppliers.map(s => ({ value: s.id, label: s.name }))
+    const categoryOptions = Array.from(new Set(foodItems.map(f => f.category))).map(c => ({ value: c, label: c }))
+    const statusOptions = [
+      { value: 'pending', label: 'Pending' },
+      { value: 'approved', label: 'Approved' },
+      { value: 'received', label: 'Received' },
+      { value: 'completed', label: 'Completed' },
+      { value: 'cancelled', label: 'Cancelled' }
+    ]
+
+    return [
+      { id: 'orderDate', label: 'Order Date', type: 'date' },
+      { id: 'orderAmount', label: 'Order Amount', type: 'currency' },
+      { id: 'supplier', label: 'Supplier', type: 'select', options: supplierOptions },
+      { id: 'category', label: 'Category', type: 'multiselect', options: categoryOptions },
+      { id: 'status', label: 'Status', type: 'select', options: statusOptions },
+      { id: 'itemName', label: 'Item Name', type: 'text' },
+      { id: 'quantity', label: 'Quantity', type: 'number' },
+      { id: 'unitPrice', label: 'Unit Price', type: 'currency' },
+      { id: 'totalCost', label: 'Total Cost', type: 'currency' },
+      { id: 'poNumber', label: 'PO Number', type: 'text' },
+      { id: 'grnNumber', label: 'GRN Number', type: 'text' },
+      { id: 'expiryDate', label: 'Expiry Date', type: 'date' },
+      { id: 'stockLevel', label: 'Stock Level', type: 'number' },
+      { id: 'variance', label: 'Variance %', type: 'number' }
+    ]
+  }, [suppliers, foodItems])
+
+  const handleApplyFilter = (filter: AdvancedFilter) => {
+    setActiveFilter(filter)
+    toast.success(`Filter "${filter.name}" applied`)
+  }
+
+  const handleSaveFilter = (filter: AdvancedFilter) => {
+    setSavedFilters((current) => [...(current || []), filter])
+    toast.success(`Filter "${filter.name}" saved`)
+  }
+
+  const handleDeleteFilter = (filterId: string) => {
+    setSavedFilters((current) => (current || []).filter(f => f.id !== filterId))
+    toast.success('Filter deleted')
+  }
+
+  const handleClearFilter = () => {
+    setActiveFilter(null)
+    toast.success('Filter cleared')
+  }
 
   const handleExport = (format: 'csv' | 'pdf' | 'excel') => {
-    console.log(`Exporting report as ${format}`)
+    toast.success(`Exporting report as ${format.toUpperCase()}`)
   }
 
   const handlePrint = () => {
@@ -722,11 +777,38 @@ export function Analytics({
             </>
           )}
 
-          <Button variant="outline">
-            <FunnelSimple size={20} className="mr-2" />
-            Advanced Filters
-          </Button>
+          <AdvancedFilterDialog
+            fields={filterFields}
+            onApplyFilter={handleApplyFilter}
+            savedFilters={savedFilters || []}
+            onSaveFilter={handleSaveFilter}
+            onDeleteFilter={handleDeleteFilter}
+          />
+
+          {activeFilter && (
+            <Button variant="outline" onClick={handleClearFilter}>
+              <X size={18} className="mr-2" />
+              Clear Filter
+            </Button>
+          )}
         </div>
+
+        {activeFilter && (
+          <div className="mt-4 p-3 bg-muted rounded-md">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FunnelSimple size={18} />
+                <span className="font-medium">Active Filter: {activeFilter.name}</span>
+                <Badge variant="outline">
+                  {activeFilter.groups.reduce((sum, g) => sum + g.rules.length, 0)} rules
+                </Badge>
+              </div>
+              <Button variant="ghost" size="sm" onClick={handleClearFilter}>
+                <X size={16} />
+              </Button>
+            </div>
+          </div>
+        )}
       </Card>
 
       <Tabs value={category} onValueChange={(v) => setCategory(v as ReportCategory)}>
