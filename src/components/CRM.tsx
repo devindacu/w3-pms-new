@@ -25,7 +25,8 @@ import {
   Funnel,
   SortAscending,
   SortDescending,
-  X
+  X,
+  ChartBar
 } from '@phosphor-icons/react'
 import type {
   GuestProfile,
@@ -51,6 +52,7 @@ import { MarketingTemplateDialog } from '@/components/MarketingTemplateDialog'
 import { UpsellOfferDialog } from '@/components/UpsellOfferDialog'
 import { UpsellTransactionDialog } from '@/components/UpsellTransactionDialog'
 import { ReviewSourceDialog } from '@/components/ReviewSourceDialog'
+import { GuestAnalyticsDashboard } from '@/components/GuestAnalyticsDashboard'
 import { formatCurrency, formatDate } from '@/lib/helpers'
 import { fetchReviewsFromUrl, mergeReviews, calculateOverallRatingFromSources } from '@/lib/reviewSyncHelpers'
 import { toast } from 'sonner'
@@ -555,10 +557,14 @@ export function CRM({
       </div>
 
       <Tabs value={currentTab} onValueChange={setCurrentTab}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-7">
           <TabsTrigger value="guests">
             <Users size={16} className="mr-2" />
             Guests
+          </TabsTrigger>
+          <TabsTrigger value="analytics">
+            <ChartBar size={16} className="mr-2" />
+            Analytics
           </TabsTrigger>
           <TabsTrigger value="loyalty">
             <Star size={16} className="mr-2" />
@@ -785,6 +791,13 @@ export function CRM({
               </Card>
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-4 mt-6">
+          <GuestAnalyticsDashboard 
+            guestProfiles={guestProfiles}
+            feedback={feedback}
+          />
         </TabsContent>
 
         <TabsContent value="loyalty" className="space-y-4 mt-6">
