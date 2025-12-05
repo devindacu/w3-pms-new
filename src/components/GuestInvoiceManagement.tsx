@@ -419,7 +419,6 @@ export function GuestInvoiceManagement({ invoices, setInvoices, currentUser }: G
             open={shareDialogOpen}
             onOpenChange={setShareDialogOpen}
             invoice={selectedInvoice}
-            hotelInfo={hotelInfo}
             onShare={(method, recipient) => {
               setInvoices(invoices =>
                 invoices.map(inv =>

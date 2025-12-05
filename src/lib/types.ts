@@ -3270,8 +3270,7 @@ export type BudgetCategory = 'salary' | 'utilities' | 'supplies' | 'maintenance'
 export type BudgetCategoryType = BudgetCategory
 export type BudgetPeriod = 'monthly' | 'quarterly' | 'yearly'
 export type ExpenseCategory = 'salary' | 'utilities' | 'supplies' | 'maintenance' | 'marketing' | 'food-beverage' | 'housekeeping' | 'administrative' | 'travel' | 'entertainment' | 'other'
-export type InvoiceType = GuestInvoiceType
-export type PaymentTerms = string
+export type PaymentTerms = 'net-7' | 'net-15' | 'net-30' | 'net-45' | 'net-60' | 'net-90' | 'due-on-receipt' | 'prepaid'
 
 export interface Payment {
   id: string

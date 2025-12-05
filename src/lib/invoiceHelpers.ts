@@ -378,8 +378,8 @@ export function createInvoiceAuditEntry(
   }
 }
 
-export function createGLEntriesForInvoice(invoice: GuestInvoice): GLEntry[] {
-  const entries: GLEntry[] = []
+export function createGLEntriesForInvoice(invoice: GuestInvoice): Partial<GLEntry>[] {
+  const entries: Partial<GLEntry>[] = []
   const now = Date.now()
 
   entries.push({
@@ -389,7 +389,6 @@ export function createGLEntriesForInvoice(invoice: GuestInvoice): GLEntry[] {
     credit: 0,
     description: `Guest Invoice ${invoice.invoiceNumber}`,
     postingDate: now,
-    reference: invoice.invoiceNumber
   })
 
   const revenuByDepartment: Record<string, number> = {}
@@ -422,7 +421,6 @@ export function createGLEntriesForInvoice(invoice: GuestInvoice): GLEntry[] {
       credit: amount,
       description: `${dept} charges - Invoice ${invoice.invoiceNumber}`,
       postingDate: now,
-      reference: invoice.invoiceNumber
     })
   }
 
@@ -434,7 +432,6 @@ export function createGLEntriesForInvoice(invoice: GuestInvoice): GLEntry[] {
       credit: invoice.serviceChargeAmount,
       description: `Service Charge - Invoice ${invoice.invoiceNumber}`,
       postingDate: now,
-      reference: invoice.invoiceNumber
     })
   }
 
@@ -446,7 +443,6 @@ export function createGLEntriesForInvoice(invoice: GuestInvoice): GLEntry[] {
       credit: invoice.totalTax,
       description: `Tax Collected - Invoice ${invoice.invoiceNumber}`,
       postingDate: now,
-      reference: invoice.invoiceNumber
     })
   }
 

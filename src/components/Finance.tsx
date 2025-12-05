@@ -1366,14 +1366,6 @@ export function Finance({
       <InvoiceDialog
         open={invoiceDialogOpen}
         onOpenChange={setInvoiceDialogOpen}
-        invoice={selectedInvoice}
-        onSave={(invoice) => {
-          if (selectedInvoice) {
-            setInvoices((prev) => prev.map((i) => (i.id === invoice.id ? invoice : i)))
-          } else {
-            setInvoices((prev) => [...prev, invoice])
-          }
-        }}
       />
 
       <PaymentDialog

@@ -455,7 +455,6 @@ export function InvoiceManagement({ invoices, setInvoices, branding, currentUser
           open={!!sharingInvoice}
           onOpenChange={(open) => !open && setSharingInvoice(null)}
           invoice={sharingInvoice}
-          branding={branding}
           onShare={(method, recipient) => {
             setInvoices(current => 
               current.map(inv => 
