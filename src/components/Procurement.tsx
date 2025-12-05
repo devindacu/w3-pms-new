@@ -39,14 +39,15 @@ import { RequisitionDialog } from '@/components/RequisitionDialog'
 import { PurchaseOrderDialog } from '@/components/PurchaseOrderDialog'
 import { GRNDialog } from '@/components/GRNDialog'
 import { POPreviewDialog } from '@/components/POPreviewDialog'
+import { SupplierInvoiceDialog } from '@/components/SupplierInvoiceDialog'
 
 interface ProcurementProps {
   requisitions: Requisition[]
-  setRequisitions: (requisitions: Requisition[]) => void
+  setRequisitions: (requisitions: Requisition[] | ((current: Requisition[]) => Requisition[])) => void
   purchaseOrders: PurchaseOrder[]
-  setPurchaseOrders: (pos: PurchaseOrder[]) => void
+  setPurchaseOrders: (pos: PurchaseOrder[] | ((current: PurchaseOrder[]) => PurchaseOrder[])) => void
   grns: GoodsReceivedNote[]
-  setGRNs: (grns: GoodsReceivedNote[]) => void
+  setGRNs: (grns: GoodsReceivedNote[] | ((current: GoodsReceivedNote[]) => GoodsReceivedNote[])) => void
   suppliers: Supplier[]
   inventory: InventoryItem[]
   foodItems: FoodItem[]
@@ -55,7 +56,7 @@ interface ProcurementProps {
   generalProducts: GeneralProduct[]
   currentUser: SystemUser
   invoices: Invoice[]
-  setInvoices: (invoices: Invoice[]) => void
+  setInvoices: (invoices: Invoice[] | ((current: Invoice[]) => Invoice[])) => void
 }
 
 export function Procurement({
@@ -80,9 +81,11 @@ export function Procurement({
   const [poDialogOpen, setPODialogOpen] = useState(false)
   const [grnDialogOpen, setGRNDialogOpen] = useState(false)
   const [poPreviewDialogOpen, setPOPreviewDialogOpen] = useState(false)
+  const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false)
   const [selectedRequisition, setSelectedRequisition] = useState<Requisition | undefined>()
   const [selectedPO, setSelectedPO] = useState<PurchaseOrder | undefined>()
   const [selectedGRN, setSelectedGRN] = useState<GoodsReceivedNote | undefined>()
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | undefined>()
   const [isScanning, setIsScanning] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
 
@@ -600,6 +603,20 @@ export function Procurement({
     </div>
   )
 
+  const handleSaveInvoice = (invoice: Invoice) => {
+    setInvoices((current: Invoice[]) => {
+      const existing = current.find(i => i.id === invoice.id)
+      if (existing) {
+        return current.map(i => i.id === invoice.id ? invoice : i)
+      }
+      return [...current, invoice]
+    })
+  }
+
+  const handleDeleteInvoice = (id: string) => {
+    setInvoices((current: Invoice[]) => current.filter(i => i.id !== id))
+  }
+
   const renderInvoices = () => {
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0]
@@ -636,26 +653,42 @@ export function Procurement({
       )
     }
 
+    const handleCreateInvoice = () => {
+      setSelectedInvoice(undefined)
+      setInvoiceDialogOpen(true)
+    }
+
+    const handleEditInvoice = (invoice: Invoice) => {
+      setSelectedInvoice(invoice)
+      setInvoiceDialogOpen(true)
+    }
+
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold">Invoice Scanning & Validation</h2>
-            <p className="text-muted-foreground mt-1">Automated invoice processing with OCR</p>
+            <h2 className="text-2xl font-semibold">Supplier Invoice Management</h2>
+            <p className="text-muted-foreground mt-1">Create, edit, and manage supplier invoices</p>
           </div>
-          <Button asChild variant="outline">
-            <label className="cursor-pointer flex items-center gap-2">
-              <Receipt size={20} />
-              Upload Invoice
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileUpload}
-                disabled={isScanning}
-              />
-            </label>
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={handleCreateInvoice}>
+              <Plus size={20} className="mr-2" />
+              Create Invoice
+            </Button>
+            <Button asChild variant="outline">
+              <label className="cursor-pointer flex items-center gap-2">
+                <Receipt size={20} />
+                Upload Invoice
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                  disabled={isScanning}
+                />
+              </label>
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -760,7 +793,7 @@ export function Procurement({
                       )}
                     </div>
                     <div className="flex gap-2 ml-4">
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => handleEditInvoice(invoice)}>
                         <Eye size={16} />
                       </Button>
                     </div>
@@ -884,6 +917,18 @@ export function Procurement({
           currentUser={currentUser}
         />
       )}
+
+      <SupplierInvoiceDialog
+        open={invoiceDialogOpen}
+        onOpenChange={setInvoiceDialogOpen}
+        invoice={selectedInvoice}
+        suppliers={suppliers}
+        purchaseOrders={purchaseOrders}
+        grns={grns}
+        onSave={handleSaveInvoice}
+        onDelete={handleDeleteInvoice}
+        currentUser={currentUser}
+      />
     </div>
   )
 }
