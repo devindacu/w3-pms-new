@@ -199,16 +199,17 @@ export function AdvancedFilterDialog({
     }
 
     if (field.type === 'select' && field.options) {
+      const selectValue = Array.isArray(rule.value) ? rule.value[0] || undefined : (rule.value || undefined)
       return (
         <Select
-          value={Array.isArray(rule.value) ? rule.value[0] || '' : rule.value}
+          value={selectValue}
           onValueChange={(value) => updateRule(groupId, rule.id, { value })}
         >
           <SelectTrigger className="flex-1">
             <SelectValue placeholder="Select value" />
           </SelectTrigger>
           <SelectContent>
-            {field.options.map(opt => (
+            {field.options.filter(opt => opt.value !== '').map(opt => (
               <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
               </SelectItem>

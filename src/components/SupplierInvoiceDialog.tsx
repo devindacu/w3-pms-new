@@ -81,11 +81,16 @@ export function SupplierInvoiceDialog({
     const newItem: InvoiceItem = {
       id: `item-${Date.now()}-${Math.random()}`,
       itemName: '',
+      name: '',
       description: '',
       quantity: 0,
       unit: 'pcs',
       unitPrice: 0,
-      total: 0
+      subtotal: 0,
+      taxRate: 0,
+      taxAmount: 0,
+      total: 0,
+      inventoryItemId: ''
     }
     setItems([...items, newItem])
   }
@@ -129,12 +134,17 @@ export function SupplierInvoiceDialog({
     setItems(po.items.map(item => ({
       id: `item-${Date.now()}-${Math.random()}`,
       itemName: item.name,
+      name: item.name,
       description: '',
       quantity: item.quantity,
       unit: item.unit,
       unitPrice: item.unitPrice,
+      subtotal: item.total,
+      taxRate: 0,
+      taxAmount: 0,
       total: item.total,
-      poItemId: item.id
+      poItemId: item.id,
+      inventoryItemId: item.inventoryItemId
     })))
     toast.success('Items loaded from Purchase Order')
   }
@@ -152,16 +162,23 @@ export function SupplierInvoiceDialog({
       if (po) {
         setItems(grn.items.map(grnItem => {
           const poItem = po.items.find(p => p.inventoryItemId === grnItem.inventoryItemId)
+          const unitPrice = grnItem.unitPrice || poItem?.unitPrice || 0
+          const subtotal = grnItem.receivedQuantity * unitPrice
           return {
             id: `item-${Date.now()}-${Math.random()}`,
             itemName: poItem?.name || grnItem.inventoryItemId,
+            name: poItem?.name || grnItem.inventoryItemId,
             description: '',
             quantity: grnItem.receivedQuantity,
             unit: poItem?.unit || 'pcs',
-            unitPrice: grnItem.unitPrice || poItem?.unitPrice || 0,
-            total: grnItem.receivedQuantity * (grnItem.unitPrice || poItem?.unitPrice || 0),
+            unitPrice,
+            subtotal,
+            taxRate: 0,
+            taxAmount: 0,
+            total: subtotal,
             grnItemId: grnItem.id,
-            poItemId: poItem?.id
+            poItemId: poItem?.id,
+            inventoryItemId: grnItem.inventoryItemId
           }
         }))
       }
@@ -196,6 +213,7 @@ export function SupplierInvoiceDialog({
     }
 
     const supplier = suppliers.find(s => s.id === supplierId)
+    const invDate = new Date(invoiceDate).getTime()
     const invoiceData: Invoice = {
       id: invoice?.id || `inv-${Date.now()}`,
       invoiceNumber,
@@ -203,15 +221,25 @@ export function SupplierInvoiceDialog({
       supplierName: supplier?.name,
       purchaseOrderId: purchaseOrderId || undefined,
       grnId: grnId || undefined,
-      invoiceDate: new Date(invoiceDate).getTime(),
-      dueDate: dueDate ? new Date(dueDate).getTime() : undefined,
+      type: 'standard',
+      invoiceDate: invDate,
+      issueDate: invDate,
+      dueDate: dueDate ? new Date(dueDate).getTime() : invDate + (30 * 24 * 60 * 60 * 1000),
+      paymentTerms: 'net-30',
       subtotal: calculateSubtotal(),
       tax: calculateTax(),
+      taxRate: 8,
+      taxAmount: calculateTax(),
       total: calculateTotal(),
+      amountPaid: 0,
+      balance: calculateTotal(),
+      currency: 'LKR',
+      exchangeRate: 1,
       status,
       items,
       scannedImageUrl: scannedImage,
       notes,
+      createdBy: invoice?.createdBy || 'system',
       createdAt: invoice?.createdAt || Date.now(),
       updatedAt: Date.now()
     }

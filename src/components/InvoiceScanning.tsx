@@ -29,6 +29,7 @@ import {
   Upload,
   CheckCircle,
   XCircle,
+  X,
   Warning,
   Eye,
   ThumbsUp,
@@ -41,7 +42,8 @@ import {
   Prohibit,
   Sparkle,
   MagnifyingGlass,
-  CurrencyDollar
+  CurrencyDollar,
+  Clock
 } from '@phosphor-icons/react'
 import type { 
   Invoice, 
@@ -123,11 +125,20 @@ export function InvoiceScanning({
       supplierName: ocrData.supplierName,
       purchaseOrderId: linkedPO?.id,
       grnId: linkedGRN?.id,
+      type: 'standard',
       invoiceDate: new Date(ocrData.invoiceDate).getTime(),
+      issueDate: new Date(ocrData.invoiceDate).getTime(),
       dueDate: new Date(ocrData.dueDate).getTime(),
+      paymentTerms: 'net-30',
       subtotal: ocrData.subtotal,
       tax: ocrData.tax,
+      taxRate: ocrData.tax > 0 ? (ocrData.tax / ocrData.subtotal) * 100 : 0,
+      taxAmount: ocrData.tax,
       total: ocrData.total,
+      amountPaid: 0,
+      balance: ocrData.total,
+      currency: 'LKR',
+      exchangeRate: 1,
       status: mismatches.length > 0 ? 'mismatch' : 'pending-validation',
       items,
       scannedImageUrl: previewUrl || undefined,
@@ -148,6 +159,7 @@ export function InvoiceScanning({
         processedAt: Date.now(),
       },
       mismatches: mismatches.length > 0 ? mismatches : undefined,
+      createdBy: 'system',
       createdAt: Date.now(),
       updatedAt: Date.now(),
     }
@@ -327,13 +339,19 @@ export function InvoiceScanning({
 
   const getStatusBadge = (status: InvoiceStatus) => {
     const variants: Record<InvoiceStatus, { variant: any; icon: any; label: string }> = {
+      'draft': { variant: 'outline', icon: <FileText size={14} />, label: 'Draft' },
       'pending-validation': { variant: 'default', icon: <Eye size={14} />, label: 'Pending Validation' },
       'validated': { variant: 'secondary', icon: <CheckCircle size={14} />, label: 'Validated' },
       'matched': { variant: 'default', icon: <CheckCircle size={14} />, label: 'Matched' },
       'mismatch': { variant: 'destructive', icon: <WarningCircle size={14} />, label: 'Mismatch' },
       'approved': { variant: 'default', icon: <ThumbsUp size={14} />, label: 'Approved' },
       'posted': { variant: 'default', icon: <CurrencyDollar size={14} />, label: 'Posted' },
+      'paid': { variant: 'default', icon: <CheckCircle size={14} />, label: 'Paid' },
+      'partially-paid': { variant: 'secondary', icon: <Clock size={14} />, label: 'Partially Paid' },
+      'overdue': { variant: 'destructive', icon: <WarningCircle size={14} />, label: 'Overdue' },
       'rejected': { variant: 'destructive', icon: <Prohibit size={14} />, label: 'Rejected' },
+      'disputed': { variant: 'destructive', icon: <Warning size={14} />, label: 'Disputed' },
+      'cancelled': { variant: 'outline', icon: <X size={14} />, label: 'Cancelled' },
     }
 
     const config = variants[status]

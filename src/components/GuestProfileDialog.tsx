@@ -35,13 +35,13 @@ const COMMUNICATION_PREFS = ['email', 'sms', 'phone', 'whatsapp', 'none'] as con
 export function GuestProfileDialog({ open, onOpenChange, profile, onSave }: GuestProfileDialogProps) {
   const [activeTab, setActiveTab] = useState('personal')
   
-  const [salutation, setSalutation] = useState<string>('')
+  const [salutation, setSalutation] = useState<string | undefined>(undefined)
   const [firstName, setFirstName] = useState('')
   const [middleName, setMiddleName] = useState('')
   const [lastName, setLastName] = useState('')
-  const [gender, setGender] = useState<'male' | 'female' | ''>('')
+  const [gender, setGender] = useState<'male' | 'female' | undefined>(undefined)
   const [dateOfBirth, setDateOfBirth] = useState('')
-  const [nationality, setNationality] = useState('')
+  const [nationality, setNationality] = useState<string | undefined>(undefined)
   const [companyName, setCompanyName] = useState('')
   
   const [email, setEmail] = useState('')
@@ -117,13 +117,13 @@ export function GuestProfileDialog({ open, onOpenChange, profile, onSave }: Gues
 
   useEffect(() => {
     if (profile) {
-      setSalutation(profile.salutation || '')
+      setSalutation(profile.salutation || undefined)
       setFirstName(profile.firstName)
       setMiddleName('')
       setLastName(profile.lastName)
-      setGender('')
+      setGender(undefined)
       setDateOfBirth(profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split('T')[0] : '')
-      setNationality(profile.nationality || '')
+      setNationality(profile.nationality || undefined)
       setCompanyName(profile.companyName || '')
       
       setEmail(profile.email || '')
@@ -184,13 +184,13 @@ export function GuestProfileDialog({ open, onOpenChange, profile, onSave }: Gues
   }, [profile, open])
 
   const resetForm = () => {
-    setSalutation('')
+    setSalutation(undefined)
     setFirstName('')
     setMiddleName('')
     setLastName('')
-    setGender('')
+    setGender(undefined)
     setDateOfBirth('')
-    setNationality('')
+    setNationality(undefined)
     setCompanyName('')
     setEmail('')
     setPhone('')

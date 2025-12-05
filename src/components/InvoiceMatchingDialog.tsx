@@ -83,6 +83,7 @@ export function InvoiceMatchingDialog({
         itemsMatched: 0,
         itemsMismatched: invoice.items.length,
         itemsMissing: 0,
+        itemsAdditional: 0,
         quantityVariances: [],
         priceVariances: [],
         totalVariances: [],
@@ -94,7 +95,8 @@ export function InvoiceMatchingDialog({
         }],
         requiresApproval: true,
         approvalLevel: 'senior-manager',
-        matchedAt: Date.now()
+        matchedAt: Date.now(),
+        auditTrail: []
       })
       return
     }
@@ -245,6 +247,7 @@ export function InvoiceMatchingDialog({
       itemsMatched,
       itemsMismatched,
       itemsMissing: 0,
+      itemsAdditional: 0,
       quantityVariances,
       priceVariances,
       totalVariances,
@@ -252,7 +255,8 @@ export function InvoiceMatchingDialog({
       requiresApproval: Math.abs(poTotalVariancePercent) > 5 || itemsMismatched > 0,
       approvalLevel: Math.abs(poTotalVariancePercent) > 10 ? 'senior-manager' : 'manager',
       matchedAt: Date.now(),
-      notes
+      notes,
+      auditTrail: []
     })
   }
 
