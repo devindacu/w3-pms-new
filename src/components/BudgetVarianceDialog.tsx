@@ -1,19 +1,19 @@
 import { useState, useMemo } from 'react'
-import {
-  Dialog,
-  DialogContent,
+  Dialog
+  DialogH
+} from '@/compon
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import {
+  TrendUp,
+  Warning,
+  ArrowUp,
+  Calendar,
+} from '@phosphor-icons/react'
+import type { Budget, Expense, Invoice } from '@/lib/types'
+interface BudgetVarianceDialogProps {
+  onOpen
   TrendUp,
   TrendDown,
   Warning,
@@ -32,7 +32,7 @@ interface BudgetVarianceDialogProps {
   budgets: Budget[]
   expenses: Expense[]
   invoices: Invoice[]
-}
+ 
 
 type PeriodType = 'month' | 'quarter' | 'year' | 'custom'
 
@@ -46,11 +46,11 @@ interface VarianceData {
 }
 
 export function BudgetVarianceDialog({
-  open,
+    { v
   onOpenChange,
-  budgets,
+  ]
   expenses,
-  invoices
+    { valu
 }: BudgetVarianceDialogProps) {
   const [periodType, setPeriodType] = useState<PeriodType>('month')
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
@@ -60,166 +60,166 @@ export function BudgetVarianceDialog({
   const [customEndDate, setCustomEndDate] = useState('')
 
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i)
-  const months = [
+      endDate = ne
     { value: 1, label: 'January' },
-    { value: 2, label: 'February' },
-    { value: 3, label: 'March' },
-    { value: 4, label: 'April' },
-    { value: 5, label: 'May' },
-    { value: 6, label: 'June' },
-    { value: 7, label: 'July' },
-    { value: 8, label: 'August' },
-    { value: 9, label: 'September' },
-    { value: 10, label: 'October' },
-    { value: 11, label: 'November' },
-    { value: 12, label: 'December' }
-  ]
-  const quarters = [
-    { value: 1, label: 'Q1 (Jan-Mar)' },
-    { value: 2, label: 'Q2 (Apr-Jun)' },
-    { value: 3, label: 'Q3 (Jul-Sep)' },
-    { value: 4, label: 'Q4 (Oct-Dec)' }
-  ]
-
-  const varianceAnalysis = useMemo(() => {
-    let startDate: number
-    let endDate: number
-
-    if (periodType === 'custom') {
-      if (!customStartDate || !customEndDate) return []
-      startDate = new Date(customStartDate).getTime()
-      endDate = new Date(customEndDate).getTime()
-    } else if (periodType === 'month') {
-      startDate = new Date(selectedYear, selectedMonth - 1, 1).getTime()
-      endDate = new Date(selectedYear, selectedMonth, 0, 23, 59, 59).getTime()
-    } else if (periodType === 'quarter') {
-      const quarterStartMonth = (selectedQuarter - 1) * 3
-      startDate = new Date(selectedYear, quarterStartMonth, 1).getTime()
-      endDate = new Date(selectedYear, quarterStartMonth + 3, 0, 23, 59, 59).getTime()
-    } else {
-      startDate = new Date(selectedYear, 0, 1).getTime()
-      endDate = new Date(selectedYear, 11, 31, 23, 59, 59).getTime()
-    }
-
-    const categoryMap = new Map<string, VarianceData>()
-
-    budgets.forEach(budget => {
-      if (budget.startDate > endDate || budget.endDate < startDate) return
-
-      const overlapStart = Math.max(budget.startDate, startDate)
-      const overlapEnd = Math.min(budget.endDate, endDate)
-      const daysCovered = Math.ceil((overlapEnd - overlapStart) / (1000 * 60 * 60 * 24))
-
-      const categoryExpenses = expenses.filter(
-        exp => exp.category === budget.category && 
-               exp.expenseDate >= overlapStart && 
-               exp.expenseDate <= overlapEnd
-      )
-      const actualSpend = categoryExpenses.reduce((sum, exp) => sum + exp.amount, 0)
-
-      const totalBudgetDays = Math.ceil((budget.endDate - budget.startDate) / (1000 * 60 * 60 * 24))
-      const allocatedBudget = (budget.amount * daysCovered) / totalBudgetDays
-
-      const variance = allocatedBudget - actualSpend
-      const variancePercent = allocatedBudget > 0 ? (variance / allocatedBudget) * 100 : 0
-
-      let status: 'favorable' | 'unfavorable' | 'ontrack' = 'ontrack'
-      if (variancePercent > 10) {
-        status = 'favorable'
-      } else if (variancePercent < -10) {
-        status = 'unfavorable'
+      } else if (variancePercent < -
       }
-
-      const existing = categoryMap.get(budget.category)
-      if (existing) {
-        existing.budgeted += allocatedBudget
-        existing.actual += actualSpend
-        existing.variance = existing.budgeted - existing.actual
-        existing.variancePercent = existing.budgeted > 0 
-          ? (existing.variance / existing.budgeted) * 100 
-          : 0
+      const existing = categoryMa
+        existing.budgeted += al
+        existing.variance = exis
+          ? (existing.variance /
         
-        if (existing.variancePercent > 10) {
-          existing.status = 'favorable'
-        } else if (existing.variancePercent < -10) {
-          existing.status = 'unfavorable'
-        } else {
+          existing.status = 'favorabl
+          existing.status = 'unfavor
           existing.status = 'ontrack'
-        }
       } else {
-        categoryMap.set(budget.category, {
-          category: budget.category,
-          budgeted: allocatedBudget,
-          actual: actualSpend,
-          variance,
+   
+          actual: ac
           variancePercent,
-          status
         })
+    })
+    return Array.from(categoryMap.value
+   
+
+    const totalBudgeted = varianceAnalysis
+    const totalVariance =
+
+
+
+      totalBudgeted,
+      totalVariance,
+      unfavorableCount,
+      onTrackCount
+  }, [varianceAnalysis])
+  const getPeriodLabel = () => {
+      return `${customStartDate || 'Start'
+    if (periodType === 'month') {
+    }
+      return `${quarters.find(q => q.value === selectedQuarter)?.label} ${selectedYear
+    return `
+
+    const rows = [
+     
+
+      ...varianceAnalysis.map(v => [
+
+        v.variance.toFixed(2),
+        v.status
+
+    ]
+    const csv = rows.map(row => row.map(cell => `"${cell}"
+    const url = URL.createObjectURL(blob)
+
+    a.click()
+  }
+  const getStatusBadge = (status: 'favorable' | 'u
+      return (
+       
+        </Badge>
+
+      return (
+          <Warning size={14} className="mr-1" />
+
+    }
+      <Badge variant="outline">
+
+    )
+
+    <Dialog open={open} onOp
+        <DialogHeader>
+            <TrendUp size={24}
       }
+
+          <Card className="p-4">
+              <div>
+                <Select value={periodType} o
+                    <SelectValue />
+                  <SelectContent>
+                    <SelectItem value="quarter">Quarter</
+                    <SelectItem value="custom">Custom Rang
+             
+        
+                <div>
+                  <Select value={select
+                      <SelectValue />
+                    <SelectContent>
+                
+          existing.status = 'ontrack'
+         
+      } else {
+                <div>
+                  <Select value={sel
+                      <SelectValue /
+                    <SelectCon
+                   
+          variancePercent,
+                
+        })
+       
     })
 
-    return Array.from(categoryMap.values()).sort((a, b) => 
-      Math.abs(b.variance) - Math.abs(a.variance)
-    )
-  }, [budgets, expenses, periodType, selectedYear, selectedMonth, selectedQuarter, customStartDate, customEndDate])
+                    <SelectContent>
+                        <SelectItem key={quarter.
+     
+                </div>
 
-  const summary = useMemo(() => {
-    const totalBudgeted = varianceAnalysis.reduce((sum, v) => sum + v.budgeted, 0)
-    const totalActual = varianceAnalysis.reduce((sum, v) => sum + v.actual, 0)
-    const totalVariance = totalBudgeted - totalActual
-    const totalVariancePercent = totalBudgeted > 0 ? (totalVariance / totalBudgeted) * 100 : 0
+                <>
+                    <Label>Start Date</Label>
+                      type="date"
+                      onChange={(e) => setCustomStart
+                  </div>
 
-    const unfavorableCount = varianceAnalysis.filter(v => v.status === 'unfavorable').length
-    const favorableCount = varianceAnalysis.filter(v => v.status === 'favorable').length
-    const onTrackCount = varianceAnalysis.filter(v => v.status === 'ontrack').length
+                      type="date"
+                      onChange={(e) => setCustomEndDate(e.target.value)}
+                  </div>
 
-    return {
+            
       totalBudgeted,
-      totalActual,
+                </
       totalVariance,
-      totalVariancePercent,
+
       unfavorableCount,
-      favorableCount,
+              <div cl
       onTrackCount
-    }
+     
   }, [varianceAnalysis])
 
   const getPeriodLabel = () => {
-    if (periodType === 'custom') {
-      return `${customStartDate || 'Start'} to ${customEndDate || 'End'}`
-    }
+            </Card>
+              <div className="text-sm text-muted-foreground mb-1">Status 
+     
     if (periodType === 'month') {
-      return `${months.find(m => m.value === selectedMonth)?.label} ${selectedYear}`
+            </Card>
     }
-    if (periodType === 'quarter') {
-      return `${quarters.find(q => q.value === selectedQuarter)?.label} ${selectedYear}`
-    }
-    return `Year ${selectedYear}`
-  }
+            <div className="flex it
+            </div>
+     
+                  <div className=
+   
 
-  const exportToCSV = () => {
+                      <div cl
     const rows = [
-      ['Budget Variance Analysis'],
-      ['Period', getPeriodLabel()],
-      ['Generated', new Date().toLocaleString()],
-      [],
-      ['Category', 'Budgeted', 'Actual', 'Variance', 'Variance %', 'Status'],
+                            {format
+                        </div>
+                      </div>
+         
+                          <div className="text-muted-foreground">Budgeted</di
       ...varianceAnalysis.map(v => [
-        v.category,
-        v.budgeted.toFixed(2),
-        v.actual.toFixed(2),
+                   
+                        </div>
+                          <d
         v.variance.toFixed(2),
-        v.variancePercent.toFixed(2) + '%',
+                        </div>
         v.status
-      ]),
-      [],
-      ['TOTAL', summary.totalBudgeted.toFixed(2), summary.totalActual.toFixed(2), summary.totalVariance.toFixed(2), summary.totalVariancePercent.toFixed(2) + '%', '']
+         
+         
+        </div>
     ]
 
-    const csv = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n')
-    const blob = new Blob([csv], { type: 'text/csv' })
+
+
     const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
+
     a.href = url
     a.download = `budget-variance-${getPeriodLabel().replace(/\s/g, '-')}.csv`
     a.click()
