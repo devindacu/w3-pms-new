@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -19,7 +20,8 @@ import {
   CurrencyDollar,
   WarningCircle,
   Gauge,
-  Receipt
+  Receipt,
+  ArrowsClockwise
 } from '@phosphor-icons/react'
 import {
   type Requisition,
@@ -40,6 +42,8 @@ import { PurchaseOrderDialog } from '@/components/PurchaseOrderDialog'
 import { GRNDialog } from '@/components/GRNDialog'
 import { POPreviewDialog } from '@/components/POPreviewDialog'
 import { SupplierInvoiceDialog } from '@/components/SupplierInvoiceDialog'
+import { ThreeWayMatchingDialog } from '@/components/ThreeWayMatchingDialog'
+import type { InvoiceMatchingResult, SupplierDispute } from '@/lib/types'
 
 interface ProcurementProps {
   requisitions: Requisition[]
@@ -82,6 +86,7 @@ export function Procurement({
   const [grnDialogOpen, setGRNDialogOpen] = useState(false)
   const [poPreviewDialogOpen, setPOPreviewDialogOpen] = useState(false)
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false)
+  const [threeWayMatchingDialogOpen, setThreeWayMatchingDialogOpen] = useState(false)
   const [selectedRequisition, setSelectedRequisition] = useState<Requisition | undefined>()
   const [selectedPO, setSelectedPO] = useState<PurchaseOrder | undefined>()
   const [selectedGRN, setSelectedGRN] = useState<GoodsReceivedNote | undefined>()
@@ -617,6 +622,27 @@ export function Procurement({
     setInvoices((current: Invoice[]) => current.filter(i => i.id !== id))
   }
 
+  const handleMatchComplete = (matchingResult: InvoiceMatchingResult) => {
+    setInvoices((current: Invoice[]) => 
+      current.map(inv => 
+        inv.id === matchingResult.invoiceId 
+          ? { 
+              ...inv, 
+              status: matchingResult.matchStatus === 'fully-matched' ? 'matched' : 'mismatch',
+              matchingResult 
+            } 
+          : inv
+      )
+    )
+    toast.success('Three-way matching completed')
+    setThreeWayMatchingDialogOpen(false)
+  }
+
+  const handleOpenThreeWayMatching = (invoice: Invoice) => {
+    setSelectedInvoice(invoice)
+    setThreeWayMatchingDialogOpen(true)
+  }
+
   const renderInvoices = () => {
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0]
@@ -792,9 +818,19 @@ export function Procurement({
                         </div>
                       )}
                     </div>
-                    <div className="flex gap-2 ml-4">
+                    <div className="flex flex-col gap-2 ml-4">
+                      <Button 
+                        size="sm" 
+                        variant="default"
+                        onClick={() => handleOpenThreeWayMatching(invoice)}
+                        disabled={!invoice.purchaseOrderId}
+                      >
+                        <ArrowsClockwise size={16} className="mr-2" />
+                        3-Way Match
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => handleEditInvoice(invoice)}>
-                        <Eye size={16} />
+                        <Eye size={16} className="mr-2" />
+                        View
                       </Button>
                     </div>
                   </div>
@@ -929,6 +965,19 @@ export function Procurement({
         onDelete={handleDeleteInvoice}
         currentUser={currentUser}
       />
+
+      {selectedInvoice && (
+        <ThreeWayMatchingDialog
+          open={threeWayMatchingDialogOpen}
+          onOpenChange={setThreeWayMatchingDialogOpen}
+          invoice={selectedInvoice}
+          purchaseOrders={purchaseOrders}
+          grns={grns}
+          suppliers={suppliers}
+          currentUser={currentUser}
+          onMatchComplete={handleMatchComplete}
+        />
+      )}
     </div>
   )
 }
