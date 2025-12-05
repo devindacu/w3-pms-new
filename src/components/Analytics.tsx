@@ -24,7 +24,10 @@ import {
   Printer,
   FunnelSimple,
   ArrowsClockwise,
-  X
+  X,
+  ArrowsLeftRight,
+  Plus,
+  Trash
 } from '@phosphor-icons/react'
 import { formatCurrency, formatPercent } from '@/lib/helpers'
 import {
@@ -96,6 +99,14 @@ interface AnalyticsProps {
 type ReportPeriod = 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom'
 type ReportCategory = 'operational' | 'financial' | 'kitchen'
 
+interface ComparisonPeriod {
+  id: string
+  label: string
+  startDate: string
+  endDate: string
+  color: string
+}
+
 export function Analytics({
   orders,
   foodItems,
@@ -112,6 +123,50 @@ export function Analytics({
   const [endDate, setEndDate] = useState('')
   const [activeFilter, setActiveFilter] = useState<AdvancedFilter | null>(null)
   const [savedFilters, setSavedFilters] = useKV<AdvancedFilter[]>('analytics-saved-filters', [])
+  const [comparisonMode, setComparisonMode] = useState(false)
+  const [comparisonPeriods, setComparisonPeriods] = useState<ComparisonPeriod[]>([])
+  
+  const comparisonColors = [
+    'var(--chart-1)',
+    'var(--chart-2)',
+    'var(--chart-3)',
+    'var(--chart-4)',
+    'var(--chart-5)',
+    'var(--primary)',
+    'var(--accent)',
+    'var(--success)'
+  ]
+
+  const handleAddComparisonPeriod = () => {
+    const newPeriod: ComparisonPeriod = {
+      id: `period-${Date.now()}`,
+      label: `Period ${comparisonPeriods.length + 1}`,
+      startDate: '',
+      endDate: '',
+      color: comparisonColors[comparisonPeriods.length % comparisonColors.length]
+    }
+    setComparisonPeriods((current) => [...current, newPeriod])
+    toast.success('Comparison period added')
+  }
+
+  const handleRemoveComparisonPeriod = (id: string) => {
+    setComparisonPeriods((current) => current.filter(p => p.id !== id))
+    toast.success('Comparison period removed')
+  }
+
+  const handleUpdateComparisonPeriod = (id: string, field: keyof ComparisonPeriod, value: string) => {
+    setComparisonPeriods((current) =>
+      current.map(p => p.id === id ? { ...p, [field]: value } : p)
+    )
+  }
+
+  const toggleComparisonMode = () => {
+    setComparisonMode(!comparisonMode)
+    if (!comparisonMode && comparisonPeriods.length === 0) {
+      handleAddComparisonPeriod()
+      handleAddComparisonPeriod()
+    }
+  }
 
   const filterFields: FilterField[] = useMemo(() => {
     const supplierOptions = suppliers.map(s => ({ value: s.id, label: s.name }))
@@ -177,6 +232,19 @@ export function Analytics({
     const grnVariance = generateGRNVariance(grns, purchaseOrders)
     const expiryForecast = generateExpiryForecast(foodItems)
 
+    const getComparisonData = () => {
+      if (!comparisonMode || comparisonPeriods.length === 0) return null
+      
+      return comparisonPeriods
+        .filter(p => p.startDate && p.endDate)
+        .map(period => ({
+          period,
+          data: generateOrderSummary(orders, 'custom').breakdown
+        }))
+    }
+
+    const comparisonData = getComparisonData()
+
     return (
       <div className="space-y-6">
         <Card className="p-6">
@@ -184,7 +252,9 @@ export function Analytics({
             <div>
               <h3 className="text-lg font-semibold">Order Summary Report</h3>
               <p className="text-sm text-muted-foreground">
-                {period.charAt(0).toUpperCase() + period.slice(1)} overview of orders
+                {comparisonMode && comparisonData && comparisonData.length > 0
+                  ? `Comparing ${comparisonData.length} time periods`
+                  : `${period.charAt(0).toUpperCase() + period.slice(1)} overview of orders`}
               </p>
             </div>
             <div className="flex gap-2">
@@ -199,60 +269,154 @@ export function Analytics({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card className="p-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground mb-1">Total Orders</div>
-              <div className="text-2xl font-semibold">{orderSummary.totalOrders}</div>
-            </Card>
-            <Card className="p-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground mb-1">Total Revenue</div>
-              <div className="text-2xl font-semibold">{formatCurrency(orderSummary.totalRevenue)}</div>
-            </Card>
-            <Card className="p-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground mb-1">Avg Order Value</div>
-              <div className="text-2xl font-semibold">{formatCurrency(orderSummary.averageOrderValue)}</div>
-            </Card>
-            <Card className="p-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground mb-1">Items Sold</div>
-              <div className="text-2xl font-semibold">{orderSummary.totalItemsSold}</div>
-            </Card>
-          </div>
+          {!comparisonMode ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <Card className="p-4 bg-muted/50">
+                  <div className="text-sm text-muted-foreground mb-1">Total Orders</div>
+                  <div className="text-2xl font-semibold">{orderSummary.totalOrders}</div>
+                </Card>
+                <Card className="p-4 bg-muted/50">
+                  <div className="text-sm text-muted-foreground mb-1">Total Revenue</div>
+                  <div className="text-2xl font-semibold">{formatCurrency(orderSummary.totalRevenue)}</div>
+                </Card>
+                <Card className="p-4 bg-muted/50">
+                  <div className="text-sm text-muted-foreground mb-1">Avg Order Value</div>
+                  <div className="text-2xl font-semibold">{formatCurrency(orderSummary.averageOrderValue)}</div>
+                </Card>
+                <Card className="p-4 bg-muted/50">
+                  <div className="text-sm text-muted-foreground mb-1">Items Sold</div>
+                  <div className="text-2xl font-semibold">{orderSummary.totalItemsSold}</div>
+                </Card>
+              </div>
 
-          <div className="mb-6">
-            <h4 className="text-sm font-medium mb-4">Order Trends Over Time</h4>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={orderSummary.breakdown}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="period" stroke="var(--muted-foreground)" />
-                <YAxis stroke="var(--muted-foreground)" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'var(--card)', 
-                    border: '1px solid var(--border)',
-                    borderRadius: '6px'
-                  }}
-                  formatter={(value: any) => typeof value === 'number' ? formatCurrency(value) : value}
-                />
-                <Legend />
-                <Area 
-                  type="monotone" 
-                  dataKey="revenue" 
-                  stroke="var(--primary)" 
-                  fill="var(--primary)" 
-                  fillOpacity={0.3}
-                  name="Revenue"
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="orderCount" 
-                  stroke="var(--accent)" 
-                  fill="var(--accent)" 
-                  fillOpacity={0.3}
-                  name="Orders"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+              <div className="mb-6">
+                <h4 className="text-sm font-medium mb-4">Order Trends Over Time</h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={orderSummary.breakdown}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                    <XAxis dataKey="period" stroke="var(--muted-foreground)" />
+                    <YAxis stroke="var(--muted-foreground)" />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'var(--card)', 
+                        border: '1px solid var(--border)',
+                        borderRadius: '6px'
+                      }}
+                      formatter={(value: any) => typeof value === 'number' ? formatCurrency(value) : value}
+                    />
+                    <Legend />
+                    <Area 
+                      type="monotone" 
+                      dataKey="revenue" 
+                      stroke="var(--primary)" 
+                      fill="var(--primary)" 
+                      fillOpacity={0.3}
+                      name="Revenue"
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="orderCount" 
+                      stroke="var(--accent)" 
+                      fill="var(--accent)" 
+                      fillOpacity={0.3}
+                      name="Orders"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </>
+          ) : comparisonData && comparisonData.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                {comparisonData.map((comp) => (
+                  <Card key={comp.period.id} className="p-4" style={{ borderLeft: `4px solid ${comp.period.color}` }}>
+                    <div className="text-sm font-medium mb-3" style={{ color: comp.period.color }}>
+                      {comp.period.label}
+                    </div>
+                    <div className="space-y-2 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Orders:</span>
+                        <span className="font-medium">
+                          {comp.data.reduce((sum, d) => sum + (d.orderCount || 0), 0)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Revenue:</span>
+                        <span className="font-medium">
+                          {formatCurrency(comp.data.reduce((sum, d) => sum + (d.revenue || 0), 0))}
+                        </span>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="mb-6">
+                <h4 className="text-sm font-medium mb-4">Revenue Comparison Across Periods</h4>
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart data={orderSummary.breakdown}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                    <XAxis dataKey="period" stroke="var(--muted-foreground)" />
+                    <YAxis stroke="var(--muted-foreground)" />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'var(--card)', 
+                        border: '1px solid var(--border)',
+                        borderRadius: '6px'
+                      }}
+                      formatter={(value: any) => formatCurrency(value)}
+                    />
+                    <Legend />
+                    {comparisonData.map((comp, idx) => (
+                      <Bar
+                        key={comp.period.id}
+                        dataKey={`revenue_${idx}`}
+                        fill={comp.period.color}
+                        name={comp.period.label}
+                        radius={[8, 8, 0, 0]}
+                      />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="mb-6">
+                <h4 className="text-sm font-medium mb-4">Order Count Comparison</h4>
+                <ResponsiveContainer width="100%" height={400}>
+                  <LineChart data={orderSummary.breakdown}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                    <XAxis dataKey="period" stroke="var(--muted-foreground)" />
+                    <YAxis stroke="var(--muted-foreground)" />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'var(--card)', 
+                        border: '1px solid var(--border)',
+                        borderRadius: '6px'
+                      }}
+                    />
+                    <Legend />
+                    {comparisonData.map((comp) => (
+                      <Line
+                        key={comp.period.id}
+                        type="monotone"
+                        dataKey={`orders_${comp.period.id}`}
+                        stroke={comp.period.color}
+                        strokeWidth={3}
+                        dot={{ fill: comp.period.color, r: 5 }}
+                        name={comp.period.label}
+                      />
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <ArrowsLeftRight size={48} className="mx-auto mb-4 opacity-50" />
+              <p>Configure comparison periods to view data</p>
+            </div>
+          )}
 
           <Table>
             <TableHeader>
@@ -633,13 +797,17 @@ export function Analytics({
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold">Purchase Cost Trends</h3>
-              <p className="text-sm text-muted-foreground">Track purchasing patterns over time</p>
+              <p className="text-sm text-muted-foreground">
+                {comparisonMode && comparisonPeriods.length > 0
+                  ? 'Comparing purchase patterns across periods'
+                  : 'Track purchasing patterns over time'}
+              </p>
             </div>
           </div>
 
           <div className="mb-6">
             <h4 className="text-sm font-medium mb-4">Purchase Order Trends</h4>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={350}>
               <LineChart data={purchaseTrends}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="period" stroke="var(--muted-foreground)" />
@@ -653,25 +821,75 @@ export function Analytics({
                   formatter={(value: any) => typeof value === 'number' ? formatCurrency(value) : value}
                 />
                 <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="totalAmount" 
-                  stroke="var(--chart-1)" 
-                  strokeWidth={3}
-                  dot={{ fill: 'var(--chart-1)', r: 4 }}
-                  name="Total Amount"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="averagePoValue" 
-                  stroke="var(--chart-2)" 
-                  strokeWidth={3}
-                  dot={{ fill: 'var(--chart-2)', r: 4 }}
-                  name="Avg PO Value"
-                />
+                {!comparisonMode ? (
+                  <>
+                    <Line 
+                      type="monotone" 
+                      dataKey="totalAmount" 
+                      stroke="var(--chart-1)" 
+                      strokeWidth={3}
+                      dot={{ fill: 'var(--chart-1)', r: 4 }}
+                      name="Total Amount"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="averagePoValue" 
+                      stroke="var(--chart-2)" 
+                      strokeWidth={3}
+                      dot={{ fill: 'var(--chart-2)', r: 4 }}
+                      name="Avg PO Value"
+                    />
+                  </>
+                ) : (
+                  comparisonPeriods
+                    .filter(p => p.startDate && p.endDate)
+                    .map((period) => (
+                      <Line
+                        key={period.id}
+                        type="monotone"
+                        dataKey={`amount_${period.id}`}
+                        stroke={period.color}
+                        strokeWidth={3}
+                        dot={{ fill: period.color, r: 5 }}
+                        name={period.label}
+                      />
+                    ))
+                )}
               </LineChart>
             </ResponsiveContainer>
           </div>
+
+          {comparisonMode && comparisonPeriods.filter(p => p.startDate && p.endDate).length > 0 && (
+            <div className="mb-6">
+              <h4 className="text-sm font-medium mb-4">PO Count Comparison</h4>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={purchaseTrends}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="period" stroke="var(--muted-foreground)" />
+                  <YAxis stroke="var(--muted-foreground)" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'var(--card)', 
+                      border: '1px solid var(--border)',
+                      borderRadius: '6px'
+                    }}
+                  />
+                  <Legend />
+                  {comparisonPeriods
+                    .filter(p => p.startDate && p.endDate)
+                    .map((period) => (
+                      <Bar
+                        key={period.id}
+                        dataKey={`count_${period.id}`}
+                        fill={period.color}
+                        name={period.label}
+                        radius={[8, 8, 0, 0]}
+                      />
+                    ))}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
 
           <Table>
             <TableHeader>
@@ -832,13 +1050,19 @@ export function Analytics({
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold">Dish Profitability & Food Cost Breakdown</h3>
-              <p className="text-sm text-muted-foreground">Analyze profit margins for each dish</p>
+              <p className="text-sm text-muted-foreground">
+                {comparisonMode && comparisonPeriods.filter(p => p.startDate && p.endDate).length > 0
+                  ? 'Compare dish profitability across periods'
+                  : 'Analyze profit margins for each dish'}
+              </p>
             </div>
           </div>
 
           <div className="mb-6">
-            <h4 className="text-sm font-medium mb-4">Dish Profitability Comparison</h4>
-            <ResponsiveContainer width="100%" height={300}>
+            <h4 className="text-sm font-medium mb-4">
+              {comparisonMode ? 'Gross Profit Comparison Across Periods' : 'Dish Profitability Comparison'}
+            </h4>
+            <ResponsiveContainer width="100%" height={comparisonMode ? 400 : 300}>
               <BarChart data={dishProfit.slice(0, 10)}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="dishName" stroke="var(--muted-foreground)" angle={-45} textAnchor="end" height={100} />
@@ -852,9 +1076,25 @@ export function Analytics({
                   formatter={(value: any) => typeof value === 'number' ? formatCurrency(value) : value}
                 />
                 <Legend />
-                <Bar dataKey="sellingPrice" fill="var(--chart-1)" name="Selling Price" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="foodCost" fill="var(--chart-2)" name="Food Cost" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="grossProfit" fill="var(--success)" name="Gross Profit" radius={[8, 8, 0, 0]} />
+                {!comparisonMode ? (
+                  <>
+                    <Bar dataKey="sellingPrice" fill="var(--chart-1)" name="Selling Price" radius={[8, 8, 0, 0]} />
+                    <Bar dataKey="foodCost" fill="var(--chart-2)" name="Food Cost" radius={[8, 8, 0, 0]} />
+                    <Bar dataKey="grossProfit" fill="var(--success)" name="Gross Profit" radius={[8, 8, 0, 0]} />
+                  </>
+                ) : (
+                  comparisonPeriods
+                    .filter(p => p.startDate && p.endDate)
+                    .map((period) => (
+                      <Bar
+                        key={period.id}
+                        dataKey={`profit_${period.id}`}
+                        fill={period.color}
+                        name={`${period.label} Profit`}
+                        radius={[8, 8, 0, 0]}
+                      />
+                    ))
+                )}
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -1045,6 +1285,91 @@ export function Analytics({
                 <X size={16} />
               </Button>
             </div>
+          </div>
+        )}
+      </Card>
+
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <ArrowsLeftRight size={20} className="text-primary" />
+            <h3 className="text-lg font-semibold">Comparison Mode</h3>
+            <Badge variant={comparisonMode ? "default" : "outline"}>
+              {comparisonMode ? 'Active' : 'Inactive'}
+            </Badge>
+          </div>
+          <Button onClick={toggleComparisonMode} variant={comparisonMode ? 'default' : 'outline'}>
+            <ArrowsLeftRight size={18} className="mr-2" />
+            {comparisonMode ? 'Disable' : 'Enable'} Comparison
+          </Button>
+        </div>
+
+        {comparisonMode && (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Compare data across multiple time periods side-by-side in charts and tables.
+            </p>
+            
+            <div className="space-y-3">
+              {comparisonPeriods.map((period, index) => (
+                <div key={period.id} className="flex items-end gap-3 p-4 bg-muted/50 rounded-lg">
+                  <div className="w-2 h-full rounded-full" style={{ backgroundColor: period.color }} />
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <Label htmlFor={`period-label-${period.id}`}>Period Name</Label>
+                      <Input
+                        id={`period-label-${period.id}`}
+                        value={period.label}
+                        onChange={(e) => handleUpdateComparisonPeriod(period.id, 'label', e.target.value)}
+                        placeholder={`Period ${index + 1}`}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`period-start-${period.id}`}>Start Date</Label>
+                      <Input
+                        id={`period-start-${period.id}`}
+                        type="date"
+                        value={period.startDate}
+                        onChange={(e) => handleUpdateComparisonPeriod(period.id, 'startDate', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`period-end-${period.id}`}>End Date</Label>
+                      <Input
+                        id={`period-end-${period.id}`}
+                        type="date"
+                        value={period.endDate}
+                        onChange={(e) => handleUpdateComparisonPeriod(period.id, 'endDate', e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleRemoveComparisonPeriod(period.id)}
+                    disabled={comparisonPeriods.length <= 2}
+                  >
+                    <Trash size={18} />
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            <Button
+              variant="outline"
+              onClick={handleAddComparisonPeriod}
+              disabled={comparisonPeriods.length >= 8}
+              className="w-full"
+            >
+              <Plus size={18} className="mr-2" />
+              Add Comparison Period
+            </Button>
+
+            {comparisonPeriods.length >= 8 && (
+              <p className="text-sm text-muted-foreground text-center">
+                Maximum of 8 comparison periods reached
+              </p>
+            )}
           </div>
         )}
       </Card>
