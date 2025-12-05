@@ -94,6 +94,7 @@ export function Procurement({
   const [isScanning, setIsScanning] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [showOnlyNeedsMatching, setShowOnlyNeedsMatching] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<string>('all')
 
   const getRequisitionStatusBadge = (status: string) => {
     const variants = {
@@ -698,9 +699,15 @@ export function Procurement({
              !invoice.matchingResult
     }
 
-    const filteredInvoices = showOnlyNeedsMatching 
-      ? invoices.filter(needsThreeWayMatching)
-      : invoices
+    let filteredInvoices = invoices
+
+    if (showOnlyNeedsMatching) {
+      filteredInvoices = filteredInvoices.filter(needsThreeWayMatching)
+    }
+
+    if (statusFilter !== 'all') {
+      filteredInvoices = filteredInvoices.filter(inv => inv.status === statusFilter)
+    }
 
     const needsMatchingCount = invoices.filter(needsThreeWayMatching).length
 
@@ -733,24 +740,135 @@ export function Procurement({
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Button
-              variant={showOnlyNeedsMatching ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setShowOnlyNeedsMatching(!showOnlyNeedsMatching)}
-            >
-              <ArrowsClockwise size={16} className="mr-2" />
-              Needs 3-Way Matching
-              {needsMatchingCount > 0 && (
-                <Badge variant="secondary" className="ml-2">
-                  {needsMatchingCount}
-                </Badge>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Button
+                variant={showOnlyNeedsMatching ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setShowOnlyNeedsMatching(!showOnlyNeedsMatching)}
+              >
+                <ArrowsClockwise size={16} className="mr-2" />
+                Needs 3-Way Matching
+                {needsMatchingCount > 0 && (
+                  <Badge variant="secondary" className="ml-2">
+                    {needsMatchingCount}
+                  </Badge>
+                )}
+              </Button>
+              {showOnlyNeedsMatching && (
+                <p className="text-sm text-muted-foreground">
+                  Showing {filteredInvoices.length} invoice{filteredInvoices.length !== 1 ? 's' : ''} that need matching
+                </p>
               )}
-            </Button>
-            {showOnlyNeedsMatching && (
-              <p className="text-sm text-muted-foreground">
-                Showing {filteredInvoices.length} invoice{filteredInvoices.length !== 1 ? 's' : ''} that need matching
-              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">Filter by Status:</span>
+              <Button
+                variant={statusFilter === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter('all')}
+              >
+                All
+                <Badge variant="secondary" className="ml-2">
+                  {invoices.length}
+                </Badge>
+              </Button>
+              <Button
+                variant={statusFilter === 'pending-validation' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter('pending-validation')}
+              >
+                <Clock size={16} className="mr-2" />
+                Pending Validation
+                <Badge variant="secondary" className="ml-2">
+                  {invoices.filter(i => i.status === 'pending-validation').length}
+                </Badge>
+              </Button>
+              <Button
+                variant={statusFilter === 'validated' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter('validated')}
+              >
+                <CheckCircle size={16} className="mr-2" />
+                Validated
+                <Badge variant="secondary" className="ml-2">
+                  {invoices.filter(i => i.status === 'validated').length}
+                </Badge>
+              </Button>
+              <Button
+                variant={statusFilter === 'matched' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter('matched')}
+              >
+                Matched
+                <Badge variant="secondary" className="ml-2">
+                  {invoices.filter(i => i.status === 'matched').length}
+                </Badge>
+              </Button>
+              <Button
+                variant={statusFilter === 'mismatch' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter('mismatch')}
+              >
+                <WarningCircle size={16} className="mr-2" />
+                Mismatch
+                <Badge variant="secondary" className="ml-2">
+                  {invoices.filter(i => i.status === 'mismatch').length}
+                </Badge>
+              </Button>
+              <Button
+                variant={statusFilter === 'approved' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter('approved')}
+              >
+                <CheckCircle size={16} className="mr-2" />
+                Approved
+                <Badge variant="secondary" className="ml-2">
+                  {invoices.filter(i => i.status === 'approved').length}
+                </Badge>
+              </Button>
+              <Button
+                variant={statusFilter === 'posted' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter('posted')}
+              >
+                Posted
+                <Badge variant="secondary" className="ml-2">
+                  {invoices.filter(i => i.status === 'posted').length}
+                </Badge>
+              </Button>
+              <Button
+                variant={statusFilter === 'rejected' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter('rejected')}
+              >
+                <XCircle size={16} className="mr-2" />
+                Rejected
+                <Badge variant="secondary" className="ml-2">
+                  {invoices.filter(i => i.status === 'rejected').length}
+                </Badge>
+              </Button>
+            </div>
+
+            {(statusFilter !== 'all' || showOnlyNeedsMatching) && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground">
+                  Showing <span className="font-semibold text-foreground">{filteredInvoices.length}</span> of <span className="font-semibold text-foreground">{invoices.length}</span> invoices
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowOnlyNeedsMatching(false)
+                    setStatusFilter('all')
+                  }}
+                  className="h-6 px-2"
+                >
+                  <XCircle size={14} className="mr-1" />
+                  Clear Filters
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -805,16 +923,51 @@ export function Procurement({
             </Card>
           ) : filteredInvoices.length === 0 ? (
             <Card className="p-12 text-center">
-              <ArrowsClockwise size={48} className="mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No invoices need three-way matching at the moment.</p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="mt-4"
-                onClick={() => setShowOnlyNeedsMatching(false)}
-              >
-                Show All Invoices
-              </Button>
+              {showOnlyNeedsMatching ? (
+                <>
+                  <ArrowsClockwise size={48} className="mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No invoices need three-way matching at the moment.</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-4"
+                    onClick={() => setShowOnlyNeedsMatching(false)}
+                  >
+                    Show All Invoices
+                  </Button>
+                </>
+              ) : statusFilter !== 'all' ? (
+                <>
+                  <Receipt size={48} className="mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">
+                    No invoices found with status: <span className="font-semibold capitalize">{statusFilter.replace('-', ' ')}</span>
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-4"
+                    onClick={() => setStatusFilter('all')}
+                  >
+                    Clear Filter
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Receipt size={48} className="mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No invoices match the current filters.</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-4"
+                    onClick={() => {
+                      setShowOnlyNeedsMatching(false)
+                      setStatusFilter('all')
+                    }}
+                  >
+                    Clear All Filters
+                  </Button>
+                </>
+              )}
             </Card>
           ) : (
             filteredInvoices.map((invoice) => {
