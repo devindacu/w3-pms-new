@@ -803,6 +803,10 @@ function App() {
 
           <Separator className="my-2" />
 
+          <div className="px-3 py-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Property Management</p>
+          </div>
+
           <Button
             variant={currentModule === 'front-office' ? 'default' : 'ghost'}
             className="w-full justify-start"
@@ -810,15 +814,6 @@ function App() {
           >
             <Bed size={18} className="mr-2" />
             Front Office
-          </Button>
-
-          <Button
-            variant={currentModule === 'room-revenue' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('room-revenue')}
-          >
-            <Buildings size={18} className="mr-2" />
-            Room & Revenue
           </Button>
 
           <Button
@@ -846,6 +841,35 @@ function App() {
           >
             <ForkKnife size={18} className="mr-2" />
             F&B / POS
+          </Button>
+
+          <Button
+            variant={currentModule === 'crm' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('crm')}
+          >
+            <Users size={18} className="mr-2" />
+            CRM & Guest Relations
+          </Button>
+
+          <Separator className="my-2" />
+
+          <Button
+            variant={currentModule === 'room-revenue' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('room-revenue')}
+          >
+            <Buildings size={18} className="mr-2" />
+            Room & Revenue
+          </Button>
+
+          <Button
+            variant={currentModule === 'channel-manager' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('channel-manager')}
+          >
+            <Buildings size={18} className="mr-2" />
+            Channel Manager
           </Button>
 
           <Separator className="my-2" />
@@ -942,26 +966,6 @@ function App() {
           >
             <Sparkle size={18} className="mr-2" />
             AI Forecasting
-          </Button>
-
-          <Separator className="my-2" />
-
-          <Button
-            variant={currentModule === 'crm' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('crm')}
-          >
-            <Users size={18} className="mr-2" />
-            CRM & Guest Relations
-          </Button>
-
-          <Button
-            variant={currentModule === 'channel-manager' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('channel-manager')}
-          >
-            <Buildings size={18} className="mr-2" />
-            Channel Manager
           </Button>
 
           <Separator className="my-2" />
