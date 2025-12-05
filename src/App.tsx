@@ -90,8 +90,10 @@ import {
   generateNumber,
   getUrgentFoodItems,
   getExpiringFoodItems,
-  getUrgentAmenities
+  getUrgentAmenities,
+  calculateHistoricalComparison
 } from '@/lib/helpers'
+import { PercentageChangeIndicator } from '@/components/PercentageChangeIndicator'
 import {
   sampleGuests,
   sampleRooms,
@@ -450,6 +452,8 @@ function App() {
     maintenanceRequests || []
   )
 
+  const historicalComparison = calculateHistoricalComparison(orders || [])
+
   const hasData = (rooms || []).length > 0
 
   const renderDashboard = () => (
@@ -521,10 +525,18 @@ function App() {
                 <CurrencyDollar size={20} className="text-success" />
               </div>
               <div className="space-y-2">
-                <p className="text-3xl font-semibold">{formatCurrency(metrics.revenue.today)}</p>
-                <div className="flex items-center gap-1 text-sm text-success">
-                  <ArrowUp size={16} />
-                  <span>Live tracking</span>
+                <div className="flex items-baseline justify-between gap-2">
+                  <p className="text-3xl font-semibold">{formatCurrency(metrics.revenue.today)}</p>
+                  {historicalComparison && (
+                    <PercentageChangeIndicator
+                      current={historicalComparison.today.revenue}
+                      previous={historicalComparison.yesterday.revenue}
+                      size="sm"
+                    />
+                  )}
+                </div>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <span>vs yesterday</span>
                 </div>
               </div>
             </Card>
@@ -621,19 +633,46 @@ function App() {
                 <ForkKnife size={18} className="text-muted-foreground md:w-5 md:h-5" />
               </div>
               <div className="space-y-3 md:space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-3">
                   <span className="text-sm text-muted-foreground">Orders Today</span>
-                  <span className="text-base md:text-lg font-semibold">{metrics.fnb.ordersToday}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base md:text-lg font-semibold">{metrics.fnb.ordersToday}</span>
+                    {historicalComparison && (
+                      <PercentageChangeIndicator
+                        current={historicalComparison.today.orders}
+                        previous={historicalComparison.yesterday.orders}
+                        size="sm"
+                      />
+                    )}
+                  </div>
                 </div>
                 <Separator />
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-3">
                   <span className="text-sm text-muted-foreground">F&B Revenue</span>
-                  <span className="text-base md:text-lg font-semibold truncate ml-2">{formatCurrency(metrics.fnb.revenueToday)}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base md:text-lg font-semibold truncate">{formatCurrency(metrics.fnb.revenueToday)}</span>
+                    {historicalComparison && (
+                      <PercentageChangeIndicator
+                        current={historicalComparison.today.revenue}
+                        previous={historicalComparison.yesterday.revenue}
+                        size="sm"
+                      />
+                    )}
+                  </div>
                 </div>
                 <Separator />
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-3">
                   <span className="text-sm text-muted-foreground">Avg Order Value</span>
-                  <span className="text-base md:text-lg font-semibold truncate ml-2">{formatCurrency(metrics.fnb.averageOrderValue)}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base md:text-lg font-semibold truncate">{formatCurrency(metrics.fnb.averageOrderValue)}</span>
+                    {historicalComparison && (
+                      <PercentageChangeIndicator
+                        current={historicalComparison.today.avgOrder}
+                        previous={historicalComparison.yesterday.avgOrder}
+                        size="sm"
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
             </Card>

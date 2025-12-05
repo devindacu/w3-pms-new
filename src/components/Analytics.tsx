@@ -84,6 +84,7 @@ import type {
   PurchaseOrder
 } from '@/lib/types'
 import { AdvancedFilterDialog, type AdvancedFilter, type FilterField } from '@/components/AdvancedFilterDialog'
+import { PercentageChangeIndicator, PercentageChangeBadge } from '@/components/PercentageChangeIndicator'
 
 interface AnalyticsProps {
   orders: Order[]
@@ -232,6 +233,31 @@ export function Analytics({
     const grnVariance = generateGRNVariance(grns, purchaseOrders)
     const expiryForecast = generateExpiryForecast(foodItems)
 
+    const getPreviousPeriodData = () => {
+      const now = Date.now()
+      const currentPeriod = orderSummary.breakdown
+      
+      if (currentPeriod.length < 2) return null
+      
+      const lastPeriod = currentPeriod[currentPeriod.length - 1]
+      const previousPeriod = currentPeriod[currentPeriod.length - 2]
+      
+      return {
+        current: {
+          orders: lastPeriod?.orderCount || 0,
+          revenue: lastPeriod?.revenue || 0,
+          avgValue: lastPeriod?.averageValue || 0
+        },
+        previous: {
+          orders: previousPeriod?.orderCount || 0,
+          revenue: previousPeriod?.revenue || 0,
+          avgValue: previousPeriod?.averageValue || 0
+        }
+      }
+    }
+
+    const periodComparison = getPreviousPeriodData()
+
     const getComparisonData = () => {
       if (!comparisonMode || comparisonPeriods.length === 0) return null
       
@@ -274,15 +300,42 @@ export function Analytics({
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <Card className="p-4 bg-muted/50">
                   <div className="text-sm text-muted-foreground mb-1">Total Orders</div>
-                  <div className="text-2xl font-semibold">{orderSummary.totalOrders}</div>
+                  <div className="flex items-baseline justify-between">
+                    <div className="text-2xl font-semibold">{orderSummary.totalOrders}</div>
+                    {periodComparison && (
+                      <PercentageChangeIndicator
+                        current={periodComparison.current.orders}
+                        previous={periodComparison.previous.orders}
+                        size="sm"
+                      />
+                    )}
+                  </div>
                 </Card>
                 <Card className="p-4 bg-muted/50">
                   <div className="text-sm text-muted-foreground mb-1">Total Revenue</div>
-                  <div className="text-2xl font-semibold">{formatCurrency(orderSummary.totalRevenue)}</div>
+                  <div className="flex items-baseline justify-between">
+                    <div className="text-2xl font-semibold">{formatCurrency(orderSummary.totalRevenue)}</div>
+                    {periodComparison && (
+                      <PercentageChangeIndicator
+                        current={periodComparison.current.revenue}
+                        previous={periodComparison.previous.revenue}
+                        size="sm"
+                      />
+                    )}
+                  </div>
                 </Card>
                 <Card className="p-4 bg-muted/50">
                   <div className="text-sm text-muted-foreground mb-1">Avg Order Value</div>
-                  <div className="text-2xl font-semibold">{formatCurrency(orderSummary.averageOrderValue)}</div>
+                  <div className="flex items-baseline justify-between">
+                    <div className="text-2xl font-semibold">{formatCurrency(orderSummary.averageOrderValue)}</div>
+                    {periodComparison && (
+                      <PercentageChangeIndicator
+                        current={periodComparison.current.avgValue}
+                        previous={periodComparison.previous.avgValue}
+                        size="sm"
+                      />
+                    )}
+                  </div>
                 </Card>
                 <Card className="p-4 bg-muted/50">
                   <div className="text-sm text-muted-foreground mb-1">Items Sold</div>

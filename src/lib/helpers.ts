@@ -87,6 +87,19 @@ export function formatPercent(value: number): string {
   return `${Math.round(value)}%`
 }
 
+export function calculatePercentageChange(current: number, previous: number): number {
+  if (previous === 0) {
+    return current > 0 ? 100 : 0
+  }
+  return ((current - previous) / previous) * 100
+}
+
+export function formatPercentageChange(current: number, previous: number): string {
+  const change = calculatePercentageChange(current, previous)
+  const sign = change >= 0 ? '+' : ''
+  return `${sign}${change.toFixed(1)}%`
+}
+
 export function calculateNights(checkIn: number, checkOut: number): number {
   const diffMs = checkOut - checkIn
   return Math.ceil(diffMs / (1000 * 60 * 60 * 24))
@@ -308,6 +321,37 @@ export function calculateDashboardMetrics(
       openRequests: openRequests.length,
       urgent: urgentRequests.length,
       avgResolutionTime: 0
+    }
+  }
+}
+
+export function calculateHistoricalComparison(orders: Order[]) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const todayStart = today.getTime()
+  const yesterdayStart = todayStart - 24 * 60 * 60 * 1000
+  const yesterdayEnd = todayStart
+  const todayEnd = todayStart + 24 * 60 * 60 * 1000
+
+  const todayOrders = orders.filter(o => o.createdAt >= todayStart && o.createdAt < todayEnd)
+  const yesterdayOrders = orders.filter(o => o.createdAt >= yesterdayStart && o.createdAt < yesterdayEnd)
+
+  const todayRevenue = todayOrders.reduce((sum, o) => sum + o.total, 0)
+  const yesterdayRevenue = yesterdayOrders.reduce((sum, o) => sum + o.total, 0)
+
+  const todayAvgOrder = todayOrders.length > 0 ? todayRevenue / todayOrders.length : 0
+  const yesterdayAvgOrder = yesterdayOrders.length > 0 ? yesterdayRevenue / yesterdayOrders.length : 0
+
+  return {
+    today: {
+      orders: todayOrders.length,
+      revenue: todayRevenue,
+      avgOrder: todayAvgOrder
+    },
+    yesterday: {
+      orders: yesterdayOrders.length,
+      revenue: yesterdayRevenue,
+      avgOrder: yesterdayAvgOrder
     }
   }
 }
