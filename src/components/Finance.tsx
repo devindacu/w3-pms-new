@@ -48,6 +48,7 @@ import { BankReconciliationDialog } from './BankReconciliationDialog'
 import { ARAgingDialog } from './ARAgingDialog'
 import { CashFlowStatementDialog } from './CashFlowStatementDialog'
 import { DepartmentalPLDialog } from './DepartmentalPLDialog'
+import { BudgetVarianceDialog } from './BudgetVarianceDialog'
 import { toast } from 'sonner'
 
 interface FinanceProps {
@@ -103,6 +104,7 @@ export function Finance({
   const [arAgingDialogOpen, setArAgingDialogOpen] = useState(false)
   const [cashFlowDialogOpen, setCashFlowDialogOpen] = useState(false)
   const [departmentalPLDialogOpen, setDepartmentalPLDialogOpen] = useState(false)
+  const [budgetVarianceDialogOpen, setBudgetVarianceDialogOpen] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | undefined>()
   const [selectedPayment, setSelectedPayment] = useState<Payment | undefined>()
   const [selectedExpense, setSelectedExpense] = useState<Expense | undefined>()
@@ -821,10 +823,16 @@ export function Finance({
           <Card className="p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold">Department Budgets</h3>
-              <Button onClick={handleNewBudget}>
-                <Plus size={18} className="mr-2" />
-                New Budget
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setBudgetVarianceDialogOpen(true)}>
+                  <TrendUp size={18} className="mr-2" />
+                  Variance Analysis
+                </Button>
+                <Button onClick={handleNewBudget}>
+                  <Plus size={18} className="mr-2" />
+                  New Budget
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -1471,6 +1479,14 @@ export function Finance({
         expenses={expenses}
         journalEntries={journalEntries}
         glEntries={glEntries}
+      />
+
+      <BudgetVarianceDialog
+        open={budgetVarianceDialogOpen}
+        onOpenChange={setBudgetVarianceDialogOpen}
+        budgets={budgets}
+        expenses={expenses}
+        invoices={invoices}
       />
     </div>
   )
