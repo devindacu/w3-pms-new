@@ -2214,11 +2214,37 @@ export interface GuestProfile {
     relationship: string
     phone: string
   }
+  bookingHistory?: GuestBookingHistory[]
   tags?: string[]
   notes?: string
   createdAt: number
   updatedAt: number
   createdBy: string
+}
+
+export interface GuestBookingHistory {
+  id: string
+  reservationId: string
+  checkInDate: number
+  checkOutDate: number
+  nights: number
+  roomNumber?: string
+  roomType: RoomType
+  ratePerNight: number
+  totalAmount: number
+  amountPaid: number
+  source: string
+  status: ReservationStatus
+  adults: number
+  children: number
+  specialRequests?: string
+  servicesUsed?: string[]
+  totalFnBSpend?: number
+  totalExtraServicesSpend?: number
+  feedback?: string
+  rating?: number
+  complaintsFiled?: number
+  createdAt: number
 }
 
 export interface GuestPreferences {
@@ -2238,11 +2264,23 @@ export interface GuestPreferences {
   beveragePreferences?: string[]
   transportPreferences?: string[]
   activityInterests?: string[]
+  checkInTimePreference?: string
+  checkOutTimePreference?: string
+  roomLocation?: 'near-elevator' | 'far-from-elevator' | 'corner-room' | 'end-of-corridor' | 'no-preference'
+  bedConfiguration?: string
+  bathPreference?: 'shower' | 'bathtub' | 'both' | 'no-preference'
+  connectingRooms?: boolean
+  accessibilityNeeds?: string[]
+  petFriendly?: boolean
+  quietRoom?: boolean
+  highFloor?: boolean
+  paymentMethod?: PaymentMethod
   specialOccasions?: {
     type: 'birthday' | 'anniversary' | 'honeymoon' | 'other'
     date?: number
     notes?: string
   }[]
+  notesForStaff?: string
 }
 
 export interface LoyaltyInfo {

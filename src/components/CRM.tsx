@@ -31,7 +31,12 @@ import type {
   UpsellOffer,
   UpsellTransaction,
   LoyaltyTransaction,
-  ReviewSourceConfig
+  ReviewSourceConfig,
+  Reservation,
+  Room,
+  Order,
+  FolioExtraService,
+  GuestBookingHistory
 } from '@/lib/types'
 import { GuestProfileDialog } from '@/components/GuestProfileDialog'
 import { ComplaintDialog } from '@/components/ComplaintDialog'
@@ -62,6 +67,10 @@ interface CRMProps {
   setUpsellTransactions: (transactions: UpsellTransaction[] | ((prev: UpsellTransaction[]) => UpsellTransaction[])) => void
   loyaltyTransactions: LoyaltyTransaction[]
   setLoyaltyTransactions: (transactions: LoyaltyTransaction[] | ((prev: LoyaltyTransaction[]) => LoyaltyTransaction[])) => void
+  reservations?: Reservation[]
+  rooms?: Room[]
+  orders?: Order[]
+  folioExtraServices?: FolioExtraService[]
 }
 
 export function CRM({
@@ -80,7 +89,11 @@ export function CRM({
   upsellTransactions,
   setUpsellTransactions,
   loyaltyTransactions,
-  setLoyaltyTransactions
+  setLoyaltyTransactions,
+  reservations = [],
+  rooms = [],
+  orders = [],
+  folioExtraServices = []
 }: CRMProps) {
   const [currentTab, setCurrentTab] = useState('guests')
   const [guestDialogOpen, setGuestDialogOpen] = useState(false)
@@ -207,6 +220,99 @@ export function CRM({
     })
 
     return sourceStats
+  }
+
+  const buildBookingHistory = (guestId: string): GuestBookingHistory[] => {
+    const guestReservations = reservations.filter(r => r.guestId === guestId && r.status === 'checked-out')
+    
+    return guestReservations.map(reservation => {
+      const room = rooms.find(r => r.id === reservation.roomId)
+      const guestOrders = orders.filter(o => o.guestId === guestId)
+      const guestFeedbackItem = feedback.find(f => f.guestId === guestId && 
+        f.stayCheckIn === reservation.checkInDate && 
+        f.stayCheckOut === reservation.checkOutDate)
+      const guestComplaints = complaints.filter(c => c.guestId === guestId && 
+        c.reportedAt >= reservation.checkInDate && 
+        c.reportedAt <= reservation.checkOutDate)
+      
+      const totalFnBSpend = guestOrders
+        .filter(o => o.createdAt >= reservation.checkInDate && o.createdAt <= reservation.checkOutDate)
+        .reduce((sum, o) => sum + o.total, 0)
+      
+      const extraServicesForReservation = folioExtraServices.filter(es => 
+        es.postedAt >= reservation.checkInDate && 
+        es.postedAt <= reservation.checkOutDate
+      )
+      const totalExtraServicesSpend = extraServicesForReservation.reduce((sum, es) => sum + es.totalAmount, 0)
+      
+      const nights = Math.ceil((reservation.checkOutDate - reservation.checkInDate) / (1000 * 60 * 60 * 24))
+      
+      return {
+        id: ulid(),
+        reservationId: reservation.id,
+        checkInDate: reservation.checkInDate,
+        checkOutDate: reservation.checkOutDate,
+        nights,
+        roomNumber: room?.roomNumber,
+        roomType: room?.roomType || reservation.roomId as any,
+        ratePerNight: reservation.ratePerNight,
+        totalAmount: reservation.totalAmount,
+        amountPaid: reservation.advancePaid,
+        source: reservation.source,
+        status: reservation.status,
+        adults: reservation.adults,
+        children: reservation.children,
+        specialRequests: reservation.specialRequests,
+        servicesUsed: extraServicesForReservation.map(es => es.serviceName),
+        totalFnBSpend: totalFnBSpend > 0 ? totalFnBSpend : undefined,
+        totalExtraServicesSpend: totalExtraServicesSpend > 0 ? totalExtraServicesSpend : undefined,
+        feedback: guestFeedbackItem?.comments,
+        rating: guestFeedbackItem?.overallRating,
+        complaintsFiled: guestComplaints.length > 0 ? guestComplaints.length : undefined,
+        createdAt: reservation.createdAt
+      }
+    }).sort((a, b) => b.checkInDate - a.checkInDate)
+  }
+
+  const handleSaveGuest = (profileData: Partial<GuestProfile>) => {
+    const bookingHistory = profileData.guestId ? buildBookingHistory(profileData.guestId) : []
+    
+    if (selectedGuest) {
+      setGuestProfiles((current) =>
+        (current || []).map((g) =>
+          g.id === selectedGuest.id
+            ? { ...g, ...profileData, bookingHistory, updatedAt: Date.now() }
+            : g
+        )
+      )
+      toast.success('Guest profile updated successfully')
+    } else {
+      const newProfile: GuestProfile = {
+        id: ulid(),
+        guestId: ulid(),
+        ...profileData,
+        firstName: profileData.firstName!,
+        lastName: profileData.lastName!,
+        phone: profileData.phone!,
+        totalStays: bookingHistory.length,
+        totalNights: bookingHistory.reduce((sum, b) => sum + b.nights, 0),
+        totalSpent: bookingHistory.reduce((sum, b) => sum + b.totalAmount, 0),
+        averageSpendPerStay: bookingHistory.length > 0 
+          ? bookingHistory.reduce((sum, b) => sum + b.totalAmount, 0) / bookingHistory.length 
+          : 0,
+        lastStayDate: bookingHistory.length > 0 ? bookingHistory[0].checkOutDate : undefined,
+        bookingHistory,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        createdBy: 'system'
+      } as GuestProfile
+      
+      setGuestProfiles((current) => [...(current || []), newProfile])
+      toast.success('Guest profile created successfully')
+    }
+    
+    setGuestDialogOpen(false)
+    setSelectedGuest(undefined)
   }
 
   const stats = {
@@ -1044,58 +1150,7 @@ export function CRM({
         open={guestDialogOpen}
         onOpenChange={setGuestDialogOpen}
         profile={selectedGuest || null}
-        onSave={(guestData) => {
-          if (selectedGuest) {
-            setGuestProfiles((prev) => prev.map(g => 
-              g.id === selectedGuest.id ? { ...g, ...guestData, updatedAt: Date.now() } as GuestProfile : g
-            ))
-            toast.success('Guest profile updated')
-          } else {
-            const newProfile: GuestProfile = {
-              id: `GP${Date.now()}`,
-              guestId: `G${Date.now()}`,
-              firstName: guestData.firstName!,
-              lastName: guestData.lastName!,
-              phone: guestData.phone!,
-              email: guestData.email,
-              alternatePhone: guestData.alternatePhone,
-              dateOfBirth: guestData.dateOfBirth,
-              nationality: guestData.nationality,
-              idType: guestData.idType,
-              idNumber: guestData.idNumber,
-              passportNumber: guestData.passportNumber,
-              address: guestData.address,
-              city: guestData.city,
-              state: guestData.state,
-              country: guestData.country,
-              postalCode: guestData.postalCode,
-              companyName: guestData.companyName,
-              gstNumber: guestData.gstNumber,
-              salutation: guestData.salutation,
-              preferences: guestData.preferences!,
-              loyaltyInfo: guestData.loyaltyInfo!,
-              segments: guestData.segments || [],
-              communicationPreference: guestData.communicationPreference || [],
-              doNotDisturb: guestData.doNotDisturb || false,
-              blacklisted: guestData.blacklisted || false,
-              vipNotes: guestData.vipNotes,
-              dietaryRestrictions: guestData.dietaryRestrictions,
-              allergies: guestData.allergies,
-              specialRequests: guestData.specialRequests,
-              notes: guestData.notes,
-              totalStays: 0,
-              totalNights: 0,
-              totalSpent: 0,
-              averageSpendPerStay: 0,
-              createdAt: Date.now(),
-              updatedAt: Date.now(),
-              createdBy: 'current-user',
-            }
-            setGuestProfiles((prev) => [...prev, newProfile])
-            toast.success('Guest profile created')
-          }
-          setGuestDialogOpen(false)
-        }}
+        onSave={handleSaveGuest}
       />
 
       <ComplaintDialog

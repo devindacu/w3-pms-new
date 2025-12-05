@@ -1257,6 +1257,10 @@ function App() {
               setUpsellTransactions={setUpsellTransactions}
               loyaltyTransactions={loyaltyTransactions || []}
               setLoyaltyTransactions={setLoyaltyTransactions}
+              reservations={reservations || []}
+              rooms={rooms || []}
+              orders={orders || []}
+              folioExtraServices={folioExtraServices || []}
             />
           )}
           {currentModule === 'channel-manager' && (
