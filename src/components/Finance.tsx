@@ -41,6 +41,7 @@ import {
   type BankReconciliation
 } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/helpers'
+import { PercentageChangeIndicator } from './PercentageChangeIndicator'
 import { InvoiceDialog } from './InvoiceDialog'
 import { PaymentDialog } from './PaymentDialog'
 import { ExpenseDialog } from './ExpenseDialog'
@@ -115,6 +116,50 @@ export function Finance({
   const [selectedBudget, setSelectedBudget] = useState<Budget | undefined>()
   const [selectedJournal, setSelectedJournal] = useState<JournalEntry | undefined>()
   const [selectedReconciliation, setSelectedReconciliation] = useState<BankReconciliation | undefined>()
+
+  const calculateMonthMetrics = () => {
+    const now = new Date()
+    const currentMonth = now.getMonth()
+    const currentYear = now.getFullYear()
+    
+    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1
+    const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear
+    
+    const isCurrentMonth = (date: number) => {
+      const d = new Date(date)
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear
+    }
+    
+    const isLastMonth = (date: number) => {
+      const d = new Date(date)
+      return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear
+    }
+    
+    const currentMonthRevenue = invoices.filter(inv => isCurrentMonth(inv.invoiceDate)).reduce((sum, inv) => sum + inv.total, 0)
+    const lastMonthRevenue = invoices.filter(inv => isLastMonth(inv.invoiceDate)).reduce((sum, inv) => sum + inv.total, 0)
+    
+    const currentMonthExpenses = expenses.filter(exp => isCurrentMonth(exp.expenseDate)).reduce((sum, exp) => sum + exp.amount, 0)
+    const lastMonthExpenses = expenses.filter(exp => isLastMonth(exp.expenseDate)).reduce((sum, exp) => sum + exp.amount, 0)
+    
+    const currentMonthPayments = payments.filter(p => isCurrentMonth(p.processedAt)).reduce((sum, p) => sum + p.amount, 0)
+    const lastMonthPayments = payments.filter(p => isLastMonth(p.processedAt)).reduce((sum, p) => sum + p.amount, 0)
+    
+    const currentMonthNetIncome = currentMonthRevenue - currentMonthExpenses
+    const lastMonthNetIncome = lastMonthRevenue - lastMonthExpenses
+    
+    return {
+      currentMonthRevenue,
+      lastMonthRevenue,
+      currentMonthExpenses,
+      lastMonthExpenses,
+      currentMonthPayments,
+      lastMonthPayments,
+      currentMonthNetIncome,
+      lastMonthNetIncome
+    }
+  }
+  
+  const monthMetrics = calculateMonthMetrics()
 
   const totalRevenue = invoices.reduce((sum, inv) => sum + inv.total, 0)
   const totalReceivables = invoices.reduce((sum, inv) => {
@@ -501,10 +546,22 @@ export function Finance({
       supplierData[supplierName].count += 1
     })
     
-    const trendData = Object.entries(monthlyData)
+    const sortedMonthlyEntries = Object.entries(monthlyData)
       .sort(([a], [b]) => a.localeCompare(b))
       .slice(-12)
-      .map(([_, data]) => data)
+    
+    const trendData = sortedMonthlyEntries.map(([_, data], index) => {
+      const previousTotal = index > 0 ? sortedMonthlyEntries[index - 1][1].total : 0
+      const change = previousTotal > 0 
+        ? ((data.total - previousTotal) / previousTotal) * 100 
+        : data.total > 0 ? 100 : 0
+      
+      return {
+        ...data,
+        change: change,
+        changeLabel: change >= 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`
+      }
+    })
     
     const topSuppliers = Object.values(supplierData)
       .sort((a, b) => b.total - a.total)
@@ -554,10 +611,19 @@ export function Finance({
             <TrendUp size={20} className="text-success" />
           </div>
           <div className="space-y-2">
-            <p className="text-3xl font-semibold">{formatCurrency(totalRevenue)}</p>
-            <p className="text-sm text-success flex items-center gap-1">
-              <ArrowUp size={16} />
+            <div className="flex items-baseline gap-3">
+              <p className="text-3xl font-semibold">{formatCurrency(totalRevenue)}</p>
+              <PercentageChangeIndicator 
+                current={monthMetrics.currentMonthRevenue}
+                previous={monthMetrics.lastMonthRevenue}
+                size="sm"
+              />
+            </div>
+            <p className="text-sm text-muted-foreground">
               From {invoices.length} invoices
+            </p>
+            <p className="text-xs text-muted-foreground">
+              This month: {formatCurrency(monthMetrics.currentMonthRevenue)}
             </p>
           </div>
         </Card>
@@ -581,10 +647,20 @@ export function Finance({
             <Wallet size={20} className="text-destructive" />
           </div>
           <div className="space-y-2">
-            <p className="text-3xl font-semibold">{formatCurrency(totalExpenses)}</p>
-            <p className="text-sm text-destructive flex items-center gap-1">
-              <ArrowDown size={16} />
+            <div className="flex items-baseline gap-3">
+              <p className="text-3xl font-semibold">{formatCurrency(totalExpenses)}</p>
+              <PercentageChangeIndicator 
+                current={monthMetrics.currentMonthExpenses}
+                previous={monthMetrics.lastMonthExpenses}
+                size="sm"
+                invertColors={true}
+              />
+            </div>
+            <p className="text-sm text-muted-foreground">
               {expenses.length} expense records
+            </p>
+            <p className="text-xs text-muted-foreground">
+              This month: {formatCurrency(monthMetrics.currentMonthExpenses)}
             </p>
           </div>
         </Card>
@@ -595,11 +671,21 @@ export function Finance({
             <ChartLine size={20} className="text-primary" />
           </div>
           <div className="space-y-2">
-            <p className={`text-3xl font-semibold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>
-              {formatCurrency(netIncome)}
-            </p>
+            <div className="flex items-baseline gap-3">
+              <p className={`text-3xl font-semibold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>
+                {formatCurrency(netIncome)}
+              </p>
+              <PercentageChangeIndicator 
+                current={monthMetrics.currentMonthNetIncome}
+                previous={monthMetrics.lastMonthNetIncome}
+                size="sm"
+              />
+            </div>
             <p className="text-sm text-muted-foreground">
               Revenue - Expenses
+            </p>
+            <p className="text-xs text-muted-foreground">
+              This month: {formatCurrency(monthMetrics.currentMonthNetIncome)}
             </p>
           </div>
         </Card>
@@ -640,6 +726,20 @@ export function Finance({
                   <span className="text-sm text-muted-foreground">Overdue Invoices</span>
                   <span className="text-lg font-semibold text-destructive">{overdueInvoices}</span>
                 </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">This Month Revenue</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-semibold text-primary">
+                      {formatCurrency(monthMetrics.currentMonthRevenue)}
+                    </span>
+                    <PercentageChangeIndicator 
+                      current={monthMetrics.currentMonthRevenue}
+                      previous={monthMetrics.lastMonthRevenue}
+                      size="sm"
+                    />
+                  </div>
+                </div>
               </div>
             </Card>
 
@@ -651,9 +751,16 @@ export function Finance({
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Total Collected</span>
-                  <span className="text-lg font-semibold text-success">
-                    {formatCurrency(payments.reduce((sum, p) => sum + p.amount, 0))}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-semibold text-success">
+                      {formatCurrency(payments.reduce((sum, p) => sum + p.amount, 0))}
+                    </span>
+                    <PercentageChangeIndicator 
+                      current={monthMetrics.currentMonthPayments}
+                      previous={monthMetrics.lastMonthPayments}
+                      size="sm"
+                    />
+                  </div>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
@@ -667,6 +774,13 @@ export function Finance({
                   <span className="text-sm text-muted-foreground">Pending Reconciliation</span>
                   <span className="text-lg font-semibold text-accent">
                     {payments.filter(p => !p.reconciled).length}
+                  </span>
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">This Month Collected</span>
+                  <span className="text-lg font-semibold text-primary">
+                    {formatCurrency(monthMetrics.currentMonthPayments)}
                   </span>
                 </div>
               </div>
@@ -697,7 +811,17 @@ export function Finance({
                       tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                     />
                     <Tooltip 
-                      formatter={(value: number) => formatCurrency(value)}
+                      formatter={(value: number, name: string) => {
+                        if (name === 'total') return [formatCurrency(value), 'Amount']
+                        return [value, name]
+                      }}
+                      labelFormatter={(label, payload) => {
+                        if (payload && payload.length > 0) {
+                          const data = payload[0].payload
+                          return `${label} (${data.changeLabel} MoM)`
+                        }
+                        return label
+                      }}
                       contentStyle={{
                         backgroundColor: 'oklch(0.99 0.003 140)',
                         border: '1px solid oklch(0.85 0.05 140)',
