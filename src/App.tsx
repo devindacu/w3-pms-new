@@ -1001,33 +1001,24 @@ function App() {
         <aside className="hidden lg:block w-64 border-r bg-card p-4 space-y-2 overflow-y-auto fixed left-0 top-0 bottom-0 z-40">
           <SidebarContent />
         </aside>
-        
-        <div className="hidden lg:block fixed top-4 right-4 z-50">
-          <NotificationPanel
-            notifications={notifications || []}
-            onMarkAsRead={handleMarkAsRead}
-            onMarkAllAsRead={handleMarkAllAsRead}
-            onDismiss={handleDismiss}
-            onArchive={handleArchive}
-            onClearAll={handleClearAll}
-          />
-        </div>
 
         <SheetContent side="left" className="w-64 p-4 overflow-y-auto">
           <SidebarContent />
         </SheetContent>
 
         <main className="flex-1 flex flex-col lg:ml-64 min-h-screen">
-          <div className="lg:hidden sticky top-0 z-30 bg-background border-b px-4 py-3 flex items-center justify-between">
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <List size={24} />
-              </Button>
-            </SheetTrigger>
+          <div className="sticky top-0 z-30 bg-background border-b px-4 py-3 flex items-center justify-between">
+            <div className="lg:hidden">
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <List size={24} />
+                </Button>
+              </SheetTrigger>
+            </div>
             <img 
               src={w3PMSLogo}
               alt="W3 Hotel PMS" 
-              className="h-8 w-auto object-contain"
+              className="h-8 w-auto object-contain lg:ml-auto"
             />
             <NotificationPanel
               notifications={notifications || []}
