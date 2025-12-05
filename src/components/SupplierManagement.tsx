@@ -192,20 +192,20 @@ export function SupplierManagement({ suppliers, setSuppliers }: SupplierManageme
   }), [suppliers])
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-semibold">Supplier Management</h1>
-          <p className="text-muted-foreground mt-1">Centralized database for all suppliers</p>
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold">Supplier Management</h1>
+          <p className="text-muted-foreground mt-1 text-sm md:text-base">Centralized database for all suppliers</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={exportToCSV} variant="outline" size="lg">
-            <Download size={20} className="mr-2" />
-            Export
+          <Button onClick={exportToCSV} variant="outline" size="sm" className="flex-1 sm:flex-initial sm:size-default">
+            <Download size={18} className="sm:mr-2" />
+            <span className="hidden sm:inline">Export</span>
           </Button>
-          <Button onClick={() => setDialogOpen(true)} size="lg">
-            <Plus size={20} className="mr-2" />
-            Add Supplier
+          <Button onClick={() => setDialogOpen(true)} size="sm" className="flex-1 sm:flex-initial sm:size-default">
+            <Plus size={18} className="sm:mr-2" />
+            <span className="sm:inline">Add Supplier</span>
           </Button>
         </div>
       </div>
@@ -240,21 +240,21 @@ export function SupplierManagement({ suppliers, setSuppliers }: SupplierManageme
         </Card>
       </div>
 
-      <Card className="p-6">
-        <div className="space-y-4">
-          <div className="flex flex-col md:flex-row gap-4">
+      <Card className="p-4 md:p-6">
+        <div className="space-y-3 md:space-y-4">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative">
-              <MagnifyingGlass size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <MagnifyingGlass size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search suppliers by name, ID, or contact person..."
+                placeholder="Search suppliers..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 h-9 md:h-10 text-sm md:text-base"
               />
             </div>
             <div className="flex gap-2">
               <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-[110px] sm:w-[140px] h-9 md:h-10 text-sm md:text-base">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -264,24 +264,25 @@ export function SupplierManagement({ suppliers, setSuppliers }: SupplierManageme
                 </SelectContent>
               </Select>
               <Select value={sortField} onValueChange={(value) => setSortField(value as SortField)}>
-                <SelectTrigger className="w-[160px]">
-                  <ArrowsDownUp size={16} className="mr-2" />
+                <SelectTrigger className="w-[120px] sm:w-[160px] h-9 md:h-10 text-sm md:text-base">
+                  <ArrowsDownUp size={16} className="mr-1 sm:mr-2" />
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="name">Name</SelectItem>
                   <SelectItem value="rating">Rating</SelectItem>
-                  <SelectItem value="totalOrders">Total Orders</SelectItem>
-                  <SelectItem value="totalSpent">Total Spent</SelectItem>
-                  <SelectItem value="deliveryTime">Delivery Time</SelectItem>
+                  <SelectItem value="totalOrders">Orders</SelectItem>
+                  <SelectItem value="totalSpent">Spent</SelectItem>
+                  <SelectItem value="deliveryTime">Delivery</SelectItem>
                 </SelectContent>
               </Select>
               <Button
                 variant="outline"
                 size="icon"
+                className="h-9 w-9 md:h-10 md:w-10 shrink-0"
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
               >
-                <ArrowsDownUp size={20} />
+                <ArrowsDownUp size={18} />
               </Button>
             </div>
           </div>
@@ -289,6 +290,7 @@ export function SupplierManagement({ suppliers, setSuppliers }: SupplierManageme
             <Button
               variant={selectedCategory === 'all' ? 'default' : 'outline'}
               size="sm"
+              className="h-8 text-xs sm:text-sm px-2 sm:px-3"
               onClick={() => setSelectedCategory('all')}
             >
               All ({suppliers.length})
@@ -298,77 +300,80 @@ export function SupplierManagement({ suppliers, setSuppliers }: SupplierManageme
                 key={category}
                 variant={selectedCategory === category ? 'default' : 'outline'}
                 size="sm"
+                className="h-8 text-xs sm:text-sm px-2 sm:px-3"
                 onClick={() => setSelectedCategory(category)}
               >
-                {category} ({suppliers.filter(s => s.category.includes(category)).length})
+                <span className="hidden sm:inline">{category}</span>
+                <span className="sm:hidden">{category.length > 12 ? category.substring(0, 10) + '...' : category}</span>
+                {' '}({suppliers.filter(s => s.category.includes(category)).length})
               </Button>
             ))}
           </div>
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
         {filteredAndSortedSuppliers.map(supplier => (
           <Card 
             key={supplier.id} 
-            className="p-6 hover:border-primary transition-colors cursor-pointer"
+            className="p-4 md:p-6 hover:border-primary transition-colors cursor-pointer"
             onClick={() => setViewingSupplier(supplier)}
           >
-            <div className="space-y-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
+            <div className="space-y-3 md:space-y-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <Buildings size={20} className="text-primary" />
-                    <h3 className="font-semibold text-lg">{supplier.name}</h3>
+                    <Buildings size={18} className="text-primary shrink-0" />
+                    <h3 className="font-semibold text-base md:text-lg truncate">{supplier.name}</h3>
                   </div>
-                  <p className="text-sm text-muted-foreground">{supplier.supplierId}</p>
+                  <p className="text-xs md:text-sm text-muted-foreground truncate">{supplier.supplierId}</p>
                 </div>
                 {!supplier.isActive && (
-                  <Badge variant="destructive">Inactive</Badge>
+                  <Badge variant="destructive" className="text-xs shrink-0">Inactive</Badge>
                 )}
               </div>
 
               <div className="flex flex-wrap gap-1">
-                {supplier.category.slice(0, 3).map(cat => (
+                {supplier.category.slice(0, 2).map(cat => (
                   <Badge key={cat} variant="secondary" className="text-xs">
-                    {cat}
+                    {cat.length > 15 ? cat.substring(0, 13) + '...' : cat}
                   </Badge>
                 ))}
-                {supplier.category.length > 3 && (
+                {supplier.category.length > 2 && (
                   <Badge variant="secondary" className="text-xs">
-                    +{supplier.category.length - 3}
+                    +{supplier.category.length - 2}
                   </Badge>
                 )}
               </div>
 
               <Separator />
 
-              <div className="space-y-2 text-sm">
+              <div className="space-y-1.5 md:space-y-2 text-xs md:text-sm">
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <User size={16} />
-                  <span>{(supplier.contactPersons || []).find(cp => cp.isPrimary)?.name || 'No primary contact'}</span>
+                  <User size={14} className="shrink-0" />
+                  <span className="truncate">{(supplier.contactPersons || []).find(cp => cp.isPrimary)?.name || 'No contact'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <Phone size={16} />
-                  <span>{supplier.phone}</span>
+                  <Phone size={14} className="shrink-0" />
+                  <span className="truncate">{supplier.phone}</span>
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <Clock size={16} />
-                  <span>{supplier.deliveryTimeDays} days delivery</span>
+                  <Clock size={14} className="shrink-0" />
+                  <span>{supplier.deliveryTimeDays} days</span>
                 </div>
               </div>
 
               <Separator />
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Overall Rating</span>
+                <div className="flex items-center justify-between text-xs md:text-sm">
+                  <span className="text-muted-foreground">Rating</span>
                   <div className="flex items-center gap-1">
-                    <Star size={16} className="text-accent fill-accent" />
-                    <span className="font-semibold">{getOverallRating(supplier)}/5.0</span>
+                    <Star size={14} className="text-accent fill-accent" />
+                    <span className="font-semibold">{getOverallRating(supplier)}</span>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="grid grid-cols-3 gap-1.5 md:gap-2 text-xs">
                   <div className="text-center">
                     <div className="text-muted-foreground">Delivery</div>
                     <div className="font-semibold">{supplier.deliveryTimeRating}</div>
@@ -386,41 +391,42 @@ export function SupplierManagement({ suppliers, setSuppliers }: SupplierManageme
 
               <Separator />
 
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-2 gap-3 md:gap-4 text-xs md:text-sm">
                 <div>
-                  <div className="text-muted-foreground text-xs">Total Orders</div>
+                  <div className="text-muted-foreground text-xs">Orders</div>
                   <div className="font-semibold flex items-center gap-1">
-                    <Package size={16} />
-                    {supplier.totalOrders}
+                    <Package size={14} className="shrink-0" />
+                    <span>{supplier.totalOrders}</span>
                   </div>
                 </div>
                 <div>
-                  <div className="text-muted-foreground text-xs">Total Spent</div>
+                  <div className="text-muted-foreground text-xs">Spent</div>
                   <div className="font-semibold flex items-center gap-1">
-                    <CurrencyDollar size={16} />
-                    {formatCurrency(supplier.totalSpent)}
+                    <CurrencyDollar size={14} className="shrink-0" />
+                    <span className="truncate">{formatCurrency(supplier.totalSpent)}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
+              <div className="flex gap-2 pt-1 md:pt-2" onClick={(e) => e.stopPropagation()}>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex-1"
+                  className="flex-1 h-8 text-xs md:text-sm"
                   onClick={() => {
                     setEditingSupplier(supplier)
                   }}
                 >
-                  <PencilSimple size={16} className="mr-1" />
+                  <PencilSimple size={14} className="mr-1" />
                   Edit
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
+                  className="h-8 w-8 p-0"
                   onClick={() => handleDeleteSupplier(supplier.id)}
                 >
-                  <Trash size={16} />
+                  <Trash size={14} />
                 </Button>
               </div>
             </div>
@@ -429,17 +435,17 @@ export function SupplierManagement({ suppliers, setSuppliers }: SupplierManageme
       </div>
 
       {filteredAndSortedSuppliers.length === 0 && (
-        <Card className="p-16 text-center">
-          <Buildings size={64} className="mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-2xl font-semibold mb-2">No suppliers found</h3>
-          <p className="text-muted-foreground mb-6">
+        <Card className="p-8 md:p-12 lg:p-16 text-center">
+          <Buildings size={48} className="mx-auto text-muted-foreground mb-3 md:mb-4 md:w-16 md:h-16" />
+          <h3 className="text-xl md:text-2xl font-semibold mb-2">No suppliers found</h3>
+          <p className="text-sm md:text-base text-muted-foreground mb-4 md:mb-6">
             {searchTerm || selectedCategory !== 'all'
               ? 'Try adjusting your filters'
               : 'Add your first supplier to get started'}
           </p>
           {!searchTerm && selectedCategory === 'all' && (
-            <Button onClick={() => setDialogOpen(true)}>
-              <Plus size={20} className="mr-2" />
+            <Button onClick={() => setDialogOpen(true)} size="sm" className="sm:size-default">
+              <Plus size={18} className="mr-2" />
               Add Supplier
             </Button>
           )}
@@ -488,30 +494,30 @@ interface SupplierDetailDialogProps {
 function SupplierDetailDialog({ supplier, open, onClose, onEdit }: SupplierDetailDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-full sm:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Supplier Details</DialogTitle>
+          <DialogTitle className="text-xl md:text-2xl">Supplier Details</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-xl font-semibold">{supplier.name}</h3>
-                <p className="text-sm text-muted-foreground">{supplier.supplierId}</p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3 md:mb-4">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-lg md:text-xl font-semibold truncate">{supplier.name}</h3>
+                <p className="text-sm text-muted-foreground truncate">{supplier.supplierId}</p>
               </div>
               <div className="flex gap-2">
-                {!supplier.isActive && <Badge variant="destructive">Inactive</Badge>}
+                {!supplier.isActive && <Badge variant="destructive" className="text-xs">Inactive</Badge>}
                 <Button variant="outline" size="sm" onClick={onEdit}>
-                  <PencilSimple size={16} className="mr-1" />
+                  <PencilSimple size={14} className="mr-1" />
                   Edit
                 </Button>
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5 md:gap-2">
               {supplier.category.map(cat => (
-                <Badge key={cat} variant="secondary">{cat}</Badge>
+                <Badge key={cat} variant="secondary" className="text-xs">{cat}</Badge>
               ))}
             </div>
           </div>
@@ -519,30 +525,30 @@ function SupplierDetailDialog({ supplier, open, onClose, onEdit }: SupplierDetai
           <Separator />
 
           <div>
-            <h4 className="font-semibold mb-3 flex items-center gap-2">
-              <User size={18} />
+            <h4 className="font-semibold mb-2 md:mb-3 flex items-center gap-2 text-sm md:text-base">
+              <User size={16} className="md:w-[18px] md:h-[18px]" />
               Contact Persons
             </h4>
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               {(supplier.contactPersons || []).map(person => (
-                <Card key={person.id} className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">{person.name}</p>
-                        {person.isPrimary && <Badge variant="default" className="text-xs">Primary</Badge>}
+                <Card key={person.id} className="p-3 md:p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-medium text-sm md:text-base truncate">{person.name}</p>
+                        {person.isPrimary && <Badge variant="default" className="text-xs shrink-0">Primary</Badge>}
                       </div>
-                      <p className="text-sm text-muted-foreground">{person.role}</p>
-                      <div className="mt-2 space-y-1 text-sm">
+                      <p className="text-xs md:text-sm text-muted-foreground truncate">{person.role}</p>
+                      <div className="mt-1.5 md:mt-2 space-y-1 text-xs md:text-sm">
                         {person.email && (
                           <div className="flex items-center gap-2 text-muted-foreground">
-                            <Envelope size={14} />
-                            {person.email}
+                            <Envelope size={12} className="shrink-0 md:w-[14px] md:h-[14px]" />
+                            <span className="truncate">{person.email}</span>
                           </div>
                         )}
                         <div className="flex items-center gap-2 text-muted-foreground">
-                          <Phone size={14} />
-                          {person.phone}
+                          <Phone size={12} className="shrink-0 md:w-[14px] md:h-[14px]" />
+                          <span>{person.phone}</span>
                         </div>
                       </div>
                     </div>
@@ -550,7 +556,7 @@ function SupplierDetailDialog({ supplier, open, onClose, onEdit }: SupplierDetai
                 </Card>
               ))}
               {(!supplier.contactPersons || supplier.contactPersons.length === 0) && (
-                <p className="text-sm text-muted-foreground text-center py-4">
+                <p className="text-xs md:text-sm text-muted-foreground text-center py-3 md:py-4">
                   No contact persons added
                 </p>
               )}
@@ -559,17 +565,17 @@ function SupplierDetailDialog({ supplier, open, onClose, onEdit }: SupplierDetai
 
           <Separator />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <div>
-              <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <Buildings size={18} />
+              <h4 className="font-semibold mb-2 md:mb-3 flex items-center gap-2 text-sm md:text-base">
+                <Buildings size={16} className="md:w-[18px] md:h-[18px]" />
                 Company Information
               </h4>
-              <div className="space-y-2 text-sm">
+              <div className="space-y-1.5 md:space-y-2 text-xs md:text-sm">
                 {supplier.email && (
                   <div>
                     <span className="text-muted-foreground">Email:</span>
-                    <p>{supplier.email}</p>
+                    <p className="break-all">{supplier.email}</p>
                   </div>
                 )}
                 <div>
@@ -587,7 +593,7 @@ function SupplierDetailDialog({ supplier, open, onClose, onEdit }: SupplierDetai
                 {supplier.website && (
                   <div>
                     <span className="text-muted-foreground">Website:</span>
-                    <p>{supplier.website}</p>
+                    <p className="break-all">{supplier.website}</p>
                   </div>
                 )}
                 {supplier.taxId && (
@@ -606,11 +612,11 @@ function SupplierDetailDialog({ supplier, open, onClose, onEdit }: SupplierDetai
             </div>
 
             <div>
-              <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <CurrencyDollar size={18} />
+              <h4 className="font-semibold mb-2 md:mb-3 flex items-center gap-2 text-sm md:text-base">
+                <CurrencyDollar size={16} className="md:w-[18px] md:h-[18px]" />
                 Financial Information
               </h4>
-              <div className="space-y-2 text-sm">
+              <div className="space-y-1.5 md:space-y-2 text-xs md:text-sm">
                 <div>
                   <span className="text-muted-foreground">Payment Terms:</span>
                   <p>{supplier.paymentTerms}</p>
@@ -642,40 +648,40 @@ function SupplierDetailDialog({ supplier, open, onClose, onEdit }: SupplierDetai
           <Separator />
 
           <div>
-            <h4 className="font-semibold mb-3 flex items-center gap-2">
-              <Star size={18} />
+            <h4 className="font-semibold mb-2 md:mb-3 flex items-center gap-2 text-sm md:text-base">
+              <Star size={16} className="md:w-[18px] md:h-[18px]" />
               Performance Ratings
             </h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="p-4 text-center">
-                <div className="text-muted-foreground text-sm mb-1">Overall</div>
-                <div className="text-2xl font-semibold">{((supplier.deliveryTimeRating + supplier.costRating + supplier.qualityRating) / 3).toFixed(1)}</div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+              <Card className="p-3 md:p-4 text-center">
+                <div className="text-muted-foreground text-xs mb-1">Overall</div>
+                <div className="text-xl md:text-2xl font-semibold">{((supplier.deliveryTimeRating + supplier.costRating + supplier.qualityRating) / 3).toFixed(1)}</div>
                 <div className="flex items-center justify-center gap-1 mt-1">
-                  <Star size={14} className="text-accent fill-accent" />
+                  <Star size={12} className="text-accent fill-accent md:w-[14px] md:h-[14px]" />
                   <span className="text-xs text-muted-foreground">/ 5.0</span>
                 </div>
               </Card>
-              <Card className="p-4 text-center">
-                <div className="text-muted-foreground text-sm mb-1">Delivery Time</div>
-                <div className="text-2xl font-semibold">{supplier.deliveryTimeRating}</div>
+              <Card className="p-3 md:p-4 text-center">
+                <div className="text-muted-foreground text-xs mb-1">Delivery</div>
+                <div className="text-xl md:text-2xl font-semibold">{supplier.deliveryTimeRating}</div>
                 <div className="flex items-center justify-center gap-1 mt-1">
-                  <Star size={14} className="text-accent fill-accent" />
+                  <Star size={12} className="text-accent fill-accent md:w-[14px] md:h-[14px]" />
                   <span className="text-xs text-muted-foreground">/ 5.0</span>
                 </div>
               </Card>
-              <Card className="p-4 text-center">
-                <div className="text-muted-foreground text-sm mb-1">Cost</div>
-                <div className="text-2xl font-semibold">{supplier.costRating}</div>
+              <Card className="p-3 md:p-4 text-center">
+                <div className="text-muted-foreground text-xs mb-1">Cost</div>
+                <div className="text-xl md:text-2xl font-semibold">{supplier.costRating}</div>
                 <div className="flex items-center justify-center gap-1 mt-1">
-                  <Star size={14} className="text-accent fill-accent" />
+                  <Star size={12} className="text-accent fill-accent md:w-[14px] md:h-[14px]" />
                   <span className="text-xs text-muted-foreground">/ 5.0</span>
                 </div>
               </Card>
-              <Card className="p-4 text-center">
-                <div className="text-muted-foreground text-sm mb-1">Quality</div>
-                <div className="text-2xl font-semibold">{supplier.qualityRating}</div>
+              <Card className="p-3 md:p-4 text-center">
+                <div className="text-muted-foreground text-xs mb-1">Quality</div>
+                <div className="text-xl md:text-2xl font-semibold">{supplier.qualityRating}</div>
                 <div className="flex items-center justify-center gap-1 mt-1">
-                  <Star size={14} className="text-accent fill-accent" />
+                  <Star size={12} className="text-accent fill-accent md:w-[14px] md:h-[14px]" />
                   <span className="text-xs text-muted-foreground">/ 5.0</span>
                 </div>
               </Card>
@@ -685,22 +691,22 @@ function SupplierDetailDialog({ supplier, open, onClose, onEdit }: SupplierDetai
           <Separator />
 
           <div>
-            <h4 className="font-semibold mb-3 flex items-center gap-2">
-              <Package size={18} />
+            <h4 className="font-semibold mb-2 md:mb-3 flex items-center gap-2 text-sm md:text-base">
+              <Package size={16} className="md:w-[18px] md:h-[18px]" />
               Order Statistics
             </h4>
-            <div className="grid grid-cols-3 gap-4">
-              <Card className="p-4 text-center">
-                <div className="text-muted-foreground text-sm mb-1">Total Orders</div>
-                <div className="text-2xl font-semibold">{supplier.totalOrders}</div>
+            <div className="grid grid-cols-3 gap-2 md:gap-4">
+              <Card className="p-3 md:p-4 text-center">
+                <div className="text-muted-foreground text-xs mb-1">Total Orders</div>
+                <div className="text-lg md:text-2xl font-semibold">{supplier.totalOrders}</div>
               </Card>
-              <Card className="p-4 text-center">
-                <div className="text-muted-foreground text-sm mb-1">Total Spent</div>
-                <div className="text-2xl font-semibold">{formatCurrency(supplier.totalSpent)}</div>
+              <Card className="p-3 md:p-4 text-center">
+                <div className="text-muted-foreground text-xs mb-1">Total Spent</div>
+                <div className="text-lg md:text-2xl font-semibold break-all text-xs md:text-2xl">{formatCurrency(supplier.totalSpent)}</div>
               </Card>
-              <Card className="p-4 text-center">
-                <div className="text-muted-foreground text-sm mb-1">Delivery Days</div>
-                <div className="text-2xl font-semibold">{supplier.deliveryTimeDays}</div>
+              <Card className="p-3 md:p-4 text-center">
+                <div className="text-muted-foreground text-xs mb-1">Delivery Days</div>
+                <div className="text-lg md:text-2xl font-semibold">{supplier.deliveryTimeDays}</div>
               </Card>
             </div>
           </div>
@@ -709,21 +715,21 @@ function SupplierDetailDialog({ supplier, open, onClose, onEdit }: SupplierDetai
             <>
               <Separator />
               <div>
-                <h4 className="font-semibold mb-2">Notes</h4>
-                <p className="text-sm text-muted-foreground">{supplier.notes}</p>
+                <h4 className="font-semibold mb-2 text-sm md:text-base">Notes</h4>
+                <p className="text-xs md:text-sm text-muted-foreground">{supplier.notes}</p>
               </div>
             </>
           )}
 
           <Separator />
 
-          <div className="text-xs text-muted-foreground flex items-center gap-4">
+          <div className="text-xs text-muted-foreground flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
             <div className="flex items-center gap-1">
-              <Calendar size={14} />
+              <Calendar size={12} className="md:w-[14px] md:h-[14px]" />
               <span>Created: {format(new Date(supplier.createdAt), 'MMM dd, yyyy')}</span>
             </div>
             <div className="flex items-center gap-1">
-              <Calendar size={14} />
+              <Calendar size={12} className="md:w-[14px] md:h-[14px]" />
               <span>Updated: {format(new Date(supplier.updatedAt), 'MMM dd, yyyy')}</span>
             </div>
           </div>
