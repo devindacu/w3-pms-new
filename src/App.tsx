@@ -160,7 +160,12 @@ import { Settings } from '@/components/Settings'
 import { Finance } from '@/components/Finance'
 import { InvoiceManagement } from '@/components/InvoiceManagement'
 import { PaymentTracking } from '@/components/PaymentTracking'
+import { DashboardWidgetManager } from '@/components/DashboardWidgetManager'
+import { WidgetRenderer } from '@/components/DashboardWidgets'
+import { getDefaultWidgetsForRole, getWidgetSize } from '@/lib/widgetConfig'
 import type {
+  DashboardLayout,
+  DashboardWidget,
   GuestProfile,
   GuestComplaint,
   GuestFeedback,
@@ -282,6 +287,7 @@ function App() {
   const [chartOfAccounts, setChartOfAccounts] = useKV<import('@/lib/types').ChartOfAccount[]>('w3-hotel-chart-of-accounts', [])
   const [glEntries, setGLEntries] = useKV<import('@/lib/types').GLEntry[]>('w3-hotel-gl-entries', [])
   const [bankReconciliations, setBankReconciliations] = useKV<import('@/lib/types').BankReconciliation[]>('w3-hotel-bank-reconciliations', [])
+  const [dashboardLayout, setDashboardLayout] = useKV<DashboardLayout | null>('w3-hotel-dashboard-layout', null)
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
@@ -465,19 +471,93 @@ function App() {
 
   const hasData = (rooms || []).length > 0
 
-  const renderDashboard = () => (
+  const initializeDefaultLayout = () => {
+    if (!dashboardLayout) {
+      const defaultWidgets = getDefaultWidgetsForRole(currentUser.role)
+      const widgets: DashboardWidget[] = defaultWidgets.map((type, index) => ({
+        id: `widget-${Date.now()}-${index}`,
+        type,
+        title: type.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+        size: getWidgetSize(currentUser.role, type),
+        position: index,
+        isVisible: true,
+        refreshInterval: 60000,
+      }))
+
+      const layout: DashboardLayout = {
+        id: `layout-${Date.now()}`,
+        userId: currentUser.id,
+        userRole: currentUser.role,
+        name: `${currentUser.role} Dashboard`,
+        isDefault: true,
+        isShared: false,
+        widgets,
+        columns: 2,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        createdBy: currentUser.id
+      }
+
+      setDashboardLayout(layout)
+      return layout
+    }
+    return dashboardLayout
+  }
+
+  const handleLayoutChange = (newLayout: DashboardLayout) => {
+    setDashboardLayout(newLayout)
+  }
+
+  const renderDashboard = () => {
+    const layout = initializeDefaultLayout()
+    
+    const widgetData = {
+      urgentAmenities: getUrgentAmenities(amenities || []).length,
+      lowStockAmenities: (amenities || []).filter(a => a.currentStock <= a.reorderLevel).length,
+      totalAmenities: (amenities || []).length,
+      urgentFood: getUrgentFoodItems(foodItems || []).length,
+      expiringFood: getExpiringFoodItems(foodItems || [], 7).length,
+      totalFood: (foodItems || []).length,
+      activeProjects: (constructionProjects || []).filter(p => p.status === 'in-progress').length,
+      totalMaterials: (constructionMaterials || []).length,
+      lowStockMaterials: (constructionMaterials || []).filter(m => m.currentStock <= m.reorderLevel).length,
+      rooms: rooms || [],
+      lowStockItems: (inventory || []).filter(item => item.currentStock <= item.reorderLevel && item.currentStock > 0),
+      pendingRequisitions: (requisitions || []).filter(r => r.status === 'pending-approval').length,
+      pendingPOs: (purchaseOrders || []).filter(po => po.status === 'draft').length,
+      pendingInvoices: (invoices || []).filter(inv => inv.status === 'pending-validation').length,
+      departments: [
+        { name: 'Front Office', performance: 85 },
+        { name: 'Housekeeping', performance: 92 },
+        { name: 'F&B', performance: 78 },
+        { name: 'Engineering', performance: 88 },
+        { name: 'Finance', performance: 95 }
+      ]
+    }
+
+    return (
     <div className="space-y-4 md:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold">Hotel Dashboard</h1>
           <p className="text-muted-foreground mt-1 text-sm md:text-base">Unified view of all hotel operations</p>
         </div>
-        {!hasData && (
-          <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto">
-            <Database size={20} className="mr-2" />
-            Load Sample Data
-          </Button>
-        )}
+        <div className="flex items-center gap-3">
+          {!hasData && (
+            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto">
+              <Database size={20} className="mr-2" />
+              Load Sample Data
+            </Button>
+          )}
+          {hasData && layout && (
+            <DashboardWidgetManager
+              userId={currentUser.id}
+              userRole={currentUser.role}
+              currentLayout={layout}
+              onLayoutChange={handleLayoutChange}
+            />
+          )}
+        </div>
       </div>
 
       {!hasData ? (
@@ -502,268 +582,25 @@ function App() {
             onViewAll={() => setNotificationPanelOpen(true)}
           />
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="p-6 border-l-4 border-l-primary">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-muted-foreground">Occupancy</h3>
-                <Bed size={20} className="text-primary" />
-              </div>
-              <div className="space-y-2">
-                <p className="text-3xl font-semibold">{formatPercent(metrics.occupancy.rate)}</p>
-                <div className="flex items-center gap-4 text-sm">
-                  <span className="text-muted-foreground">
-                    {metrics.occupancy.occupied} / {metrics.occupancy.occupied + metrics.occupancy.available} rooms
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <div className="text-xs">
-                    <span className="text-muted-foreground">Available:</span>
-                    <span className="ml-1 font-medium">{metrics.occupancy.available}</span>
-                  </div>
-                  <div className="text-xs">
-                    <span className="text-muted-foreground">Maintenance:</span>
-                    <span className="ml-1 font-medium">{metrics.occupancy.maintenance}</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-6 border-l-4 border-l-success">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-muted-foreground">Revenue Today</h3>
-                <CurrencyDollar size={20} className="text-success" />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-baseline justify-between gap-2">
-                  <p className="text-3xl font-semibold">{formatCurrency(metrics.revenue.today)}</p>
-                  {historicalComparison && (
-                    <PercentageChangeIndicator
-                      current={historicalComparison.today.revenue}
-                      previous={historicalComparison.yesterday.revenue}
-                      size="sm"
-                    />
-                  )}
-                </div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <span>vs yesterday</span>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-6 border-l-4 border-l-accent">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-muted-foreground">Housekeeping</h3>
-                <Broom size={20} className="text-accent" />
-              </div>
-              <div className="space-y-2">
-                <p className="text-3xl font-semibold">{metrics.housekeeping.pendingTasks}</p>
-                <p className="text-sm text-muted-foreground">Pending tasks</p>
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <div className="text-xs">
-                    <span className="text-muted-foreground">Clean:</span>
-                    <span className="ml-1 font-medium text-success">{metrics.housekeeping.cleanRooms}</span>
-                  </div>
-                  <div className="text-xs">
-                    <span className="text-muted-foreground">Dirty:</span>
-                    <span className="ml-1 font-medium text-destructive">{metrics.housekeeping.dirtyRooms}</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-6 border-l-4 border-l-destructive">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-muted-foreground">Amenities Stock</h3>
-                <Basket size={20} className="text-destructive" />
-              </div>
-              <div className="space-y-2">
-                <p className="text-3xl font-semibold">{getUrgentAmenities(amenities || []).length}</p>
-                <p className="text-sm text-muted-foreground">Urgent items</p>
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <div className="text-xs">
-                    <span className="text-muted-foreground">Low Stock:</span>
-                    <span className="ml-1 font-medium text-accent">{(amenities || []).filter(a => a.currentStock <= a.reorderLevel).length}</span>
-                  </div>
-                  <div className="text-xs">
-                    <span className="text-muted-foreground">Total:</span>
-                    <span className="ml-1 font-medium">{(amenities || []).length}</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-6 border-l-4 border-l-accent">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-muted-foreground">Food Inventory</h3>
-                <Carrot size={20} className="text-accent" />
-              </div>
-              <div className="space-y-2">
-                <p className="text-3xl font-semibold">{getUrgentFoodItems(foodItems || []).length}</p>
-                <p className="text-sm text-muted-foreground">Urgent items</p>
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <div className="text-xs">
-                    <span className="text-muted-foreground">Expiring:</span>
-                    <span className="ml-1 font-medium text-destructive">{getExpiringFoodItems(foodItems || [], 7).length}</span>
-                  </div>
-                  <div className="text-xs">
-                    <span className="text-muted-foreground">Total:</span>
-                    <span className="ml-1 font-medium">{(foodItems || []).length}</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-6 border-l-4 border-l-primary">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-muted-foreground">Maintenance & Constructions</h3>
-                <Hammer size={20} className="text-primary" />
-              </div>
-              <div className="space-y-2">
-                <p className="text-3xl font-semibold">{(constructionProjects || []).filter(p => p.status === 'in-progress').length}</p>
-                <p className="text-sm text-muted-foreground">Active projects</p>
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <div className="text-xs">
-                    <span className="text-muted-foreground">Materials:</span>
-                    <span className="ml-1 font-medium">{(constructionMaterials || []).length}</span>
-                  </div>
-                  <div className="text-xs">
-                    <span className="text-muted-foreground">Low Stock:</span>
-                    <span className="ml-1 font-medium text-destructive">{(constructionMaterials || []).filter(m => m.currentStock <= m.reorderLevel).length}</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-            <Card className="p-4 md:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base md:text-lg font-semibold">F&B Performance</h3>
-                <ForkKnife size={18} className="text-muted-foreground md:w-5 md:h-5" />
-              </div>
-              <div className="space-y-3 md:space-y-4">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm text-muted-foreground">Orders Today</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-base md:text-lg font-semibold">{metrics.fnb.ordersToday}</span>
-                    {historicalComparison && (
-                      <PercentageChangeIndicator
-                        current={historicalComparison.today.orders}
-                        previous={historicalComparison.yesterday.orders}
-                        size="sm"
-                      />
-                    )}
-                  </div>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm text-muted-foreground">F&B Revenue</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-base md:text-lg font-semibold truncate">{formatCurrency(metrics.fnb.revenueToday)}</span>
-                    {historicalComparison && (
-                      <PercentageChangeIndicator
-                        current={historicalComparison.today.revenue}
-                        previous={historicalComparison.yesterday.revenue}
-                        size="sm"
-                      />
-                    )}
-                  </div>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm text-muted-foreground">Avg Order Value</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-base md:text-lg font-semibold truncate">{formatCurrency(metrics.fnb.averageOrderValue)}</span>
-                    {historicalComparison && (
-                      <PercentageChangeIndicator
-                        current={historicalComparison.today.avgOrder}
-                        previous={historicalComparison.yesterday.avgOrder}
-                        size="sm"
-                      />
-                    )}
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-4 md:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base md:text-lg font-semibold">Maintenance Status</h3>
-                <Wrench size={18} className="text-muted-foreground md:w-5 md:h-5" />
-              </div>
-              <div className="space-y-3 md:space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Open Requests</span>
-                  <span className="text-base md:text-lg font-semibold">{metrics.maintenance.openRequests}</span>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Urgent</span>
-                  <Badge variant="destructive">{metrics.maintenance.urgent}</Badge>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Rooms Out of Service</span>
-                  <span className="text-base md:text-lg font-semibold">{metrics.occupancy.maintenance}</span>
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          <Card className="p-4 md:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-              <h3 className="text-base md:text-lg font-semibold">Room Status Overview</h3>
-              <Button size="sm" onClick={() => setCurrentModule('housekeeping')} className="w-full sm:w-auto">
-                View All Rooms
-              </Button>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-3">
-              {(rooms || []).slice(0, 12).map((room) => (
-                <div
-                  key={room.id}
-                  className={`p-2 md:p-3 rounded-lg border-2 text-center ${getRoomStatusColor(room.status)}`}
-                >
-                  <div className="font-semibold text-base md:text-lg">{room.roomNumber}</div>
-                  <div className="text-xs mt-1 capitalize line-clamp-1">{room.roomType}</div>
-                  <div className="text-xs mt-1 opacity-80 line-clamp-1">{room.status.replace('-', ' ')}</div>
-                </div>
+          <div className={`grid gap-6 ${layout?.columns === 1 ? 'grid-cols-1' : layout?.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : layout?.columns === 4 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-2'}`}>
+            {layout?.widgets
+              .filter(w => w.isVisible)
+              .sort((a, b) => a.position - b.position)
+              .map(widget => (
+                <WidgetRenderer
+                  key={widget.id}
+                  widget={widget}
+                  metrics={metrics}
+                  data={widgetData}
+                  onNavigate={(module) => setCurrentModule(module as Module)}
+                />
               ))}
-            </div>
-          </Card>
-
-          <Card className="p-4 md:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-              <h3 className="text-base md:text-lg font-semibold">Low Stock Items</h3>
-              <Button size="sm" onClick={() => setCurrentModule('inventory')} className="w-full sm:w-auto">
-                View Inventory
-              </Button>
-            </div>
-            {metrics.inventory.lowStockItems === 0 ? (
-              <p className="text-center text-muted-foreground py-6 md:py-8 text-sm md:text-base">All inventory levels are healthy</p>
-            ) : (
-              <div className="space-y-2 md:space-y-3">
-                {(inventory || [])
-                  .filter(item => item.currentStock <= item.reorderLevel && item.currentStock > 0)
-                  .slice(0, 5)
-                  .map((item) => (
-                    <div key={item.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-muted/50 rounded-lg">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium truncate">{item.name}</p>
-                        <p className="text-sm text-muted-foreground truncate">{item.category}</p>
-                      </div>
-                      <div className="text-left sm:text-right shrink-0">
-                        <p className="font-semibold text-destructive">{item.currentStock} {item.unit}</p>
-                        <p className="text-xs text-muted-foreground whitespace-nowrap">Reorder at {item.reorderLevel}</p>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            )}
-          </Card>
+          </div>
         </>
       )}
     </div>
   )
+  }
 
   const renderComingSoon = (title: string, icon: React.ReactNode) => (
     <div className="space-y-6">

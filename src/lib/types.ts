@@ -4069,3 +4069,89 @@ export interface EmailAnalyticsSummary {
   }[]
   calculatedAt: number
 }
+
+export type DashboardWidgetType = 
+  | 'occupancy'
+  | 'revenue-today'
+  | 'housekeeping'
+  | 'amenities-stock'
+  | 'food-inventory'
+  | 'maintenance-construction'
+  | 'fnb-performance'
+  | 'maintenance-status'
+  | 'room-status'
+  | 'low-stock'
+  | 'arrivals-departures'
+  | 'guest-feedback'
+  | 'revenue-chart'
+  | 'occupancy-chart'
+  | 'department-performance'
+  | 'pending-approvals'
+  | 'financial-summary'
+  | 'kitchen-operations'
+  | 'crm-summary'
+  | 'channel-performance'
+
+export type WidgetSize = 'small' | 'medium' | 'large' | 'full'
+
+export interface DashboardWidget {
+  id: string
+  type: DashboardWidgetType
+  title: string
+  size: WidgetSize
+  position: number
+  isVisible: boolean
+  refreshInterval?: number
+  config?: WidgetConfig
+}
+
+export interface WidgetConfig {
+  showComparison?: boolean
+  comparisonPeriod?: 'yesterday' | 'last-week' | 'last-month' | 'last-year'
+  displayMode?: 'table' | 'chart' | 'cards' | 'list'
+  chartType?: 'line' | 'bar' | 'pie' | 'area' | 'donut'
+  dateRange?: {
+    from: number
+    to: number
+  }
+  filters?: Record<string, any>
+  limit?: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+  groupBy?: string
+  showPercentages?: boolean
+  showTrends?: boolean
+  departments?: Department[]
+  roomTypes?: RoomType[]
+  thresholds?: {
+    warning?: number
+    critical?: number
+  }
+}
+
+export interface DashboardLayout {
+  id: string
+  userId?: string
+  userRole?: UserRole | SystemRole
+  name: string
+  description?: string
+  isDefault: boolean
+  isShared: boolean
+  widgets: DashboardWidget[]
+  columns: 1 | 2 | 3 | 4
+  createdAt: number
+  updatedAt: number
+  createdBy: string
+}
+
+export interface RoleWidgetPreset {
+  role: UserRole | SystemRole
+  name: string
+  description: string
+  defaultWidgets: DashboardWidgetType[]
+  recommendedWidgets: DashboardWidgetType[]
+  layout: {
+    columns: 1 | 2 | 3 | 4
+    widgetSizes: Record<DashboardWidgetType, WidgetSize>
+  }
+}
