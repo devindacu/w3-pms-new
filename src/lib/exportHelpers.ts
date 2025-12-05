@@ -1,289 +1,595 @@
-import { formatCurrency, formatDate, formatDateTime } from './helpers'
-import type { Invoice, Payment, Expense, JournalEntry, GLEntry, Budget } from './types'
-
-export function exportToCSV(data: any[], filename: string) {
-  if (data.length === 0) {
-    return
-  }
-
-  const headers = Object.keys(data[0])
-  const csvContent = [
-    headers.join(','),
-    ...data.map(row =>
-      headers.map(header => {
-        const value = row[header]
-        if (value === null || value === undefined) return ''
-        const stringValue = String(value)
-        return stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')
-          ? `"${stringValue.replace(/"/g, '""')}"`
-          : stringValue
-      }).join(',')
-    )
-  ].join('\n')
-
-  downloadFile(csvContent, filename, 'text/csv')
+export interface ExportData {
+  title: string
+  subtitle?: string
+  date: string
+  headers: string[]
+  rows: (string | number)[][]
+  summary?: { label: string; value: string | number }[]
+  chartData?: {
+    type: 'bar' | 'line' | 'pie' | 'area'
+    data: any[]
+    config?: {
+      xAxis?: string
+      yAxis?: string[]
+      colors?: string[]
+    }
+  }[]
 }
 
-export function downloadFile(content: string, filename: string, mimeType: string) {
-  const blob = new Blob([content], { type: mimeType })
-  const url = URL.createObjectURL(blob)
+export function exportToCSV(data: ExportData): void {
+  let csv = `"${data.title}"\n`
+  
+  if (data.subtitle) {
+    csv += `"${data.subtitle}"\n`
+  }
+  
+  csv += `"Generated: ${data.date}"\n\n`
+
+  if (data.summary && data.summary.length > 0) {
+    csv += '"Summary"\n'
+    data.summary.forEach(item => {
+      csv += `"${item.label}","${item.value}"\n`
+    })
+    csv += '\n'
+  }
+
+  csv += data.headers.map(h => `"${h}"`).join(',') + '\n'
+  
+  data.rows.forEach(row => {
+    csv += row.map(cell => {
+      const cellStr = String(cell)
+      return `"${cellStr.replace(/"/g, '""')}"`
+    }).join(',') + '\n'
+  })
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
   const link = document.createElement('a')
-  link.href = url
-  link.download = filename
+  const url = URL.createObjectURL(blob)
+  
+  link.setAttribute('href', url)
+  link.setAttribute('download', `${data.title.replace(/\s+/g, '_')}_${Date.now()}.csv`)
+  link.style.visibility = 'hidden'
+  
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
-  URL.revokeObjectURL(url)
 }
 
-export function exportInvoicesToCSV(invoices: Invoice[]) {
-  const data = invoices.map(inv => ({
-    'Invoice Number': inv.invoiceNumber,
-    'Supplier': inv.supplierName || '',
-    'Type': inv.type,
-    'Status': inv.status,
-    'Invoice Date': formatDate(inv.invoiceDate),
-    'Due Date': formatDate(inv.dueDate),
-    'Subtotal': inv.subtotal,
-    'Tax': inv.tax,
-    'Total': inv.total,
-    'Amount Paid': inv.amountPaid,
-    'Balance': inv.balance,
-    'Payment Terms': inv.paymentTerms,
-    'Created By': inv.createdBy,
-    'Created At': formatDateTime(inv.createdAt)
-  }))
+export async function exportToPDF(data: ExportData, includeCharts: boolean = false): Promise<void> {
+  const printWindow = window.open('', '_blank')
+  
+  if (!printWindow) {
+    throw new Error('Unable to open print window. Please allow popups.')
+  }
 
-  exportToCSV(data, `invoices-${Date.now()}.csv`)
-}
+  const chartHTML = includeCharts && data.chartData 
+    ? generateChartHTML(data.chartData)
+    : ''
 
-export function exportPaymentsToCSV(payments: Payment[]) {
-  const data = payments.map(payment => ({
-    'Payment Number': payment.paymentNumber,
-    'Amount': payment.amount,
-    'Method': payment.method,
-    'Status': payment.status,
-    'Reference': payment.reference || '',
-    'Processed At': formatDateTime(payment.processedAt),
-    'Processed By': payment.processedBy,
-    'Reconciled': payment.reconciled ? 'Yes' : 'No',
-    'Notes': payment.notes || ''
-  }))
-
-  exportToCSV(data, `payments-${Date.now()}.csv`)
-}
-
-export function exportExpensesToCSV(expenses: Expense[]) {
-  const data = expenses.map(expense => ({
-    'Expense Number': expense.expenseNumber,
-    'Category': expense.category,
-    'Department': expense.department,
-    'Amount': expense.amount,
-    'Description': expense.description,
-    'Expense Date': formatDate(expense.expenseDate),
-    'Status': expense.status,
-    'Approved By': expense.approvedBy || '',
-    'Approved At': expense.approvedAt ? formatDateTime(expense.approvedAt) : '',
-    'Created By': expense.createdBy,
-    'Created At': formatDateTime(expense.createdAt)
-  }))
-
-  exportToCSV(data, `expenses-${Date.now()}.csv`)
-}
-
-export function exportJournalEntriesToCSV(entries: JournalEntry[]) {
-  const data = entries.map(entry => ({
-    'Journal Number': entry.journalNumber,
-    'Type': entry.journalType,
-    'Status': entry.status,
-    'Transaction Date': formatDate(entry.transactionDate),
-    'Description': entry.description,
-    'Reference': entry.reference || '',
-    'Total Debit': entry.totalDebit,
-    'Total Credit': entry.totalCredit,
-    'Balanced': entry.isBalanced ? 'Yes' : 'No',
-    'Created By': entry.createdBy,
-    'Created At': formatDateTime(entry.createdAt),
-    'Posted At': entry.postedAt ? formatDateTime(entry.postedAt) : '',
-    'Posted By': entry.postedBy || ''
-  }))
-
-  exportToCSV(data, `journal-entries-${Date.now()}.csv`)
-}
-
-export function exportBudgetsToCSV(budgets: Budget[]) {
-  const data = budgets.map(budget => ({
-    'Budget Name': budget.budgetName,
-    'Department': budget.department,
-    'Period': budget.period,
-    'Start Date': formatDate(budget.startDate),
-    'End Date': formatDate(budget.endDate),
-    'Total Budget': budget.totalBudget,
-    'Total Actual': budget.totalActual,
-    'Variance': budget.variance,
-    'Variance %': budget.totalBudget > 0 ? ((budget.variance / budget.totalBudget) * 100).toFixed(2) + '%' : '0%',
-    'Status': budget.status,
-    'Created By': budget.createdBy,
-    'Created At': formatDateTime(budget.createdAt)
-  }))
-
-  exportToCSV(data, `budgets-${Date.now()}.csv`)
-}
-
-export function exportTrialBalanceToCSV(data: any[]) {
-  exportToCSV(data, `trial-balance-${Date.now()}.csv`)
-}
-
-export function exportProfitLossToCSV(data: any[]) {
-  exportToCSV(data, `profit-loss-${Date.now()}.csv`)
-}
-
-export function exportBalanceSheetToCSV(data: any[]) {
-  exportToCSV(data, `balance-sheet-${Date.now()}.csv`)
-}
-
-export function generateInvoicePDF(invoice: Invoice, branding?: any): string {
-  return `
+  const html = `
     <!DOCTYPE html>
     <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Invoice ${invoice.invoiceNumber}</title>
-      <style>
-        @page { size: A4; margin: 20mm; }
-        body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; color: #333; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .header h1 { margin: 10px 0; color: #2c3e50; }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-        .info-box h3 { margin: 0 0 10px 0; font-size: 14px; color: #2c3e50; }
-        .info-box p { margin: 5px 0; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f8f9fa; font-weight: 600; }
-        .text-right { text-align: right; }
-        .totals { margin-left: auto; width: 300px; }
-        .totals table { margin-bottom: 10px; }
-        .totals td { border: none; padding: 5px; }
-        .totals .total-row { font-weight: bold; font-size: 14px; border-top: 2px solid #333; }
-        .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; font-size: 10px; color: #666; }
-        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }
-        .badge-${invoice.status} { background-color: #e3f2fd; color: #1976d2; }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        ${branding?.logo ? `<img src="${branding.logo}" alt="Logo" style="max-height: 60px; margin-bottom: 10px;">` : ''}
-        <h1>${branding?.hotelName || 'Hotel Name'}</h1>
-        <p>${branding?.address || ''}</p>
-        <p>${branding?.phone || ''} | ${branding?.email || ''}</p>
-      </div>
-
-      <h2 style="text-align: center; margin-bottom: 20px;">
-        INVOICE
-        <span class="badge badge-${invoice.status}">${invoice.status.toUpperCase()}</span>
-      </h2>
-
-      <div class="info-grid">
-        <div class="info-box">
-          <h3>Bill To:</h3>
-          <p><strong>${invoice.supplierName || 'N/A'}</strong></p>
-          <p>Supplier ID: ${invoice.supplierId}</p>
+      <head>
+        <meta charset="utf-8">
+        <title>${data.title}</title>
+        <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
+          body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            padding: 40px;
+            color: #1a1a1a;
+            background: white;
+          }
+          
+          .header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #2a5934;
+          }
+          
+          .title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2a5934;
+            margin-bottom: 8px;
+          }
+          
+          .subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 8px;
+          }
+          
+          .date {
+            font-size: 12px;
+            color: #999;
+          }
+          
+          .summary {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+          }
+          
+          .summary-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2a5934;
+          }
+          
+          .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+          }
+          
+          .summary-item {
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            border-left: 4px solid #2a5934;
+          }
+          
+          .summary-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+          }
+          
+          .summary-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1a1a1a;
+          }
+          
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 12px;
+          }
+          
+          thead {
+            background: #2a5934;
+            color: white;
+          }
+          
+          th {
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid #ddd;
+          }
+          
+          td {
+            padding: 10px 8px;
+            border: 1px solid #ddd;
+          }
+          
+          tbody tr:nth-child(even) {
+            background: #f9f9f9;
+          }
+          
+          tbody tr:hover {
+            background: #f0f0f0;
+          }
+          
+          .text-right {
+            text-align: right;
+          }
+          
+          .text-center {
+            text-align: center;
+          }
+          
+          .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+          }
+          
+          .badge-success {
+            background: #d4edda;
+            color: #155724;
+          }
+          
+          .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+          }
+          
+          .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+          }
+          
+          .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
+          }
+          
+          .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e5e5;
+            text-align: center;
+            font-size: 11px;
+            color: #999;
+          }
+          
+          .page-break {
+            page-break-after: always;
+          }
+          
+          @media print {
+            body {
+              padding: 20px;
+            }
+            
+            .no-print {
+              display: none;
+            }
+            
+            table {
+              page-break-inside: auto;
+            }
+            
+            tr {
+              page-break-inside: avoid;
+              page-break-after: auto;
+            }
+            
+            thead {
+              display: table-header-group;
+            }
+            
+            tfoot {
+              display: table-footer-group;
+            }
+          }
+          
+          .chart-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            page-break-inside: avoid;
+          }
+          
+          .chart-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2a5934;
+          }
+          
+          .chart-placeholder {
+            background: white;
+            border: 2px dashed #ddd;
+            border-radius: 4px;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="title">${data.title}</div>
+          ${data.subtitle ? `<div class="subtitle">${data.subtitle}</div>` : ''}
+          <div class="date">Generated: ${data.date}</div>
         </div>
-        <div class="info-box" style="text-align: right;">
-          <p><strong>Invoice #:</strong> ${invoice.invoiceNumber}</p>
-          <p><strong>Invoice Date:</strong> ${formatDate(invoice.invoiceDate)}</p>
-          <p><strong>Due Date:</strong> ${formatDate(invoice.dueDate)}</p>
-          <p><strong>Payment Terms:</strong> ${invoice.paymentTerms}</p>
-        </div>
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Description</th>
-            <th>Qty</th>
-            <th>Unit</th>
-            <th class="text-right">Unit Price</th>
-            <th class="text-right">Tax</th>
-            <th class="text-right">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${invoice.items.map(item => `
-            <tr>
-              <td>${item.name}</td>
-              <td>${item.quantity}</td>
-              <td>${item.unit}</td>
-              <td class="text-right">${formatCurrency(item.unitPrice)}</td>
-              <td class="text-right">${formatCurrency(item.taxAmount)}</td>
-              <td class="text-right">${formatCurrency(item.total)}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-
-      <div class="totals">
+        
+        ${data.summary && data.summary.length > 0 ? `
+          <div class="summary">
+            <div class="summary-title">Summary</div>
+            <div class="summary-grid">
+              ${data.summary.map(item => `
+                <div class="summary-item">
+                  <div class="summary-label">${item.label}</div>
+                  <div class="summary-value">${item.value}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+        
+        ${chartHTML}
+        
         <table>
-          <tr>
-            <td>Subtotal:</td>
-            <td class="text-right">${formatCurrency(invoice.subtotal)}</td>
-          </tr>
-          ${invoice.discountAmount ? `
-          <tr>
-            <td>Discount ${invoice.discountPercentage ? `(${invoice.discountPercentage}%)` : ''}:</td>
-            <td class="text-right">-${formatCurrency(invoice.discountAmount)}</td>
-          </tr>
-          ` : ''}
-          <tr>
-            <td>Tax (${invoice.taxRate}%):</td>
-            <td class="text-right">${formatCurrency(invoice.taxAmount)}</td>
-          </tr>
-          <tr class="total-row">
-            <td>Total Amount:</td>
-            <td class="text-right">${formatCurrency(invoice.total)}</td>
-          </tr>
-          ${invoice.amountPaid > 0 ? `
-          <tr>
-            <td>Amount Paid:</td>
-            <td class="text-right">${formatCurrency(invoice.amountPaid)}</td>
-          </tr>
-          <tr class="total-row">
-            <td>Balance Due:</td>
-            <td class="text-right">${formatCurrency(invoice.balance)}</td>
-          </tr>
-          ` : ''}
+          <thead>
+            <tr>
+              ${data.headers.map(h => `<th>${h}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${data.rows.map(row => `
+              <tr>
+                ${row.map(cell => `<td>${cell}</td>`).join('')}
+              </tr>
+            `).join('')}
+          </tbody>
         </table>
-      </div>
-
-      ${invoice.notes ? `
-      <div style="margin-top: 30px;">
-        <h3>Notes:</h3>
-        <p>${invoice.notes}</p>
-      </div>
-      ` : ''}
-
-      <div class="footer">
-        <p>Thank you for your business!</p>
-        <p>Generated on ${formatDateTime(Date.now())}</p>
-      </div>
-    </body>
+        
+        <div class="footer">
+          <p>W3 Hotel PMS - Analytics Report</p>
+          <p>© ${new Date().getFullYear()} Design & Developed by W3 Media PVT LTD</p>
+        </div>
+        
+        <div class="no-print" style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
+          <button onclick="window.print()" style="
+            padding: 12px 24px;
+            background: #2a5934;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          ">
+            Print / Save as PDF
+          </button>
+          <button onclick="window.close()" style="
+            padding: 12px 24px;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          ">
+            Close
+          </button>
+        </div>
+      </body>
     </html>
   `
+  
+  printWindow.document.write(html)
+  printWindow.document.close()
 }
 
-export function printInvoicePDF(invoice: Invoice, branding?: any) {
-  const htmlContent = generateInvoicePDF(invoice, branding)
-  const printWindow = window.open('', '_blank')
-  if (printWindow) {
-    printWindow.document.write(htmlContent)
-    printWindow.document.close()
-    printWindow.onload = () => {
-      printWindow.print()
-    }
+function generateChartHTML(charts: ExportData['chartData']): string {
+  if (!charts) return ''
+  
+  return charts.map((chart, index) => `
+    <div class="chart-container">
+      <div class="chart-title">Chart ${index + 1}: ${chart.type.charAt(0).toUpperCase() + chart.type.slice(1)} Chart</div>
+      <div class="chart-placeholder">
+        Chart visualization (${chart.data.length} data points)
+        <br><small>Charts are best viewed in the application interface</small>
+      </div>
+    </div>
+  `).join('')
+}
+
+export function exportToExcel(data: ExportData): void {
+  let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">'
+  html += '<head><meta charset="utf-8"><style>table { border-collapse: collapse; } th, td { border: 1px solid #ddd; padding: 8px; } th { background-color: #2a5934; color: white; font-weight: bold; }</style></head>'
+  html += '<body>'
+  
+  html += `<h1>${data.title}</h1>`
+  if (data.subtitle) {
+    html += `<h3>${data.subtitle}</h3>`
+  }
+  html += `<p>Generated: ${data.date}</p><br>`
+
+  if (data.summary && data.summary.length > 0) {
+    html += '<h3>Summary</h3>'
+    html += '<table><tbody>'
+    data.summary.forEach(item => {
+      html += `<tr><td><strong>${item.label}</strong></td><td>${item.value}</td></tr>`
+    })
+    html += '</tbody></table><br>'
+  }
+
+  html += '<table>'
+  html += '<thead><tr>'
+  data.headers.forEach(header => {
+    html += `<th>${header}</th>`
+  })
+  html += '</tr></thead><tbody>'
+  
+  data.rows.forEach(row => {
+    html += '<tr>'
+    row.forEach(cell => {
+      html += `<td>${cell}</td>`
+    })
+    html += '</tr>'
+  })
+  
+  html += '</tbody></table></body></html>'
+
+  const blob = new Blob([html], { type: 'application/vnd.ms-excel' })
+  const link = document.createElement('a')
+  const url = URL.createObjectURL(blob)
+  
+  link.setAttribute('href', url)
+  link.setAttribute('download', `${data.title.replace(/\s+/g, '_')}_${Date.now()}.xls`)
+  link.style.visibility = 'hidden'
+  
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
+export function formatValueForExport(value: any): string | number {
+  if (value === null || value === undefined) {
+    return 'N/A'
+  }
+  
+  if (typeof value === 'boolean') {
+    return value ? 'Yes' : 'No'
+  }
+  
+  if (typeof value === 'number') {
+    return value
+  }
+  
+  if (value instanceof Date) {
+    return value.toLocaleDateString()
+  }
+  
+  return String(value)
+}
+
+export function prepareTableDataForExport(
+  headers: string[],
+  rows: any[][],
+  title: string,
+  subtitle?: string,
+  summary?: { label: string; value: string | number }[]
+): ExportData {
+  return {
+    title,
+    subtitle,
+    date: new Date().toLocaleString(),
+    headers,
+    rows: rows.map(row => row.map(formatValueForExport)),
+    summary
   }
 }
 
-export function downloadInvoicePDF(invoice: Invoice, branding?: any) {
-  const htmlContent = generateInvoicePDF(invoice, branding)
-  downloadFile(htmlContent, `invoice-${invoice.invoiceNumber}.html`, 'text/html')
+export function exportInvoicesToCSV(invoices: any[]): void {
+  const data = prepareTableDataForExport(
+    ['Invoice #', 'Date', 'Supplier', 'Amount', 'Status'],
+    invoices.map(inv => [
+      inv.invoiceNumber || inv.id,
+      formatValueForExport(inv.date || inv.invoiceDate),
+      inv.supplier || inv.supplierName || 'N/A',
+      inv.amount || inv.totalAmount || 0,
+      inv.status || 'Pending'
+    ]),
+    'Invoices Report'
+  )
+  exportToCSV(data)
+}
+
+export function exportPaymentsToCSV(payments: any[]): void {
+  const data = prepareTableDataForExport(
+    ['Payment #', 'Date', 'Amount', 'Method', 'Reference'],
+    payments.map(pmt => [
+      pmt.paymentNumber || pmt.id,
+      formatValueForExport(pmt.date || pmt.paymentDate),
+      pmt.amount,
+      pmt.method || pmt.paymentMethod || 'N/A',
+      pmt.reference || 'N/A'
+    ]),
+    'Payments Report'
+  )
+  exportToCSV(data)
+}
+
+export function exportExpensesToCSV(expenses: any[]): void {
+  const data = prepareTableDataForExport(
+    ['Expense #', 'Date', 'Category', 'Amount', 'Description'],
+    expenses.map(exp => [
+      exp.expenseNumber || exp.id,
+      formatValueForExport(exp.date || exp.expenseDate),
+      exp.category,
+      exp.amount,
+      exp.description || 'N/A'
+    ]),
+    'Expenses Report'
+  )
+  exportToCSV(data)
+}
+
+export function exportJournalEntriesToCSV(entries: any[]): void {
+  const data = prepareTableDataForExport(
+    ['Entry #', 'Date', 'Account', 'Debit', 'Credit', 'Description'],
+    entries.map(entry => [
+      entry.entryNumber || entry.id,
+      formatValueForExport(entry.date || entry.entryDate),
+      entry.account || entry.accountName || 'N/A',
+      entry.debit || 0,
+      entry.credit || 0,
+      entry.description || 'N/A'
+    ]),
+    'Journal Entries Report'
+  )
+  exportToCSV(data)
+}
+
+export function exportBudgetsToCSV(budgets: any[]): void {
+  const data = prepareTableDataForExport(
+    ['Budget', 'Period', 'Allocated', 'Spent', 'Remaining'],
+    budgets.map(budget => [
+      budget.name || budget.category,
+      budget.period || 'N/A',
+      budget.allocated || budget.budgetAllocated || 0,
+      budget.spent || budget.actualSpent || 0,
+      budget.remaining || 0
+    ]),
+    'Budgets Report'
+  )
+  exportToCSV(data)
+}
+
+export function exportTrialBalanceToCSV(data: any[]): void {
+  const exportData = prepareTableDataForExport(
+    ['Account', 'Debit', 'Credit'],
+    data.map(item => [
+      item.account || item.accountName,
+      item.debit || 0,
+      item.credit || 0
+    ]),
+    'Trial Balance Report'
+  )
+  exportToCSV(exportData)
+}
+
+export function exportProfitLossToCSV(data: any): void {
+  const rows: any[][] = []
+  
+  if (data.revenue) {
+    rows.push(['Revenue', '', data.revenue])
+  }
+  if (data.expenses) {
+    rows.push(['Expenses', '', data.expenses])
+  }
+  if (data.netProfit !== undefined) {
+    rows.push(['Net Profit/Loss', '', data.netProfit])
+  }
+  
+  const exportData = prepareTableDataForExport(
+    ['Category', 'Details', 'Amount'],
+    rows,
+    'Profit & Loss Statement'
+  )
+  exportToCSV(exportData)
+}
+
+export function exportBalanceSheetToCSV(data: any): void {
+  const rows: any[][] = []
+  
+  if (data.assets) {
+    rows.push(['Assets', '', data.assets])
+  }
+  if (data.liabilities) {
+    rows.push(['Liabilities', '', data.liabilities])
+  }
+  if (data.equity) {
+    rows.push(['Equity', '', data.equity])
+  }
+  
+  const exportData = prepareTableDataForExport(
+    ['Category', 'Details', 'Amount'],
+    rows,
+    'Balance Sheet'
+  )
+  exportToCSV(exportData)
 }

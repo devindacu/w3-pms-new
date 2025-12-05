@@ -85,6 +85,9 @@ import type {
 } from '@/lib/types'
 import { AdvancedFilterDialog, type AdvancedFilter, type FilterField } from '@/components/AdvancedFilterDialog'
 import { PercentageChangeIndicator, PercentageChangeBadge } from '@/components/PercentageChangeIndicator'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Checkbox } from '@/components/ui/checkbox'
+import { exportToCSV, exportToPDF, exportToExcel, prepareTableDataForExport, type ExportData } from '@/lib/exportHelpers'
 
 interface AnalyticsProps {
   orders: Order[]
@@ -99,6 +102,13 @@ interface AnalyticsProps {
 
 type ReportPeriod = 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom'
 type ReportCategory = 'operational' | 'financial' | 'kitchen'
+type ExportFormat = 'csv' | 'pdf' | 'excel'
+
+interface ExportDialogState {
+  open: boolean
+  reportType: string
+  data: ExportData | null
+}
 
 interface ComparisonPeriod {
   id: string
@@ -126,6 +136,8 @@ export function Analytics({
   const [savedFilters, setSavedFilters] = useKV<AdvancedFilter[]>('analytics-saved-filters', [])
   const [comparisonMode, setComparisonMode] = useState(false)
   const [comparisonPeriods, setComparisonPeriods] = useState<ComparisonPeriod[]>([])
+  const [exportDialog, setExportDialog] = useState<ExportDialogState>({ open: false, reportType: '', data: null })
+  const [includeCharts, setIncludeCharts] = useState(false)
   
   const comparisonColors = [
     'var(--chart-1)',
@@ -218,6 +230,35 @@ export function Analytics({
     toast.success('Filter cleared')
   }
 
+  const handleOpenExportDialog = (reportType: string, data: ExportData) => {
+    setExportDialog({ open: true, reportType, data })
+  }
+
+  const handleExportFormat = async (format: ExportFormat) => {
+    if (!exportDialog.data) return
+
+    try {
+      switch (format) {
+        case 'csv':
+          exportToCSV(exportDialog.data)
+          toast.success('Report exported as CSV successfully')
+          break
+        case 'pdf':
+          await exportToPDF(exportDialog.data, includeCharts)
+          toast.success('Report exported as PDF successfully')
+          break
+        case 'excel':
+          exportToExcel(exportDialog.data)
+          toast.success('Report exported as Excel successfully')
+          break
+      }
+      setExportDialog({ open: false, reportType: '', data: null })
+      setIncludeCharts(false)
+    } catch (error) {
+      toast.error(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
   const handleExport = (format: 'csv' | 'pdf' | 'excel') => {
     toast.success(`Exporting report as ${format.toUpperCase()}`)
   }
@@ -232,6 +273,27 @@ export function Analytics({
     const deptConsumption = generateDepartmentConsumption(consumptionLogs, foodItems)
     const grnVariance = generateGRNVariance(grns, purchaseOrders)
     const expiryForecast = generateExpiryForecast(foodItems)
+
+    const exportOrderSummary = () => {
+      const data = prepareTableDataForExport(
+        ['Date', 'Orders', 'Revenue', 'Avg Value'],
+        orderSummary.breakdown.map(item => [
+          item.period,
+          item.orderCount,
+          `LKR ${item.revenue.toLocaleString()}`,
+          `LKR ${item.averageValue.toLocaleString()}`
+        ]),
+        'Order Summary Report',
+        `${period.charAt(0).toUpperCase() + period.slice(1)} overview of orders`,
+        [
+          { label: 'Total Orders', value: orderSummary.totalOrders },
+          { label: 'Total Revenue', value: `LKR ${orderSummary.totalRevenue.toLocaleString()}` },
+          { label: 'Average Order Value', value: `LKR ${orderSummary.averageOrderValue.toLocaleString()}` },
+          { label: 'Items Sold', value: orderSummary.totalItemsSold }
+        ]
+      )
+      handleOpenExportDialog('Order Summary', data)
+    }
 
     const getPreviousPeriodData = () => {
       const now = Date.now()
@@ -284,7 +346,7 @@ export function Analytics({
               </p>
             </div>
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => handleExport('csv')}>
+              <Button size="sm" variant="outline" onClick={exportOrderSummary}>
                 <Download size={16} className="mr-2" />
                 Export
               </Button>
@@ -687,6 +749,27 @@ export function Analytics({
     const purchaseTrends = generatePurchaseTrends(purchaseOrders, period)
     const budgetUtil = generateBudgetUtilization(purchaseOrders, consumptionLogs, foodItems)
 
+    const exportCostPerDept = () => {
+      const data = prepareTableDataForExport(
+        ['Department', 'Items', 'Quantity', 'Total Cost', '% of Total'],
+        costPerDept.map(dept => [
+          dept.department,
+          dept.itemCount,
+          dept.totalQuantity.toFixed(2),
+          `LKR ${dept.totalCost.toLocaleString()}`,
+          `${dept.percentageOfTotal.toFixed(1)}%`
+        ]),
+        'Cost Per Department Report',
+        'Breakdown of costs by department',
+        [
+          { label: 'Total Cost', value: `LKR ${costPerDept.reduce((sum, d) => sum + d.totalCost, 0).toLocaleString()}` },
+          { label: 'Departments', value: costPerDept.length },
+          { label: 'Highest Cost', value: costPerDept.length > 0 ? costPerDept[0].department : 'N/A' }
+        ]
+      )
+      handleOpenExportDialog('Cost Per Department', data)
+    }
+
     return (
       <div className="space-y-6">
         <Card className="p-6">
@@ -696,7 +779,7 @@ export function Analytics({
               <p className="text-sm text-muted-foreground">Breakdown of costs by department</p>
             </div>
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => handleExport('csv')}>
+              <Button size="sm" variant="outline" onClick={exportCostPerDept}>
                 <Download size={16} className="mr-2" />
                 Export
               </Button>
@@ -1032,6 +1115,23 @@ export function Analytics({
     const dishProfit = generateDishProfitability(recipes, orders, foodItems)
     const menuPerf = generateMenuPerformance(menus, orders, recipes)
 
+    const exportIngredientUsage = () => {
+      const data = prepareTableDataForExport(
+        ['Ingredient', 'Category', 'Times Used', 'Total Quantity', 'Unit', 'Estimated Cost'],
+        ingredientUsage.map(item => [
+          item.ingredientName,
+          item.category,
+          item.usageCount,
+          item.totalQuantity.toFixed(2),
+          item.unit,
+          `LKR ${item.estimatedCost.toLocaleString()}`
+        ]),
+        'Ingredient Usage Summary',
+        'Most used ingredients in recipes'
+      )
+      handleOpenExportDialog('Ingredient Usage', data)
+    }
+
     return (
       <div className="space-y-6">
         <Card className="p-6">
@@ -1041,7 +1141,7 @@ export function Analytics({
               <p className="text-sm text-muted-foreground">Most used ingredients in recipes</p>
             </div>
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => handleExport('csv')}>
+              <Button size="sm" variant="outline" onClick={exportIngredientUsage}>
                 <Download size={16} className="mr-2" />
                 Export
               </Button>
@@ -1266,6 +1366,78 @@ export function Analytics({
           Refresh Data
         </Button>
       </div>
+
+      <Dialog open={exportDialog.open} onOpenChange={(open) => !open && setExportDialog({ open: false, reportType: '', data: null })}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Export Report</DialogTitle>
+            <DialogDescription>
+              Choose export format for {exportDialog.reportType}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Select Export Format:</p>
+              <div className="grid grid-cols-3 gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => handleExportFormat('csv')}
+                  className="h-20 flex flex-col gap-2"
+                >
+                  <FileText size={24} />
+                  <span className="text-xs">CSV</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleExportFormat('pdf')}
+                  className="h-20 flex flex-col gap-2"
+                >
+                  <Receipt size={24} />
+                  <span className="text-xs">PDF</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleExportFormat('excel')}
+                  className="h-20 flex flex-col gap-2"
+                >
+                  <FileText size={24} />
+                  <span className="text-xs">Excel</span>
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 p-3 bg-muted rounded-md">
+              <Checkbox
+                id="include-charts"
+                checked={includeCharts}
+                onCheckedChange={(checked) => setIncludeCharts(checked as boolean)}
+              />
+              <label
+                htmlFor="include-charts"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Include charts in PDF export
+              </label>
+            </div>
+
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p>• CSV: Best for data analysis in spreadsheet software</p>
+              <p>• PDF: Professional format for presentations and printing</p>
+              <p>• Excel: Formatted spreadsheet with styling</p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setExportDialog({ open: false, reportType: '', data: null })}
+            >
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Card className="p-6">
         <div className="flex flex-wrap items-end gap-4">
