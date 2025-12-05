@@ -93,6 +93,7 @@ export function Procurement({
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | undefined>()
   const [isScanning, setIsScanning] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [showOnlyNeedsMatching, setShowOnlyNeedsMatching] = useState(false)
 
   const getRequisitionStatusBadge = (status: string) => {
     const variants = {
@@ -689,31 +690,68 @@ export function Procurement({
       setInvoiceDialogOpen(true)
     }
 
+    const needsThreeWayMatching = (invoice: Invoice) => {
+      return invoice.purchaseOrderId && 
+             (invoice.status === 'pending-validation' || 
+              invoice.status === 'validated' || 
+              invoice.status === 'mismatch') &&
+             !invoice.matchingResult
+    }
+
+    const filteredInvoices = showOnlyNeedsMatching 
+      ? invoices.filter(needsThreeWayMatching)
+      : invoices
+
+    const needsMatchingCount = invoices.filter(needsThreeWayMatching).length
+
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold">Supplier Invoice Management</h2>
-            <p className="text-muted-foreground mt-1">Create, edit, and manage supplier invoices</p>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">Supplier Invoice Management</h2>
+              <p className="text-muted-foreground mt-1">Create, edit, and manage supplier invoices</p>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleCreateInvoice}>
+                <Plus size={20} className="mr-2" />
+                Create Invoice
+              </Button>
+              <Button asChild variant="outline">
+                <label className="cursor-pointer flex items-center gap-2">
+                  <Receipt size={20} />
+                  Upload Invoice
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    disabled={isScanning}
+                  />
+                </label>
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={handleCreateInvoice}>
-              <Plus size={20} className="mr-2" />
-              Create Invoice
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant={showOnlyNeedsMatching ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setShowOnlyNeedsMatching(!showOnlyNeedsMatching)}
+            >
+              <ArrowsClockwise size={16} className="mr-2" />
+              Needs 3-Way Matching
+              {needsMatchingCount > 0 && (
+                <Badge variant="secondary" className="ml-2">
+                  {needsMatchingCount}
+                </Badge>
+              )}
             </Button>
-            <Button asChild variant="outline">
-              <label className="cursor-pointer flex items-center gap-2">
-                <Receipt size={20} />
-                Upload Invoice
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                  disabled={isScanning}
-                />
-              </label>
-            </Button>
+            {showOnlyNeedsMatching && (
+              <p className="text-sm text-muted-foreground">
+                Showing {filteredInvoices.length} invoice{filteredInvoices.length !== 1 ? 's' : ''} that need matching
+              </p>
+            )}
           </div>
         </div>
 
@@ -729,13 +767,11 @@ export function Procurement({
 
           <Card className="p-6 border-l-4 border-l-accent">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-muted-foreground">Pending</h3>
-              <Clock size={20} className="text-accent" />
+              <h3 className="text-sm font-medium text-muted-foreground">Needs Matching</h3>
+              <ArrowsClockwise size={20} className="text-accent" />
             </div>
-            <p className="text-3xl font-semibold">
-              {invoices.filter(i => i.status === 'pending-validation').length}
-            </p>
-            <p className="text-sm text-muted-foreground mt-1">Awaiting validation</p>
+            <p className="text-3xl font-semibold">{needsMatchingCount}</p>
+            <p className="text-sm text-muted-foreground mt-1">Ready for 3-way matching</p>
           </Card>
 
           <Card className="p-6 border-l-4 border-l-destructive">
@@ -767,10 +803,24 @@ export function Procurement({
               <Receipt size={48} className="mx-auto text-muted-foreground mb-4" />
               <p className="text-muted-foreground">No invoices scanned yet. Upload an invoice to get started.</p>
             </Card>
+          ) : filteredInvoices.length === 0 ? (
+            <Card className="p-12 text-center">
+              <ArrowsClockwise size={48} className="mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">No invoices need three-way matching at the moment.</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-4"
+                onClick={() => setShowOnlyNeedsMatching(false)}
+              >
+                Show All Invoices
+              </Button>
+            </Card>
           ) : (
-            invoices.map((invoice) => {
+            filteredInvoices.map((invoice) => {
               const supplier = suppliers.find(s => s.id === invoice.supplierId)
               const po = purchaseOrders.find(p => p.id === invoice.purchaseOrderId)
+              const needsMatching = needsThreeWayMatching(invoice)
               
               return (
                 <Card key={invoice.id} className="p-6">
@@ -779,6 +829,12 @@ export function Procurement({
                       <div className="flex items-center gap-3">
                         <h3 className="text-lg font-semibold">{invoice.invoiceNumber}</h3>
                         {getStatusBadge(invoice.status)}
+                        {needsMatching && (
+                          <Badge variant="outline" className="border-accent text-accent">
+                            <ArrowsClockwise size={14} className="mr-1" />
+                            Needs Matching
+                          </Badge>
+                        )}
                         {(invoice as any).confidence && (
                           <Badge variant="secondary">
                             Confidence: {((invoice as any).confidence * 100).toFixed(0)}%
