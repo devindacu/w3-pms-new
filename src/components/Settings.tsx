@@ -7,6 +7,7 @@ import { TaxSettings } from '@/components/TaxSettings'
 import { UserPreferences } from '@/components/UserPreferences'
 import { EmailTemplateManagement } from '@/components/EmailTemplateSettings'
 import { EmailTemplateAnalyticsComponent } from '@/components/EmailTemplateAnalytics'
+import { DialogSettings } from '@/components/DialogSettings'
 import type { 
   HotelBranding, 
   TaxConfiguration, 
@@ -23,7 +24,8 @@ import {
   Receipt,
   User,
   EnvelopeSimple,
-  ChartBar
+  ChartBar,
+  FrameCorners
 } from '@phosphor-icons/react'
 
 interface SettingsProps {
@@ -65,7 +67,7 @@ export function Settings({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 gap-1">
           <TabsTrigger value="branding" className="gap-2">
             <Palette size={18} />
             <span className="hidden sm:inline">Branding</span>
@@ -73,6 +75,10 @@ export function Settings({
           <TabsTrigger value="system" className="gap-2">
             <Gear size={18} />
             <span className="hidden sm:inline">System</span>
+          </TabsTrigger>
+          <TabsTrigger value="dialogs" className="gap-2">
+            <FrameCorners size={18} />
+            <span className="hidden sm:inline">Dialogs</span>
           </TabsTrigger>
           <TabsTrigger value="tax" className="gap-2">
             <Receipt size={18} />
@@ -106,6 +112,10 @@ export function Settings({
             setBranding={setBranding}
             currentUser={currentUser}
           />
+        </TabsContent>
+
+        <TabsContent value="dialogs" className="mt-6">
+          <DialogSettings />
         </TabsContent>
 
         <TabsContent value="tax" className="mt-6">
