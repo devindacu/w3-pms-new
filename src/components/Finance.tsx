@@ -49,6 +49,7 @@ import { ARAgingDialog } from './ARAgingDialog'
 import { CashFlowStatementDialog } from './CashFlowStatementDialog'
 import { DepartmentalPLDialog } from './DepartmentalPLDialog'
 import { BudgetVarianceDialog } from './BudgetVarianceDialog'
+import { BulkApprovalDialog } from './BulkApprovalDialog'
 import { toast } from 'sonner'
 
 interface FinanceProps {
@@ -105,6 +106,7 @@ export function Finance({
   const [cashFlowDialogOpen, setCashFlowDialogOpen] = useState(false)
   const [departmentalPLDialogOpen, setDepartmentalPLDialogOpen] = useState(false)
   const [budgetVarianceDialogOpen, setBudgetVarianceDialogOpen] = useState(false)
+  const [bulkApprovalDialogOpen, setBulkApprovalDialogOpen] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | undefined>()
   const [selectedPayment, setSelectedPayment] = useState<Payment | undefined>()
   const [selectedExpense, setSelectedExpense] = useState<Expense | undefined>()
@@ -236,6 +238,28 @@ export function Finance({
   const handleEditReconciliation = (reconciliation: BankReconciliation) => {
     setSelectedReconciliation(reconciliation)
     setReconciliationDialogOpen(true)
+  }
+
+  const handleBulkApprove = (invoiceIds: string[], notes?: string) => {
+    const now = Date.now()
+    
+    setInvoices((currentInvoices) => 
+      currentInvoices.map((invoice) => {
+        if (invoiceIds.includes(invoice.id)) {
+          return {
+            ...invoice,
+            status: 'approved' as const,
+            approvedBy: currentUser.id,
+            approvedAt: now,
+            internalNotes: notes 
+              ? `${invoice.internalNotes || ''}\n\nBulk Approval (${formatDate(now)}): ${notes}`.trim()
+              : invoice.internalNotes,
+            updatedAt: now
+          }
+        }
+        return invoice
+      })
+    )
   }
 
   const exportReconciliationReport = (reconciliation: BankReconciliation) => {
@@ -621,10 +645,22 @@ export function Finance({
           <Card className="p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold">All Invoices</h3>
-              <Button onClick={handleNewInvoice}>
-                <Plus size={18} className="mr-2" />
-                New Invoice
-              </Button>
+              <div className="flex gap-2">
+                {pendingInvoices > 0 && (
+                  <Button 
+                    variant="default" 
+                    onClick={() => setBulkApprovalDialogOpen(true)}
+                    className="bg-primary"
+                  >
+                    <ListChecks size={18} className="mr-2" />
+                    Bulk Approve ({pendingInvoices})
+                  </Button>
+                )}
+                <Button onClick={handleNewInvoice}>
+                  <Plus size={18} className="mr-2" />
+                  New Invoice
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -1479,6 +1515,14 @@ export function Finance({
         budgets={budgets}
         expenses={expenses}
         invoices={invoices}
+      />
+
+      <BulkApprovalDialog
+        open={bulkApprovalDialogOpen}
+        onOpenChange={setBulkApprovalDialogOpen}
+        invoices={invoices}
+        onApprove={handleBulkApprove}
+        currentUser={currentUser}
       />
     </div>
   )
