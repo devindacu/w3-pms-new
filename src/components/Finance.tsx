@@ -53,6 +53,7 @@ import { CashFlowStatementDialog } from './CashFlowStatementDialog'
 import { DepartmentalPLDialog } from './DepartmentalPLDialog'
 import { BudgetVarianceDialog } from './BudgetVarianceDialog'
 import { BulkApprovalDialog } from './BulkApprovalDialog'
+import { FinanceReportsDialog } from './FinanceReportsDialog'
 import { toast } from 'sonner'
 
 interface FinanceProps {
@@ -110,6 +111,7 @@ export function Finance({
   const [departmentalPLDialogOpen, setDepartmentalPLDialogOpen] = useState(false)
   const [budgetVarianceDialogOpen, setBudgetVarianceDialogOpen] = useState(false)
   const [bulkApprovalDialogOpen, setBulkApprovalDialogOpen] = useState(false)
+  const [reportsDialogOpen, setReportsDialogOpen] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | undefined>()
   const [selectedPayment, setSelectedPayment] = useState<Payment | undefined>()
   const [selectedExpense, setSelectedExpense] = useState<Expense | undefined>()
@@ -593,11 +595,11 @@ export function Finance({
           <p className="text-muted-foreground mt-1">Manage invoices, payments, expenses, and budgets</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => setReportsDialogOpen(true)}>
             <Download size={18} className="mr-2" />
             Export Reports
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => setSelectedTab('reports')}>
             <ChartBar size={18} className="mr-2" />
             Analytics
           </Button>
@@ -1922,6 +1924,16 @@ export function Finance({
         invoices={invoices}
         onApprove={handleBulkApprove}
         currentUser={currentUser}
+      />
+
+      <FinanceReportsDialog
+        open={reportsDialogOpen}
+        onOpenChange={setReportsDialogOpen}
+        invoices={invoices}
+        payments={payments}
+        expenses={expenses}
+        journalEntries={journalEntries}
+        budgets={budgets}
       />
     </div>
   )
