@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useKV } from '@github/spark/hooks'
 import { Notification } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -19,7 +19,7 @@ export function DashboardAlerts({
   onDismiss,
   onViewAll
 }: DashboardAlertsProps) {
-  const [isCollapsed, setIsCollapsed] = useState(true)
+  const [isCollapsed, setIsCollapsed] = useKV<boolean>('dashboard-alerts-collapsed', true)
   
   const activeNotifications = notifications
     .filter(n => n.status === 'unread' && (n.priority === 'critical' || n.priority === 'high'))
@@ -51,7 +51,7 @@ export function DashboardAlerts({
             variant="ghost" 
             size="icon"
             className="h-8 w-8"
-            onClick={() => setIsCollapsed(!isCollapsed)}
+            onClick={() => setIsCollapsed((current) => !current)}
           >
             {isCollapsed ? <CaretDown size={18} /> : <CaretUp size={18} />}
           </Button>
