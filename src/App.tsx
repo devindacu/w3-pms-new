@@ -1013,7 +1013,7 @@ function App() {
           <SidebarContent />
         </SheetContent>
 
-        <main className="flex-1 overflow-auto lg:ml-64">
+        <main className="flex-1 flex flex-col lg:ml-64 min-h-screen">
           <div className="lg:hidden sticky top-0 z-30 bg-background border-b px-4 py-3 flex items-center justify-between">
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -1035,7 +1035,7 @@ function App() {
             />
           </div>
 
-        <div className="p-4 md:p-6 lg:p-8">
+        <div className="flex-1 p-4 md:p-6 lg:p-8">
           {currentModule === 'dashboard' && renderDashboard()}
           {currentModule === 'front-office' && (
             <FrontOffice
@@ -1320,7 +1320,7 @@ function App() {
           )}
         </div>
         
-        <footer className="relative border-t border-border/50 mt-auto overflow-hidden">
+        <footer className="border-t border-border/50 overflow-hidden mt-auto">
           <div 
             className="absolute inset-0 opacity-100"
             style={{

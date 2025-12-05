@@ -19,7 +19,7 @@ export function DashboardAlerts({
   onDismiss,
   onViewAll
 }: DashboardAlertsProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(true)
   
   const activeNotifications = notifications
     .filter(n => n.status === 'unread' && (n.priority === 'critical' || n.priority === 'high'))
