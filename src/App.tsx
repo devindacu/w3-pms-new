@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import w3MediaLogo from '@/assets/images/W3Media-Web-Green.png'
 import w3PMSLogo from '@/assets/images/W3-PMS.png'
 import {
@@ -34,7 +35,8 @@ import {
   ChefHat,
   Sparkle,
   Bell,
-  List
+  List,
+  FileText
 } from '@phosphor-icons/react'
 import { 
   type Room, 
@@ -155,6 +157,7 @@ import { ExtraServicesManagement } from '@/components/ExtraServicesManagement'
 import { Analytics } from '@/components/Analytics'
 import { Settings } from '@/components/Settings'
 import { Finance } from '@/components/Finance'
+import { InvoiceManagement } from '@/components/InvoiceManagement'
 import type {
   GuestProfile,
   GuestComplaint,
@@ -189,7 +192,7 @@ import type {
   EmailCampaignAnalytics
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoices' | 'settings'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -971,12 +974,12 @@ function App() {
           <Separator className="my-2" />
 
           <Button
-            variant={currentModule === 'invoices' ? 'default' : 'ghost'}
+            variant={currentModule === 'invoice-center' ? 'default' : 'ghost'}
             className="w-full justify-start"
-            onClick={() => setCurrentModule('invoices')}
+            onClick={() => setCurrentModule('invoice-center')}
           >
             <Receipt size={18} className="mr-2" />
-            Invoices
+            Invoice Center
           </Button>
 
           <Button
@@ -1301,7 +1304,150 @@ function App() {
               currentUser={currentUser}
             />
           )}
-          {currentModule === 'invoices' && renderComingSoon('Invoices', <Receipt size={64} />)}
+          {currentModule === 'invoice-center' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl font-semibold">Invoice Center</h1>
+                  <p className="text-muted-foreground mt-1">
+                    Centralized hub for all invoice management - guest invoices, supplier invoices, and payments
+                  </p>
+                </div>
+              </div>
+
+              <Tabs defaultValue="guest" className="space-y-6">
+                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-3">
+                  <TabsTrigger value="guest">
+                    <Receipt size={18} className="mr-2" />
+                    Guest Invoices
+                  </TabsTrigger>
+                  <TabsTrigger value="supplier">
+                    <FileText size={18} className="mr-2" />
+                    Supplier Invoices
+                  </TabsTrigger>
+                  <TabsTrigger value="analytics">
+                    <ChartBar size={18} className="mr-2" />
+                    Analytics
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="guest">
+                  <InvoiceManagement
+                    invoices={guestInvoices || []}
+                    setInvoices={setGuestInvoices}
+                    branding={branding || null}
+                    currentUser={currentUser}
+                  />
+                </TabsContent>
+
+                <TabsContent value="supplier">
+                  <Card className="p-6">
+                    <div className="text-center py-12">
+                      <FileText size={64} className="mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-xl font-semibold mb-2">Supplier Invoice Management</h3>
+                      <p className="text-muted-foreground mb-6">
+                        Manage supplier invoices, approvals, and three-way matching
+                      </p>
+                      <Button onClick={() => setCurrentModule('procurement')}>
+                        Go to Procurement & Invoices
+                      </Button>
+                    </div>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="analytics">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <Card className="p-6 border-l-4 border-l-primary">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm font-medium text-muted-foreground">Guest Invoices</h3>
+                        <Receipt size={20} className="text-primary" />
+                      </div>
+                      <p className="text-3xl font-semibold">{(guestInvoices || []).length}</p>
+                      <div className="mt-3 space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Total Amount:</span>
+                          <span className="font-medium">{formatCurrency((guestInvoices || []).reduce((sum, inv) => sum + inv.grandTotal, 0))}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Amount Due:</span>
+                          <span className="font-medium text-destructive">{formatCurrency((guestInvoices || []).reduce((sum, inv) => sum + inv.amountDue, 0))}</span>
+                        </div>
+                      </div>
+                    </Card>
+
+                    <Card className="p-6 border-l-4 border-l-accent">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm font-medium text-muted-foreground">Supplier Invoices</h3>
+                        <FileText size={20} className="text-accent" />
+                      </div>
+                      <p className="text-3xl font-semibold">{(invoices || []).length}</p>
+                      <div className="mt-3 space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Total Count:</span>
+                          <span className="font-medium">{(invoices || []).length}</span>
+                        </div>
+                      </div>
+                    </Card>
+
+                    <Card className="p-6 border-l-4 border-l-success">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm font-medium text-muted-foreground">Payments</h3>
+                        <CurrencyDollar size={20} className="text-success" />
+                      </div>
+                      <p className="text-3xl font-semibold">{(payments || []).length}</p>
+                      <div className="mt-3 space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Total:</span>
+                          <span className="font-medium">{formatCurrency((payments || []).reduce((sum, p) => sum + p.amount, 0))}</span>
+                        </div>
+                      </div>
+                    </Card>
+
+                    <Card className="p-6 border-l-4 border-l-secondary">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm font-medium text-muted-foreground">Quick Actions</h3>
+                        <ClipboardText size={20} className="text-secondary" />
+                      </div>
+                      <div className="space-y-2 mt-4">
+                        <Button variant="outline" className="w-full justify-start" size="sm">
+                          <Receipt size={16} className="mr-2" />
+                          New Invoice
+                        </Button>
+                        <Button variant="outline" className="w-full justify-start" size="sm" onClick={() => setCurrentModule('finance')}>
+                          <CurrencyDollar size={16} className="mr-2" />
+                          Record Payment
+                        </Button>
+                      </div>
+                    </Card>
+                  </div>
+
+                  <Card className="p-6 mt-6">
+                    <h3 className="text-lg font-semibold mb-4">Recent Guest Invoices</h3>
+                    <div className="space-y-3">
+                      {(guestInvoices || []).slice(0, 5).map((invoice) => (
+                        <div key={invoice.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                          <div>
+                            <p className="font-medium">{invoice.invoiceNumber}</p>
+                            <p className="text-sm text-muted-foreground">{invoice.guestName}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold">{formatCurrency(invoice.grandTotal)}</p>
+                            <Badge className={
+                              invoice.status === 'final' ? 'bg-green-100 text-green-800' :
+                              invoice.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                              'bg-blue-100 text-blue-800'
+                            }>
+                              {invoice.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </div>
+          )}
           {currentModule === 'settings' && (
             <Settings
               branding={branding || null}
