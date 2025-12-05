@@ -6,6 +6,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
   ShoppingCart,
   ClipboardText,
   Package,
@@ -21,7 +27,10 @@ import {
   WarningCircle,
   Gauge,
   Receipt,
-  ArrowsClockwise
+  ArrowsClockwise,
+  DownloadSimple,
+  FileCsv,
+  CaretDown
 } from '@phosphor-icons/react'
 import {
   type Requisition,
@@ -43,6 +52,7 @@ import { GRNDialog } from '@/components/GRNDialog'
 import { POPreviewDialog } from '@/components/POPreviewDialog'
 import { SupplierInvoiceDialog } from '@/components/SupplierInvoiceDialog'
 import { ThreeWayMatchingDialog } from '@/components/ThreeWayMatchingDialog'
+import { BulkApprovalDialog } from '@/components/BulkApprovalDialog'
 import type { InvoiceMatchingResult, SupplierDispute } from '@/lib/types'
 
 interface ProcurementProps {
@@ -95,6 +105,7 @@ export function Procurement({
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [showOnlyNeedsMatching, setShowOnlyNeedsMatching] = useState(false)
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [bulkApprovalDialogOpen, setBulkApprovalDialogOpen] = useState(false)
 
   const getRequisitionStatusBadge = (status: string) => {
     const variants = {
@@ -645,6 +656,214 @@ export function Procurement({
     setThreeWayMatchingDialogOpen(true)
   }
 
+  const handleBulkApprove = async (invoiceIds: string[], notes?: string) => {
+    setInvoices((currentInvoices) =>
+      currentInvoices.map((inv) =>
+        invoiceIds.includes(inv.id)
+          ? {
+              ...inv,
+              status: 'approved',
+              approvedBy: currentUser.id,
+              approvedAt: Date.now(),
+              notes: notes ? `${inv.notes || ''}\n\nApproval Note: ${notes}` : inv.notes
+            }
+          : inv
+      )
+    )
+  }
+
+  const exportApprovedInvoices = () => {
+    const approvedInvoices = invoices.filter(inv => inv.status === 'approved' || inv.status === 'posted')
+
+    if (approvedInvoices.length === 0) {
+      toast.error('No approved invoices to export')
+      return
+    }
+
+    const headers = [
+      'Invoice Number',
+      'Supplier',
+      'PO Number',
+      'GRN Number',
+      'Invoice Date',
+      'Due Date',
+      'Subtotal',
+      'Tax',
+      'Total',
+      'Amount Paid',
+      'Balance',
+      'Status',
+      'Approved By',
+      'Approved Date',
+      'Payment Terms',
+      'Notes'
+    ]
+
+    const rows = approvedInvoices.map(inv => {
+      const supplier = suppliers.find(s => s.id === inv.supplierId)
+      const po = purchaseOrders.find(p => p.id === inv.purchaseOrderId)
+      const grn = grns.find(g => g.id === inv.grnId)
+      const approver = inv.approvedBy
+      
+      return [
+        inv.invoiceNumber,
+        supplier?.name || 'Unknown',
+        po?.poNumber || '-',
+        grn?.grnNumber || '-',
+        formatDate(inv.invoiceDate),
+        formatDate(inv.dueDate),
+        formatCurrency(inv.subtotal),
+        formatCurrency(inv.tax),
+        formatCurrency(inv.total),
+        formatCurrency(inv.amountPaid),
+        formatCurrency(inv.balance),
+        inv.status,
+        approver || '-',
+        inv.approvedAt ? formatDate(inv.approvedAt) : '-',
+        inv.paymentTerms,
+        inv.notes || '-'
+      ]
+    })
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    
+    link.setAttribute('href', url)
+    link.setAttribute('download', `approved-invoices-${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    toast.success(`Exported ${approvedInvoices.length} approved invoice${approvedInvoices.length > 1 ? 's' : ''}`)
+  }
+
+  const exportApprovedInvoicesDetailed = () => {
+    const approvedInvoices = invoices.filter(inv => inv.status === 'approved' || inv.status === 'posted')
+
+    if (approvedInvoices.length === 0) {
+      toast.error('No approved invoices to export')
+      return
+    }
+
+    const headers = [
+      'Invoice Number',
+      'Supplier',
+      'PO Number',
+      'GRN Number',
+      'Invoice Date',
+      'Due Date',
+      'Item Name',
+      'Description',
+      'Quantity',
+      'Unit',
+      'Unit Price',
+      'Item Total',
+      'Subtotal',
+      'Tax',
+      'Total',
+      'Amount Paid',
+      'Balance',
+      'Status',
+      'Approved By',
+      'Approved Date',
+      'Validated By',
+      'Validated Date',
+      'Payment Terms',
+      'Notes'
+    ]
+
+    const rows: string[][] = []
+
+    approvedInvoices.forEach(inv => {
+      const supplier = suppliers.find(s => s.id === inv.supplierId)
+      const po = purchaseOrders.find(p => p.id === inv.purchaseOrderId)
+      const grn = grns.find(g => g.id === inv.grnId)
+
+      if (inv.items && inv.items.length > 0) {
+        inv.items.forEach((item, idx) => {
+          rows.push([
+            idx === 0 ? inv.invoiceNumber : '',
+            idx === 0 ? (supplier?.name || 'Unknown') : '',
+            idx === 0 ? (po?.poNumber || '-') : '',
+            idx === 0 ? (grn?.grnNumber || '-') : '',
+            idx === 0 ? formatDate(inv.invoiceDate) : '',
+            idx === 0 ? formatDate(inv.dueDate) : '',
+            item.itemName || item.name,
+            item.description || '-',
+            item.quantity.toString(),
+            item.unit,
+            formatCurrency(item.unitPrice),
+            formatCurrency(item.total),
+            idx === 0 ? formatCurrency(inv.subtotal) : '',
+            idx === 0 ? formatCurrency(inv.tax) : '',
+            idx === 0 ? formatCurrency(inv.total) : '',
+            idx === 0 ? formatCurrency(inv.amountPaid) : '',
+            idx === 0 ? formatCurrency(inv.balance) : '',
+            idx === 0 ? inv.status : '',
+            idx === 0 ? (inv.approvedBy || '-') : '',
+            idx === 0 ? (inv.approvedAt ? formatDate(inv.approvedAt) : '-') : '',
+            idx === 0 ? (inv.validatedBy || '-') : '',
+            idx === 0 ? (inv.validatedAt ? formatDate(inv.validatedAt) : '-') : '',
+            idx === 0 ? inv.paymentTerms : '',
+            idx === 0 ? (inv.notes || '-') : ''
+          ])
+        })
+      } else {
+        rows.push([
+          inv.invoiceNumber,
+          supplier?.name || 'Unknown',
+          po?.poNumber || '-',
+          grn?.grnNumber || '-',
+          formatDate(inv.invoiceDate),
+          formatDate(inv.dueDate),
+          '-',
+          '-',
+          '-',
+          '-',
+          '-',
+          '-',
+          formatCurrency(inv.subtotal),
+          formatCurrency(inv.tax),
+          formatCurrency(inv.total),
+          formatCurrency(inv.amountPaid),
+          formatCurrency(inv.balance),
+          inv.status,
+          inv.approvedBy || '-',
+          inv.approvedAt ? formatDate(inv.approvedAt) : '-',
+          inv.validatedBy || '-',
+          inv.validatedAt ? formatDate(inv.validatedAt) : '-',
+          inv.paymentTerms,
+          inv.notes || '-'
+        ])
+      }
+    })
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    
+    link.setAttribute('href', url)
+    link.setAttribute('download', `approved-invoices-detailed-${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    toast.success(`Exported ${approvedInvoices.length} approved invoice${approvedInvoices.length > 1 ? 's' : ''} with line items`)
+  }
+
   const renderInvoices = () => {
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0]
@@ -720,6 +939,36 @@ export function Procurement({
               <p className="text-muted-foreground mt-1">Create, edit, and manage supplier invoices</p>
             </div>
             <div className="flex gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="outline"
+                    disabled={invoices.filter(inv => inv.status === 'approved' || inv.status === 'posted').length === 0}
+                  >
+                    <DownloadSimple size={20} className="mr-2" />
+                    Export Approved
+                    <CaretDown size={16} className="ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={exportApprovedInvoices}>
+                    <FileCsv size={16} className="mr-2" />
+                    Summary Report
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportApprovedInvoicesDetailed}>
+                    <FileCsv size={16} className="mr-2" />
+                    Detailed Report (with line items)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button 
+                onClick={() => setBulkApprovalDialogOpen(true)}
+                variant="outline"
+                disabled={invoices.filter(i => i.status === 'pending-validation' || i.status === 'validated' || i.status === 'matched').length === 0}
+              >
+                <CheckCircle size={20} className="mr-2" />
+                Bulk Approve
+              </Button>
               <Button onClick={handleCreateInvoice}>
                 <Plus size={20} className="mr-2" />
                 Create Invoice
@@ -1187,6 +1436,14 @@ export function Procurement({
           onMatchComplete={handleMatchComplete}
         />
       )}
+
+      <BulkApprovalDialog
+        open={bulkApprovalDialogOpen}
+        onOpenChange={setBulkApprovalDialogOpen}
+        invoices={invoices}
+        onApprove={handleBulkApprove}
+        currentUser={currentUser}
+      />
     </div>
   )
 }
