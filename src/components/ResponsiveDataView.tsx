@@ -1,37 +1,37 @@
 import { useState } from 'react'
-import { Card } from '@/components/ui/card'
+import { Table, TableBody, TableCell, Table
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { List, SquaresFour } from '@phosphor-ic
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { List, SquaresFour } from '@phosphor-icons/react'
 
-export interface Column<T> {
-  label: string
-  key: keyof T | string
-  render?: (item: T) => React.ReactNode
   className?: string
+  label: string
+}
+  render?: (item: T) => React.ReactNode
+  data: T[]
   hideOnMobile?: boolean
   mobileLabel?: string
 }
 
-export interface ResponsiveDataViewProps<T> {
-  data: T[]
-  columns: Column<T>[]
-  keyExtractor: (item: T) => string
-  renderCardContent?: (item: T) => React.ReactNode
-  onRowClick?: (item: T) => void
-  emptyMessage?: string
-  tableClassName?: string
-  cardClassName?: string
-  allowViewToggle?: boolean
-}
+  onRowClick,
+  tableClas
+  allowViewToggle = tr
+  const [viewMode, setViewMode] = u
+  const getValue = (item: T, key: string | keyof T
+      const keys = key.split('.'
+      for (const k of k
+      }
+    }
+  }
+ 
 
-export function ResponsiveDataView<T>({
-  data,
-  columns,
-  keyExtractor,
-  renderCardContent,
+      </Card>
+  }
+  const Ta
+      <Table>
+          <TableRow>
   onRowClick,
   emptyMessage = 'No data available',
   tableClassName,
@@ -66,80 +66,80 @@ export function ResponsiveDataView<T>({
         <TableHeader>
           <TableRow>
             {columns.filter(col => !col.hideOnMobile).map((column, index) => (
-              <TableHead key={index} className={column.className}>
-                {column.label}
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((item) => (
-            <TableRow
-              key={keyExtractor(item)}
-              onClick={() => onRowClick?.(item)}
-              className={onRowClick ? 'cursor-pointer hover:bg-muted/50' : ''}
-            >
-              {columns.filter(col => !col.hideOnMobile).map((column, index) => (
-                <TableCell key={index} className={column.className}>
-                  {column.render ? column.render(item) : getValue(item, column.key)}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  )
-
-  const CardsView = () => (
-    <div className="grid grid-cols-1 gap-3 md:gap-4">
-      {data.map((item) => (
-        <Card
-          key={keyExtractor(item)}
-          onClick={() => onRowClick?.(item)}
-          className={`p-4 ${onRowClick ? 'cursor-pointer hover:border-primary' : ''} ${cardClassName || ''}`}
-        >
-          {renderCardContent ? (
-            renderCardContent(item)
-          ) : (
-            <div className="space-y-2">
-              {columns.filter(col => !col.hideOnMobile).map((column, index) => (
-                <div key={index} className="flex items-start justify-between gap-3 text-sm">
-                  <span className="font-medium text-muted-foreground min-w-[100px] shrink-0">
-                    {column.mobileLabel || column.label}
-                  </span>
-                  <span className="text-right flex-1 break-words">
-                    {column.render ? column.render(item) : getValue(item, column.key)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-      ))}
-    </div>
-  )
-
-  return (
-    <div className="space-y-4">
-      {allowViewToggle && (
-        <div className="flex justify-end">
-          <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'table' | 'cards')}>
-            <TabsList className="grid w-[200px] grid-cols-2">
-              <TabsTrigger value="table" className="flex items-center gap-2">
-                <List size={16} />
-                Table
-              </TabsTrigger>
-              <TabsTrigger value="cards" className="flex items-center gap-2">
-                <SquaresFour size={16} />
-                Cards
-              </TabsTrigger>
             </TabsList>
-          </Tabs>
         </div>
-      )}
 
-      {viewMode === 'table' ? <TableView /> : <CardsView />}
     </div>
-  )
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
