@@ -1043,13 +1043,55 @@ export function CRM({
       <GuestProfileDialog
         open={guestDialogOpen}
         onOpenChange={setGuestDialogOpen}
-        guest={selectedGuest}
-        onSave={(guest) => {
+        profile={selectedGuest || null}
+        onSave={(guestData) => {
           if (selectedGuest) {
-            setGuestProfiles((prev) => prev.map(g => g.id === guest.id ? guest : g))
+            setGuestProfiles((prev) => prev.map(g => 
+              g.id === selectedGuest.id ? { ...g, ...guestData, updatedAt: Date.now() } as GuestProfile : g
+            ))
             toast.success('Guest profile updated')
           } else {
-            setGuestProfiles((prev) => [...prev, guest])
+            const newProfile: GuestProfile = {
+              id: `GP${Date.now()}`,
+              guestId: `G${Date.now()}`,
+              firstName: guestData.firstName!,
+              lastName: guestData.lastName!,
+              phone: guestData.phone!,
+              email: guestData.email,
+              alternatePhone: guestData.alternatePhone,
+              dateOfBirth: guestData.dateOfBirth,
+              nationality: guestData.nationality,
+              idType: guestData.idType,
+              idNumber: guestData.idNumber,
+              passportNumber: guestData.passportNumber,
+              address: guestData.address,
+              city: guestData.city,
+              state: guestData.state,
+              country: guestData.country,
+              postalCode: guestData.postalCode,
+              companyName: guestData.companyName,
+              gstNumber: guestData.gstNumber,
+              salutation: guestData.salutation,
+              preferences: guestData.preferences!,
+              loyaltyInfo: guestData.loyaltyInfo!,
+              segments: guestData.segments || [],
+              communicationPreference: guestData.communicationPreference || [],
+              doNotDisturb: guestData.doNotDisturb || false,
+              blacklisted: guestData.blacklisted || false,
+              vipNotes: guestData.vipNotes,
+              dietaryRestrictions: guestData.dietaryRestrictions,
+              allergies: guestData.allergies,
+              specialRequests: guestData.specialRequests,
+              notes: guestData.notes,
+              totalStays: 0,
+              totalNights: 0,
+              totalSpent: 0,
+              averageSpendPerStay: 0,
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+              createdBy: 'current-user',
+            }
+            setGuestProfiles((prev) => [...prev, newProfile])
             toast.success('Guest profile created')
           }
           setGuestDialogOpen(false)
