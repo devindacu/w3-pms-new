@@ -608,40 +608,41 @@ export function Finance({
   ]
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-4xl font-semibold">Finance & Accounting</h1>
-          <p className="text-muted-foreground mt-1">Manage invoices, payments, expenses, and budgets</p>
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold">Finance & Accounting</h1>
+          <p className="text-muted-foreground mt-1 text-sm md:text-base">Manage invoices, payments, expenses, and budgets</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setReportsDialogOpen(true)}>
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" size="sm" onClick={() => setReportsDialogOpen(true)} className="flex-1 sm:flex-none">
             <Download size={18} className="mr-2" />
-            Export Reports
+            <span className="hidden sm:inline">Export Reports</span>
+            <span className="sm:hidden">Export</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setSelectedTab('reports')}>
+          <Button variant="outline" size="sm" onClick={() => setSelectedTab('reports')} className="flex-1 sm:flex-none">
             <ChartBar size={18} className="mr-2" />
             Analytics
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="p-6 border-l-4 border-l-success">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground">Total Revenue</h3>
-            <TrendUp size={20} className="text-success" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+        <Card className="p-4 md:p-6 border-l-4 border-l-success">
+          <div className="flex items-center justify-between mb-2 md:mb-4">
+            <h3 className="text-xs md:text-sm font-medium text-muted-foreground">Total Revenue</h3>
+            <TrendUp size={16} className="text-success md:w-5 md:h-5" />
           </div>
-          <div className="space-y-2">
-            <div className="flex items-baseline gap-3">
-              <p className="text-3xl font-semibold">{formatCurrency(totalRevenue)}</p>
+          <div className="space-y-1 md:space-y-2">
+            <div className="flex items-baseline gap-2 md:gap-3 flex-wrap">
+              <p className="text-xl md:text-2xl lg:text-3xl font-semibold">{formatCurrency(totalRevenue)}</p>
               <PercentageChangeIndicator 
                 current={monthMetrics.currentMonthRevenue}
                 previous={monthMetrics.lastMonthRevenue}
                 size="sm"
               />
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs md:text-sm text-muted-foreground">
               From {invoices.length} invoices
             </p>
             <p className="text-xs text-muted-foreground">
@@ -650,27 +651,27 @@ export function Finance({
           </div>
         </Card>
 
-        <Card className="p-6 border-l-4 border-l-accent">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground">Accounts Receivable</h3>
-            <Receipt size={20} className="text-accent" />
+        <Card className="p-4 md:p-6 border-l-4 border-l-accent">
+          <div className="flex items-center justify-between mb-2 md:mb-4">
+            <h3 className="text-xs md:text-sm font-medium text-muted-foreground">Accounts Receivable</h3>
+            <Receipt size={16} className="text-accent md:w-5 md:h-5" />
           </div>
-          <div className="space-y-2">
-            <p className="text-3xl font-semibold">{formatCurrency(totalReceivables)}</p>
-            <p className="text-sm text-muted-foreground">
+          <div className="space-y-1 md:space-y-2">
+            <p className="text-xl md:text-2xl lg:text-3xl font-semibold">{formatCurrency(totalReceivables)}</p>
+            <p className="text-xs md:text-sm text-muted-foreground">
               {overdueInvoices} overdue invoices
             </p>
           </div>
         </Card>
 
-        <Card className="p-6 border-l-4 border-l-destructive">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground">Total Expenses</h3>
-            <Wallet size={20} className="text-destructive" />
+        <Card className="p-4 md:p-6 border-l-4 border-l-destructive">
+          <div className="flex items-center justify-between mb-2 md:mb-4">
+            <h3 className="text-xs md:text-sm font-medium text-muted-foreground">Total Expenses</h3>
+            <Wallet size={16} className="text-destructive md:w-5 md:h-5" />
           </div>
-          <div className="space-y-2">
-            <div className="flex items-baseline gap-3">
-              <p className="text-3xl font-semibold">{formatCurrency(totalExpenses)}</p>
+          <div className="space-y-1 md:space-y-2">
+            <div className="flex items-baseline gap-2 md:gap-3 flex-wrap">
+              <p className="text-xl md:text-2xl lg:text-3xl font-semibold">{formatCurrency(totalExpenses)}</p>
               <PercentageChangeIndicator 
                 current={monthMetrics.currentMonthExpenses}
                 previous={monthMetrics.lastMonthExpenses}
@@ -678,7 +679,7 @@ export function Finance({
                 invertColors={true}
               />
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs md:text-sm text-muted-foreground">
               {expenses.length} expense records
             </p>
             <p className="text-xs text-muted-foreground">
@@ -687,14 +688,14 @@ export function Finance({
           </div>
         </Card>
 
-        <Card className="p-6 border-l-4 border-l-primary">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground">Net Income</h3>
-            <ChartLine size={20} className="text-primary" />
+        <Card className="p-4 md:p-6 border-l-4 border-l-primary">
+          <div className="flex items-center justify-between mb-2 md:mb-4">
+            <h3 className="text-xs md:text-sm font-medium text-muted-foreground">Net Income</h3>
+            <ChartLine size={16} className="text-primary md:w-5 md:h-5" />
           </div>
-          <div className="space-y-2">
-            <div className="flex items-baseline gap-3">
-              <p className={`text-3xl font-semibold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>
+          <div className="space-y-1 md:space-y-2">
+            <div className="flex items-baseline gap-2 md:gap-3 flex-wrap">
+              <p className={`text-xl md:text-2xl lg:text-3xl font-semibold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>
                 {formatCurrency(netIncome)}
               </p>
               <PercentageChangeIndicator 
@@ -703,7 +704,7 @@ export function Finance({
                 size="sm"
               />
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs md:text-sm text-muted-foreground">
               Revenue - Expenses
             </p>
             <p className="text-xs text-muted-foreground">
@@ -1062,23 +1063,25 @@ export function Finance({
           </Card>
         </TabsContent>
 
-        <TabsContent value="invoices" className="space-y-6">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold">All Invoices</h3>
-              <div className="flex gap-2">
+        <TabsContent value="invoices" className="space-y-4 md:space-y-6">
+          <Card className="p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-0 mb-4 md:mb-6">
+              <h3 className="text-base md:text-lg font-semibold">All Invoices</h3>
+              <div className="flex gap-2 flex-wrap">
                 {pendingInvoices > 0 && (
                   <Button 
                     variant="default" 
                     onClick={() => setBulkApprovalDialogOpen(true)}
-                    className="bg-primary"
+                    className="bg-primary flex-1 sm:flex-none"
+                    size="sm"
                   >
-                    <ListChecks size={18} className="mr-2" />
-                    Bulk Approve ({pendingInvoices})
+                    <ListChecks size={16} className="mr-2 md:w-[18px] md:h-[18px]" />
+                    <span className="hidden sm:inline">Bulk Approve ({pendingInvoices})</span>
+                    <span className="sm:hidden">Approve ({pendingInvoices})</span>
                   </Button>
                 )}
-                <Button onClick={handleNewInvoice}>
-                  <Plus size={18} className="mr-2" />
+                <Button onClick={handleNewInvoice} size="sm" className="flex-1 sm:flex-none">
+                  <Plus size={16} className="mr-2 md:w-[18px] md:h-[18px]" />
                   New Invoice
                 </Button>
               </div>
@@ -1086,11 +1089,11 @@ export function Finance({
 
             <div className="space-y-3">
               {invoices.length === 0 ? (
-                <div className="text-center py-12">
-                  <FileText size={48} className="mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No invoices yet</p>
-                  <Button onClick={handleNewInvoice} className="mt-4">
-                    <Plus size={18} className="mr-2" />
+                <div className="text-center py-8 md:py-12">
+                  <FileText size={40} className="mx-auto text-muted-foreground mb-3 md:mb-4 md:w-12 md:h-12" />
+                  <p className="text-muted-foreground text-sm md:text-base">No invoices yet</p>
+                  <Button onClick={handleNewInvoice} className="mt-3 md:mt-4" size="sm">
+                    <Plus size={16} className="mr-2 md:w-[18px] md:h-[18px]" />
                     Create First Invoice
                   </Button>
                 </div>
@@ -1098,54 +1101,54 @@ export function Finance({
                 invoices.map((invoice) => (
                   <div
                     key={invoice.id}
-                    className="p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
+                    className="p-3 md:p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
                       <div className="flex-1 cursor-pointer" onClick={() => handleEditInvoice(invoice)}>
-                        <div className="flex items-center gap-3 mb-2">
-                          <p className="font-semibold">{invoice.invoiceNumber}</p>
+                        <div className="flex items-center gap-2 md:gap-3 mb-2 flex-wrap">
+                          <p className="font-semibold text-sm md:text-base">{invoice.invoiceNumber}</p>
                           {getInvoiceStatusBadge(invoice.status)}
                           {invoice.balance > 0 && invoice.balance < invoice.total && (
-                            <Badge variant="outline" className="text-accent">
+                            <Badge variant="outline" className="text-accent text-xs">
                               Partially Paid
                             </Badge>
                           )}
                         </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">Supplier:</span>
-                            <span className="ml-2">{invoice.supplierName || 'N/A'}</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm">
+                          <div className="mobile-card-field">
+                            <span className="text-muted-foreground font-medium">Supplier:</span>
+                            <span className="mobile-card-value text-right">{invoice.supplierName || 'N/A'}</span>
                           </div>
-                          <div>
-                            <span className="text-muted-foreground">Invoice Date:</span>
-                            <span className="ml-2">{formatDate(invoice.invoiceDate)}</span>
+                          <div className="mobile-card-field">
+                            <span className="text-muted-foreground font-medium">Invoice Date:</span>
+                            <span className="mobile-card-value text-right">{formatDate(invoice.invoiceDate)}</span>
                           </div>
-                          <div>
-                            <span className="text-muted-foreground">Due Date:</span>
-                            <span className="ml-2">{invoice.dueDate ? formatDate(invoice.dueDate) : 'N/A'}</span>
+                          <div className="mobile-card-field">
+                            <span className="text-muted-foreground font-medium">Due Date:</span>
+                            <span className="mobile-card-value text-right">{invoice.dueDate ? formatDate(invoice.dueDate) : 'N/A'}</span>
                           </div>
-                          <div>
-                            <span className="text-muted-foreground">Items:</span>
-                            <span className="ml-2">{invoice.items.length}</span>
+                          <div className="mobile-card-field">
+                            <span className="text-muted-foreground font-medium">Items:</span>
+                            <span className="mobile-card-value text-right">{invoice.items.length}</span>
                           </div>
                           {invoice.amountPaid > 0 && (
                             <>
-                              <div>
-                                <span className="text-muted-foreground">Amount Paid:</span>
-                                <span className="ml-2 text-success">{formatCurrency(invoice.amountPaid)}</span>
+                              <div className="mobile-card-field">
+                                <span className="text-muted-foreground font-medium">Amount Paid:</span>
+                                <span className="mobile-card-value text-right text-success">{formatCurrency(invoice.amountPaid)}</span>
                               </div>
-                              <div>
-                                <span className="text-muted-foreground">Balance:</span>
-                                <span className="ml-2 text-destructive font-semibold">{formatCurrency(invoice.balance)}</span>
+                              <div className="mobile-card-field">
+                                <span className="text-muted-foreground font-medium">Balance:</span>
+                                <span className="mobile-card-value text-right text-destructive font-semibold">{formatCurrency(invoice.balance)}</span>
                               </div>
                             </>
                           )}
                         </div>
                       </div>
-                      <div className="text-right space-y-2">
+                      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-2 sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0">
                         <div>
-                          <p className="text-2xl font-semibold">{formatCurrency(invoice.total)}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <p className="text-lg md:text-xl lg:text-2xl font-semibold">{formatCurrency(invoice.total)}</p>
+                          <p className="text-xs text-muted-foreground mt-0 sm:mt-1">
                             {invoice.status === 'paid' ? 'Paid' : invoice.status === 'posted' ? 'Posted' : 'Pending'}
                           </p>
                         </div>
@@ -1154,10 +1157,11 @@ export function Finance({
                             size="sm"
                             variant="default"
                             onClick={(e) => handleRecordInvoicePayment(invoice, e)}
-                            className="w-full"
+                            className="whitespace-nowrap w-full sm:w-auto"
                           >
-                            <Wallet size={16} className="mr-2" />
-                            Record Payment
+                            <Wallet size={14} className="mr-2 md:w-4 md:h-4" />
+                            <span className="hidden sm:inline">Record Payment</span>
+                            <span className="sm:hidden">Pay</span>
                           </Button>
                         )}
                       </div>
@@ -1169,23 +1173,23 @@ export function Finance({
           </Card>
         </TabsContent>
 
-        <TabsContent value="payments" className="space-y-6">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold">All Payments</h3>
-              <Button onClick={handleNewPayment}>
-                <Plus size={18} className="mr-2" />
+        <TabsContent value="payments" className="space-y-4 md:space-y-6">
+          <Card className="p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 md:mb-6">
+              <h3 className="text-base md:text-lg font-semibold">All Payments</h3>
+              <Button onClick={handleNewPayment} size="sm">
+                <Plus size={16} className="mr-2 md:w-[18px] md:h-[18px]" />
                 Record Payment
               </Button>
             </div>
 
             <div className="space-y-3">
               {payments.length === 0 ? (
-                <div className="text-center py-12">
-                  <CreditCard size={48} className="mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No payments recorded yet</p>
-                  <Button onClick={handleNewPayment} className="mt-4">
-                    <Plus size={18} className="mr-2" />
+                <div className="text-center py-8 md:py-12">
+                  <CreditCard size={40} className="mx-auto text-muted-foreground mb-3 md:mb-4 md:w-12 md:h-12" />
+                  <p className="text-muted-foreground text-sm md:text-base">No payments recorded yet</p>
+                  <Button onClick={handleNewPayment} className="mt-3 md:mt-4" size="sm">
+                    <Plus size={16} className="mr-2 md:w-[18px] md:h-[18px]" />
                     Record First Payment
                   </Button>
                 </div>
@@ -1193,41 +1197,41 @@ export function Finance({
                 payments.map((payment) => (
                   <div
                     key={payment.id}
-                    className="p-4 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted transition-colors"
+                    className="p-3 md:p-4 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted transition-colors"
                     onClick={() => handleEditPayment(payment)}
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <p className="font-semibold">{payment.paymentNumber}</p>
+                        <div className="flex items-center gap-2 md:gap-3 mb-2 flex-wrap">
+                          <p className="font-semibold text-sm md:text-base">{payment.paymentNumber}</p>
                           {getPaymentStatusBadge(payment.status)}
                           {payment.reconciled && (
-                            <Badge variant="default" className="text-success">Reconciled</Badge>
+                            <Badge variant="default" className="text-success text-xs">Reconciled</Badge>
                           )}
                         </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">Method:</span>
-                            <span className="ml-2 capitalize">{payment.method.replace('-', ' ')}</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm">
+                          <div className="mobile-card-field">
+                            <span className="text-muted-foreground font-medium">Method:</span>
+                            <span className="mobile-card-value capitalize text-right">{payment.method.replace('-', ' ')}</span>
                           </div>
-                          <div>
-                            <span className="text-muted-foreground">Processed:</span>
-                            <span className="ml-2">{formatDate(payment.processedAt)}</span>
+                          <div className="mobile-card-field">
+                            <span className="text-muted-foreground font-medium">Processed:</span>
+                            <span className="mobile-card-value text-right">{formatDate(payment.processedAt)}</span>
                           </div>
                           {payment.reference && (
-                            <div>
-                              <span className="text-muted-foreground">Reference:</span>
-                              <span className="ml-2 font-mono text-xs">{payment.reference}</span>
+                            <div className="mobile-card-field">
+                              <span className="text-muted-foreground font-medium">Reference:</span>
+                              <span className="mobile-card-value font-mono text-xs text-right truncate">{payment.reference}</span>
                             </div>
                           )}
-                          <div>
-                            <span className="text-muted-foreground">Processed By:</span>
-                            <span className="ml-2">{payment.processedBy}</span>
+                          <div className="mobile-card-field">
+                            <span className="text-muted-foreground font-medium">Processed By:</span>
+                            <span className="mobile-card-value text-right">{payment.processedBy}</span>
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-semibold text-success">{formatCurrency(payment.amount)}</p>
+                      <div className="text-left sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0">
+                        <p className="text-lg md:text-xl lg:text-2xl font-semibold text-success">{formatCurrency(payment.amount)}</p>
                       </div>
                     </div>
                   </div>
@@ -1237,23 +1241,23 @@ export function Finance({
           </Card>
         </TabsContent>
 
-        <TabsContent value="expenses" className="space-y-6">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold">All Expenses</h3>
-              <Button onClick={handleNewExpense}>
-                <Plus size={18} className="mr-2" />
+        <TabsContent value="expenses" className="space-y-4 md:space-y-6">
+          <Card className="p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 md:mb-6">
+              <h3 className="text-base md:text-lg font-semibold">All Expenses</h3>
+              <Button onClick={handleNewExpense} size="sm">
+                <Plus size={16} className="mr-2 md:w-[18px] md:h-[18px]" />
                 New Expense
               </Button>
             </div>
 
             <div className="space-y-3">
               {expenses.length === 0 ? (
-                <div className="text-center py-12">
-                  <Wallet size={48} className="mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No expenses recorded yet</p>
-                  <Button onClick={handleNewExpense} className="mt-4">
-                    <Plus size={18} className="mr-2" />
+                <div className="text-center py-8 md:py-12">
+                  <Wallet size={40} className="mx-auto text-muted-foreground mb-3 md:mb-4 md:w-12 md:h-12" />
+                  <p className="text-muted-foreground text-sm md:text-base">No expenses recorded yet</p>
+                  <Button onClick={handleNewExpense} className="mt-3 md:mt-4" size="sm">
+                    <Plus size={16} className="mr-2 md:w-[18px] md:h-[18px]" />
                     Add First Expense
                   </Button>
                 </div>
@@ -1261,41 +1265,41 @@ export function Finance({
                 expenses.map((expense) => (
                   <div
                     key={expense.id}
-                    className="p-4 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted transition-colors"
+                    className="p-3 md:p-4 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted transition-colors"
                     onClick={() => handleEditExpense(expense)}
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <p className="font-semibold">{expense.expenseNumber}</p>
+                        <div className="flex items-center gap-2 md:gap-3 mb-2 flex-wrap">
+                          <p className="font-semibold text-sm md:text-base">{expense.expenseNumber}</p>
                           {expense.approvedBy ? (
-                            <Badge variant="default" className="text-success">Approved</Badge>
+                            <Badge variant="default" className="text-success text-xs">Approved</Badge>
                           ) : (
-                            <Badge variant="secondary">Pending</Badge>
+                            <Badge variant="secondary" className="text-xs">Pending</Badge>
                           )}
                         </div>
-                        <p className="text-sm mb-2">{expense.description}</p>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">Category:</span>
-                            <span className="ml-2 capitalize">{expense.category.replace('-', ' ')}</span>
+                        <p className="text-xs md:text-sm mb-2">{expense.description}</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm">
+                          <div className="mobile-card-field">
+                            <span className="text-muted-foreground font-medium">Category:</span>
+                            <span className="mobile-card-value capitalize text-right">{expense.category.replace('-', ' ')}</span>
                           </div>
-                          <div>
-                            <span className="text-muted-foreground">Department:</span>
-                            <span className="ml-2 capitalize">{expense.department}</span>
+                          <div className="mobile-card-field">
+                            <span className="text-muted-foreground font-medium">Department:</span>
+                            <span className="mobile-card-value capitalize text-right">{expense.department}</span>
                           </div>
-                          <div>
-                            <span className="text-muted-foreground">Date:</span>
-                            <span className="ml-2">{formatDate(expense.date)}</span>
+                          <div className="mobile-card-field">
+                            <span className="text-muted-foreground font-medium">Date:</span>
+                            <span className="mobile-card-value text-right">{formatDate(expense.date)}</span>
                           </div>
-                          <div>
-                            <span className="text-muted-foreground">Method:</span>
-                            <span className="ml-2 capitalize">{expense.paymentMethod ? expense.paymentMethod.replace('-', ' ') : 'N/A'}</span>
+                          <div className="mobile-card-field">
+                            <span className="text-muted-foreground font-medium">Method:</span>
+                            <span className="mobile-card-value capitalize text-right">{expense.paymentMethod ? expense.paymentMethod.replace('-', ' ') : 'N/A'}</span>
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-semibold text-destructive">{formatCurrency(expense.amount)}</p>
+                      <div className="text-left sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0">
+                        <p className="text-lg md:text-xl lg:text-2xl font-semibold text-destructive">{formatCurrency(expense.amount)}</p>
                       </div>
                     </div>
                   </div>
@@ -1446,23 +1450,23 @@ export function Finance({
           </Card>
         </TabsContent>
 
-        <TabsContent value="journals" className="space-y-6">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold">Journal Entries</h3>
-              <Button onClick={handleNewJournal}>
-                <Plus size={18} className="mr-2" />
+        <TabsContent value="journals" className="space-y-4 md:space-y-6">
+          <Card className="p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 md:mb-6">
+              <h3 className="text-base md:text-lg font-semibold">Journal Entries</h3>
+              <Button onClick={handleNewJournal} size="sm">
+                <Plus size={16} className="mr-2 md:w-[18px] md:h-[18px]" />
                 New Journal Entry
               </Button>
             </div>
 
             <div className="space-y-3">
               {!journalEntries || journalEntries.length === 0 ? (
-                <div className="text-center py-12">
-                  <Notebook size={48} className="mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No journal entries yet</p>
-                  <Button onClick={handleNewJournal} className="mt-4">
-                    <Plus size={18} className="mr-2" />
+                <div className="text-center py-8 md:py-12">
+                  <Notebook size={40} className="mx-auto text-muted-foreground mb-3 md:mb-4 md:w-12 md:h-12" />
+                  <p className="text-muted-foreground text-sm md:text-base">No journal entries yet</p>
+                  <Button onClick={handleNewJournal} className="mt-3 md:mt-4" size="sm">
+                    <Plus size={16} className="mr-2 md:w-[18px] md:h-[18px]" />
                     Create First Journal Entry
                   </Button>
                 </div>
@@ -1470,68 +1474,70 @@ export function Finance({
                 journalEntries.map((entry) => (
                   <div
                     key={entry.id}
-                    className="p-4 bg-muted/50 rounded-lg"
+                    className="p-3 md:p-4 bg-muted/50 rounded-lg"
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col gap-3">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <p className="font-semibold">{entry.journalNumber}</p>
-                          <Badge variant={entry.status === 'posted' ? 'default' : entry.status === 'approved' ? 'default' : 'secondary'} className={entry.status === 'posted' ? 'text-success' : entry.status === 'approved' ? 'text-accent' : ''}>
+                        <div className="flex items-center gap-2 md:gap-3 mb-2 flex-wrap">
+                          <p className="font-semibold text-sm md:text-base">{entry.journalNumber}</p>
+                          <Badge variant={entry.status === 'posted' ? 'default' : entry.status === 'approved' ? 'default' : 'secondary'} className={`text-xs ${entry.status === 'posted' ? 'text-success' : entry.status === 'approved' ? 'text-accent' : ''}`}>
                             {entry.status.replace('-', ' ')}
                           </Badge>
                           {entry.isReversal && (
-                            <Badge variant="destructive">Reversal</Badge>
+                            <Badge variant="destructive" className="text-xs">Reversal</Badge>
                           )}
                           {!entry.isBalanced && (
-                            <Badge variant="destructive">Unbalanced</Badge>
+                            <Badge variant="destructive" className="text-xs">Unbalanced</Badge>
                           )}
                         </div>
-                        <p className="text-sm mb-3">{entry.description}</p>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">Type:</span>
-                            <span className="ml-2 capitalize">{entry.journalType.replace('-', ' ')}</span>
+                        <p className="text-xs md:text-sm mb-3">{entry.description}</p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 text-xs md:text-sm">
+                          <div className="mobile-card-field">
+                            <span className="text-muted-foreground font-medium">Type:</span>
+                            <span className="mobile-card-value capitalize text-right">{entry.journalType.replace('-', ' ')}</span>
                           </div>
-                          <div>
-                            <span className="text-muted-foreground">Date:</span>
-                            <span className="ml-2">{formatDate(entry.transactionDate)}</span>
+                          <div className="mobile-card-field">
+                            <span className="text-muted-foreground font-medium">Date:</span>
+                            <span className="mobile-card-value text-right">{formatDate(entry.transactionDate)}</span>
                           </div>
-                          <div>
-                            <span className="text-muted-foreground">Period:</span>
-                            <span className="ml-2">{entry.fiscalPeriod}</span>
+                          <div className="mobile-card-field">
+                            <span className="text-muted-foreground font-medium">Period:</span>
+                            <span className="mobile-card-value text-right">{entry.fiscalPeriod}</span>
                           </div>
-                          <div>
-                            <span className="text-muted-foreground">Lines:</span>
-                            <span className="ml-2">{entry.lines.length}</span>
+                          <div className="mobile-card-field">
+                            <span className="text-muted-foreground font-medium">Lines:</span>
+                            <span className="mobile-card-value text-right">{entry.lines.length}</span>
                           </div>
                         </div>
                       </div>
-                      <div className="text-right space-y-2">
-                        <div>
-                          <p className="text-xs text-muted-foreground">Total Debit</p>
-                          <p className="text-lg font-semibold text-success">{formatCurrency(entry.totalDebit)}</p>
+                      <div className="flex flex-wrap gap-2 md:gap-4 items-start justify-between border-t pt-3">
+                        <div className="grid grid-cols-2 gap-4 flex-1">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Total Debit</p>
+                            <p className="text-base md:text-lg font-semibold text-success">{formatCurrency(entry.totalDebit)}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Total Credit</p>
+                            <p className="text-base md:text-lg font-semibold text-destructive">{formatCurrency(entry.totalCredit)}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Total Credit</p>
-                          <p className="text-lg font-semibold text-destructive">{formatCurrency(entry.totalCredit)}</p>
+                        <div className="flex gap-2 w-full sm:w-auto">
+                          <Button size="sm" variant="outline" onClick={() => handleEditJournal(entry)} className="flex-1 sm:flex-none">
+                            Edit
+                          </Button>
+                          {entry.status !== 'posted' && entry.isBalanced && (
+                            <Button size="sm" variant="default" onClick={() => handlePostJournal(entry)} className="flex-1 sm:flex-none">
+                              <FilePlus size={14} className="mr-2 md:w-4 md:h-4" />
+                              Post
+                            </Button>
+                          )}
+                          {entry.status === 'posted' && !entry.reversedByEntryId && (
+                            <Button size="sm" variant="destructive" onClick={() => handleReverseJournal(entry)} className="flex-1 sm:flex-none">
+                              Reverse
+                            </Button>
+                          )}
                         </div>
                       </div>
-                    </div>
-                    <div className="flex gap-2 mt-4">
-                      <Button size="sm" variant="outline" onClick={() => handleEditJournal(entry)}>
-                        Edit
-                      </Button>
-                      {entry.status !== 'posted' && entry.isBalanced && (
-                        <Button size="sm" variant="default" onClick={() => handlePostJournal(entry)}>
-                          <FilePlus size={16} className="mr-2" />
-                          Post
-                        </Button>
-                      )}
-                      {entry.status === 'posted' && !entry.reversedByEntryId && (
-                        <Button size="sm" variant="destructive" onClick={() => handleReverseJournal(entry)}>
-                          Reverse
-                        </Button>
-                      )}
                     </div>
                   </div>
                 ))
@@ -1753,23 +1759,24 @@ export function Finance({
           </Card>
         </TabsContent>
 
-        <TabsContent value="reconciliation" className="space-y-6">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold">Bank Reconciliations</h3>
-              <Button onClick={handleNewReconciliation}>
-                <Plus size={18} className="mr-2" />
-                New Reconciliation
+        <TabsContent value="reconciliation" className="space-y-4 md:space-y-6">
+          <Card className="p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 md:mb-6">
+              <h3 className="text-base md:text-lg font-semibold">Bank Reconciliations</h3>
+              <Button onClick={handleNewReconciliation} size="sm">
+                <Plus size={16} className="mr-2 md:w-[18px] md:h-[18px]" />
+                <span className="hidden sm:inline">New Reconciliation</span>
+                <span className="sm:hidden">New</span>
               </Button>
             </div>
 
             <div className="space-y-3">
               {bankReconciliations.length === 0 ? (
-                <div className="text-center py-12">
-                  <Bank size={48} className="mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No bank reconciliations yet</p>
-                  <Button onClick={handleNewReconciliation} className="mt-4">
-                    <Plus size={18} className="mr-2" />
+                <div className="text-center py-8 md:py-12">
+                  <Bank size={40} className="mx-auto text-muted-foreground mb-3 md:mb-4 md:w-12 md:h-12" />
+                  <p className="text-muted-foreground text-sm md:text-base">No bank reconciliations yet</p>
+                  <Button onClick={handleNewReconciliation} className="mt-3 md:mt-4" size="sm">
+                    <Plus size={16} className="mr-2 md:w-[18px] md:h-[18px]" />
                     Start First Reconciliation
                   </Button>
                 </div>
@@ -1777,51 +1784,51 @@ export function Finance({
                 bankReconciliations.map((reconciliation) => (
                   <div
                     key={reconciliation.id}
-                    className="p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
+                    className="p-3 md:p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col gap-3">
                       <div 
                         className="flex-1 cursor-pointer"
                         onClick={() => handleEditReconciliation(reconciliation)}
                       >
-                        <div className="flex items-center gap-3 mb-2">
-                          <p className="font-semibold">{reconciliation.reconciliationNumber}</p>
+                        <div className="flex items-center gap-2 md:gap-3 mb-2 flex-wrap">
+                          <p className="font-semibold text-sm md:text-base">{reconciliation.reconciliationNumber}</p>
                           <Badge variant={
                             reconciliation.status === 'completed' ? 'default' :
                             reconciliation.status === 'in-progress' ? 'secondary' : 'destructive'
-                          }>
+                          } className="text-xs">
                             {reconciliation.status.replace('-', ' ')}
                           </Badge>
                           {Math.abs(reconciliation.difference) < 0.01 && (
-                            <Badge variant="default" className="text-success">
-                              <Check size={14} className="mr-1" />
+                            <Badge variant="default" className="text-success text-xs">
+                              <Check size={12} className="mr-1" />
                               Balanced
                             </Badge>
                           )}
                         </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">Bank Account:</span>
-                            <span className="ml-2">{reconciliation.bankAccountName}</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm">
+                          <div className="mobile-card-field">
+                            <span className="text-muted-foreground font-medium">Bank Account:</span>
+                            <span className="mobile-card-value text-right">{reconciliation.bankAccountName}</span>
                           </div>
-                          <div>
-                            <span className="text-muted-foreground">Statement Date:</span>
-                            <span className="ml-2">{formatDate(reconciliation.statementDate)}</span>
+                          <div className="mobile-card-field">
+                            <span className="text-muted-foreground font-medium">Statement Date:</span>
+                            <span className="mobile-card-value text-right">{formatDate(reconciliation.statementDate)}</span>
                           </div>
-                          <div>
-                            <span className="text-muted-foreground">Book Balance:</span>
-                            <span className="ml-2">{formatCurrency(reconciliation.bookBalance)}</span>
+                          <div className="mobile-card-field">
+                            <span className="text-muted-foreground font-medium">Book Balance:</span>
+                            <span className="mobile-card-value text-right">{formatCurrency(reconciliation.bookBalance)}</span>
                           </div>
-                          <div>
-                            <span className="text-muted-foreground">Statement Balance:</span>
-                            <span className="ml-2">{formatCurrency(reconciliation.statementBalance)}</span>
+                          <div className="mobile-card-field">
+                            <span className="text-muted-foreground font-medium">Statement Balance:</span>
+                            <span className="mobile-card-value text-right">{formatCurrency(reconciliation.statementBalance)}</span>
                           </div>
                         </div>
                       </div>
-                      <div className="text-right flex flex-col items-end gap-2">
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-1">Difference</p>
-                          <p className={`text-2xl font-semibold ${Math.abs(reconciliation.difference) < 0.01 ? 'text-success' : 'text-destructive'}`}>
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-end justify-between gap-3 border-t pt-3">
+                        <div className="flex-1">
+                          <p className="text-xs text-muted-foreground mb-1">Difference</p>
+                          <p className={`text-lg md:text-xl lg:text-2xl font-semibold ${Math.abs(reconciliation.difference) < 0.01 ? 'text-success' : 'text-destructive'}`}>
                             {formatCurrency(reconciliation.difference)}
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
@@ -1835,8 +1842,9 @@ export function Finance({
                             e.stopPropagation()
                             exportReconciliationReport(reconciliation)
                           }}
+                          className="w-full sm:w-auto"
                         >
-                          <Download size={16} className="mr-2" />
+                          <Download size={14} className="mr-2 md:w-4 md:h-4" />
                           Export Report
                         </Button>
                       </div>
