@@ -25,6 +25,16 @@ import {
   exportProfitLossToCSV,
   exportBalanceSheetToCSV 
 } from '@/lib/exportHelpers'
+import {
+  exportInvoicesToPDF,
+  exportPaymentsToPDF,
+  exportExpensesToPDF,
+  exportJournalEntriesToPDF,
+  exportBudgetsToPDF,
+  exportTrialBalanceToPDF,
+  exportProfitLossToPDF,
+  exportBalanceSheetToPDF
+} from '@/lib/pdfExportHelpers'
 import { formatCurrency, formatDate } from '@/lib/helpers'
 
 interface FinanceReportsDialogProps {
@@ -127,6 +137,7 @@ export function FinanceReportsDialog({
   const handleExport = () => {
     try {
       const { start, end } = getDateRangeFilter()
+      const dateRangeLabel = dateRanges.find(r => r.value === dateRange)?.label || ''
 
       switch (reportType) {
         case 'invoices': {
@@ -137,6 +148,9 @@ export function FinanceReportsDialog({
           if (exportFormat === 'csv') {
             exportInvoicesToCSV(filtered)
             toast.success(`Exported ${filtered.length} invoices to CSV`)
+          } else {
+            exportInvoicesToPDF(filtered, dateRangeLabel)
+            toast.success(`Exported ${filtered.length} invoices to PDF`)
           }
           break
         }
@@ -149,6 +163,9 @@ export function FinanceReportsDialog({
           if (exportFormat === 'csv') {
             exportPaymentsToCSV(filtered)
             toast.success(`Exported ${filtered.length} payments to CSV`)
+          } else {
+            exportPaymentsToPDF(filtered, dateRangeLabel)
+            toast.success(`Exported ${filtered.length} payments to PDF`)
           }
           break
         }
@@ -161,6 +178,9 @@ export function FinanceReportsDialog({
           if (exportFormat === 'csv') {
             exportExpensesToCSV(filtered)
             toast.success(`Exported ${filtered.length} expenses to CSV`)
+          } else {
+            exportExpensesToPDF(filtered, dateRangeLabel)
+            toast.success(`Exported ${filtered.length} expenses to PDF`)
           }
           break
         }
@@ -173,6 +193,9 @@ export function FinanceReportsDialog({
           if (exportFormat === 'csv') {
             exportJournalEntriesToCSV(filtered)
             toast.success(`Exported ${filtered.length} journal entries to CSV`)
+          } else {
+            exportJournalEntriesToPDF(filtered, dateRangeLabel)
+            toast.success(`Exported ${filtered.length} journal entries to PDF`)
           }
           break
         }
@@ -181,6 +204,9 @@ export function FinanceReportsDialog({
           if (exportFormat === 'csv') {
             exportBudgetsToCSV(budgets)
             toast.success(`Exported ${budgets.length} budgets to CSV`)
+          } else {
+            exportBudgetsToPDF(budgets)
+            toast.success(`Exported ${budgets.length} budgets to PDF`)
           }
           break
         }
@@ -190,6 +216,9 @@ export function FinanceReportsDialog({
           if (exportFormat === 'csv') {
             exportTrialBalanceToCSV(data)
             toast.success('Trial Balance exported to CSV')
+          } else {
+            exportTrialBalanceToPDF(data, dateRangeLabel)
+            toast.success('Trial Balance exported to PDF')
           }
           break
         }
@@ -199,6 +228,9 @@ export function FinanceReportsDialog({
           if (exportFormat === 'csv') {
             exportProfitLossToCSV(data)
             toast.success('Profit & Loss Statement exported to CSV')
+          } else {
+            exportProfitLossToPDF(data, dateRangeLabel)
+            toast.success('Profit & Loss Statement exported to PDF')
           }
           break
         }
@@ -208,6 +240,9 @@ export function FinanceReportsDialog({
           if (exportFormat === 'csv') {
             exportBalanceSheetToCSV(data)
             toast.success('Balance Sheet exported to CSV')
+          } else {
+            exportBalanceSheetToPDF(data)
+            toast.success('Balance Sheet exported to PDF')
           }
           break
         }
