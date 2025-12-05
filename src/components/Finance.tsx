@@ -44,6 +44,7 @@ import { formatCurrency, formatDate } from '@/lib/helpers'
 import { PercentageChangeIndicator } from './PercentageChangeIndicator'
 import { InvoiceDialog } from './InvoiceDialog'
 import { PaymentDialog } from './PaymentDialog'
+import { InvoicePaymentDialog } from './InvoicePaymentDialog'
 import { ExpenseDialog } from './ExpenseDialog'
 import { BudgetDialog } from './BudgetDialog'
 import { JournalEntryDialog } from './JournalEntryDialog'
@@ -102,6 +103,8 @@ export function Finance({
   const [selectedTab, setSelectedTab] = useState('overview')
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false)
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false)
+  const [invoicePaymentDialogOpen, setInvoicePaymentDialogOpen] = useState(false)
+  const [selectedInvoiceForPayment, setSelectedInvoiceForPayment] = useState<Invoice | null>(null)
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false)
   const [budgetDialogOpen, setBudgetDialogOpen] = useState(false)
   const [journalDialogOpen, setJournalDialogOpen] = useState(false)
@@ -287,6 +290,23 @@ export function Finance({
   const handleEditReconciliation = (reconciliation: BankReconciliation) => {
     setSelectedReconciliation(reconciliation)
     setReconciliationDialogOpen(true)
+  }
+
+  const handleRecordInvoicePayment = (invoice: Invoice, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation()
+    }
+    setSelectedInvoiceForPayment(invoice)
+    setInvoicePaymentDialogOpen(true)
+  }
+
+  const handlePaymentRecorded = (payment: Payment, updatedInvoice: Invoice) => {
+    setPayments((currentPayments) => [...currentPayments, payment])
+    setInvoices((currentInvoices) =>
+      currentInvoices.map((inv) =>
+        inv.id === updatedInvoice.id ? updatedInvoice : inv
+      )
+    )
   }
 
   const handleBulkApprove = (invoiceIds: string[], notes?: string) => {
@@ -1078,14 +1098,18 @@ export function Finance({
                 invoices.map((invoice) => (
                   <div
                     key={invoice.id}
-                    className="p-4 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted transition-colors"
-                    onClick={() => handleEditInvoice(invoice)}
+                    className="p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
                   >
                     <div className="flex items-start justify-between">
-                      <div className="flex-1">
+                      <div className="flex-1 cursor-pointer" onClick={() => handleEditInvoice(invoice)}>
                         <div className="flex items-center gap-3 mb-2">
                           <p className="font-semibold">{invoice.invoiceNumber}</p>
                           {getInvoiceStatusBadge(invoice.status)}
+                          {invoice.balance > 0 && invoice.balance < invoice.total && (
+                            <Badge variant="outline" className="text-accent">
+                              Partially Paid
+                            </Badge>
+                          )}
                         </div>
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
@@ -1104,13 +1128,38 @@ export function Finance({
                             <span className="text-muted-foreground">Items:</span>
                             <span className="ml-2">{invoice.items.length}</span>
                           </div>
+                          {invoice.amountPaid > 0 && (
+                            <>
+                              <div>
+                                <span className="text-muted-foreground">Amount Paid:</span>
+                                <span className="ml-2 text-success">{formatCurrency(invoice.amountPaid)}</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Balance:</span>
+                                <span className="ml-2 text-destructive font-semibold">{formatCurrency(invoice.balance)}</span>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-semibold">{formatCurrency(invoice.total)}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {invoice.status === 'posted' ? 'Posted' : 'Pending'}
-                        </p>
+                      <div className="text-right space-y-2">
+                        <div>
+                          <p className="text-2xl font-semibold">{formatCurrency(invoice.total)}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {invoice.status === 'paid' ? 'Paid' : invoice.status === 'posted' ? 'Posted' : 'Pending'}
+                          </p>
+                        </div>
+                        {invoice.balance > 0 && invoice.status !== 'cancelled' && invoice.status !== 'rejected' && (
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={(e) => handleRecordInvoicePayment(invoice, e)}
+                            className="w-full"
+                          >
+                            <Wallet size={16} className="mr-2" />
+                            Record Payment
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1935,6 +1984,16 @@ export function Finance({
         journalEntries={journalEntries}
         budgets={budgets}
       />
+
+      {selectedInvoiceForPayment && (
+        <InvoicePaymentDialog
+          open={invoicePaymentDialogOpen}
+          onOpenChange={setInvoicePaymentDialogOpen}
+          invoice={selectedInvoiceForPayment}
+          onPaymentRecorded={handlePaymentRecorded}
+          currentUser={currentUser.username}
+        />
+      )}
     </div>
   )
 }
