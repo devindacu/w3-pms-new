@@ -17,6 +17,7 @@ import { COUNTRIES } from '@/lib/countries'
 import { Plus, X, User, MapPin, FileText, CreditCard, Star, Phone, Envelope, ClockCounterClockwise, Heart } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { formatCurrency } from '@/lib/helpers'
+import { GuestBookingHistoryView } from '@/components/GuestBookingHistoryView'
 
 interface GuestProfileDialogProps {
   open: boolean
@@ -1402,15 +1403,13 @@ export function GuestProfileDialog({ open, onOpenChange, profile, onSave }: Gues
             </TabsContent>
 
             <TabsContent value="history" className="space-y-6 mt-4">
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Booking History</h3>
-                  {profile?.bookingHistory && profile.bookingHistory.length > 0 && (
-                    <Badge variant="secondary">{profile.bookingHistory.length} stays</Badge>
-                  )}
-                </div>
-
-                {!profile?.bookingHistory || profile.bookingHistory.length === 0 ? (
+              {profile && profile.bookingHistory && profile.bookingHistory.length > 0 ? (
+                <GuestBookingHistoryView 
+                  profile={profile} 
+                  bookingHistory={profile.bookingHistory} 
+                />
+              ) : (
+                <Card className="p-6">
                   <div className="text-center py-12">
                     <ClockCounterClockwise size={48} className="mx-auto text-muted-foreground mb-3" />
                     <p className="text-muted-foreground">No booking history available</p>
@@ -1418,128 +1417,6 @@ export function GuestProfileDialog({ open, onOpenChange, profile, onSave }: Gues
                       Booking history will appear here after the guest completes their first stay
                     </p>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    {profile.bookingHistory.map((booking, idx) => (
-                      <Card key={booking.id} className="p-4 border-l-4 border-l-primary">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-semibold">Stay #{profile.bookingHistory!.length - idx}</h4>
-                              <Badge variant={
-                                booking.status === 'checked-out' ? 'default' :
-                                booking.status === 'checked-in' ? 'secondary' :
-                                booking.status === 'cancelled' ? 'destructive' :
-                                'outline'
-                              }>
-                                {booking.status.replace('-', ' ')}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              {new Date(booking.checkInDate).toLocaleDateString()} - {new Date(booking.checkOutDate).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold">{formatCurrency(booking.totalAmount)}</p>
-                            <p className="text-xs text-muted-foreground">{booking.nights} night{booking.nights > 1 ? 's' : ''}</p>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div>
-                            <p className="text-muted-foreground">Room</p>
-                            <p className="font-medium">{booking.roomNumber || 'N/A'} - {booking.roomType}</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Rate/Night</p>
-                            <p className="font-medium">{formatCurrency(booking.ratePerNight)}</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Guests</p>
-                            <p className="font-medium">{booking.adults} adult{booking.adults > 1 ? 's' : ''}{booking.children > 0 ? `, ${booking.children} child${booking.children > 1 ? 'ren' : ''}` : ''}</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Source</p>
-                            <p className="font-medium capitalize">{booking.source.replace('-', ' ')}</p>
-                          </div>
-                          {booking.totalFnBSpend && booking.totalFnBSpend > 0 && (
-                            <div>
-                              <p className="text-muted-foreground">F&B Spend</p>
-                              <p className="font-medium">{formatCurrency(booking.totalFnBSpend)}</p>
-                            </div>
-                          )}
-                          {booking.totalExtraServicesSpend && booking.totalExtraServicesSpend > 0 && (
-                            <div>
-                              <p className="text-muted-foreground">Extra Services</p>
-                              <p className="font-medium">{formatCurrency(booking.totalExtraServicesSpend)}</p>
-                            </div>
-                          )}
-                          {booking.rating && (
-                            <div>
-                              <p className="text-muted-foreground">Rating</p>
-                              <p className="font-medium">{'⭐'.repeat(booking.rating)}</p>
-                            </div>
-                          )}
-                        </div>
-
-                        {booking.specialRequests && (
-                          <div className="mt-3 pt-3 border-t">
-                            <p className="text-xs text-muted-foreground mb-1">Special Requests</p>
-                            <p className="text-sm">{booking.specialRequests}</p>
-                          </div>
-                        )}
-
-                        {booking.servicesUsed && booking.servicesUsed.length > 0 && (
-                          <div className="mt-3 pt-3 border-t">
-                            <p className="text-xs text-muted-foreground mb-2">Services Used</p>
-                            <div className="flex flex-wrap gap-1">
-                              {booking.servicesUsed.map((service, i) => (
-                                <Badge key={i} variant="outline" className="text-xs">{service}</Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {booking.feedback && (
-                          <div className="mt-3 pt-3 border-t">
-                            <p className="text-xs text-muted-foreground mb-1">Feedback</p>
-                            <p className="text-sm italic">"{booking.feedback}"</p>
-                          </div>
-                        )}
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </Card>
-
-              {profile && (
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Summary Statistics</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center p-4 bg-muted/50 rounded-lg">
-                      <p className="text-2xl font-bold text-primary">{profile.totalStays}</p>
-                      <p className="text-sm text-muted-foreground">Total Stays</p>
-                    </div>
-                    <div className="text-center p-4 bg-muted/50 rounded-lg">
-                      <p className="text-2xl font-bold text-success">{profile.totalNights}</p>
-                      <p className="text-sm text-muted-foreground">Total Nights</p>
-                    </div>
-                    <div className="text-center p-4 bg-muted/50 rounded-lg">
-                      <p className="text-2xl font-bold text-accent">{formatCurrency(profile.totalSpent)}</p>
-                      <p className="text-sm text-muted-foreground">Total Spent</p>
-                    </div>
-                    <div className="text-center p-4 bg-muted/50 rounded-lg">
-                      <p className="text-2xl font-bold">{formatCurrency(profile.averageSpendPerStay)}</p>
-                      <p className="text-sm text-muted-foreground">Avg per Stay</p>
-                    </div>
-                  </div>
-                  {profile.lastStayDate && (
-                    <div className="mt-4 pt-4 border-t">
-                      <p className="text-sm text-muted-foreground">
-                        Last stay: <span className="font-medium text-foreground">{new Date(profile.lastStayDate).toLocaleDateString()}</span>
-                      </p>
-                    </div>
-                  )}
                 </Card>
               )}
             </TabsContent>

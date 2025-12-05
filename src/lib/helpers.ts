@@ -938,3 +938,75 @@ export function createActivityLog(
     metadata
   }
 }
+
+export function createBookingHistoryEntry(params: {
+  reservationId: string
+  checkInDate: number
+  checkOutDate: number
+  roomNumber?: string
+  roomType: import('./types').RoomType
+  ratePerNight: number
+  totalAmount: number
+  amountPaid: number
+  source: string
+  status: import('./types').ReservationStatus
+  adults: number
+  children: number
+  specialRequests?: string
+  servicesUsed?: string[]
+  totalFnBSpend?: number
+  totalExtraServicesSpend?: number
+  feedback?: string
+  rating?: number
+  complaintsFiled?: number
+}): import('./types').GuestBookingHistory {
+  const nights = Math.ceil((params.checkOutDate - params.checkInDate) / (1000 * 60 * 60 * 24))
+  
+  return {
+    id: generateId(),
+    reservationId: params.reservationId,
+    checkInDate: params.checkInDate,
+    checkOutDate: params.checkOutDate,
+    nights,
+    roomNumber: params.roomNumber,
+    roomType: params.roomType,
+    ratePerNight: params.ratePerNight,
+    totalAmount: params.totalAmount,
+    amountPaid: params.amountPaid,
+    source: params.source,
+    status: params.status,
+    adults: params.adults,
+    children: params.children,
+    specialRequests: params.specialRequests,
+    servicesUsed: params.servicesUsed || [],
+    totalFnBSpend: params.totalFnBSpend || 0,
+    totalExtraServicesSpend: params.totalExtraServicesSpend || 0,
+    feedback: params.feedback,
+    rating: params.rating,
+    complaintsFiled: params.complaintsFiled || 0,
+    createdAt: Date.now()
+  }
+}
+
+export function updateGuestProfileWithBooking(
+  profile: import('./types').GuestProfile,
+  bookingHistory: import('./types').GuestBookingHistory
+): Partial<import('./types').GuestProfile> {
+  const existingHistory = profile.bookingHistory || []
+  const newHistory = [...existingHistory, bookingHistory]
+  
+  const totalStays = newHistory.filter(b => b.status === 'checked-out').length
+  const totalNights = newHistory.reduce((sum, b) => sum + b.nights, 0)
+  const totalSpent = newHistory.reduce((sum, b) => sum + b.totalAmount, 0)
+  const averageSpendPerStay = totalStays > 0 ? totalSpent / totalStays : 0
+  
+  return {
+    bookingHistory: newHistory,
+    totalStays,
+    totalNights,
+    totalSpent,
+    averageSpendPerStay,
+    lastStayDate: bookingHistory.checkOutDate,
+    updatedAt: Date.now()
+  }
+}
