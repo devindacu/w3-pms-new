@@ -151,6 +151,7 @@ import { DashboardAlerts } from '@/components/DashboardAlerts'
 import { generateAllAlerts } from '@/lib/notificationHelpers'
 import { generateEmailFromNotifications, mockSendEmail } from '@/lib/emailHelpers'
 import { CRM } from '@/components/CRM'
+import { GlobalSearch } from '@/components/GlobalSearch'
 import { ChannelManager } from '@/components/ChannelManager'
 import { RoomRevenueManagement } from '@/components/RoomRevenueManagement'
 import { ExtraServicesManagement } from '@/components/ExtraServicesManagement'
@@ -401,6 +402,10 @@ function App() {
     } else {
       toast.error('Failed to send email notification')
     }
+  }
+
+  const handleNavigateFromSearch = (module: Module, data?: any) => {
+    setCurrentModule(module)
   }
 
   const loadSampleData = () => {
@@ -1007,18 +1012,29 @@ function App() {
         </SheetContent>
 
         <main className="flex-1 flex flex-col lg:ml-64 min-h-screen">
-          <div className="sticky top-0 z-30 bg-background border-b px-4 py-3 flex items-center justify-between">
-            <div className="lg:hidden">
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <List size={24} />
-                </Button>
-              </SheetTrigger>
+          <div className="sticky top-0 z-30 bg-background border-b px-4 py-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="lg:hidden">
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <List size={24} />
+                  </Button>
+                </SheetTrigger>
+              </div>
+              <div className="hidden sm:flex items-center gap-2 flex-1 max-w-md">
+                <GlobalSearch
+                  guests={guests || []}
+                  guestProfiles={guestProfiles || []}
+                  reservations={reservations || []}
+                  invoices={guestInvoices || []}
+                  onNavigate={handleNavigateFromSearch}
+                />
+              </div>
             </div>
             <img 
               src={w3PMSLogo}
               alt="W3 Hotel PMS" 
-              className="h-8 w-auto object-contain lg:ml-auto"
+              className="h-8 w-auto object-contain"
             />
             <NotificationPanel
               notifications={notifications || []}
@@ -1027,6 +1043,16 @@ function App() {
               onDismiss={handleDismiss}
               onArchive={handleArchive}
               onClearAll={handleClearAll}
+            />
+          </div>
+          
+          <div className="sm:hidden px-4 py-2 border-b bg-background">
+            <GlobalSearch
+              guests={guests || []}
+              guestProfiles={guestProfiles || []}
+              reservations={reservations || []}
+              invoices={guestInvoices || []}
+              onNavigate={handleNavigateFromSearch}
             />
           </div>
 
