@@ -1,19 +1,19 @@
 import { useState, useEffect, useMemo } from 'react'
-import {
+  Comman
   Command,
   CommandDialog,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
+} from '@/compo
   CommandItem,
-  CommandList,
-} from '@/components/ui/command'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import {
-  MagnifyingGlass,
-  User,
-  CalendarCheck,
+  Receipt,
+  Phone,
+  MapPin,
+  Calendar,
+  Bed
+import type { Gues
+import 
+interface Global
   Receipt,
   XCircle,
   Phone,
@@ -30,104 +30,102 @@ import { format } from 'date-fns'
 
 interface GlobalSearchProps {
   guests: Guest[]
-  guestProfiles: GuestProfile[]
-  reservations: Reservation[]
-  invoices: GuestInvoice[]
-  onNavigate: (module: string, data?: any) => void
-}
-
-type SearchResult = {
-  id: string
-  type: 'guest' | 'reservation' | 'invoice'
-  title: string
-  subtitle: string
-  badge?: string
-  badgeVariant?: 'default' | 'secondary' | 'destructive' | 'outline'
-  metadata?: string[]
-  data: any
-}
-
-export function GlobalSearch({
-  guests,
-  guestProfiles,
-  reservations,
-  invoices,
-  onNavigate
-}: GlobalSearchProps) {
-  const [open, setOpen] = useState(false)
-  const [search, setSearch] = useState('')
-
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault()
-        setOpen((open) => !open)
       }
-    }
 
-    document.addEventListener('keydown', down)
-    return () => document.removeEventListener('keydown', down)
-  }, [])
+    return () => document.
 
-  const searchResults = useMemo(() => {
-    if (!search || search.length < 2) return []
+ 
 
-    const results: SearchResult[] = []
-    const searchLower = search.toLowerCase()
 
-    guestProfiles.forEach((profile) => {
-      const matchFields = [
-        profile.firstName,
+      const 
         profile.lastName,
-        profile.email,
-        profile.phone,
-        profile.passportNumber,
-        profile.nationality,
-        profile.guestId
-      ].filter(Boolean).join(' ').toLowerCase()
-
+        profile
+        profile.na
+      ].filter(B
       if (matchFields.includes(searchLower)) {
-        const metadata: string[] = []
-        if (profile.email) metadata.push(profile.email)
-        if (profile.phone) metadata.push(profile.phone)
-        if (profile.nationality) metadata.push(profile.nationality)
+        if (profile.e
+        if 
+ 
 
-        const isVIP = profile.segments?.includes('vip')
-
-        results.push({
-          id: profile.id,
           type: 'guest',
-          title: `${profile.firstName} ${profile.lastName}`,
-          subtitle: profile.guestId || 'Guest Profile',
-          badge: isVIP ? 'VIP' : undefined,
-          badgeVariant: isVIP ? 'default' : undefined,
-          metadata,
-          data: profile
-        })
+         
+          badgeV
+          data:
       }
-    })
 
-    guests.forEach((guest) => {
-      const matchFields = [
-        guest.firstName,
+      const matchFields
         guest.lastName,
-        guest.email,
         guest.phone,
-        guest.idNumber
-      ].filter(Boolean).join(' ').toLowerCase()
+
+      if (matchFiel
+          p.email === guest.email || 
+        )
+        if (!existingProfi
+          if (guest.email) metad
+      }
+     
+
+            metadata,
+          })
+      }
+
+      const guest = guests.find(g => g.
+      
+
+        reservation.guestId,
+        reservation.status
+
+        const metadata: string[] = []
+        metadata.push(`Chec
+
+        profile.lastName,
+          title: `Rese
+          badge: reser
+            reservation.status 
+            reservation.stat
+          metadata,
+        })
 
       if (matchFields.includes(searchLower)) {
-        const existingProfile = guestProfiles.find(p => 
-          p.email === guest.email || 
-          (p.firstName === guest.firstName && p.lastName === guest.lastName)
-        )
-        
-        if (!existingProfile) {
-          const metadata: string[] = []
-          if (guest.email) metadata.push(guest.email)
-          if (guest.phone) metadata.push(guest.phone)
+        invoice.invoiceNumb
+        invoice.guestEmail,
+        invoice.status
 
-          results.push({
+
+        metadata.push(
+
+          id: invoice.id
+          title: `Invoice ${invoice.invoiceNumber}`,
+          badge: invoice.status,
+            invoice.status === 'final' ? 'default' :
+            'outline',
+          data: inv
+      }
+
+      }
+  cons
+
+    switch (result.type) {
+        onNavigate('crm', {
+      case 'reservation'
+        guest.lastName,
+        onNavigate('
+        guest.phone,
+
+    switch (type) {
+
+        return <CalendarCheck size={18} classN
+        return <Receipt size={18} className="text-succes
+  }
+  const groupedResults = useMemo(() => {
+        )
+      in
+        if (!existingProfile) {
+      groups[result.type].pus
+
+  }, [searchResults])
+
+      <Button
             id: guest.id,
             type: 'guest',
             title: `${guest.firstName} ${guest.lastName}`,
@@ -144,7 +142,7 @@ export function GlobalSearch({
       const guestName = guest ? `${guest.firstName} ${guest.lastName}` : ''
       
       const matchFields = [
-        reservation.id,
+        reservation.confirmationNumber,
         guestName,
         reservation.guestId,
         reservation.roomId,
@@ -152,7 +150,7 @@ export function GlobalSearch({
       ].filter(Boolean).join(' ').toLowerCase()
 
       if (matchFields.includes(searchLower)) {
-        const metadata: string[] = []
+        const metadata = []
         metadata.push(`Check-in: ${format(reservation.checkInDate, 'MMM dd, yyyy')}`)
         metadata.push(`Check-out: ${format(reservation.checkOutDate, 'MMM dd, yyyy')}`)
         if (reservation.totalAmount) metadata.push(formatCurrency(reservation.totalAmount))
@@ -160,7 +158,7 @@ export function GlobalSearch({
         results.push({
           id: reservation.id,
           type: 'reservation',
-          title: `Reservation ${reservation.id.slice(0, 8).toUpperCase()}`,
+          title: `Reservation ${reservation.confirmationNumber}`,
           subtitle: guestName || 'No guest assigned',
           badge: reservation.status,
           badgeVariant: 
@@ -180,12 +178,13 @@ export function GlobalSearch({
         invoice.guestName,
         invoice.guestEmail,
         invoice.guestPhone,
+        invoice.folioNumber,
         invoice.status
       ].filter(Boolean).join(' ').toLowerCase()
 
       if (matchFields.includes(searchLower)) {
-        const metadata: string[] = []
-        metadata.push(`Date: ${format(invoice.invoiceDate, 'MMM dd, yyyy')}`)
+        const metadata = []
+        metadata.push(`Date: ${format(invoice.issueDate, 'MMM dd, yyyy')}`)
         metadata.push(`Total: ${formatCurrency(invoice.grandTotal)}`)
         if (invoice.amountDue > 0) metadata.push(`Due: ${formatCurrency(invoice.amountDue)}`)
 
@@ -259,11 +258,11 @@ export function GlobalSearch({
       >
         <MagnifyingGlass size={16} className="mr-2" />
         <span className="hidden sm:inline">Search guests, reservations...</span>
-        <span className="sm:hidden">Search...</span>
+                    )}
         <kbd className="pointer-events-none absolute right-2 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
           <span className="text-xs">⌘</span>K
         </kbd>
-      </Button>
+        </Comma
 
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput 
@@ -279,15 +278,15 @@ export function GlobalSearch({
                 {search.length < 2 
                   ? 'Type at least 2 characters to search'
                   : 'No results found'
-                }
+
               </p>
-            </div>
+
           </CommandEmpty>
 
           {groupedResults.guest.length > 0 && (
             <CommandGroup heading="Guests">
               {groupedResults.guest.map((result) => (
-                <CommandItem
+
                   key={result.id}
                   value={result.id}
                   onSelect={() => handleSelect(result)}
@@ -295,19 +294,19 @@ export function GlobalSearch({
                 >
                   <div className="mt-0.5">
                     {getResultIcon(result.type)}
-                  </div>
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <p className="font-medium truncate">{result.title}</p>
                       {result.badge && (
                         <Badge variant={result.badgeVariant} className="text-xs">
-                          {result.badge}
+
                         </Badge>
-                      )}
+
                     </div>
                     <p className="text-sm text-muted-foreground truncate">{result.subtitle}</p>
                     {result.metadata && result.metadata.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
+
                         {result.metadata.slice(0, 3).map((meta, idx) => (
                           <span key={idx} className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
                             {meta}
@@ -315,23 +314,23 @@ export function GlobalSearch({
                         ))}
                       </div>
                     )}
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
 
-          {groupedResults.reservation.length > 0 && (
+                </CommandItem>
+
+            </CommandGroup>
+
+
+
             <CommandGroup heading="Reservations">
               {groupedResults.reservation.map((result) => (
                 <CommandItem
                   key={result.id}
                   value={result.id}
-                  onSelect={() => handleSelect(result)}
+
                   className="flex items-start gap-3 p-3 cursor-pointer"
-                >
+
                   <div className="mt-0.5">
-                    {getResultIcon(result.type)}
+
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -347,15 +346,15 @@ export function GlobalSearch({
                       <div className="flex flex-wrap gap-2 mt-2">
                         {result.metadata.slice(0, 3).map((meta, idx) => (
                           <span key={idx} className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                            {meta}
+
                           </span>
-                        ))}
+
                       </div>
-                    )}
+
                   </div>
                 </CommandItem>
               ))}
-            </CommandGroup>
+
           )}
 
           {groupedResults.invoice.length > 0 && (
@@ -363,19 +362,19 @@ export function GlobalSearch({
               {groupedResults.invoice.map((result) => (
                 <CommandItem
                   key={result.id}
-                  value={result.id}
+
                   onSelect={() => handleSelect(result)}
                   className="flex items-start gap-3 p-3 cursor-pointer"
                 >
-                  <div className="mt-0.5">
+
                     {getResultIcon(result.type)}
-                  </div>
+
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+
                       <p className="font-medium truncate">{result.title}</p>
-                      {result.badge && (
+
                         <Badge variant={result.badgeVariant} className="text-xs capitalize">
-                          {result.badge}
+
                         </Badge>
                       )}
                     </div>
@@ -385,17 +384,17 @@ export function GlobalSearch({
                         {result.metadata.slice(0, 3).map((meta, idx) => (
                           <span key={idx} className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
                             {meta}
-                          </span>
+
                         ))}
-                      </div>
+
                     )}
-                  </div>
+
                 </CommandItem>
-              ))}
+
             </CommandGroup>
-          )}
+
         </CommandList>
-      </CommandDialog>
+
     </>
-  )
+
 }
