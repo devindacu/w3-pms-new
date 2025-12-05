@@ -39,14 +39,18 @@ import {
   Envelope,
   FileText,
   CurrencyDollar,
-  Calendar
+  Calendar,
+  Receipt,
+  Clock
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
-import type { GuestInvoice, GuestInvoiceType, GuestInvoiceStatus, SystemUser, HotelBranding } from '@/lib/types'
+import type { GuestInvoice, GuestInvoiceType, GuestInvoiceStatus, SystemUser, HotelBranding, Payment } from '@/lib/types'
 import { InvoiceEditDialog } from '@/components/InvoiceEditDialog'
 import { InvoiceViewDialog } from '@/components/InvoiceViewDialog'
 import { InvoiceShareDialog } from '@/components/InvoiceShareDialog'
+import { PaymentRecordingDialog } from '@/components/PaymentRecordingDialog'
+import { PaymentHistoryDialog } from '@/components/PaymentHistoryDialog'
 import { formatCurrency } from '@/lib/helpers'
 
 interface InvoiceManagementProps {
@@ -100,6 +104,7 @@ const getTypeBadgeColor = (type: GuestInvoiceType) => {
 }
 
 export function InvoiceManagement({ invoices, setInvoices, branding, currentUser }: InvoiceManagementProps) {
+  const [payments, setPayments] = useKV<Payment[]>('w3-hotel-invoice-payments', [])
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<GuestInvoiceStatus | 'all'>('all')
   const [typeFilter, setTypeFilter] = useState<GuestInvoiceType | 'all'>('all')
@@ -107,6 +112,8 @@ export function InvoiceManagement({ invoices, setInvoices, branding, currentUser
   const [editingInvoice, setEditingInvoice] = useState<GuestInvoice | null>(null)
   const [viewingInvoice, setViewingInvoice] = useState<GuestInvoice | null>(null)
   const [sharingInvoice, setSharingInvoice] = useState<GuestInvoice | null>(null)
+  const [recordingPaymentFor, setRecordingPaymentFor] = useState<GuestInvoice | null>(null)
+  const [viewingPaymentHistoryFor, setViewingPaymentHistoryFor] = useState<GuestInvoice | null>(null)
 
   const filteredInvoices = invoices.filter(inv => {
     const matchesSearch = 
@@ -215,6 +222,57 @@ export function InvoiceManagement({ invoices, setInvoices, branding, currentUser
       setInvoices(current => current.filter(inv => inv.id !== invoice.id))
       toast.success('Invoice deleted successfully')
     }
+  }
+
+  const handlePaymentRecorded = (payment: Payment) => {
+    setPayments((currentPayments) => [...(currentPayments || []), payment])
+    
+    setInvoices((currentInvoices) => 
+      currentInvoices.map(inv => {
+        if (inv.id === payment.invoiceId) {
+          const newTotalPaid = inv.totalPaid + payment.amount
+          const newAmountDue = inv.grandTotal - newTotalPaid
+          
+          return {
+            ...inv,
+            totalPaid: newTotalPaid,
+            amountDue: newAmountDue,
+            payments: [
+              ...(inv.payments || []),
+              {
+                id: payment.id,
+                paymentDate: payment.processedAt,
+                paymentType: payment.method === 'card' ? 'cash' as const : 
+                            payment.method === 'bank-transfer' ? 'bank-transfer' as const :
+                            payment.method === 'mobile-payment' ? 'mobile-payment' as const :
+                            'cash' as const,
+                amount: payment.amount,
+                currency: inv.currency,
+                exchangeRate: inv.exchangeRate,
+                amountInBaseCurrency: payment.amount * inv.exchangeRate,
+                reference: payment.reference,
+                receivedBy: payment.processedBy,
+                receivedAt: payment.processedAt,
+                isRefunded: false,
+                notes: payment.notes
+              }
+            ],
+            auditTrail: [
+              ...(inv.auditTrail || []),
+              {
+                id: `audit-${Date.now()}`,
+                action: 'payment-received' as const,
+                description: `Payment of ${formatCurrency(payment.amount)} received via ${payment.method}`,
+                performedBy: payment.processedBy,
+                performedAt: payment.processedAt
+              }
+            ],
+            updatedAt: Date.now()
+          }
+        }
+        return inv
+      })
+    )
   }
 
   const totalAmount = filteredInvoices.reduce((sum, inv) => sum + inv.grandTotal, 0)
@@ -377,6 +435,16 @@ export function InvoiceManagement({ invoices, setInvoices, branding, currentUser
                               <Eye size={16} className="mr-2" />
                               View
                             </DropdownMenuItem>
+                            {invoice.amountDue > 0 && (
+                              <DropdownMenuItem onClick={() => setRecordingPaymentFor(invoice)}>
+                                <CurrencyDollar size={16} className="mr-2" />
+                                Record Payment
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem onClick={() => setViewingPaymentHistoryFor(invoice)}>
+                              <Receipt size={16} className="mr-2" />
+                              Payment History
+                            </DropdownMenuItem>
                             {invoice.status === 'draft' && (
                               <DropdownMenuItem onClick={() => setEditingInvoice(invoice)}>
                                 <PencilSimple size={16} className="mr-2" />
@@ -494,6 +562,21 @@ export function InvoiceManagement({ invoices, setInvoices, branding, currentUser
           }}
         />
       )}
+
+      <PaymentRecordingDialog
+        open={!!recordingPaymentFor}
+        onClose={() => setRecordingPaymentFor(null)}
+        invoice={recordingPaymentFor}
+        onPaymentRecorded={handlePaymentRecorded}
+        currentUser={currentUser}
+      />
+
+      <PaymentHistoryDialog
+        open={!!viewingPaymentHistoryFor}
+        onClose={() => setViewingPaymentHistoryFor(null)}
+        invoice={viewingPaymentHistoryFor}
+        payments={payments || []}
+      />
     </div>
   )
 }

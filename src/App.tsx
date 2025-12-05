@@ -158,6 +158,7 @@ import { Analytics } from '@/components/Analytics'
 import { Settings } from '@/components/Settings'
 import { Finance } from '@/components/Finance'
 import { InvoiceManagement } from '@/components/InvoiceManagement'
+import { PaymentTracking } from '@/components/PaymentTracking'
 import type {
   GuestProfile,
   GuestComplaint,
@@ -1316,10 +1317,14 @@ function App() {
               </div>
 
               <Tabs defaultValue="guest" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
                   <TabsTrigger value="guest">
                     <Receipt size={18} className="mr-2" />
                     Guest Invoices
+                  </TabsTrigger>
+                  <TabsTrigger value="payments">
+                    <CurrencyDollar size={18} className="mr-2" />
+                    Payments
                   </TabsTrigger>
                   <TabsTrigger value="supplier">
                     <FileText size={18} className="mr-2" />
@@ -1337,6 +1342,13 @@ function App() {
                     setInvoices={setGuestInvoices}
                     branding={branding || null}
                     currentUser={currentUser}
+                  />
+                </TabsContent>
+
+                <TabsContent value="payments">
+                  <PaymentTracking
+                    payments={payments || []}
+                    invoices={guestInvoices || []}
                   />
                 </TabsContent>
 
