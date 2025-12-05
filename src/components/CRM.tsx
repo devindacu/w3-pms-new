@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ulid } from 'ulid'
 import {
   Users,
@@ -20,7 +21,11 @@ import {
   Megaphone,
   GlobeHemisphereWest,
   Link as LinkIcon,
-  ArrowsClockwise
+  ArrowsClockwise,
+  Funnel,
+  SortAscending,
+  SortDescending,
+  X
 } from '@phosphor-icons/react'
 import type {
   GuestProfile,
@@ -113,9 +118,22 @@ export function CRM({
   const [reviewSourceDialogOpen, setReviewSourceDialogOpen] = useState(false)
   const [selectedReviewSource, setSelectedReviewSource] = useState<ReviewSourceConfig | undefined>()
   const [searchQuery, setSearchQuery] = useState('')
+  const [feedbackSearchQuery, setFeedbackSearchQuery] = useState('')
 
   const [reviewSources, setReviewSources] = useKV<ReviewSourceConfig[]>('w3-hotel-review-sources', [])
   const [isSyncing, setIsSyncing] = useState(false)
+
+  const [guestFilterTier, setGuestFilterTier] = useState<string>('all')
+  const [guestFilterSegment, setGuestFilterSegment] = useState<string>('all')
+  const [guestFilterNationality, setGuestFilterNationality] = useState<string>('all')
+  const [guestSortBy, setGuestSortBy] = useState<string>('name')
+  const [guestSortOrder, setGuestSortOrder] = useState<'asc' | 'desc'>('asc')
+
+  const [feedbackFilterRating, setFeedbackFilterRating] = useState<string>('all')
+  const [feedbackFilterSentiment, setFeedbackFilterSentiment] = useState<string>('all')
+  const [feedbackFilterSource, setFeedbackFilterSource] = useState<string>('all')
+  const [feedbackSortBy, setFeedbackSortBy] = useState<string>('date')
+  const [feedbackSortOrder, setFeedbackSortOrder] = useState<'asc' | 'desc'>('desc')
 
   const syncReviewsFromSource = async (source: ReviewSourceConfig) => {
     try {
@@ -346,12 +364,130 @@ export function CRM({
     }
   }
 
-  const filteredGuests = guestProfiles.filter(guest =>
-    guest.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    guest.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    guest.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    guest.phone.includes(searchQuery)
-  )
+  const filteredAndSortedGuests = (() => {
+    let filtered = guestProfiles.filter(guest => {
+      const matchesSearch = !searchQuery || (
+        guest.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        guest.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        guest.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        guest.phone.includes(searchQuery)
+      )
+
+      const matchesTier = guestFilterTier === 'all' || guest.loyaltyInfo.tier === guestFilterTier
+      
+      const matchesSegment = guestFilterSegment === 'all' || guest.segments.includes(guestFilterSegment as any)
+      
+      const matchesNationality = guestFilterNationality === 'all' || guest.nationality === guestFilterNationality
+
+      return matchesSearch && matchesTier && matchesSegment && matchesNationality
+    })
+
+    filtered.sort((a, b) => {
+      let comparison = 0
+
+      switch (guestSortBy) {
+        case 'name':
+          comparison = `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
+          break
+        case 'totalSpent':
+          comparison = a.totalSpent - b.totalSpent
+          break
+        case 'totalStays':
+          comparison = a.totalStays - b.totalStays
+          break
+        case 'loyaltyPoints':
+          comparison = a.loyaltyInfo.points - b.loyaltyInfo.points
+          break
+        case 'lastStay':
+          comparison = (a.lastStayDate || 0) - (b.lastStayDate || 0)
+          break
+        case 'memberSince':
+          comparison = a.createdAt - b.createdAt
+          break
+        default:
+          comparison = 0
+      }
+
+      return guestSortOrder === 'asc' ? comparison : -comparison
+    })
+
+    return filtered
+  })()
+
+  const filteredAndSortedFeedback = (() => {
+    let filtered = feedback.filter(fb => {
+      const matchesSearch = !feedbackSearchQuery || (
+        fb.guestName.toLowerCase().includes(feedbackSearchQuery.toLowerCase()) ||
+        fb.comments?.toLowerCase().includes(feedbackSearchQuery.toLowerCase())
+      )
+
+      const matchesRating = feedbackFilterRating === 'all' || (() => {
+        const rating = fb.overallRating * 2
+        switch (feedbackFilterRating) {
+          case 'excellent': return rating >= 9
+          case 'good': return rating >= 7 && rating < 9
+          case 'average': return rating >= 5 && rating < 7
+          case 'poor': return rating < 5
+          default: return true
+        }
+      })()
+
+      const matchesSentiment = feedbackFilterSentiment === 'all' || fb.sentiment === feedbackFilterSentiment
+
+      const matchesSource = feedbackFilterSource === 'all' || fb.reviewSource === feedbackFilterSource
+
+      return matchesSearch && matchesRating && matchesSentiment && matchesSource
+    })
+
+    filtered.sort((a, b) => {
+      let comparison = 0
+
+      switch (feedbackSortBy) {
+        case 'date':
+          comparison = a.submittedAt - b.submittedAt
+          break
+        case 'rating':
+          comparison = a.overallRating - b.overallRating
+          break
+        case 'guestName':
+          comparison = a.guestName.localeCompare(b.guestName)
+          break
+        default:
+          comparison = 0
+      }
+
+      return feedbackSortOrder === 'asc' ? comparison : -comparison
+    })
+
+    return filtered
+  })()
+
+  const getUniqueNationalities = () => {
+    const nationalities = new Set(guestProfiles.map(g => g.nationality).filter((n): n is string => Boolean(n)))
+    return Array.from(nationalities).sort()
+  }
+
+  const getUniqueReviewSources = () => {
+    const sources = new Set(feedback.map(f => f.reviewSource))
+    return Array.from(sources).sort()
+  }
+
+  const hasActiveGuestFilters = guestFilterTier !== 'all' || guestFilterSegment !== 'all' || guestFilterNationality !== 'all'
+  const hasActiveFeedbackFilters = feedbackFilterRating !== 'all' || feedbackFilterSentiment !== 'all' || feedbackFilterSource !== 'all'
+
+  const clearGuestFilters = () => {
+    setGuestFilterTier('all')
+    setGuestFilterSegment('all')
+    setGuestFilterNationality('all')
+    setSearchQuery('')
+  }
+
+  const clearFeedbackFilters = () => {
+    setFeedbackFilterRating('all')
+    setFeedbackFilterSentiment('all')
+    setFeedbackFilterSource('all')
+    setFeedbackSearchQuery('')
+  }
 
   return (
     <div className="space-y-6">
@@ -447,27 +583,121 @@ export function CRM({
         </TabsList>
 
         <TabsContent value="guests" className="space-y-4 mt-6">
-          <div className="flex items-center justify-between">
-            <div className="relative flex-1 max-w-md">
-              <MagnifyingGlass size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search guests by name, email, or phone..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="relative flex-1 max-w-md w-full">
+                <MagnifyingGlass size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search guests by name, email, or phone..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Button onClick={() => {
+                setSelectedGuest(undefined)
+                setGuestDialogOpen(true)
+              }}>
+                <Plus size={20} className="mr-2" />
+                Add Guest Profile
+              </Button>
             </div>
-            <Button onClick={() => {
-              setSelectedGuest(undefined)
-              setGuestDialogOpen(true)
-            }}>
-              <Plus size={20} className="mr-2" />
-              Add Guest Profile
-            </Button>
+
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row flex-wrap gap-3 flex-1">
+                <div className="flex-1 min-w-[180px]">
+                  <Select value={guestFilterTier} onValueChange={setGuestFilterTier}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filter by Tier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Tiers</SelectItem>
+                      <SelectItem value="bronze">Bronze</SelectItem>
+                      <SelectItem value="silver">Silver</SelectItem>
+                      <SelectItem value="gold">Gold</SelectItem>
+                      <SelectItem value="platinum">Platinum</SelectItem>
+                      <SelectItem value="diamond">Diamond</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex-1 min-w-[180px]">
+                  <Select value={guestFilterSegment} onValueChange={setGuestFilterSegment}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filter by Segment" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Segments</SelectItem>
+                      <SelectItem value="vip">VIP</SelectItem>
+                      <SelectItem value="business">Business</SelectItem>
+                      <SelectItem value="leisure">Leisure</SelectItem>
+                      <SelectItem value="family">Family</SelectItem>
+                      <SelectItem value="corporate">Corporate</SelectItem>
+                      <SelectItem value="event">Event</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex-1 min-w-[180px]">
+                  <Select value={guestFilterNationality} onValueChange={setGuestFilterNationality}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filter by Nationality" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Nationalities</SelectItem>
+                      {getUniqueNationalities().map(nationality => (
+                        <SelectItem key={nationality} value={nationality}>
+                          {nationality}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex-1 min-w-[180px]">
+                  <Select value={guestSortBy} onValueChange={setGuestSortBy}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="name">Name</SelectItem>
+                      <SelectItem value="totalSpent">Total Spent</SelectItem>
+                      <SelectItem value="totalStays">Total Stays</SelectItem>
+                      <SelectItem value="loyaltyPoints">Loyalty Points</SelectItem>
+                      <SelectItem value="lastStay">Last Stay</SelectItem>
+                      <SelectItem value="memberSince">Member Since</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setGuestSortOrder(guestSortOrder === 'asc' ? 'desc' : 'asc')}
+                >
+                  {guestSortOrder === 'asc' ? <SortAscending size={20} /> : <SortDescending size={20} />}
+                </Button>
+
+                {(hasActiveGuestFilters || searchQuery) && (
+                  <Button
+                    variant="outline"
+                    onClick={clearGuestFilters}
+                  >
+                    <X size={20} className="mr-2" />
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Funnel size={16} />
+              <span>Showing {filteredAndSortedGuests.length} of {guestProfiles.length} guests</span>
+            </div>
           </div>
 
           <div className="grid gap-4">
-            {filteredGuests.map((guest) => (
+            {filteredAndSortedGuests.map((guest) => (
               <Card
                 key={guest.id}
                 className="p-6 hover:shadow-md transition-shadow cursor-pointer"
@@ -531,14 +761,19 @@ export function CRM({
                 </div>
               </Card>
             ))}
-            {filteredGuests.length === 0 && (
+            {filteredAndSortedGuests.length === 0 && (
               <Card className="p-16 text-center">
                 <Users size={64} className="mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-xl font-semibold mb-2">No guests found</h3>
                 <p className="text-muted-foreground mb-6">
-                  {searchQuery ? 'Try adjusting your search query' : 'Add your first guest profile to get started'}
+                  {searchQuery || hasActiveGuestFilters ? 'Try adjusting your search or filters' : 'Add your first guest profile to get started'}
                 </p>
-                {!searchQuery && (
+                {(searchQuery || hasActiveGuestFilters) ? (
+                  <Button onClick={clearGuestFilters}>
+                    <X size={20} className="mr-2" />
+                    Clear Filters
+                  </Button>
+                ) : (
                   <Button onClick={() => {
                     setSelectedGuest(undefined)
                     setGuestDialogOpen(true)
@@ -876,18 +1111,115 @@ export function CRM({
             </TabsList>
 
             <TabsContent value="feedback" className="space-y-4 mt-6">
-              <div className="flex items-center justify-between mb-4">
-                <Button onClick={() => {
-                  setSelectedFeedback(undefined)
-                  setFeedbackDialogOpen(true)
-                }}>
-                  <Plus size={20} className="mr-2" />
-                  Add Feedback
-                </Button>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <Button onClick={() => {
+                    setSelectedFeedback(undefined)
+                    setFeedbackDialogOpen(true)
+                  }}>
+                    <Plus size={20} className="mr-2" />
+                    Add Feedback
+                  </Button>
+                </div>
+
+                <div className="relative max-w-md w-full">
+                  <MagnifyingGlass size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Search feedback by guest name or comments..."
+                    value={feedbackSearchQuery}
+                    onChange={(e) => setFeedbackSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+
+                <div className="flex flex-col lg:flex-row gap-4">
+                  <div className="flex flex-col sm:flex-row flex-wrap gap-3 flex-1">
+                    <div className="flex-1 min-w-[180px]">
+                      <Select value={feedbackFilterRating} onValueChange={setFeedbackFilterRating}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Filter by Rating" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Ratings</SelectItem>
+                          <SelectItem value="excellent">Excellent (9-10)</SelectItem>
+                          <SelectItem value="good">Good (7-8)</SelectItem>
+                          <SelectItem value="average">Average (5-6)</SelectItem>
+                          <SelectItem value="poor">Poor (0-4)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex-1 min-w-[180px]">
+                      <Select value={feedbackFilterSentiment} onValueChange={setFeedbackFilterSentiment}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Filter by Sentiment" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Sentiments</SelectItem>
+                          <SelectItem value="positive">Positive</SelectItem>
+                          <SelectItem value="neutral">Neutral</SelectItem>
+                          <SelectItem value="negative">Negative</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex-1 min-w-[180px]">
+                      <Select value={feedbackFilterSource} onValueChange={setFeedbackFilterSource}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Filter by Source" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Sources</SelectItem>
+                          {getUniqueReviewSources().map(source => (
+                            <SelectItem key={source} value={source}>
+                              {source}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex-1 min-w-[180px]">
+                      <Select value={feedbackSortBy} onValueChange={setFeedbackSortBy}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sort by" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="date">Date</SelectItem>
+                          <SelectItem value="rating">Rating</SelectItem>
+                          <SelectItem value="guestName">Guest Name</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setFeedbackSortOrder(feedbackSortOrder === 'asc' ? 'desc' : 'asc')}
+                    >
+                      {feedbackSortOrder === 'asc' ? <SortAscending size={20} /> : <SortDescending size={20} />}
+                    </Button>
+
+                    {(hasActiveFeedbackFilters || feedbackSearchQuery) && (
+                      <Button
+                        variant="outline"
+                        onClick={clearFeedbackFilters}
+                      >
+                        <X size={20} className="mr-2" />
+                        Clear Filters
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Funnel size={16} />
+                  <span>Showing {filteredAndSortedFeedback.length} of {feedback.length} feedback entries</span>
+                </div>
               </div>
 
               <div className="grid gap-4">
-                {feedback.map((fb) => {
+                {filteredAndSortedFeedback.map((fb) => {
                   const guest = guestProfiles.find(g => g.id === fb.guestId)
                   const getReviewSourceIcon = (source: string) => {
                     switch (source) {
@@ -955,18 +1287,27 @@ export function CRM({
                     </Card>
                   )
                 })}
-                {feedback.length === 0 && (
+                {filteredAndSortedFeedback.length === 0 && (
                   <Card className="p-16 text-center">
                     <ThumbsUp size={64} className="mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-xl font-semibold mb-2">No feedback yet</h3>
-                    <p className="text-muted-foreground mb-6">Add guest feedback manually or import from review sites</p>
-                    <Button onClick={() => {
-                      setSelectedFeedback(undefined)
-                      setFeedbackDialogOpen(true)
-                    }}>
-                      <Plus size={20} className="mr-2" />
-                      Add Feedback
-                    </Button>
+                    <h3 className="text-xl font-semibold mb-2">No feedback found</h3>
+                    <p className="text-muted-foreground mb-6">
+                      {feedbackSearchQuery || hasActiveFeedbackFilters ? 'Try adjusting your search or filters' : 'Add guest feedback manually or import from review sites'}
+                    </p>
+                    {(feedbackSearchQuery || hasActiveFeedbackFilters) ? (
+                      <Button onClick={clearFeedbackFilters}>
+                        <X size={20} className="mr-2" />
+                        Clear Filters
+                      </Button>
+                    ) : (
+                      <Button onClick={() => {
+                        setSelectedFeedback(undefined)
+                        setFeedbackDialogOpen(true)
+                      }}>
+                        <Plus size={20} className="mr-2" />
+                        Add Feedback
+                      </Button>
+                    )}
                   </Card>
                 )}
               </div>
