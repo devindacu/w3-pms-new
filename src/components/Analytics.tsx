@@ -28,6 +28,23 @@ import {
 } from '@phosphor-icons/react'
 import { formatCurrency, formatPercent } from '@/lib/helpers'
 import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts'
+import {
   generateOrderSummary,
   generateSupplierPriceComparison,
   generateDepartmentConsumption,
@@ -201,6 +218,42 @@ export function Analytics({
             </Card>
           </div>
 
+          <div className="mb-6">
+            <h4 className="text-sm font-medium mb-4">Order Trends Over Time</h4>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={orderSummary.breakdown}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="period" stroke="var(--muted-foreground)" />
+                <YAxis stroke="var(--muted-foreground)" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'var(--card)', 
+                    border: '1px solid var(--border)',
+                    borderRadius: '6px'
+                  }}
+                  formatter={(value: any) => typeof value === 'number' ? formatCurrency(value) : value}
+                />
+                <Legend />
+                <Area 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="var(--primary)" 
+                  fill="var(--primary)" 
+                  fillOpacity={0.3}
+                  name="Revenue"
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="orderCount" 
+                  stroke="var(--accent)" 
+                  fill="var(--accent)" 
+                  fillOpacity={0.3}
+                  name="Orders"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
           <Table>
             <TableHeader>
               <TableRow>
@@ -271,6 +324,27 @@ export function Analytics({
               <h3 className="text-lg font-semibold">Department Consumption Report</h3>
               <p className="text-sm text-muted-foreground">Track ingredient usage by department</p>
             </div>
+          </div>
+
+          <div className="mb-6">
+            <h4 className="text-sm font-medium mb-4">Cost Distribution by Department</h4>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={deptConsumption}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="department" stroke="var(--muted-foreground)" />
+                <YAxis stroke="var(--muted-foreground)" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'var(--card)', 
+                    border: '1px solid var(--border)',
+                    borderRadius: '6px'
+                  }}
+                  formatter={(value: any) => typeof value === 'number' ? formatCurrency(value) : value}
+                />
+                <Legend />
+                <Bar dataKey="estimatedCost" fill="var(--primary)" name="Cost (LKR)" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
 
           <Table>
@@ -431,6 +505,39 @@ export function Analytics({
             </Card>
           </div>
 
+          <div className="mb-6">
+            <h4 className="text-sm font-medium mb-4">Cost Distribution by Department</h4>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={costPerDept}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ department, percentageOfTotal }) => `${department}: ${percentageOfTotal.toFixed(1)}%`}
+                  outerRadius={100}
+                  fill="var(--primary)"
+                  dataKey="totalCost"
+                  nameKey="department"
+                >
+                  {costPerDept.map((entry, index) => {
+                    const colors = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)']
+                    return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                  })}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'var(--card)', 
+                    border: '1px solid var(--border)',
+                    borderRadius: '6px'
+                  }}
+                  formatter={(value: any) => formatCurrency(value)}
+                />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
           <Table>
             <TableHeader>
               <TableRow>
@@ -482,6 +589,28 @@ export function Analytics({
             </Card>
           </div>
 
+          <div className="mb-6">
+            <h4 className="text-sm font-medium mb-4">Food Cost Analysis by Category</h4>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={foodCostPct.breakdown}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="category" stroke="var(--muted-foreground)" />
+                <YAxis stroke="var(--muted-foreground)" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'var(--card)', 
+                    border: '1px solid var(--border)',
+                    borderRadius: '6px'
+                  }}
+                  formatter={(value: any) => typeof value === 'number' ? formatCurrency(value) : value}
+                />
+                <Legend />
+                <Bar dataKey="revenue" fill="var(--success)" name="Revenue" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="cost" fill="var(--destructive)" name="Cost" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
           <div className="space-y-3">
             {foodCostPct.breakdown.map((item) => (
               <div key={item.category} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
@@ -506,6 +635,42 @@ export function Analytics({
               <h3 className="text-lg font-semibold">Purchase Cost Trends</h3>
               <p className="text-sm text-muted-foreground">Track purchasing patterns over time</p>
             </div>
+          </div>
+
+          <div className="mb-6">
+            <h4 className="text-sm font-medium mb-4">Purchase Order Trends</h4>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={purchaseTrends}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="period" stroke="var(--muted-foreground)" />
+                <YAxis stroke="var(--muted-foreground)" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'var(--card)', 
+                    border: '1px solid var(--border)',
+                    borderRadius: '6px'
+                  }}
+                  formatter={(value: any) => typeof value === 'number' ? formatCurrency(value) : value}
+                />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="totalAmount" 
+                  stroke="var(--chart-1)" 
+                  strokeWidth={3}
+                  dot={{ fill: 'var(--chart-1)', r: 4 }}
+                  name="Total Amount"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="averagePoValue" 
+                  stroke="var(--chart-2)" 
+                  strokeWidth={3}
+                  dot={{ fill: 'var(--chart-2)', r: 4 }}
+                  name="Avg PO Value"
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
 
           <Table>
@@ -612,6 +777,31 @@ export function Analytics({
             </div>
           </div>
 
+          <div className="mb-6">
+            <h4 className="text-sm font-medium mb-4">Top Ingredients by Usage</h4>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={ingredientUsage.slice(0, 10)}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="ingredientName" stroke="var(--muted-foreground)" angle={-45} textAnchor="end" height={100} />
+                <YAxis stroke="var(--muted-foreground)" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'var(--card)', 
+                    border: '1px solid var(--border)',
+                    borderRadius: '6px'
+                  }}
+                  formatter={(value: any, name: string) => {
+                    if (name === 'estimatedCost') return formatCurrency(value)
+                    return value
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="usageCount" fill="var(--chart-3)" name="Times Used" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="estimatedCost" fill="var(--chart-1)" name="Estimated Cost" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
           <Table>
             <TableHeader>
               <TableRow>
@@ -644,6 +834,29 @@ export function Analytics({
               <h3 className="text-lg font-semibold">Dish Profitability & Food Cost Breakdown</h3>
               <p className="text-sm text-muted-foreground">Analyze profit margins for each dish</p>
             </div>
+          </div>
+
+          <div className="mb-6">
+            <h4 className="text-sm font-medium mb-4">Dish Profitability Comparison</h4>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={dishProfit.slice(0, 10)}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="dishName" stroke="var(--muted-foreground)" angle={-45} textAnchor="end" height={100} />
+                <YAxis stroke="var(--muted-foreground)" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'var(--card)', 
+                    border: '1px solid var(--border)',
+                    borderRadius: '6px'
+                  }}
+                  formatter={(value: any) => typeof value === 'number' ? formatCurrency(value) : value}
+                />
+                <Legend />
+                <Bar dataKey="sellingPrice" fill="var(--chart-1)" name="Selling Price" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="foodCost" fill="var(--chart-2)" name="Food Cost" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="grossProfit" fill="var(--success)" name="Gross Profit" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
 
           <Table>
@@ -684,6 +897,31 @@ export function Analytics({
               <h3 className="text-lg font-semibold">Menu Performance Analysis</h3>
               <p className="text-sm text-muted-foreground">Track menu popularity and revenue contribution</p>
             </div>
+          </div>
+
+          <div className="mb-6">
+            <h4 className="text-sm font-medium mb-4">Menu Revenue Performance</h4>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={menuPerf}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="menuName" stroke="var(--muted-foreground)" />
+                <YAxis stroke="var(--muted-foreground)" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'var(--card)', 
+                    border: '1px solid var(--border)',
+                    borderRadius: '6px'
+                  }}
+                  formatter={(value: any, name: string) => {
+                    if (name === 'totalRevenue' || name === 'averageOrderValue') return formatCurrency(value)
+                    return value
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="totalOrders" fill="var(--chart-4)" name="Total Orders" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="totalRevenue" fill="var(--success)" name="Total Revenue" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
 
           <Table>
