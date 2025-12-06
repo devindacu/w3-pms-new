@@ -130,7 +130,11 @@ import {
   samplePayments,
   sampleExpenses,
   sampleAccounts,
-  sampleBudgets
+  sampleBudgets,
+  sampleCostCenters,
+  sampleProfitCenters,
+  sampleCostCenterReports,
+  sampleProfitCenterReports
 } from '@/lib/sampleData'
 import { sampleGuestInvoices } from '@/lib/guestInvoiceSampleData'
 import { sampleOTAConnections, sampleChannelPerformance } from '@/lib/channelManagerSampleData'
@@ -290,6 +294,10 @@ function App() {
   const [chartOfAccounts, setChartOfAccounts] = useKV<import('@/lib/types').ChartOfAccount[]>('w3-hotel-chart-of-accounts', [])
   const [glEntries, setGLEntries] = useKV<import('@/lib/types').GLEntry[]>('w3-hotel-gl-entries', [])
   const [bankReconciliations, setBankReconciliations] = useKV<import('@/lib/types').BankReconciliation[]>('w3-hotel-bank-reconciliations', [])
+  const [costCenters, setCostCenters] = useKV<import('@/lib/types').CostCenter[]>('w3-hotel-cost-centers', [])
+  const [profitCenters, setProfitCenters] = useKV<import('@/lib/types').ProfitCenter[]>('w3-hotel-profit-centers', [])
+  const [costCenterReports, setCostCenterReports] = useKV<import('@/lib/types').CostCenterReport[]>('w3-hotel-cost-center-reports', [])
+  const [profitCenterReports, setProfitCenterReports] = useKV<import('@/lib/types').ProfitCenterReport[]>('w3-hotel-profit-center-reports', [])
   const [dashboardLayout, setDashboardLayout] = useKV<DashboardLayout | null>('w3-hotel-dashboard-layout', null)
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
@@ -460,6 +468,10 @@ function App() {
     setExpenses(sampleExpenses)
     setAccounts(sampleAccounts)
     setBudgets(sampleBudgets)
+    setCostCenters(sampleCostCenters)
+    setProfitCenters(sampleProfitCenters)
+    setCostCenterReports(sampleCostCenterReports)
+    setProfitCenterReports(sampleProfitCenterReports)
     toast.success('Sample data loaded successfully')
   }
 
@@ -1054,6 +1066,12 @@ function App() {
               bankReconciliations={bankReconciliations || []}
               setBankReconciliations={setBankReconciliations}
               guestInvoices={guestInvoices || []}
+              costCenters={costCenters || []}
+              setCostCenters={setCostCenters}
+              profitCenters={profitCenters || []}
+              setProfitCenters={setProfitCenters}
+              costCenterReports={costCenterReports || []}
+              profitCenterReports={profitCenterReports || []}
               currentUser={currentUser}
             />
           )}

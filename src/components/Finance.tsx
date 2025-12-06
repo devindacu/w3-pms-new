@@ -86,6 +86,12 @@ interface FinanceProps {
   bankReconciliations?: BankReconciliation[]
   setBankReconciliations?: (reconciliations: BankReconciliation[] | ((prev: BankReconciliation[]) => BankReconciliation[])) => void
   guestInvoices?: import('@/lib/types').GuestInvoice[]
+  costCenters?: CostCenter[]
+  setCostCenters?: (centers: CostCenter[] | ((prev: CostCenter[]) => CostCenter[])) => void
+  profitCenters?: ProfitCenter[]
+  setProfitCenters?: (centers: ProfitCenter[] | ((prev: ProfitCenter[]) => ProfitCenter[])) => void
+  costCenterReports?: import('@/lib/types').CostCenterReport[]
+  profitCenterReports?: import('@/lib/types').ProfitCenterReport[]
   currentUser: SystemUser
 }
 
@@ -108,6 +114,12 @@ export function Finance({
   bankReconciliations = [],
   setBankReconciliations,
   guestInvoices = [],
+  costCenters = [],
+  setCostCenters,
+  profitCenters = [],
+  setProfitCenters,
+  costCenterReports = [],
+  profitCenterReports = [],
   currentUser
 }: FinanceProps) {
   const [selectedTab, setSelectedTab] = useState('overview')
@@ -132,8 +144,6 @@ export function Finance({
   const [profitCenterDialogOpen, setProfitCenterDialogOpen] = useState(false)
   const [costCenterReportDialogOpen, setCostCenterReportDialogOpen] = useState(false)
   const [profitCenterReportDialogOpen, setProfitCenterReportDialogOpen] = useState(false)
-  const [costCenters, setCostCenters] = useState<CostCenter[]>([])
-  const [profitCenters, setProfitCenters] = useState<ProfitCenter[]>([])
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | undefined>()
   const [selectedPayment, setSelectedPayment] = useState<Payment | undefined>()
   const [selectedExpense, setSelectedExpense] = useState<Expense | undefined>()
@@ -2334,10 +2344,12 @@ export function Finance({
         costCenter={selectedCostCenter}
         costCenters={costCenters}
         onSave={(costCenter) => {
-          if (selectedCostCenter) {
-            setCostCenters((prev) => prev.map((cc) => (cc.id === costCenter.id ? costCenter : cc)))
-          } else {
-            setCostCenters((prev) => [...prev, costCenter])
+          if (setCostCenters) {
+            if (selectedCostCenter) {
+              setCostCenters((prev) => prev.map((cc) => (cc.id === costCenter.id ? costCenter : cc)))
+            } else {
+              setCostCenters((prev) => [...prev, costCenter])
+            }
           }
           setCostCenterDialogOpen(false)
         }}
@@ -2349,10 +2361,12 @@ export function Finance({
         profitCenter={selectedProfitCenter}
         costCenters={costCenters}
         onSave={(profitCenter) => {
-          if (selectedProfitCenter) {
-            setProfitCenters((prev) => prev.map((pc) => (pc.id === profitCenter.id ? profitCenter : pc)))
-          } else {
-            setProfitCenters((prev) => [...prev, profitCenter])
+          if (setProfitCenters) {
+            if (selectedProfitCenter) {
+              setProfitCenters((prev) => prev.map((pc) => (pc.id === profitCenter.id ? profitCenter : pc)))
+            } else {
+              setProfitCenters((prev) => [...prev, profitCenter])
+            }
           }
           setProfitCenterDialogOpen(false)
         }}
@@ -2364,6 +2378,7 @@ export function Finance({
         costCenters={costCenters}
         expenses={expenses}
         budgets={budgets}
+        costCenterReports={costCenterReports}
       />
 
       <ProfitCenterReportDialog
@@ -2372,6 +2387,7 @@ export function Finance({
         profitCenters={profitCenters}
         costCenters={costCenters}
         expenses={expenses}
+        profitCenterReports={profitCenterReports}
       />
     </div>
   )

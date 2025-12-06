@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Download, TrendUp, TrendDown } from '@phosphor-icons/react'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import { type CostCenter, type Expense, type Budget } from '@/lib/types'
+import { type CostCenter, type Expense, type Budget, type CostCenterReport } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/helpers'
 
 interface CostCenterReportDialogProps {
@@ -17,6 +17,7 @@ interface CostCenterReportDialogProps {
   costCenters: CostCenter[]
   expenses: Expense[]
   budgets: Budget[]
+  costCenterReports?: CostCenterReport[]
 }
 
 const CHART_COLORS = ['oklch(0.65 0.22 265)', 'oklch(0.55 0.16 220)', 'oklch(0.60 0.18 155)', 'oklch(0.68 0.24 35)', 'oklch(0.62 0.20 310)']
@@ -26,7 +27,8 @@ export function CostCenterReportDialog({
   onOpenChange,
   costCenters,
   expenses,
-  budgets
+  budgets,
+  costCenterReports = []
 }: CostCenterReportDialogProps) {
   const [selectedCostCenterId, setSelectedCostCenterId] = useState<string>('')
   const [dateRange, setDateRange] = useState<'month' | 'quarter' | 'year'>('month')

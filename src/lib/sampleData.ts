@@ -32,7 +32,16 @@ import {
   type GoodsReceivedNote
 } from './types'
 import { getRolePermissions } from './helpers'
-export { samplePayments, sampleExpenses, sampleAccounts, sampleBudgets } from './financeSampleData'
+export { 
+  samplePayments, 
+  sampleExpenses, 
+  sampleAccounts, 
+  sampleBudgets,
+  sampleCostCenters,
+  sampleProfitCenters,
+  sampleCostCenterReports,
+  sampleProfitCenterReports
+} from './financeSampleData'
 
 export const sampleGuests: Guest[] = [
   {

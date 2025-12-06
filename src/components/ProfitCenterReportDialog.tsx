@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Download, TrendUp, TrendDown, ArrowUp, ArrowDown } from '@phosphor-icons/react'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, ComposedChart, Area } from 'recharts'
-import { type ProfitCenter, type CostCenter, type Expense } from '@/lib/types'
+import { type ProfitCenter, type CostCenter, type Expense, type ProfitCenterReport } from '@/lib/types'
 import { formatCurrency } from '@/lib/helpers'
 
 interface ProfitCenterReportDialogProps {
@@ -17,6 +17,7 @@ interface ProfitCenterReportDialogProps {
   profitCenters: ProfitCenter[]
   costCenters: CostCenter[]
   expenses: Expense[]
+  profitCenterReports?: ProfitCenterReport[]
 }
 
 const CHART_COLORS = ['oklch(0.65 0.22 265)', 'oklch(0.55 0.16 220)', 'oklch(0.60 0.18 155)', 'oklch(0.68 0.24 35)', 'oklch(0.62 0.20 310)']
@@ -26,7 +27,8 @@ export function ProfitCenterReportDialog({
   onOpenChange,
   profitCenters,
   costCenters,
-  expenses
+  expenses,
+  profitCenterReports = []
 }: ProfitCenterReportDialogProps) {
   const [selectedProfitCenterId, setSelectedProfitCenterId] = useState<string>('')
   const [dateRange, setDateRange] = useState<'month' | 'quarter' | 'year'>('month')
