@@ -6,15 +6,55 @@ export interface ThemeColors {
   accent: string
 }
 
+export type ColorMood = 'blue' | 'purple' | 'green' | 'orange' | 'rose' | 'cyan'
+
+export const colorMoods: Record<ColorMood, ThemeColors> = {
+  blue: {
+    primary: 'oklch(0.48 0.18 265)',
+    secondary: 'oklch(0.72 0.14 195)',
+    accent: 'oklch(0.62 0.20 30)',
+  },
+  purple: {
+    primary: 'oklch(0.52 0.22 300)',
+    secondary: 'oklch(0.68 0.16 280)',
+    accent: 'oklch(0.65 0.24 320)',
+  },
+  green: {
+    primary: 'oklch(0.50 0.16 150)',
+    secondary: 'oklch(0.70 0.14 130)',
+    accent: 'oklch(0.62 0.20 90)',
+  },
+  orange: {
+    primary: 'oklch(0.58 0.20 40)',
+    secondary: 'oklch(0.72 0.16 60)',
+    accent: 'oklch(0.65 0.22 25)',
+  },
+  rose: {
+    primary: 'oklch(0.55 0.20 10)',
+    secondary: 'oklch(0.70 0.16 350)',
+    accent: 'oklch(0.60 0.22 340)',
+  },
+  cyan: {
+    primary: 'oklch(0.55 0.18 200)',
+    secondary: 'oklch(0.72 0.14 220)',
+    accent: 'oklch(0.62 0.20 180)',
+  },
+}
+
 export function useTheme() {
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme-colors')
-    if (savedTheme) {
-      try {
-        const colors: ThemeColors = JSON.parse(savedTheme)
-        applyTheme(colors)
-      } catch (error) {
-        console.error('Failed to load saved theme:', error)
+    const savedMood = localStorage.getItem('theme-color-mood') as ColorMood | null
+    if (savedMood && colorMoods[savedMood]) {
+      applyTheme(colorMoods[savedMood])
+    } else {
+      const savedTheme = localStorage.getItem('theme-colors')
+      if (savedTheme) {
+        try {
+          const colors: ThemeColors = JSON.parse(savedTheme)
+          applyTheme(colors)
+        } catch (error) {
+          console.error('Failed to load saved theme:', error)
+        }
       }
     }
 
@@ -62,5 +102,12 @@ export function useTheme() {
     }
   }
 
-  return { applyTheme, applyDarkMode }
+  const applyColorMood = (mood: ColorMood) => {
+    const colors = colorMoods[mood]
+    applyTheme(colors)
+    localStorage.setItem('theme-color-mood', mood)
+    localStorage.setItem('theme-colors', JSON.stringify(colors))
+  }
+
+  return { applyTheme, applyDarkMode, applyColorMood }
 }

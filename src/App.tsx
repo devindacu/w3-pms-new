@@ -165,6 +165,7 @@ import { DashboardWidgetManager } from '@/components/DashboardWidgetManager'
 import { WidgetRenderer } from '@/components/DashboardWidgets'
 import { getDefaultWidgetsForRole, getWidgetSize } from '@/lib/widgetConfig'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { ColorMoodSelector } from '@/components/ColorMoodSelector'
 import type {
   DashboardLayout,
   DashboardWidget,
@@ -886,6 +887,7 @@ function App() {
               className="h-8 w-auto object-contain"
             />
             <div className="flex items-center gap-2">
+              <ColorMoodSelector />
               <ThemeToggle />
               <NotificationPanel
                 notifications={notifications || []}
