@@ -122,15 +122,15 @@ export function CustomColorPicker({ open, onOpenChange }: ColorPickerProps) {
     
     setPrimaryL(parseFloat(mood.colors.primary.match(/oklch\(([0-9.]+)/)?.[1] || '0.48') * 100)
     setPrimaryC(parseFloat(mood.colors.primary.match(/oklch\([0-9.]+ ([0-9.]+)/)?.[1] || '0.18') * 100)
-    setPrimaryH(parseInt(mood.colors.primary.match(/oklch\([0-9.]+ [0-9.]+ ([0-9]+)/)?.[1] || '265'))
+    setPrimaryH(parseInt(mood.colors.primary.match(/oklch\([0-9.]+ [0-9.]+ ([0-9]+)\)/)?.[1] || '265'))
     
     setSecondaryL(parseFloat(mood.colors.secondary.match(/oklch\(([0-9.]+)/)?.[1] || '0.72') * 100)
     setSecondaryC(parseFloat(mood.colors.secondary.match(/oklch\([0-9.]+ ([0-9.]+)/)?.[1] || '0.14') * 100)
-    setSecondaryH(parseInt(mood.colors.secondary.match(/oklch\([0-9.]+ [0-9.]+ ([0-9]+)/)?.[1] || '195'))
+    setSecondaryH(parseInt(mood.colors.secondary.match(/oklch\([0-9.]+ [0-9.]+ ([0-9]+)\)/)?.[1] || '195'))
     
     setAccentL(parseFloat(mood.colors.accent.match(/oklch\(([0-9.]+)/)?.[1] || '0.62') * 100)
-    setAccentC(parseFloat(mood.colors.accent.match(/oklch\([0-9.]+ [0-9.]+)/)?.[1] || '0.20') * 100)
-    setAccentH(parseInt(mood.colors.accent.match(/oklch\([0-9.]+ [0-9.]+ ([0-9]+)/)?.[1] || '30'))
+    setAccentC(parseFloat(mood.colors.accent.match(/oklch\([0-9.]+ ([0-9.]+)\)/)?.[1] || '0.20') * 100)
+    setAccentH(parseInt(mood.colors.accent.match(/oklch\([0-9.]+ [0-9.]+ ([0-9]+)\)/)?.[1] || '30'))
     
     toast.success(`Applied "${mood.name}"`)
   }
