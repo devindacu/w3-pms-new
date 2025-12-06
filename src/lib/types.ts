@@ -3882,6 +3882,23 @@ export interface HotelBranding {
   bankDetails: BankingDetails
   showQRCode: boolean
   qrCodeContent?: string
+  travelDirections?: {
+    gpsCoordinates?: string
+    directionsFromAirport?: string
+    directionsFromCity?: string
+    drivingDirections?: string
+    nearestLandmark?: string
+    nearbyAttractions?: string
+    localTravelTips?: string
+    transportationOptions?: string
+    taxiFare?: string
+    publicTransport?: string
+    shuttleService?: string
+    shuttleSchedule?: string
+    parkingInfo?: string
+    googleMapsLink?: string
+    wazeLink?: string
+  }
   currency: string
   currencySymbol: string
   currencyPosition: 'before' | 'after'

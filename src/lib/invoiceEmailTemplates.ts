@@ -84,14 +84,23 @@ export const AVAILABLE_VARIABLES: TemplateVariable[] = [
   { key: '{{special_offers}}', name: 'Special Offers', description: 'Current promotions or offers', example: '20% off spa services', category: 'custom' },
   { key: '{{amenities_list}}', name: 'Amenities List', description: 'Hotel facilities and services', example: 'Pool, Spa, Gym, Restaurant', category: 'custom' },
   
-  { key: '{{directions_from_airport}}', name: 'Directions from Airport', description: 'How to reach hotel from airport', example: '15 minutes by taxi', category: 'custom' },
-  { key: '{{nearest_landmark}}', name: 'Nearest Landmark', description: 'Popular landmark near hotel', example: 'Next to City Mall', category: 'custom' },
-  { key: '{{transportation_options}}', name: 'Transportation Options', description: 'Available transport methods', example: 'Taxi, Shuttle, Public Bus', category: 'custom' },
-  { key: '{{shuttle_service}}', name: 'Shuttle Service', description: 'Hotel shuttle availability', example: 'Complimentary airport shuttle', category: 'custom' },
-  { key: '{{check_in_requirements}}', name: 'Check-in Requirements', description: 'Documents needed for check-in', example: 'Valid ID and booking confirmation', category: 'custom' },
-  { key: '{{early_checkin_available}}', name: 'Early Check-in Info', description: 'Early check-in availability', example: 'Subject to availability', category: 'custom' },
-  { key: '{{late_checkout_available}}', name: 'Late Checkout Info', description: 'Late checkout availability', example: 'Available for additional charge', category: 'custom' },
+  { key: '{{directions_from_airport}}', name: 'Directions from Airport', description: 'How to reach hotel from airport', example: '15 minutes by taxi via Airport Expressway', category: 'custom' },
+  { key: '{{directions_from_city}}', name: 'Directions from City Center', description: 'How to reach hotel from downtown', example: 'Take the coastal highway south for 10km', category: 'custom' },
+  { key: '{{directions_driving}}', name: 'Driving Directions', description: 'Detailed driving directions', example: 'From highway exit 12, turn right onto Beach Road', category: 'custom' },
+  { key: '{{nearest_landmark}}', name: 'Nearest Landmark', description: 'Popular landmark near hotel', example: 'Next to City Mall and opposite Beach Park', category: 'custom' },
+  { key: '{{nearby_attractions}}', name: 'Nearby Attractions', description: 'Tourist attractions near hotel', example: 'Beach (2 min walk), Museum (5 min drive)', category: 'custom' },
+  { key: '{{local_tips}}', name: 'Local Travel Tips', description: 'Helpful tips for guests', example: 'Traffic is heavy 7-9 AM, best to travel after 10 AM', category: 'custom' },
+  { key: '{{transportation_options}}', name: 'Transportation Options', description: 'Available transport methods', example: 'Taxi (LKR 2,500), Rideshare, Public Bus #138', category: 'custom' },
+  { key: '{{taxi_fare}}', name: 'Estimated Taxi Fare', description: 'Approximate taxi cost from airport', example: 'LKR 2,500 - 3,000', category: 'custom' },
+  { key: '{{public_transport}}', name: 'Public Transport Info', description: 'Bus/train information', example: 'Bus #138 stops 100m from hotel (LKR 50)', category: 'custom' },
+  { key: '{{shuttle_service}}', name: 'Shuttle Service', description: 'Hotel shuttle availability', example: 'Complimentary shuttle for 3+ night stays', category: 'custom' },
+  { key: '{{shuttle_schedule}}', name: 'Shuttle Schedule', description: 'Shuttle timing details', example: 'Airport pickups at 9 AM, 12 PM, 3 PM, 6 PM', category: 'custom' },
+  { key: '{{check_in_requirements}}', name: 'Check-in Requirements', description: 'Documents needed for check-in', example: 'Valid passport/ID and credit card', category: 'custom' },
+  { key: '{{early_checkin_available}}', name: 'Early Check-in Info', description: 'Early check-in availability', example: 'Available from 12 PM, subject to room availability', category: 'custom' },
+  { key: '{{late_checkout_available}}', name: 'Late Checkout Info', description: 'Late checkout availability', example: 'Until 3 PM for LKR 2,000 additional charge', category: 'custom' },
   { key: '{{google_maps_link}}', name: 'Google Maps Link', description: 'Link to hotel on Google Maps', example: 'https://maps.google.com/?q=Hotel', category: 'custom' },
+  { key: '{{waze_link}}', name: 'Waze Navigation Link', description: 'Link to hotel on Waze', example: 'https://waze.com/ul?q=Hotel', category: 'custom' },
+  { key: '{{gps_coordinates}}', name: 'GPS Coordinates', description: 'Hotel latitude and longitude', example: '6.9271° N, 79.8612° E', category: 'custom' },
 ]
 
 export const DEFAULT_TEMPLATES: Omit<EmailTemplate, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>[] = [
@@ -1722,19 +1731,43 @@ View on Google Maps: {{google_maps_link}}
 
 GETTING HERE
 
-From Airport:
+Hotel Address:
+{{hotel_name}}
+{{hotel_address}}
+GPS Coordinates: {{gps_coordinates}}
+
+View on Google Maps: {{google_maps_link}}
+Navigate with Waze: {{waze_link}}
+
+DIRECTIONS FROM AIRPORT:
 {{directions_from_airport}}
 
-Nearest Landmark:
+DIRECTIONS FROM CITY CENTER:
+{{directions_from_city}}
+
+DRIVING DIRECTIONS:
+{{directions_driving}}
+
+NEAREST LANDMARKS:
 {{nearest_landmark}}
 
-Transportation Options:
+NEARBY ATTRACTIONS:
+{{nearby_attractions}}
+
+TRANSPORTATION OPTIONS:
 {{transportation_options}}
 
-Airport Shuttle:
-{{shuttle_service}}
+Estimated Taxi Fare from Airport: {{taxi_fare}}
+Public Transport: {{public_transport}}
 
-Parking:
+AIRPORT SHUTTLE SERVICE:
+{{shuttle_service}}
+Schedule: {{shuttle_schedule}}
+
+LOCAL TRAVEL TIPS:
+{{local_tips}}
+
+PARKING:
 {{parking_info}}
 
 HELPFUL INFORMATION
@@ -2282,10 +2315,14 @@ Tel: {{hotel_phone}} | Email: {{hotel_email}}
       <div class="directions-card">
         <h3><span>🗺️</span> How to Find Us</h3>
         
-        <div style="text-align: center; background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <p style="margin: 0 0 10px 0; color: #333; font-weight: 600; font-size: 16px;">{{hotel_name}}</p>
-          <p style="margin: 0; color: #666; font-size: 14px;">{{hotel_address}}</p>
-          <a href="{{google_maps_link}}" class="map-button" style="margin-top: 15px;">📍 Open in Google Maps</a>
+        <div style="text-align: center; background: white; padding: 25px; border-radius: 8px; margin: 20px 0; border: 2px solid #1976d2;">
+          <p style="margin: 0 0 10px 0; color: #333; font-weight: 700; font-size: 18px;">{{hotel_name}}</p>
+          <p style="margin: 0 0 15px 0; color: #666; font-size: 14px; line-height: 1.6;">{{hotel_address}}</p>
+          <p style="margin: 0 0 20px 0; color: #999; font-size: 12px; font-family: 'Courier New', monospace;">📍 GPS: {{gps_coordinates}}</p>
+          <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+            <a href="{{google_maps_link}}" class="map-button" style="background: #1976d2;">🗺️ Google Maps</a>
+            <a href="{{waze_link}}" class="map-button" style="background: #33ccff;">🚗 Waze Navigation</a>
+          </div>
         </div>
         
         <div class="direction-item">
@@ -2294,24 +2331,67 @@ Tel: {{hotel_phone}} | Email: {{hotel_email}}
         </div>
         
         <div class="direction-item">
-          <h4><span>📍</span> Nearest Landmark</h4>
+          <h4><span>🏙️</span> From City Center</h4>
+          <p>{{directions_from_city}}</p>
+        </div>
+        
+        <div class="direction-item">
+          <h4><span>🚗</span> Detailed Driving Directions</h4>
+          <p>{{directions_driving}}</p>
+        </div>
+        
+        <div class="direction-item">
+          <h4><span>📍</span> Nearest Landmarks</h4>
           <p>{{nearest_landmark}}</p>
         </div>
         
-        <div class="direction-item">
-          <h4><span>🚗</span> Transportation Options</h4>
-          <p>{{transportation_options}}</p>
+        <div class="direction-item" style="background: linear-gradient(135deg, #e8f5e9, #f1f8e9); border-left-color: #4caf50;">
+          <h4 style="color: #2e7d32;"><span>🎯</span> Nearby Attractions</h4>
+          <p>{{nearby_attractions}}</p>
+        </div>
+      </div>
+      
+      <div style="background: linear-gradient(135deg, #fff3e0, #ffe0b2); border: 2px solid #ff9800; border-radius: 10px; padding: 25px; margin: 25px 0;">
+        <h3 style="margin: 0 0 20px 0; color: #e65100; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 24px;">🚕</span> Transportation Options
+        </h3>
+        
+        <div style="background: white; padding: 18px; margin: 12px 0; border-radius: 6px; border-left: 4px solid #ff9800;">
+          <h4 style="margin: 0 0 8px 0; color: #f57c00; font-size: 16px; font-weight: 700;">All Options</h4>
+          <p style="margin: 0; color: #555; font-size: 14px; line-height: 1.7;">{{transportation_options}}</p>
         </div>
         
-        <div class="direction-item">
-          <h4><span>🚐</span> Hotel Shuttle Service</h4>
-          <p>{{shuttle_service}}</p>
+        <div style="background: white; padding: 18px; margin: 12px 0; border-radius: 6px; border-left: 4px solid #ff9800;">
+          <h4 style="margin: 0 0 8px 0; color: #f57c00; font-size: 16px; font-weight: 700;">💰 Estimated Taxi Fare</h4>
+          <p style="margin: 0; color: #555; font-size: 14px; line-height: 1.7;">{{taxi_fare}}</p>
         </div>
         
-        <div class="direction-item">
-          <h4><span>🅿️</span> Parking Information</h4>
-          <p>{{parking_info}}</p>
+        <div style="background: white; padding: 18px; margin: 12px 0; border-radius: 6px; border-left: 4px solid #ff9800;">
+          <h4 style="margin: 0 0 8px 0; color: #f57c00; font-size: 16px; font-weight: 700;">🚌 Public Transport</h4>
+          <p style="margin: 0; color: #555; font-size: 14px; line-height: 1.7;">{{public_transport}}</p>
         </div>
+        
+        <div style="background: white; padding: 18px; margin: 12px 0; border-radius: 6px; border-left: 4px solid {{brand_primary_color}};">
+          <h4 style="margin: 0 0 8px 0; color: {{brand_primary_color}}; font-size: 16px; font-weight: 700;">🚐 Hotel Shuttle Service</h4>
+          <p style="margin: 0 0 10px 0; color: #555; font-size: 14px; line-height: 1.7;">{{shuttle_service}}</p>
+          <p style="margin: 0; color: #555; font-size: 13px;"><strong>Schedule:</strong> {{shuttle_schedule}}</p>
+        </div>
+      </div>
+      
+      <div style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); border: 2px solid #2196f3; border-radius: 10px; padding: 25px; margin: 25px 0;">
+        <h3 style="margin: 0 0 15px 0; color: #0d47a1; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 24px;">💡</span> Local Travel Tips
+        </h3>
+        <p style="margin: 0; color: #1565c0; font-size: 14px; line-height: 1.8; background: white; padding: 15px; border-radius: 6px;">
+          {{local_tips}}
+        </p>
+      </div>
+      
+      <div style="background: white; border: 2px solid #e8ebe9; border-radius: 8px; padding: 20px; margin: 25px 0;">
+        <h3 style="margin: 0 0 15px 0; color: {{brand_primary_color}}; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 24px;">🅿️</span> Parking Information
+        </h3>
+        <p style="margin: 0; color: #555; font-size: 14px; line-height: 1.7;">{{parking_info}}</p>
       </div>
       
       <div class="important-notice">
@@ -2464,7 +2544,7 @@ export function replaceVariables(
     '{{hotel_website}}': branding?.hotelWebsite || '',
     '{{tax_registration}}': branding?.taxRegistrationNumber || '',
     '{{wifi_password}}': 'Welcome2024',
-    '{{parking_info}}': 'Complimentary valet parking available',
+    '{{parking_info}}': branding?.travelDirections?.parkingInfo || 'Complimentary valet parking available 24/7. Self-parking also available with 150 covered spaces.',
     
     '{{payment_link}}': `https://pay.hotel.com/invoice/${invoice.invoiceNumber}`,
     '{{bank_name}}': invoice.bankDetails?.bankName || branding?.bankDetails?.bankName || '',
@@ -2485,16 +2565,25 @@ export function replaceVariables(
     
     '{{cancellation_policy}}': 'Free cancellation up to 48 hours before check-in',
     '{{special_offers}}': '20% off spa services for hotel guests',
-    '{{amenities_list}}': 'Swimming Pool, Fitness Center, Spa, Restaurant, Room Service',
+    '{{amenities_list}}': 'Swimming Pool, Fitness Center, Spa, Restaurant, Room Service, Free WiFi',
     
-    '{{directions_from_airport}}': 'Approximately 15 minutes by taxi from the airport. Follow the coastal road towards the city center. Our hotel is clearly visible on your right.',
-    '{{nearest_landmark}}': 'Located next to City Mall and 200 meters from the Beach Promenade.',
-    '{{transportation_options}}': 'Airport taxi (LKR 2,500), Rideshare apps (Uber/PickMe), Public bus #138 (LKR 50), or hotel shuttle service.',
-    '{{shuttle_service}}': 'Complimentary airport shuttle available for bookings of 3+ nights. Please request at least 24 hours in advance.',
-    '{{check_in_requirements}}': 'Please ensure you have all required travel documents and COVID-19 certificates if applicable.',
-    '{{early_checkin_available}}': 'Subject to availability - please contact us on arrival day',
-    '{{late_checkout_available}}': 'Available for an additional charge of LKR 2,000 per hour',
-    '{{google_maps_link}}': `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(branding?.hotelAddress || 'W3 Hotel')}`,
+    '{{directions_from_airport}}': branding?.travelDirections?.directionsFromAirport || 'Approximately 15 minutes (12 km) by taxi from Bandaranaike International Airport. Exit the airport and take the Airport Expressway (E03) south. Exit at Peliyagoda and follow Colombo-Katunayake Expressway. Take exit 5 toward Galle Road. Turn right onto Galle Road and continue for 3 km. The hotel will be on your right, opposite the Galle Face Green.',
+    '{{directions_from_city}}': branding?.travelDirections?.directionsFromCity || 'From Colombo city center, head south on Galle Road (A2) for approximately 5 km. Pass the Independence Square and continue along the coast. The hotel is located on the right side, just before Mount Lavinia.',
+    '{{directions_driving}}': branding?.travelDirections?.drivingDirections || 'If driving from the south via Galle Road (A2), continue north toward Colombo. Pass Mount Lavinia beach and continue for 8 km. Look for the large hotel sign on your left. Parking entrance is on Marine Drive.',
+    '{{nearest_landmark}}': branding?.travelDirections?.nearestLandmark || 'Located directly opposite Galle Face Green and next to the Old Parliament Building. The hotel is 500 meters south of the Colombo World Trade Center and 200 meters from the lighthouse.',
+    '{{nearby_attractions}}': branding?.travelDirections?.nearbyAttractions || 'Galle Face Green (50m walk), National Museum (2 km), Gangaramaya Temple (3 km), Independence Square (4 km), Colombo Fort Railway Station (2 km), Pettah Market (3 km).',
+    '{{local_tips}}': branding?.travelDirections?.localTravelTips || 'Traffic is typically heavy between 7-10 AM and 5-8 PM on weekdays. Best travel times are mid-morning (10 AM-12 PM) or after 8 PM. Keep small bills for tuk-tuk rides. Most drivers accept digital payments via apps.',
+    '{{transportation_options}}': branding?.travelDirections?.transportationOptions || 'Airport Taxi (LKR 2,500-3,000, 30 min), Rideshare apps like Uber/PickMe (LKR 2,000-2,500), PickMe Airport Taxi (pre-booked, LKR 2,200), Public Bus #187 to Pettah (LKR 100, then tuk-tuk LKR 300), or hotel shuttle service.',
+    '{{taxi_fare}}': branding?.travelDirections?.taxiFare || 'LKR 2,500-3,000 (approximately USD 8-10) for airport taxis. Metered city taxis charge around LKR 150/km.',
+    '{{public_transport}}': branding?.travelDirections?.publicTransport || 'Bus #138 and #187 run from the airport to Colombo every 30 minutes (6 AM - 10 PM). Fare is LKR 100. Get off at Galle Face stop, 100m from hotel.',
+    '{{shuttle_service}}': branding?.travelDirections?.shuttleService || 'Complimentary airport shuttle available for bookings of 3+ nights. Shuttle departs from airport at 9 AM, 12 PM, 3 PM, and 6 PM daily. Please request at least 24 hours in advance via email or phone.',
+    '{{shuttle_schedule}}': branding?.travelDirections?.shuttleSchedule || 'Airport pickup: 9:00 AM, 12:00 PM, 3:00 PM, 6:00 PM | Airport drop-off: 7:00 AM, 10:00 AM, 1:00 PM, 4:00 PM',
+    '{{check_in_requirements}}': 'Valid passport or government-issued photo ID, credit card for incidentals, and booking confirmation. International guests may need visa documentation.',
+    '{{early_checkin_available}}': 'Early check-in from 12:00 PM subject to room availability (no charge). Guaranteed early check-in from 10 AM available for LKR 1,500.',
+    '{{late_checkout_available}}': 'Late check-out until 3 PM for LKR 2,000, or until 6 PM for 50% of room rate. Subject to availability.',
+    '{{google_maps_link}}': branding?.travelDirections?.googleMapsLink || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(branding?.hotelAddress || 'W3 Hotel Colombo')}`,
+    '{{waze_link}}': branding?.travelDirections?.wazeLink || `https://www.waze.com/ul?q=${encodeURIComponent(branding?.hotelAddress || 'W3 Hotel Colombo')}`,
+    '{{gps_coordinates}}': branding?.travelDirections?.gpsCoordinates || '6.9271° N, 79.8612° E',
   }
 
   Object.entries(variables).forEach(([key, value]) => {

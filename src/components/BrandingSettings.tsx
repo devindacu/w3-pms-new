@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
-import { Buildings, Palette, FileText, Bank, UploadSimple, Image as ImageIcon, X, Eye } from '@phosphor-icons/react'
+import { Buildings, Palette, FileText, Bank, UploadSimple, Image as ImageIcon, X, Eye, MapPin } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import type { HotelBranding, SystemUser } from '@/lib/types'
 
@@ -238,7 +238,7 @@ export function BrandingSettings({ branding, setBranding, currentUser }: Brandin
       </div>
 
       <Tabs defaultValue="hotel" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="hotel">
             <Buildings size={16} className="mr-2" />
             Hotel Info
@@ -246,6 +246,10 @@ export function BrandingSettings({ branding, setBranding, currentUser }: Brandin
           <TabsTrigger value="colors">
             <Palette size={16} className="mr-2" />
             Colors
+          </TabsTrigger>
+          <TabsTrigger value="directions">
+            <MapPin size={16} className="mr-2" />
+            Directions
           </TabsTrigger>
           <TabsTrigger value="invoice">
             <FileText size={16} className="mr-2" />
@@ -954,6 +958,246 @@ export function BrandingSettings({ branding, setBranding, currentUser }: Brandin
                 />
               </div>
             </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="directions" className="space-y-6">
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">🗺️ Travel Directions & Landmarks</h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              Customize the travel directions and location information that appears in pre-arrival emails to help guests find your hotel easily.
+            </p>
+            
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="gpsCoordinates">GPS Coordinates</Label>
+                <Input
+                  id="gpsCoordinates"
+                  value={formData.travelDirections?.gpsCoordinates || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    travelDirections: { ...formData.travelDirections, gpsCoordinates: e.target.value }
+                  })}
+                  placeholder="6.9271° N, 79.8612° E"
+                />
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Label htmlFor="directionsFromAirport">Directions from Airport</Label>
+                <Textarea
+                  id="directionsFromAirport"
+                  value={formData.travelDirections?.directionsFromAirport || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    travelDirections: { ...formData.travelDirections, directionsFromAirport: e.target.value }
+                  })}
+                  placeholder="Approximately 15 minutes (12 km) by taxi from the airport. Exit the airport and take the Airport Expressway south..."
+                  rows={4}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="directionsFromCity">Directions from City Center</Label>
+                <Textarea
+                  id="directionsFromCity"
+                  value={formData.travelDirections?.directionsFromCity || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    travelDirections: { ...formData.travelDirections, directionsFromCity: e.target.value }
+                  })}
+                  placeholder="From city center, head south on Main Road for approximately 5 km..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="drivingDirections">Detailed Driving Directions</Label>
+                <Textarea
+                  id="drivingDirections"
+                  value={formData.travelDirections?.drivingDirections || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    travelDirections: { ...formData.travelDirections, drivingDirections: e.target.value }
+                  })}
+                  placeholder="If driving from the south, continue north on Highway A2. Pass the beach and continue for 8 km..."
+                  rows={3}
+                />
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Label htmlFor="nearestLandmark">Nearest Landmarks</Label>
+                <Textarea
+                  id="nearestLandmark"
+                  value={formData.travelDirections?.nearestLandmark || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    travelDirections: { ...formData.travelDirections, nearestLandmark: e.target.value }
+                  })}
+                  placeholder="Located directly opposite City Park and next to the Shopping Mall..."
+                  rows={2}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="nearbyAttractions">Nearby Attractions</Label>
+                <Textarea
+                  id="nearbyAttractions"
+                  value={formData.travelDirections?.nearbyAttractions || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    travelDirections: { ...formData.travelDirections, nearbyAttractions: e.target.value }
+                  })}
+                  placeholder="Beach (50m walk), National Museum (2 km), Temple (3 km), Fort (2 km)..."
+                  rows={2}
+                />
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Label htmlFor="transportationOptions">Transportation Options</Label>
+                <Textarea
+                  id="transportationOptions"
+                  value={formData.travelDirections?.transportationOptions || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    travelDirections: { ...formData.travelDirections, transportationOptions: e.target.value }
+                  })}
+                  placeholder="Airport Taxi (LKR 2,500-3,000), Rideshare apps (Uber/PickMe), Public Bus #187..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="taxiFare">Estimated Taxi Fare from Airport</Label>
+                  <Input
+                    id="taxiFare"
+                    value={formData.travelDirections?.taxiFare || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      travelDirections: { ...formData.travelDirections, taxiFare: e.target.value }
+                    })}
+                    placeholder="LKR 2,500-3,000 (approximately USD 8-10)"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="publicTransport">Public Transport Info</Label>
+                  <Input
+                    id="publicTransport"
+                    value={formData.travelDirections?.publicTransport || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      travelDirections: { ...formData.travelDirections, publicTransport: e.target.value }
+                    })}
+                    placeholder="Bus #138 from airport (LKR 100, 100m from hotel)"
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Label htmlFor="shuttleService">Hotel Shuttle Service</Label>
+                <Textarea
+                  id="shuttleService"
+                  value={formData.travelDirections?.shuttleService || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    travelDirections: { ...formData.travelDirections, shuttleService: e.target.value }
+                  })}
+                  placeholder="Complimentary airport shuttle for 3+ night stays. Request 24 hours in advance..."
+                  rows={2}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="shuttleSchedule">Shuttle Schedule</Label>
+                <Input
+                  id="shuttleSchedule"
+                  value={formData.travelDirections?.shuttleSchedule || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    travelDirections: { ...formData.travelDirections, shuttleSchedule: e.target.value }
+                  })}
+                  placeholder="Airport pickup: 9 AM, 12 PM, 3 PM, 6 PM | Drop-off: 7 AM, 10 AM, 1 PM, 4 PM"
+                />
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Label htmlFor="parkingInfo">Parking Information</Label>
+                <Textarea
+                  id="parkingInfo"
+                  value={formData.travelDirections?.parkingInfo || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    travelDirections: { ...formData.travelDirections, parkingInfo: e.target.value }
+                  })}
+                  placeholder="Complimentary valet parking available 24/7. Self-parking with 150 covered spaces..."
+                  rows={2}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="localTravelTips">Local Travel Tips</Label>
+                <Textarea
+                  id="localTravelTips"
+                  value={formData.travelDirections?.localTravelTips || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    travelDirections: { ...formData.travelDirections, localTravelTips: e.target.value }
+                  })}
+                  placeholder="Traffic is heavy 7-10 AM and 5-8 PM. Best travel times are mid-morning or after 8 PM..."
+                  rows={3}
+                />
+              </div>
+
+              <Separator />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="googleMapsLink">Google Maps Link</Label>
+                  <Input
+                    id="googleMapsLink"
+                    value={formData.travelDirections?.googleMapsLink || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      travelDirections: { ...formData.travelDirections, googleMapsLink: e.target.value }
+                    })}
+                    placeholder="https://maps.google.com/?q=Hotel+Name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="wazeLink">Waze Navigation Link</Label>
+                  <Input
+                    id="wazeLink"
+                    value={formData.travelDirections?.wazeLink || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      travelDirections: { ...formData.travelDirections, wazeLink: e.target.value }
+                    })}
+                    placeholder="https://waze.com/ul?q=Hotel+Name"
+                  />
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 bg-muted/30">
+            <h3 className="text-sm font-semibold mb-3">💡 Pro Tip</h3>
+            <p className="text-sm text-muted-foreground">
+              Provide detailed, specific directions with landmarks that locals and tourists can easily recognize. 
+              Include estimated travel times and costs in local currency. Update seasonal information (like traffic patterns) 
+              to keep directions current and helpful year-round.
+            </p>
           </Card>
         </TabsContent>
 
