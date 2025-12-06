@@ -60,6 +60,7 @@ const applyTheme = (colors: ThemeColors) => {
 
 const applyDarkMode = (isDark: boolean, animated: boolean = true) => {
   const root = document.documentElement
+  const html = document.querySelector('html')
   
   if (animated) {
     root.style.setProperty('view-transition-name', 'theme-transition')
@@ -67,8 +68,10 @@ const applyDarkMode = (isDark: boolean, animated: boolean = true) => {
   
   if (isDark) {
     root.classList.add('dark')
+    if (html) html.classList.add('dark')
   } else {
     root.classList.remove('dark')
+    if (html) html.classList.remove('dark')
   }
   
   if (animated) {
