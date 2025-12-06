@@ -14,9 +14,11 @@ import {
   Check,
   Sparkle,
   Moon,
-  Sun
+  Sun,
+  PaintBrush
 } from '@phosphor-icons/react'
 import type { SystemUser } from '@/lib/types'
+import { CustomColorPicker } from '@/components/CustomColorPicker'
 
 interface ThemePreset {
   name: string
@@ -146,6 +148,7 @@ export function ThemeCustomization({ currentUser, onThemeChange }: ThemeCustomiz
   })
   const [isCustomMode, setIsCustomMode] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const [customPickerOpen, setCustomPickerOpen] = useState(false)
 
   const getCurrentTheme = () => {
     const root = document.documentElement
@@ -293,6 +296,15 @@ export function ThemeCustomization({ currentUser, onThemeChange }: ThemeCustomiz
             </div>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => setCustomPickerOpen(true)}
+              className="gap-2"
+            >
+              <PaintBrush size={16} />
+              Advanced Picker
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -550,6 +562,11 @@ export function ThemeCustomization({ currentUser, onThemeChange }: ThemeCustomiz
           </div>
         </div>
       </Card>
+      
+      <CustomColorPicker 
+        open={customPickerOpen} 
+        onOpenChange={setCustomPickerOpen} 
+      />
     </div>
   )
 }
