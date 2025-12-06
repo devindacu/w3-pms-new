@@ -55,6 +55,9 @@ import { DepartmentalPLDialog } from './DepartmentalPLDialog'
 import { BudgetVarianceDialog } from './BudgetVarianceDialog'
 import { BulkApprovalDialog } from './BulkApprovalDialog'
 import { FinanceReportsDialog } from './FinanceReportsDialog'
+import { APAgingDialog } from './APAgingDialog'
+import { TaxSummaryDialog } from './TaxSummaryDialog'
+import { PettyCashDialog } from './PettyCashDialog'
 import { toast } from 'sonner'
 
 interface FinanceProps {
@@ -115,6 +118,9 @@ export function Finance({
   const [budgetVarianceDialogOpen, setBudgetVarianceDialogOpen] = useState(false)
   const [bulkApprovalDialogOpen, setBulkApprovalDialogOpen] = useState(false)
   const [reportsDialogOpen, setReportsDialogOpen] = useState(false)
+  const [apAgingDialogOpen, setApAgingDialogOpen] = useState(false)
+  const [taxSummaryDialogOpen, setTaxSummaryDialogOpen] = useState(false)
+  const [pettyCashDialogOpen, setPettyCashDialogOpen] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | undefined>()
   const [selectedPayment, setSelectedPayment] = useState<Payment | undefined>()
   const [selectedExpense, setSelectedExpense] = useState<Expense | undefined>()
@@ -721,6 +727,7 @@ export function Finance({
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="expenses">Expenses</TabsTrigger>
           <TabsTrigger value="budgets">Budgets</TabsTrigger>
+          <TabsTrigger value="petty-cash">Petty Cash</TabsTrigger>
           <TabsTrigger value="accounts">Chart of Accounts</TabsTrigger>
           <TabsTrigger value="journals">Journal Entries</TabsTrigger>
           <TabsTrigger value="reconciliation">Bank Reconciliation</TabsTrigger>
@@ -1412,6 +1419,39 @@ export function Finance({
           </Card>
         </TabsContent>
 
+        <TabsContent value="petty-cash" className="space-y-6">
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold">Petty Cash Management</h3>
+                <p className="text-sm text-muted-foreground mt-1">Manage small cash transactions and fund replenishments</p>
+              </div>
+              <Button onClick={() => setPettyCashDialogOpen(true)}>
+                <Wallet size={18} className="mr-2" />
+                Manage Petty Cash
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="p-4 bg-primary/5">
+                <p className="text-sm text-muted-foreground mb-1">Available Balance</p>
+                <p className="text-3xl font-bold text-primary">{formatCurrency(5000)}</p>
+              </Card>
+              <Card className="p-4 bg-destructive/5">
+                <p className="text-sm text-muted-foreground mb-1">Total Disbursed</p>
+                <p className="text-3xl font-bold text-destructive">{formatCurrency(0)}</p>
+              </Card>
+              <Card className="p-4 bg-success/5">
+                <p className="text-sm text-muted-foreground mb-1">Total Replenished</p>
+                <p className="text-3xl font-bold text-success">{formatCurrency(0)}</p>
+              </Card>
+            </div>
+            <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-2">Recent Transactions</p>
+              <p className="text-center text-muted-foreground py-8">No petty cash transactions yet. Click "Manage Petty Cash" to get started.</p>
+            </div>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="accounts" className="space-y-6">
           <Card className="p-6">
             <div className="flex items-center justify-between mb-6">
@@ -1552,7 +1592,7 @@ export function Finance({
               <FileText size={16} className="mr-2" />
               AR Aging
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setApAgingDialogOpen(true)}>
               <FileText size={16} className="mr-2" />
               AP Aging
             </Button>
@@ -1560,7 +1600,7 @@ export function Finance({
               <FileText size={16} className="mr-2" />
               Cash Flow
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setTaxSummaryDialogOpen(true)}>
               <FileText size={16} className="mr-2" />
               Tax Summary
             </Button>
@@ -2002,6 +2042,35 @@ export function Finance({
           currentUser={currentUser.username}
         />
       )}
+
+      <APAgingDialog
+        open={apAgingDialogOpen}
+        onOpenChange={setApAgingDialogOpen}
+        invoices={invoices}
+      />
+
+      <TaxSummaryDialog
+        open={taxSummaryDialogOpen}
+        onOpenChange={setTaxSummaryDialogOpen}
+        invoices={invoices}
+        expenses={expenses}
+        payments={payments}
+        guestInvoices={guestInvoices}
+      />
+
+      <PettyCashDialog
+        open={pettyCashDialogOpen}
+        onOpenChange={setPettyCashDialogOpen}
+        transactions={[]}
+        onSave={(txn) => {
+          toast.success('Petty cash transaction recorded')
+        }}
+        currentUser={currentUser}
+        floatAmount={5000}
+        onReplenish={(amount, notes) => {
+          toast.success(`Petty cash fund replenished with ${formatCurrency(amount)}`)
+        }}
+      />
     </div>
   )
 }
