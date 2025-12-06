@@ -41,6 +41,50 @@ export const colorMoods: Record<ColorMood, ThemeColors> = {
   },
 }
 
+const applyTheme = (colors: ThemeColors) => {
+  const root = document.documentElement
+  
+  root.style.setProperty('--primary', colors.primary)
+  root.style.setProperty('--secondary', colors.secondary)
+  root.style.setProperty('--accent', colors.accent)
+  
+  const glowPrimary = colors.primary.replace(')', ' / 0.4)')
+  const glowAccent = colors.accent.replace(')', ' / 0.3)')
+  root.style.setProperty('--glow-primary', glowPrimary)
+  root.style.setProperty('--glow-accent', glowAccent)
+  
+  root.style.setProperty('--ring', colors.primary)
+  root.style.setProperty('--sidebar-primary', colors.primary)
+  root.style.setProperty('--sidebar-ring', colors.primary)
+}
+
+const applyDarkMode = (isDark: boolean, animated: boolean = true) => {
+  const root = document.documentElement
+  
+  if (animated) {
+    root.style.setProperty('view-transition-name', 'theme-transition')
+  }
+  
+  if (isDark) {
+    root.classList.add('dark')
+  } else {
+    root.classList.remove('dark')
+  }
+  
+  if (animated) {
+    setTimeout(() => {
+      root.style.removeProperty('view-transition-name')
+    }, 500)
+  }
+}
+
+const applyColorMood = (mood: ColorMood) => {
+  const colors = colorMoods[mood]
+  applyTheme(colors)
+  localStorage.setItem('theme-color-mood', mood)
+  localStorage.setItem('theme-colors', JSON.stringify(colors))
+}
+
 export function useTheme() {
   useEffect(() => {
     const savedMood = localStorage.getItem('theme-color-mood') as ColorMood | null
@@ -64,50 +108,6 @@ export function useTheme() {
       applyDarkMode(isDark, false)
     }
   }, [])
-
-  const applyTheme = (colors: ThemeColors) => {
-    const root = document.documentElement
-    
-    root.style.setProperty('--primary', colors.primary)
-    root.style.setProperty('--secondary', colors.secondary)
-    root.style.setProperty('--accent', colors.accent)
-    
-    const glowPrimary = colors.primary.replace(')', ' / 0.4)')
-    const glowAccent = colors.accent.replace(')', ' / 0.3)')
-    root.style.setProperty('--glow-primary', glowPrimary)
-    root.style.setProperty('--glow-accent', glowAccent)
-    
-    root.style.setProperty('--ring', colors.primary)
-    root.style.setProperty('--sidebar-primary', colors.primary)
-    root.style.setProperty('--sidebar-ring', colors.primary)
-  }
-
-  const applyDarkMode = (isDark: boolean, animated: boolean = true) => {
-    const root = document.documentElement
-    
-    if (animated) {
-      root.style.setProperty('view-transition-name', 'theme-transition')
-    }
-    
-    if (isDark) {
-      root.classList.add('dark')
-    } else {
-      root.classList.remove('dark')
-    }
-    
-    if (animated) {
-      setTimeout(() => {
-        root.style.removeProperty('view-transition-name')
-      }, 500)
-    }
-  }
-
-  const applyColorMood = (mood: ColorMood) => {
-    const colors = colorMoods[mood]
-    applyTheme(colors)
-    localStorage.setItem('theme-color-mood', mood)
-    localStorage.setItem('theme-colors', JSON.stringify(colors))
-  }
 
   return { applyTheme, applyDarkMode, applyColorMood }
 }
