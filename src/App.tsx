@@ -546,12 +546,12 @@ function App() {
     <div className="space-y-4 md:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold">Hotel Dashboard</h1>
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold gradient-text">Hotel Dashboard</h1>
           <p className="text-muted-foreground mt-1 text-sm md:text-base">Unified view of all hotel operations</p>
         </div>
         <div className="flex items-center gap-3">
           {!hasData && (
-            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto">
+            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto shine-effect glow-border">
               <Database size={20} className="mr-2" />
               Load Sample Data
             </Button>
@@ -568,14 +568,14 @@ function App() {
       </div>
 
       {!hasData ? (
-        <Card className="p-8 md:p-12 lg:p-16 text-center">
+        <Card className="p-8 md:p-12 lg:p-16 text-center glass-card card-hover-lift">
           <div className="max-w-md mx-auto">
-            <Gauge size={48} className="mx-auto text-muted-foreground mb-4 md:w-16 md:h-16" />
-            <h3 className="text-xl md:text-2xl font-semibold mb-2">Welcome to W3 Hotel PMS</h3>
+            <Gauge size={48} className="mx-auto text-primary mb-4 md:w-16 md:h-16 floating-animation" />
+            <h3 className="text-xl md:text-2xl font-semibold mb-2 gradient-text">Welcome to W3 Hotel PMS</h3>
             <p className="text-muted-foreground mb-6 text-sm md:text-base">
               Your comprehensive hotel management solution integrating all operations in one platform
             </p>
-            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto">
+            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto shine-effect glow-border">
               <Database size={20} className="mr-2" />
               Load Sample Data to Get Started
             </Button>
@@ -594,13 +594,14 @@ function App() {
               .filter(w => w.isVisible)
               .sort((a, b) => a.position - b.position)
               .map(widget => (
-                <WidgetRenderer
-                  key={widget.id}
-                  widget={widget}
-                  metrics={metrics}
-                  data={widgetData}
-                  onNavigate={(module) => setCurrentModule(module as Module)}
-                />
+                <div key={widget.id} className="card-hover-lift">
+                  <WidgetRenderer
+                    widget={widget}
+                    metrics={metrics}
+                    data={widgetData}
+                    onNavigate={(module) => setCurrentModule(module as Module)}
+                  />
+                </div>
               ))}
           </div>
         </>
@@ -845,8 +846,14 @@ function App() {
   )
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <aside className="hidden lg:block w-64 border-r bg-card p-4 space-y-2 overflow-y-auto fixed left-0 top-0 bottom-0 z-40">
+    <div className="flex min-h-screen bg-background relative">
+      <div className="mesh-gradient fixed inset-0 opacity-30 pointer-events-none" />
+      <div className="fixed inset-0 pointer-events-none" 
+           style={{
+             background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, oklch(0.98 0.005 250 / 0.02) 2px, oklch(0.98 0.005 250 / 0.02) 4px)'
+           }} />
+      
+      <aside className="hidden lg:block w-64 border-r p-4 space-y-2 overflow-y-auto fixed left-0 top-0 bottom-0 z-40 glass-card">
         <SidebarContent />
       </aside>
 
@@ -855,12 +862,12 @@ function App() {
           <SidebarContent />
         </SheetContent>
 
-        <main className="flex-1 flex flex-col lg:ml-64 min-h-screen">
-          <div className="sticky top-0 z-30 bg-background border-b px-4 py-3 flex items-center justify-between gap-3">
+        <main className="flex-1 flex flex-col lg:ml-64 min-h-screen relative z-10">
+          <div className="sticky top-0 z-30 border-b px-4 py-3 flex items-center justify-between gap-3 glass-card">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className="lg:hidden">
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" className="shine-effect">
                     <List size={24} />
                   </Button>
                 </SheetTrigger>
@@ -878,7 +885,7 @@ function App() {
             <img 
               src={w3PMSLogo}
               alt="W3 Hotel PMS" 
-              className="h-8 w-auto object-contain"
+              className="h-8 w-auto object-contain floating-animation"
             />
             <NotificationPanel
               notifications={notifications || []}
@@ -890,7 +897,7 @@ function App() {
             />
           </div>
           
-          <div className="sm:hidden px-4 py-2 border-b bg-background">
+          <div className="sm:hidden px-4 py-2 border-b glass-card">
             <GlobalSearch
               guests={guests || []}
               guestProfiles={guestProfiles || []}
@@ -900,8 +907,7 @@ function App() {
             />
           </div>
 
-        <div className="flex-1 p-4 md:p-6 lg:p-8">
-          {currentModule === 'dashboard' && renderDashboard()}
+        <div className="flex-1 p-4 md:p-6 lg:p-8 relative z-10">{currentModule === 'dashboard' && renderDashboard()}
           {currentModule === 'front-office' && (
             <FrontOffice
               guests={guests || []}
@@ -1350,38 +1356,33 @@ function App() {
           )}
         </div>
         
-        <footer className="border-t border-border/50 overflow-hidden mt-auto">
+        <footer className="border-t border-border/50 overflow-hidden mt-auto relative">
           <div 
-            className="absolute inset-0 opacity-100"
-            style={{
-              background: branding?.footerGradient 
-                ? `linear-gradient(to bottom right, ${branding.footerGradient.color1}15, ${branding.footerGradient.color2}10)`
-                : 'linear-gradient(to bottom right, oklch(0.35 0.18 140 / 8%), oklch(0.45 0.15 120 / 6%), oklch(0.88 0.08 140 / 10%))'
-            }}
+            className="absolute inset-0 opacity-100 mesh-gradient"
           />
           <div 
-            className="absolute inset-0 opacity-100"
+            className="absolute inset-0 opacity-60"
             style={{
               background: branding?.footerGradient 
-                ? `linear-gradient(to top right, ${branding.footerGradient.color3}12, ${branding.footerGradient.color4}15)`
-                : 'linear-gradient(to top right, oklch(0.65 0.15 150 / 5%), transparent, oklch(0.35 0.18 140 / 8%))'
+                ? `linear-gradient(135deg, ${branding.footerGradient.color1}20, ${branding.footerGradient.color2}15, ${branding.footerGradient.color3}20, ${branding.footerGradient.color4}25)`
+                : 'linear-gradient(135deg, var(--glow-primary), var(--glow-accent))'
             }}
           />
-          <div className="relative px-4 py-4 md:px-6 lg:px-8 md:py-5 backdrop-blur-[2px]">
+          <div className="relative px-4 py-4 md:px-6 lg:px-8 md:py-5 backdrop-blur-md">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
-              <p className="text-sm font-medium text-foreground/80">
+              <p className="text-sm font-medium text-foreground/90">
                 © {new Date().getFullYear()} {branding?.hotelName || 'W3 Hotel'} - Design & Developed by
               </p>
               <a 
                 href="https://www.w3media.lk/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:opacity-90 transition-all duration-300 hover:scale-105 filter hover:brightness-110"
+                className="flex items-center gap-2 hover:opacity-90 transition-all duration-300 hover:scale-105 filter hover:brightness-125 shine-effect"
               >
                 <img 
                   src={w3MediaLogo}
                   alt="W3 Media PVT LTD" 
-                  className="h-6 md:h-7 drop-shadow-md"
+                  className="h-6 md:h-7 drop-shadow-lg"
                 />
               </a>
             </div>

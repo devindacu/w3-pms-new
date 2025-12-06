@@ -41,13 +41,13 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
     switch (widget.type) {
       case 'occupancy':
         return (
-          <Card className="p-6 border-l-4 border-l-primary h-full">
+          <Card className="p-6 border-l-4 border-l-primary h-full glass-card glow-border">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-muted-foreground">Occupancy</h3>
-              <Bed size={20} className="text-primary" />
+              <Bed size={20} className="text-primary floating-animation" />
             </div>
             <div className="space-y-2">
-              <p className="text-3xl font-semibold">{formatPercent(metrics.occupancy.rate)}</p>
+              <p className="text-3xl font-semibold gradient-text">{formatPercent(metrics.occupancy.rate)}</p>
               <div className="flex items-center gap-4 text-sm">
                 <span className="text-muted-foreground">
                   {metrics.occupancy.occupied} / {metrics.occupancy.occupied + metrics.occupancy.available} rooms
@@ -69,14 +69,14 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'revenue-today':
         return (
-          <Card className="p-6 border-l-4 border-l-success h-full">
+          <Card className="p-6 border-l-4 border-l-success h-full glass-card glow-border">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-muted-foreground">Revenue Today</h3>
-              <CurrencyDollar size={20} className="text-success" />
+              <CurrencyDollar size={20} className="text-success floating-animation" />
             </div>
             <div className="space-y-2">
               <div className="flex items-baseline justify-between gap-2">
-                <p className="text-3xl font-semibold">{formatCurrency(metrics.revenue.today)}</p>
+                <p className="text-3xl font-semibold gradient-text">{formatCurrency(metrics.revenue.today)}</p>
               </div>
             </div>
           </Card>
@@ -84,13 +84,13 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'housekeeping':
         return (
-          <Card className="p-6 border-l-4 border-l-accent h-full">
+          <Card className="p-6 border-l-4 border-l-accent h-full glass-card glow-border">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-muted-foreground">Housekeeping</h3>
-              <Broom size={20} className="text-accent" />
+              <Broom size={20} className="text-accent floating-animation" />
             </div>
             <div className="space-y-2">
-              <p className="text-3xl font-semibold">{metrics.housekeeping.pendingTasks}</p>
+              <p className="text-3xl font-semibold gradient-text">{metrics.housekeeping.pendingTasks}</p>
               <p className="text-sm text-muted-foreground">Pending tasks</p>
               <div className="grid grid-cols-2 gap-2 pt-2">
                 <div className="text-xs">

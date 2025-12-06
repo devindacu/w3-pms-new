@@ -138,24 +138,24 @@ A comprehensive cloud-based Property Management System integrating Front Office,
 
 ## Design Direction
 
-The design should feel sophisticated and efficient like premium hospitality software, with a professional interface that handles complex operations gracefully while maintaining clarity through strong visual hierarchy, intuitive navigation, and purposeful use of color to indicate status, alerts, and departmental contexts.
+The design embodies a futuristic, sophisticated aesthetic inspired by 2026 design trends - featuring dark mode with vibrant neon accents, glassmorphism effects, bold gradients, and fluid micro-interactions. The interface feels premium and immersive while maintaining operational clarity through strong visual hierarchy, purposeful animations, and intelligent use of light and color to guide user attention.
 
 ## Color Selection
 
-Analogous color scheme (forest green, emerald, teal) creating a fresh, growth-oriented feeling that communicates efficiency, stability, and modern hospitality while maintaining professional credibility.
+Modern cyberpunk-inspired color scheme with deep dark backgrounds and vibrant neon accents creating a futuristic, high-tech atmosphere that feels both premium and energizing.
 
-- **Primary Color**: Forest Green (oklch(0.35 0.18 140)) - Conveys growth, harmony, and hospitality for primary actions and key metrics
-- **Secondary Colors**: Soft Sage (oklch(0.88 0.08 140)) for secondary UI elements and backgrounds; Deep Pine (oklch(0.25 0.12 140)) for text
-- **Accent Color**: Vibrant Teal (oklch(0.45 0.15 120)) - Fresh, modern highlight for active states and guest-facing interactions
-- **Success Color**: Emerald (oklch(0.65 0.15 150)) - Confirmation and positive metrics
-- **Destructive Color**: Warm Red (oklch(0.50 0.20 15)) - Alerts and critical actions
+- **Primary Color**: Electric Purple (oklch(0.75 0.22 280)) - Bold, modern accent for key actions and focal points conveying innovation and premium quality
+- **Secondary Colors**: Vivid Magenta (oklch(0.65 0.18 310)) for secondary actions; Deep Navy (oklch(0.13 0.015 250)) for backgrounds
+- **Accent Color**: Neon Cyan (oklch(0.70 0.25 180)) - Striking highlight color for CTAs and interactive elements
+- **Success Color**: Bright Lime (oklch(0.68 0.20 150)) - Clear positive feedback
+- **Destructive Color**: Hot Coral (oklch(0.60 0.25 25)) - Attention-grabbing alerts
 - **Foreground/Background Pairings**:
-  - Background (Soft Cream oklch(0.98 0.005 140)): Deep Pine (oklch(0.20 0.12 140)) - Ratio 13.2:1 ✓
-  - Card (Mint Tint oklch(0.96 0.008 140)): Deep Pine (oklch(0.20 0.12 140)) - Ratio 12.1:1 ✓
-  - Primary (Forest Green oklch(0.35 0.18 140)): White (oklch(0.98 0.005 140)) - Ratio 8.4:1 ✓
-  - Secondary (Soft Sage oklch(0.88 0.08 140)): Deep Pine (oklch(0.25 0.12 140)) - Ratio 6.8:1 ✓
-  - Accent (Teal oklch(0.45 0.15 120)): White (oklch(0.98 0.005 140)) - Ratio 7.1:1 ✓
-  - Success (Emerald oklch(0.65 0.15 150)): White (oklch(0.99 0 0)) - Ratio 5.2:1 ✓
+  - Background (Deep Navy oklch(0.13 0.015 250)): Bright White (oklch(0.98 0.005 250)) - Ratio 16.8:1 ✓
+  - Card (Dark Slate oklch(0.17 0.02 250)): Bright White (oklch(0.98 0.005 250)) - Ratio 14.2:1 ✓
+  - Primary (Electric Purple oklch(0.75 0.22 280)): Deep Navy (oklch(0.12 0.015 250)) - Ratio 10.5:1 ✓
+  - Secondary (Vivid Magenta oklch(0.65 0.18 310)): Deep Navy (oklch(0.12 0.015 250)) - Ratio 8.7:1 ✓
+  - Accent (Neon Cyan oklch(0.70 0.25 180)): Deep Navy (oklch(0.12 0.015 250)) - Ratio 9.8:1 ✓
+  - Success (Bright Lime oklch(0.68 0.20 150)): Deep Navy (oklch(0.12 0.015 250)) - Ratio 9.2:1 ✓
 
 ## Font Selection
 
@@ -176,14 +176,22 @@ Typography should communicate professionalism and clarity with distinct fonts fo
 
 ## Animations
 
-Animations should feel responsive and purposeful, providing immediate feedback for operations while maintaining the professional, efficient character of hotel management software.
+Animations embody fluidity and sophistication with purpose-driven micro-interactions that enhance usability while creating moments of delight through smooth, physics-based motion and intelligent transitions.
 
-- **Purposeful Meaning**: Quick, confident transitions (150-250ms) that communicate state changes and guide users through multi-step workflows
+- **Purposeful Meaning**: Fluid, confident transitions (200-400ms) with spring physics that communicate state changes, create spatial continuity, and guide users through complex workflows with natural, organic motion
 - **Hierarchy of Movement**: 
-  - Priority 1: Real-time status updates (room status, inventory levels) with subtle color transitions and icon changes
-  - Priority 2: Modal/sheet appearances for transactions (check-in, POS orders) with slide-in from relevant edge (200ms)
-  - Priority 3: Dashboard metric updates with count-up animations for dramatic changes (400ms)
-  - Priority 4: Hover states on interactive elements (80ms) for immediate responsiveness
+  - Priority 1: Interactive elements (buttons, inputs) with scale transforms (1.05x on hover), glow effects, and spring animations (cubic-bezier(0.34, 1.56, 0.64, 1))
+  - Priority 2: Cards and containers with lift effects (translateY -8px), enhanced shadows, and backdrop blur transitions
+  - Priority 3: Page transitions with slide and fade combinations, maintaining spatial relationships
+  - Priority 4: Background gradients with subtle mesh animations and floating elements creating ambient motion
+  - Priority 5: Loading states with shimmer effects, pulse glows, and skeleton screens that maintain layout
+- **Special Effects**:
+  - Glassmorphism with backdrop-blur (20-32px) and semi-transparent backgrounds
+  - Glow borders using gradient masks and opacity transitions
+  - Shine effects on hover with diagonal gradient sweeps
+  - Text shimmer for headings with gradient animation
+  - Floating animations for decorative icons
+  - Pulse glow for notifications and alerts
 
 ## Component Selection
 
