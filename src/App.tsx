@@ -532,7 +532,14 @@ function App() {
         { name: 'F&B', performance: 78 },
         { name: 'Engineering', performance: 88 },
         { name: 'Finance', performance: 95 }
-      ]
+      ],
+      reservations: reservations || [],
+      guests: guests || [],
+      guestProfiles: guestProfiles || [],
+      guestFeedback: guestFeedback || [],
+      activeRecipes: (recipes || []).filter(r => r.isActive).length,
+      consumptionLogs: (consumptionLogs || []).length,
+      wasteTracking: (wasteTracking || []).length
     }
 
     return (
