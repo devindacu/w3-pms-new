@@ -74,6 +74,16 @@ const applyDarkMode = (isDark: boolean, animated: boolean = true) => {
     if (html) html.classList.remove('dark')
   }
   
+  const savedTheme = localStorage.getItem('theme-colors')
+  if (savedTheme) {
+    try {
+      const colors: ThemeColors = JSON.parse(savedTheme)
+      applyTheme(colors)
+    } catch (error) {
+      console.error('Failed to reapply saved theme:', error)
+    }
+  }
+  
   if (animated) {
     setTimeout(() => {
       root.style.removeProperty('view-transition-name')
