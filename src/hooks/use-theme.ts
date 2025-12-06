@@ -21,7 +21,7 @@ export function useTheme() {
     const savedDarkMode = localStorage.getItem('theme-dark-mode')
     if (savedDarkMode !== null) {
       const isDark = savedDarkMode === 'true'
-      applyDarkMode(isDark)
+      applyDarkMode(isDark, false)
     }
   }, [])
 
@@ -42,12 +42,23 @@ export function useTheme() {
     root.style.setProperty('--sidebar-ring', colors.primary)
   }
 
-  const applyDarkMode = (isDark: boolean) => {
+  const applyDarkMode = (isDark: boolean, animated: boolean = true) => {
     const root = document.documentElement
+    
+    if (animated) {
+      root.style.setProperty('view-transition-name', 'theme-transition')
+    }
+    
     if (isDark) {
       root.classList.add('dark')
     } else {
       root.classList.remove('dark')
+    }
+    
+    if (animated) {
+      setTimeout(() => {
+        root.style.removeProperty('view-transition-name')
+      }, 500)
     }
   }
 
