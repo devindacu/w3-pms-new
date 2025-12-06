@@ -83,6 +83,15 @@ export const AVAILABLE_VARIABLES: TemplateVariable[] = [
   { key: '{{cancellation_policy}}', name: 'Cancellation Policy', description: 'Booking cancellation terms', example: 'Free cancellation up to 48 hours', category: 'custom' },
   { key: '{{special_offers}}', name: 'Special Offers', description: 'Current promotions or offers', example: '20% off spa services', category: 'custom' },
   { key: '{{amenities_list}}', name: 'Amenities List', description: 'Hotel facilities and services', example: 'Pool, Spa, Gym, Restaurant', category: 'custom' },
+  
+  { key: '{{directions_from_airport}}', name: 'Directions from Airport', description: 'How to reach hotel from airport', example: '15 minutes by taxi', category: 'custom' },
+  { key: '{{nearest_landmark}}', name: 'Nearest Landmark', description: 'Popular landmark near hotel', example: 'Next to City Mall', category: 'custom' },
+  { key: '{{transportation_options}}', name: 'Transportation Options', description: 'Available transport methods', example: 'Taxi, Shuttle, Public Bus', category: 'custom' },
+  { key: '{{shuttle_service}}', name: 'Shuttle Service', description: 'Hotel shuttle availability', example: 'Complimentary airport shuttle', category: 'custom' },
+  { key: '{{check_in_requirements}}', name: 'Check-in Requirements', description: 'Documents needed for check-in', example: 'Valid ID and booking confirmation', category: 'custom' },
+  { key: '{{early_checkin_available}}', name: 'Early Check-in Info', description: 'Early check-in availability', example: 'Subject to availability', category: 'custom' },
+  { key: '{{late_checkout_available}}', name: 'Late Checkout Info', description: 'Late checkout availability', example: 'Available for additional charge', category: 'custom' },
+  { key: '{{google_maps_link}}', name: 'Google Maps Link', description: 'Link to hotel on Google Maps', example: 'https://maps.google.com/?q=Hotel', category: 'custom' },
 ]
 
 export const DEFAULT_TEMPLATES: Omit<EmailTemplate, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>[] = [
@@ -1673,6 +1682,718 @@ Best regards,
     isDefault: false,
     variables: AVAILABLE_VARIABLES,
   },
+  {
+    name: 'Pre-Arrival - Check-in Instructions & Directions',
+    category: 'reservation',
+    invoiceType: 'all',
+    description: 'Pre-arrival email with check-in instructions, hotel directions, and travel tips',
+    tags: ['pre-arrival', 'directions', 'check-in', 'travel', 'arrival'],
+    subject: '🗺️ Your Arrival Guide - {{hotel_name}} - Check-in {{check_in_date}}',
+    bodyPlainText: `Dear {{guest_name}},
+
+We're excited to welcome you to {{hotel_name}} soon!
+
+Your reservation is confirmed for check-in on {{check_in_date}}. This email contains important information to help make your arrival smooth and hassle-free.
+
+CHECK-IN INFORMATION
+Check-in Date: {{check_in_date}}
+Check-in Time: {{check_in_time}} onwards
+Check-out Date: {{check_out_date}} at {{check_out_time}}
+Confirmation Number: {{confirmation_number}}
+Room Type: {{room_type}}
+Number of Guests: {{number_of_guests}}
+
+WHAT TO BRING
+- Valid government-issued photo ID or passport
+- Booking confirmation (this email)
+- Payment method for incidentals
+{{check_in_requirements}}
+
+EARLY CHECK-IN & LATE CHECK-OUT
+{{early_checkin_available}}
+{{late_checkout_available}}
+
+HOTEL LOCATION
+{{hotel_name}}
+{{hotel_address}}
+Phone: {{hotel_phone}}
+
+View on Google Maps: {{google_maps_link}}
+
+GETTING HERE
+
+From Airport:
+{{directions_from_airport}}
+
+Nearest Landmark:
+{{nearest_landmark}}
+
+Transportation Options:
+{{transportation_options}}
+
+Airport Shuttle:
+{{shuttle_service}}
+
+Parking:
+{{parking_info}}
+
+HELPFUL INFORMATION
+- WiFi: Available throughout the property - Password: {{wifi_password}}
+- Luggage Storage: Available before check-in and after check-out
+- Concierge Service: Available 24/7 to assist with bookings and recommendations
+
+AMENITIES & SERVICES
+{{amenities_list}}
+
+SPECIAL REQUESTS
+If you have any special requests or need assistance with your arrival, please contact us at least 24 hours before check-in:
+Phone: {{hotel_phone}}
+Email: {{hotel_email}}
+
+We look forward to providing you with an exceptional stay experience!
+
+Safe travels,
+The {{hotel_name}} Team
+
+---
+{{hotel_name}}
+{{hotel_address}}
+Tel: {{hotel_phone}} | Email: {{hotel_email}}
+{{hotel_website}}`,
+    bodyHtml: `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+      max-width: 650px;
+      margin: 0 auto;
+      padding: 0;
+      background-color: #f5f7f6;
+    }
+    .email-container {
+      background-color: #ffffff;
+      margin: 20px auto;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      background: linear-gradient(135deg, {{brand_primary_color}}, {{brand_accent_color}});
+      color: #ffffff;
+      padding: 40px 30px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '🗺️🧳✈️🏨';
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 80px;
+      opacity: 0.1;
+    }
+    .header h1 {
+      margin: 0 0 10px 0;
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      position: relative;
+      z-index: 1;
+    }
+    .header .icon {
+      font-size: 56px;
+      margin-bottom: 15px;
+      display: block;
+    }
+    .header p {
+      margin: 5px 0 0 0;
+      font-size: 17px;
+      opacity: 0.95;
+      font-weight: 500;
+      position: relative;
+      z-index: 1;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    .greeting {
+      font-size: 18px;
+      color: #333333;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+    .intro-message {
+      background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+      border-left: 4px solid {{brand_primary_color}};
+      border-radius: 8px;
+      padding: 20px 25px;
+      margin: 25px 0;
+    }
+    .intro-message p {
+      margin: 0;
+      color: #2e7d32;
+      font-size: 15px;
+      font-weight: 500;
+    }
+    .countdown-box {
+      background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+      border: 2px solid #ff9800;
+      border-radius: 10px;
+      padding: 25px;
+      text-align: center;
+      margin: 30px 0;
+    }
+    .countdown-box h2 {
+      margin: 0 0 10px 0;
+      color: #e65100;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 700;
+    }
+    .countdown-box .date {
+      font-size: 28px;
+      font-weight: 700;
+      color: #f57c00;
+      margin: 10px 0;
+    }
+    .section {
+      background-color: #f9fafa;
+      border-left: 4px solid {{brand_primary_color}};
+      padding: 25px;
+      margin: 25px 0;
+      border-radius: 6px;
+    }
+    .section h3 {
+      margin: 0 0 20px 0;
+      color: {{brand_primary_color}};
+      font-size: 18px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #e8ebe9;
+      align-items: center;
+    }
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+    .detail-label {
+      color: #666666;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .detail-value {
+      color: #333333;
+      font-weight: 600;
+      font-size: 15px;
+      text-align: right;
+    }
+    .checklist {
+      background: white;
+      border: 2px solid {{brand_accent_color}};
+      border-radius: 8px;
+      padding: 25px;
+      margin: 25px 0;
+    }
+    .checklist h3 {
+      margin: 0 0 20px 0;
+      color: {{brand_primary_color}};
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .checklist-item {
+      display: flex;
+      align-items: flex-start;
+      padding: 12px 0;
+      gap: 12px;
+    }
+    .checklist-item .checkbox {
+      width: 24px;
+      height: 24px;
+      border: 2px solid {{brand_primary_color}};
+      border-radius: 4px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: {{brand_primary_color}};
+    }
+    .checklist-item .text {
+      flex: 1;
+      color: #333;
+      font-size: 15px;
+      line-height: 24px;
+    }
+    .directions-card {
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      border: 2px solid #1976d2;
+      border-radius: 10px;
+      padding: 25px;
+      margin: 25px 0;
+    }
+    .directions-card h3 {
+      margin: 0 0 20px 0;
+      color: #0d47a1;
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .direction-item {
+      background: white;
+      padding: 18px;
+      margin: 12px 0;
+      border-radius: 6px;
+      border-left: 4px solid #1976d2;
+    }
+    .direction-item h4 {
+      margin: 0 0 8px 0;
+      color: #1976d2;
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .direction-item p {
+      margin: 0;
+      color: #555;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .map-button {
+      display: inline-block;
+      background: #1976d2;
+      color: white !important;
+      padding: 14px 30px;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      margin: 15px 0;
+      font-size: 15px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    .map-button:hover {
+      background: #0d47a1;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .info-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      border: 2px solid #e8ebe9;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    .info-card:hover {
+      border-color: {{brand_accent_color}};
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .info-card .icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+      color: {{brand_accent_color}};
+    }
+    .info-card .label {
+      font-size: 12px;
+      color: #666666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .info-card .value {
+      font-size: 16px;
+      color: #333333;
+      font-weight: 700;
+    }
+    .info-card .subvalue {
+      font-size: 13px;
+      color: #999;
+      margin-top: 5px;
+    }
+    .important-notice {
+      background: #fff9e6;
+      border: 2px solid #ffa726;
+      border-radius: 8px;
+      padding: 20px 25px;
+      margin: 25px 0;
+    }
+    .important-notice h3 {
+      margin: 0 0 15px 0;
+      color: #f57c00;
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .important-notice ul {
+      margin: 10px 0;
+      padding-left: 25px;
+    }
+    .important-notice li {
+      margin: 10px 0;
+      color: #666;
+      line-height: 1.6;
+    }
+    .important-notice li strong {
+      color: #f57c00;
+    }
+    .amenities-section {
+      background: #f9fafa;
+      border-radius: 8px;
+      padding: 25px;
+      margin: 25px 0;
+    }
+    .amenities-section h3 {
+      margin: 0 0 20px 0;
+      color: {{brand_primary_color}};
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .amenities-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .amenity-item {
+      text-align: center;
+      padding: 15px;
+      background: white;
+      border-radius: 6px;
+      border: 1px solid #e8ebe9;
+    }
+    .amenity-item .icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+      color: {{brand_accent_color}};
+    }
+    .amenity-item .name {
+      font-size: 13px;
+      color: #333;
+      font-weight: 600;
+    }
+    .contact-highlight {
+      background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+      border: 2px solid {{brand_primary_color}};
+      border-radius: 10px;
+      padding: 30px;
+      margin: 30px 0;
+      text-align: center;
+    }
+    .contact-highlight h3 {
+      margin: 0 0 20px 0;
+      color: {{brand_primary_color}};
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .contact-highlight p {
+      margin: 10px 0;
+      color: #333;
+      font-size: 15px;
+    }
+    .contact-highlight .contact-methods {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .contact-highlight a {
+      color: {{brand_primary_color}};
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .contact-highlight a:hover {
+      text-decoration: underline;
+    }
+    .button {
+      display: inline-block;
+      background: {{brand_primary_color}};
+      color: white !important;
+      padding: 14px 35px;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      margin: 10px 5px;
+      font-size: 15px;
+      transition: all 0.3s ease;
+    }
+    .button:hover {
+      background: {{brand_accent_color}};
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .footer {
+      background-color: #f9fafa;
+      padding: 30px;
+      text-align: center;
+      border-top: 1px solid #e8ebe9;
+    }
+    .footer .hotel-name {
+      font-weight: 700;
+      color: {{brand_primary_color}};
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+    .footer p {
+      margin: 5px 0;
+      font-size: 13px;
+      color: #666666;
+      line-height: 1.8;
+    }
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, {{brand_primary_color}}, transparent);
+      margin: 30px 0;
+    }
+    @media only screen and (max-width: 600px) {
+      .info-grid, .amenities-grid {
+        grid-template-columns: 1fr;
+      }
+      .header h1 {
+        font-size: 26px;
+      }
+      .content {
+        padding: 25px 20px;
+      }
+      .contact-highlight .contact-methods {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <span class="icon">🗺️</span>
+      <h1>Your Arrival Guide</h1>
+      <p>Everything You Need for a Smooth Check-In</p>
+    </div>
+    
+    <div class="content">
+      <p class="greeting">Dear {{guest_name}},</p>
+      
+      <div class="intro-message">
+        <p>We're excited to welcome you to <strong>{{hotel_name}}</strong> soon! This guide contains everything you need to know for a seamless arrival and check-in experience.</p>
+      </div>
+      
+      <div class="countdown-box">
+        <h2>📅 Your Check-In Date</h2>
+        <div class="date">{{check_in_date}}</div>
+        <p style="margin: 10px 0 0 0; color: #f57c00; font-weight: 600;">Check-in starts at {{check_in_time}}</p>
+      </div>
+      
+      <div class="section">
+        <h3><span>📋</span> Reservation Details</h3>
+        <div class="detail-row">
+          <span class="detail-label">Confirmation Number</span>
+          <span class="detail-value">{{confirmation_number}}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Guest Name</span>
+          <span class="detail-value">{{guest_name}}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Room Type</span>
+          <span class="detail-value">{{room_type}}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Number of Guests</span>
+          <span class="detail-value">{{number_of_guests}}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Check-out Date</span>
+          <span class="detail-value">{{check_out_date}} at {{check_out_time}}</span>
+        </div>
+      </div>
+      
+      <div class="checklist">
+        <h3><span>✅</span> Check-In Checklist - What to Bring</h3>
+        <div class="checklist-item">
+          <div class="checkbox">✓</div>
+          <div class="text"><strong>Valid Photo ID or Passport</strong> - Government-issued identification required for all guests</div>
+        </div>
+        <div class="checklist-item">
+          <div class="checkbox">✓</div>
+          <div class="text"><strong>Booking Confirmation</strong> - Print this email or show it on your mobile device</div>
+        </div>
+        <div class="checklist-item">
+          <div class="checkbox">✓</div>
+          <div class="text"><strong>Payment Method</strong> - Credit card or cash for incidentals and security deposit</div>
+        </div>
+        <div class="checklist-item">
+          <div class="checkbox">✓</div>
+          <div class="text">{{check_in_requirements}}</div>
+        </div>
+      </div>
+      
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="icon">🕐</div>
+          <div class="label">Early Check-In</div>
+          <div class="value">Available</div>
+          <div class="subvalue">{{early_checkin_available}}</div>
+        </div>
+        <div class="info-card">
+          <div class="icon">🕐</div>
+          <div class="label">Late Check-Out</div>
+          <div class="value">Available</div>
+          <div class="subvalue">{{late_checkout_available}}</div>
+        </div>
+      </div>
+      
+      <div class="directions-card">
+        <h3><span>🗺️</span> How to Find Us</h3>
+        
+        <div style="text-align: center; background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <p style="margin: 0 0 10px 0; color: #333; font-weight: 600; font-size: 16px;">{{hotel_name}}</p>
+          <p style="margin: 0; color: #666; font-size: 14px;">{{hotel_address}}</p>
+          <a href="{{google_maps_link}}" class="map-button" style="margin-top: 15px;">📍 Open in Google Maps</a>
+        </div>
+        
+        <div class="direction-item">
+          <h4><span>✈️</span> From Airport</h4>
+          <p>{{directions_from_airport}}</p>
+        </div>
+        
+        <div class="direction-item">
+          <h4><span>📍</span> Nearest Landmark</h4>
+          <p>{{nearest_landmark}}</p>
+        </div>
+        
+        <div class="direction-item">
+          <h4><span>🚗</span> Transportation Options</h4>
+          <p>{{transportation_options}}</p>
+        </div>
+        
+        <div class="direction-item">
+          <h4><span>🚐</span> Hotel Shuttle Service</h4>
+          <p>{{shuttle_service}}</p>
+        </div>
+        
+        <div class="direction-item">
+          <h4><span>🅿️</span> Parking Information</h4>
+          <p>{{parking_info}}</p>
+        </div>
+      </div>
+      
+      <div class="important-notice">
+        <h3><span style="font-size: 20px;">💡</span> Helpful Tips</h3>
+        <ul>
+          <li><strong>WiFi Access:</strong> Free WiFi throughout the property - Password: <strong>{{wifi_password}}</strong></li>
+          <li><strong>Luggage Storage:</strong> Available before check-in and after check-out at no charge</li>
+          <li><strong>Concierge Service:</strong> Available 24/7 to assist with bookings, tours, and local recommendations</li>
+          <li><strong>Currency Exchange:</strong> Available at the front desk</li>
+          <li><strong>Emergency Contact:</strong> {{hotel_phone}} (24-hour front desk)</li>
+        </ul>
+      </div>
+      
+      <div class="amenities-section">
+        <h3>🌟 Hotel Amenities & Services</h3>
+        <div class="amenities-grid">
+          <div class="amenity-item">
+            <div class="icon">🏊</div>
+            <div class="name">Swimming Pool</div>
+          </div>
+          <div class="amenity-item">
+            <div class="icon">💪</div>
+            <div class="name">Fitness Center</div>
+          </div>
+          <div class="amenity-item">
+            <div class="icon">🍽️</div>
+            <div class="name">Restaurant</div>
+          </div>
+          <div class="amenity-item">
+            <div class="icon">💆</div>
+            <div class="name">Spa & Wellness</div>
+          </div>
+          <div class="amenity-item">
+            <div class="icon">🛎️</div>
+            <div class="name">Room Service</div>
+          </div>
+          <div class="amenity-item">
+            <div class="icon">📶</div>
+            <div class="name">Free WiFi</div>
+          </div>
+        </div>
+        <p style="text-align: center; margin-top: 20px; color: #666; font-size: 14px;">{{amenities_list}}</p>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div class="contact-highlight">
+        <h3>📞 Questions About Your Arrival?</h3>
+        <p>Our team is here to help! Contact us at least 24 hours before check-in if you need any assistance.</p>
+        <div class="contact-methods">
+          <a href="tel:{{hotel_phone}}">📞 {{hotel_phone}}</a>
+          <a href="mailto:{{hotel_email}}">✉️ {{hotel_email}}</a>
+        </div>
+      </div>
+      
+      <div style="text-align: center; margin: 35px 0;">
+        <a href="{{payment_link}}" class="button">View/Manage My Booking</a>
+      </div>
+      
+      <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-radius: 8px; padding: 25px; text-align: center; margin: 30px 0;">
+        <p style="margin: 0; color: {{brand_primary_color}}; font-weight: 700; font-size: 20px;">
+          🎉 We can't wait to welcome you!
+        </p>
+        <p style="margin: 15px 0 0 0; color: #666; font-size: 15px;">
+          Safe travels, and see you soon at {{hotel_name}}!
+        </p>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p class="hotel-name">{{hotel_name}}</p>
+      <p>{{hotel_address}}</p>
+      <p>Tel: {{hotel_phone}} | Email: {{hotel_email}}</p>
+      <p style="margin-top: 10px;">{{hotel_website}}</p>
+    </div>
+  </div>
+</body>
+</html>`,
+    isActive: true,
+    isDefault: false,
+    variables: AVAILABLE_VARIABLES,
+  },
 ]
 
 export function replaceVariables(
@@ -1765,6 +2486,15 @@ export function replaceVariables(
     '{{cancellation_policy}}': 'Free cancellation up to 48 hours before check-in',
     '{{special_offers}}': '20% off spa services for hotel guests',
     '{{amenities_list}}': 'Swimming Pool, Fitness Center, Spa, Restaurant, Room Service',
+    
+    '{{directions_from_airport}}': 'Approximately 15 minutes by taxi from the airport. Follow the coastal road towards the city center. Our hotel is clearly visible on your right.',
+    '{{nearest_landmark}}': 'Located next to City Mall and 200 meters from the Beach Promenade.',
+    '{{transportation_options}}': 'Airport taxi (LKR 2,500), Rideshare apps (Uber/PickMe), Public bus #138 (LKR 50), or hotel shuttle service.',
+    '{{shuttle_service}}': 'Complimentary airport shuttle available for bookings of 3+ nights. Please request at least 24 hours in advance.',
+    '{{check_in_requirements}}': 'Please ensure you have all required travel documents and COVID-19 certificates if applicable.',
+    '{{early_checkin_available}}': 'Subject to availability - please contact us on arrival day',
+    '{{late_checkout_available}}': 'Available for an additional charge of LKR 2,000 per hour',
+    '{{google_maps_link}}': `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(branding?.hotelAddress || 'W3 Hotel')}`,
   }
 
   Object.entries(variables).forEach(([key, value]) => {
