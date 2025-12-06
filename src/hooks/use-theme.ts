@@ -17,6 +17,12 @@ export function useTheme() {
         console.error('Failed to load saved theme:', error)
       }
     }
+
+    const savedDarkMode = localStorage.getItem('theme-dark-mode')
+    if (savedDarkMode !== null) {
+      const isDark = savedDarkMode === 'true'
+      applyDarkMode(isDark)
+    }
   }, [])
 
   const applyTheme = (colors: ThemeColors) => {
@@ -36,5 +42,14 @@ export function useTheme() {
     root.style.setProperty('--sidebar-ring', colors.primary)
   }
 
-  return { applyTheme }
+  const applyDarkMode = (isDark: boolean) => {
+    const root = document.documentElement
+    if (isDark) {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
+    }
+  }
+
+  return { applyTheme, applyDarkMode }
 }

@@ -5,13 +5,16 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
 import { 
   Palette, 
   MagicWand, 
   ArrowClockwise,
   Check,
-  Sparkle
+  Sparkle,
+  Moon,
+  Sun
 } from '@phosphor-icons/react'
 import type { SystemUser } from '@/lib/types'
 
@@ -142,6 +145,7 @@ export function ThemeCustomization({ currentUser, onThemeChange }: ThemeCustomiz
     accent: 'oklch(0.70 0.25 180)'
   })
   const [isCustomMode, setIsCustomMode] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(false)
 
   const getCurrentTheme = () => {
     const root = document.documentElement
@@ -161,6 +165,14 @@ export function ThemeCustomization({ currentUser, onThemeChange }: ThemeCustomiz
     )
     if (matchingPreset) {
       setSelectedPreset(matchingPreset)
+    }
+
+    const savedDarkMode = localStorage.getItem('theme-dark-mode')
+    if (savedDarkMode !== null) {
+      setIsDarkMode(savedDarkMode === 'true')
+    } else {
+      const hasDarkClass = document.documentElement.classList.contains('dark')
+      setIsDarkMode(hasDarkClass)
     }
   }, [])
 
@@ -250,6 +262,23 @@ export function ThemeCustomization({ currentUser, onThemeChange }: ThemeCustomiz
     })
   }
 
+  const toggleDarkMode = (checked: boolean) => {
+    setIsDarkMode(checked)
+    const root = document.documentElement
+    
+    if (checked) {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
+    }
+    
+    localStorage.setItem('theme-dark-mode', String(checked))
+    
+    toast.success(checked ? 'Dark mode enabled' : 'Light mode enabled', {
+      description: `Switched to ${checked ? 'dark' : 'light'} theme`
+    })
+  }
+
   return (
     <div className="space-y-6">
       <Card className="p-6 glass-card">
@@ -286,6 +315,29 @@ export function ThemeCustomization({ currentUser, onThemeChange }: ThemeCustomiz
         </div>
 
         <Separator className="mb-6" />
+
+        <Card className="p-4 mb-6 bg-muted/30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                {isDarkMode ? <Moon size={20} className="text-primary" /> : <Sun size={20} className="text-primary" />}
+              </div>
+              <div>
+                <Label htmlFor="dark-mode-toggle" className="text-base font-medium cursor-pointer">
+                  Dark Mode
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  {isDarkMode ? 'Switch to light theme' : 'Switch to dark theme'}
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="dark-mode-toggle"
+              checked={isDarkMode}
+              onCheckedChange={toggleDarkMode}
+            />
+          </div>
+        </Card>
 
         <Tabs defaultValue="presets" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
