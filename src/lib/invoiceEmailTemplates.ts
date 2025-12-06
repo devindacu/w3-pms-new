@@ -4,6 +4,7 @@ import { formatCurrency } from './helpers'
 export interface EmailTemplate {
   id: string
   name: string
+  category: 'invoice' | 'reservation' | 'welcome' | 'feedback' | 'marketing' | 'notification'
   invoiceType: 'all' | 'guest-folio' | 'room-only' | 'fnb' | 'extras' | 'group-master' | 'proforma' | 'credit-note' | 'debit-note'
   subject: string
   bodyPlainText: string
@@ -14,6 +15,8 @@ export interface EmailTemplate {
   createdAt: number
   updatedAt: number
   createdBy: string
+  tags?: string[]
+  description?: string
 }
 
 export interface TemplateVariable {
@@ -72,7 +75,10 @@ export const AVAILABLE_VARIABLES: TemplateVariable[] = [
 export const DEFAULT_TEMPLATES: Omit<EmailTemplate, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>[] = [
   {
     name: 'Standard Guest Invoice',
+    category: 'invoice',
     invoiceType: 'guest-folio',
+    description: 'Professional invoice email for guest checkout',
+    tags: ['invoice', 'payment', 'checkout'],
     subject: 'Your Invoice from {{hotel_name}} - {{invoice_number}}',
     bodyPlainText: `Dear {{guest_name}},
 
@@ -369,7 +375,10 @@ Tax Registration: {{tax_registration}}`,
   },
   {
     name: 'Room Only Invoice',
+    category: 'invoice',
     invoiceType: 'room-only',
+    description: 'Simple room charges invoice',
+    tags: ['invoice', 'room'],
     subject: 'Room Charges Invoice - {{invoice_number}}',
     bodyPlainText: `Dear {{guest_name}},
 
@@ -420,7 +429,10 @@ Best regards,
   },
   {
     name: 'F&B Invoice',
+    category: 'invoice',
     invoiceType: 'fnb',
+    description: 'Restaurant and bar charges',
+    tags: ['invoice', 'fnb', 'restaurant'],
     subject: 'F&B Invoice from {{hotel_name}} - {{invoice_number}}',
     bodyPlainText: `Dear {{guest_name}},
 
@@ -466,7 +478,10 @@ Best regards,
   },
   {
     name: 'Group Master Invoice',
+    category: 'invoice',
     invoiceType: 'group-master',
+    description: 'Consolidated invoice for group bookings',
+    tags: ['invoice', 'group', 'corporate'],
     subject: 'Group Invoice - {{invoice_number}} - {{hotel_name}}',
     bodyPlainText: `Dear {{guest_name}},
 
@@ -545,7 +560,10 @@ Best regards,
   },
   {
     name: 'Proforma Invoice',
+    category: 'invoice',
     invoiceType: 'proforma',
+    description: 'Quotation for upcoming stay',
+    tags: ['invoice', 'quote', 'proforma'],
     subject: 'Proforma Invoice - {{invoice_number}} - {{hotel_name}}',
     bodyPlainText: `Dear {{guest_name}},
 
@@ -607,7 +625,10 @@ Best regards,
   },
   {
     name: 'Credit Note',
+    category: 'invoice',
     invoiceType: 'credit-note',
+    description: 'Refund or credit notification',
+    tags: ['invoice', 'credit', 'refund'],
     subject: 'Credit Note Issued - {{invoice_number}} - {{hotel_name}}',
     bodyPlainText: `Dear {{guest_name}},
 
@@ -655,6 +676,173 @@ Best regards,
     <p>This credit will be applied to your account and can be used for future stays or refunded as per our refund policy.</p>
     
     <p>If you have any questions, please contact us at {{hotel_email}}.</p>
+  </div>
+</body>
+</html>`,
+    isActive: true,
+    isDefault: false,
+    variables: AVAILABLE_VARIABLES,
+  },
+  {
+    name: 'Booking Confirmation',
+    category: 'reservation',
+    invoiceType: 'all',
+    description: 'Confirm guest reservation details',
+    tags: ['reservation', 'confirmation', 'welcome'],
+    subject: 'Booking Confirmed - {{hotel_name}}',
+    bodyPlainText: `Dear {{guest_name}},
+
+Thank you for choosing {{hotel_name}}! Your reservation is confirmed.
+
+Reservation Details:
+- Confirmation Number: {{invoice_number}}
+- Check-in: {{check_in_date}}
+- Check-out: {{check_out_date}}
+- Nights: {{nights_stayed}}
+- Room: {{room_number}}
+
+We look forward to welcoming you!
+
+Best regards,
+{{hotel_name}} Team`,
+    bodyHtml: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: 'IBM Plex Sans', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: {{brand_primary_color}}; color: white; padding: 25px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 8px 8px; }
+    .confirmation-box { background: #f0f9ff; border-left: 4px solid {{brand_primary_color}}; padding: 20px; margin: 20px 0; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>✓ Booking Confirmed</h1>
+    <p>{{hotel_name}}</p>
+  </div>
+  <div class="content">
+    <p>Dear {{guest_name}},</p>
+    <p>Thank you for choosing {{hotel_name}}! Your reservation is confirmed.</p>
+    <div class="confirmation-box">
+      <h3 style="color: {{brand_primary_color}}; margin-top: 0;">Reservation Details</h3>
+      <p><strong>Confirmation Number:</strong> {{invoice_number}}<br>
+      <strong>Check-in:</strong> {{check_in_date}}<br>
+      <strong>Check-out:</strong> {{check_out_date}}<br>
+      <strong>Nights:</strong> {{nights_stayed}}<br>
+      <strong>Room:</strong> {{room_number}}</p>
+    </div>
+    <p>We look forward to welcoming you!</p>
+    <p style="margin-top: 30px; color: #666; font-size: 14px;">For any questions, contact us at {{hotel_email}} or {{hotel_phone}}.</p>
+  </div>
+</body>
+</html>`,
+    isActive: true,
+    isDefault: false,
+    variables: AVAILABLE_VARIABLES,
+  },
+  {
+    name: 'Welcome Email',
+    category: 'welcome',
+    invoiceType: 'all',
+    description: 'Welcome guests upon check-in',
+    tags: ['welcome', 'checkin', 'greeting'],
+    subject: 'Welcome to {{hotel_name}}!',
+    bodyPlainText: `Dear {{guest_first_name}},
+
+Welcome to {{hotel_name}}!
+
+We're delighted to have you with us. Your comfort is our priority.
+
+Room: {{room_number}}
+Wi-Fi: Available in all areas
+Checkout: {{check_out_date}}
+
+If you need anything, please don't hesitate to contact our front desk.
+
+Enjoy your stay!
+
+{{hotel_name}} Team`,
+    bodyHtml: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: 'IBM Plex Sans', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, {{brand_primary_color}}, {{brand_accent_color}}); color: white; padding: 40px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 8px 8px; }
+    .welcome-text { font-size: 24px; font-weight: 600; color: {{brand_primary_color}}; text-align: center; margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 style="margin: 0; font-size: 32px;">🏨 Welcome!</h1>
+    <p style="margin: 10px 0 0 0; opacity: 0.95;">{{hotel_name}}</p>
+  </div>
+  <div class="content">
+    <p>Dear {{guest_first_name}},</p>
+    <p class="welcome-text">We're delighted to have you with us!</p>
+    <p>Your comfort is our priority. Here are your stay details:</p>
+    <ul style="background: #f9f9f9; padding: 20px; border-radius: 4px; list-style: none;">
+      <li><strong>Room:</strong> {{room_number}}</li>
+      <li><strong>Checkout:</strong> {{check_out_date}}</li>
+      <li><strong>Wi-Fi:</strong> Available in all areas</li>
+    </ul>
+    <p>If you need anything, please contact our front desk.</p>
+    <p style="margin-top: 30px;"><strong>Enjoy your stay!</strong></p>
+  </div>
+</body>
+</html>`,
+    isActive: true,
+    isDefault: false,
+    variables: AVAILABLE_VARIABLES,
+  },
+  {
+    name: 'Feedback Request',
+    category: 'feedback',
+    invoiceType: 'all',
+    description: 'Request guest feedback after checkout',
+    tags: ['feedback', 'review', 'checkout'],
+    subject: 'How was your stay at {{hotel_name}}?',
+    bodyPlainText: `Dear {{guest_name}},
+
+Thank you for choosing {{hotel_name}} for your recent stay.
+
+We hope you had a wonderful experience. Your feedback helps us improve our services.
+
+Please take a moment to share your thoughts about your stay.
+
+We look forward to welcoming you back soon!
+
+Best regards,
+{{hotel_name}} Team
+
+{{hotel_email}} | {{hotel_phone}}`,
+    bodyHtml: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: 'IBM Plex Sans', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: {{brand_secondary_color}}; color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 8px 8px; }
+    .button { display: inline-block; background: {{brand_primary_color}}; color: white; padding: 14px 30px; text-decoration: none; border-radius: 4px; font-weight: 600; margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>⭐ We'd Love Your Feedback</h1>
+    <p>{{hotel_name}}</p>
+  </div>
+  <div class="content">
+    <p>Dear {{guest_name}},</p>
+    <p>Thank you for choosing {{hotel_name}} for your recent stay.</p>
+    <p>We hope you had a wonderful experience! Your feedback helps us continually improve our services.</p>
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="#" class="button">Share Your Experience</a>
+    </div>
+    <p>We look forward to welcoming you back soon!</p>
+    <p style="margin-top: 30px; color: #666; font-size: 14px;">
+      {{hotel_name}}<br>
+      {{hotel_email}} | {{hotel_phone}}
+    </p>
   </div>
 </body>
 </html>`,
