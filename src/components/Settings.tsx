@@ -8,6 +8,7 @@ import { UserPreferences } from '@/components/UserPreferences'
 import { EmailTemplateManagement } from '@/components/EmailTemplateSettings'
 import { EmailTemplateAnalyticsComponent } from '@/components/EmailTemplateAnalytics'
 import { DialogSettings } from '@/components/DialogSettings'
+import { TestEmailTemplate } from '@/components/TestEmailTemplate'
 import type { 
   HotelBranding, 
   TaxConfiguration, 
@@ -129,12 +130,27 @@ export function Settings({
         </TabsContent>
 
         <TabsContent value="email-templates" className="mt-6">
-          <EmailTemplateManagement 
-            templates={emailTemplates}
-            setTemplates={setEmailTemplates}
-            branding={branding}
-            currentUser={currentUser}
-          />
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold">Email Templates</h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Create and customize email templates for guest communications
+                </p>
+              </div>
+              <TestEmailTemplate 
+                templates={emailTemplates}
+                branding={branding}
+              />
+            </div>
+            
+            <EmailTemplateManagement 
+              templates={emailTemplates}
+              setTemplates={setEmailTemplates}
+              branding={branding}
+              currentUser={currentUser}
+            />
+          </div>
         </TabsContent>
 
         <TabsContent value="email-analytics" className="mt-6">
