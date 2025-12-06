@@ -5,9 +5,15 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import { type Reservation, type Guest, type Room } from '@/lib/types'
-import { generateId, generateNumber, calculateNights } from '@/lib/helpers'
+import { generateId, generateNumber, calculateNights, checkBookingConflict, formatDate } from '@/lib/helpers'
+import { Warning, CalendarX, CheckCircle, Calendar } from '@phosphor-icons/react'
+import { RoomAvailabilityCalendar } from './RoomAvailabilityCalendar'
 
 interface ReservationDialogProps {
   open: boolean
@@ -41,6 +47,13 @@ export function ReservationDialog({
     specialRequests: ''
   })
 
+  const [conflictCheck, setConflictCheck] = useState<{
+    hasConflict: boolean
+    conflictingReservations: Reservation[]
+  }>({ hasConflict: false, conflictingReservations: [] })
+
+  const [forceBook, setForceBook] = useState(false)
+
   useEffect(() => {
     if (reservation) {
       const checkIn = new Date(reservation.checkInDate)
@@ -71,7 +84,34 @@ export function ReservationDialog({
         specialRequests: ''
       })
     }
+    setForceBook(false)
+    setConflictCheck({ hasConflict: false, conflictingReservations: [] })
   }, [reservation, open])
+
+  useEffect(() => {
+    if (formData.roomId && formData.checkInDate && formData.checkOutDate && formData.roomId !== 'no-room') {
+      const checkIn = new Date(formData.checkInDate).getTime()
+      const checkOut = new Date(formData.checkOutDate).getTime()
+
+      if (checkOut > checkIn) {
+        const conflict = checkBookingConflict(
+          formData.roomId,
+          checkIn,
+          checkOut,
+          reservations,
+          reservation?.id
+        )
+        setConflictCheck(conflict)
+        if (conflict.hasConflict) {
+          setForceBook(false)
+        }
+      } else {
+        setConflictCheck({ hasConflict: false, conflictingReservations: [] })
+      }
+    } else {
+      setConflictCheck({ hasConflict: false, conflictingReservations: [] })
+    }
+  }, [formData.roomId, formData.checkInDate, formData.checkOutDate, reservations, reservation])
 
   const availableRooms = rooms.filter(r => 
     r.status === 'vacant-clean' || r.status === 'vacant-dirty' || r.id === reservation?.roomId
@@ -107,6 +147,11 @@ export function ReservationDialog({
 
     if (checkOut <= checkIn) {
       toast.error('Check-out date must be after check-in date')
+      return
+    }
+
+    if (conflictCheck.hasConflict && !forceBook) {
+      toast.error('Booking conflict detected! Please review the warnings or choose a different room/dates.')
       return
     }
 
@@ -165,14 +210,27 @@ export function ReservationDialog({
     : 0
   const totalAmount = nights * formData.ratePerNight
 
+  const selectedRoom = rooms.find(r => r.id === formData.roomId)
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{reservation ? 'Edit Reservation' : 'New Reservation'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
+        
+        <Tabs defaultValue="details" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="details">Booking Details</TabsTrigger>
+            <TabsTrigger value="availability">
+              <Calendar className="mr-2 h-4 w-4" />
+              Availability Calendar
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="details">
+            <form onSubmit={handleSubmit}>
+              <div className="space-y-4">{/* Existing form content */}
             <div>
               <Label htmlFor="guestId">Guest *</Label>
               <Select value={formData.guestId} onValueChange={(value) => setFormData({ ...formData, guestId: value })}>
@@ -192,7 +250,10 @@ export function ReservationDialog({
             <div>
               <Label htmlFor="roomId">Room</Label>
               <Select value={formData.roomId} onValueChange={handleRoomChange}>
-                <SelectTrigger id="roomId">
+                <SelectTrigger 
+                  id="roomId" 
+                  className={conflictCheck.hasConflict ? 'border-destructive ring-destructive' : ''}
+                >
                   <SelectValue placeholder="Select room (optional)" />
                 </SelectTrigger>
                 <SelectContent>
@@ -206,6 +267,87 @@ export function ReservationDialog({
               </Select>
               <p className="text-xs text-muted-foreground mt-1">Room can be assigned later</p>
             </div>
+
+            {conflictCheck.hasConflict && (
+              <Alert variant="destructive" className="border-2">
+                <Warning className="h-5 w-5" />
+                <AlertTitle className="flex items-center gap-2">
+                  <CalendarX className="h-4 w-4" />
+                  Booking Conflict Detected!
+                </AlertTitle>
+                <AlertDescription className="space-y-3">
+                  <p className="font-medium">
+                    Room {selectedRoom?.roomNumber} is already booked for the selected dates:
+                  </p>
+                  <div className="space-y-2">
+                    {conflictCheck.conflictingReservations.map((conflictRes) => {
+                      const conflictGuest = guests.find(g => g.id === conflictRes.guestId)
+                      return (
+                        <div key={conflictRes.id} className="bg-destructive/10 border border-destructive/20 rounded-md p-3 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <p className="font-semibold text-sm">
+                              {conflictGuest?.firstName} {conflictGuest?.lastName}
+                            </p>
+                            <Badge variant="destructive" className="text-xs">
+                              {conflictRes.status}
+                            </Badge>
+                          </div>
+                          <p className="text-xs">
+                            <strong>Check-in:</strong> {formatDate(conflictRes.checkInDate)} • 
+                            <strong className="ml-2">Check-out:</strong> {formatDate(conflictRes.checkOutDate)}
+                          </p>
+                          <p className="text-xs">
+                            <strong>Guests:</strong> {conflictRes.adults} adults, {conflictRes.children} children
+                          </p>
+                          {conflictRes.specialRequests && (
+                            <p className="text-xs italic">Note: {conflictRes.specialRequests}</p>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <Separator />
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Options to resolve:</p>
+                    <ul className="text-xs space-y-1 list-disc list-inside">
+                      <li>Select a different room</li>
+                      <li>Choose different dates</li>
+                      <li>Override conflict (requires authorization)</li>
+                    </ul>
+                    {!forceBook && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full mt-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        onClick={() => setForceBook(true)}
+                      >
+                        <Warning className="mr-2 h-4 w-4" />
+                        Override & Force Book Anyway
+                      </Button>
+                    )}
+                    {forceBook && (
+                      <Alert className="bg-accent/10 border-accent">
+                        <CheckCircle className="h-4 w-4 text-accent" />
+                        <AlertDescription className="text-xs">
+                          Override enabled. This booking will be created despite the conflict.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {!conflictCheck.hasConflict && formData.roomId !== 'no-room' && formData.checkInDate && formData.checkOutDate && (
+              <Alert className="border-success bg-success/5">
+                <CheckCircle className="h-5 w-5 text-success" />
+                <AlertTitle className="text-success">Room Available</AlertTitle>
+                <AlertDescription className="text-sm text-success">
+                  No conflicts detected. Room {selectedRoom?.roomNumber} is available for the selected dates.
+                </AlertDescription>
+              </Alert>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -327,11 +469,41 @@ export function ReservationDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">
-              {reservation ? 'Update Reservation' : 'Create Reservation'}
+            <Button 
+              type="submit"
+              variant={conflictCheck.hasConflict && !forceBook ? 'destructive' : 'default'}
+              disabled={conflictCheck.hasConflict && !forceBook}
+            >
+              {conflictCheck.hasConflict && !forceBook ? (
+                <>
+                  <Warning className="mr-2 h-4 w-4" />
+                  Conflict - Cannot Book
+                </>
+              ) : (
+                <>
+                  {reservation ? 'Update Reservation' : 'Create Reservation'}
+                </>
+              )}
             </Button>
           </DialogFooter>
         </form>
+          </TabsContent>
+
+          <TabsContent value="availability" className="mt-4">
+            <RoomAvailabilityCalendar
+              rooms={rooms}
+              reservations={reservations}
+              selectedRoomId={formData.roomId !== 'no-room' ? formData.roomId : undefined}
+              selectedCheckIn={formData.checkInDate ? new Date(formData.checkInDate).getTime() : undefined}
+              selectedCheckOut={formData.checkOutDate ? new Date(formData.checkOutDate).getTime() : undefined}
+            />
+            <div className="mt-4 flex justify-end">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Close
+              </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   )

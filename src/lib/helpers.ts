@@ -105,6 +105,47 @@ export function calculateNights(checkIn: number, checkOut: number): number {
   return Math.ceil(diffMs / (1000 * 60 * 60 * 24))
 }
 
+export function checkBookingConflict(
+  roomId: string | undefined,
+  checkInDate: number,
+  checkOutDate: number,
+  reservations: Reservation[],
+  excludeReservationId?: string
+): { hasConflict: boolean; conflictingReservations: Reservation[] } {
+  if (!roomId || roomId === 'no-room') {
+    return { hasConflict: false, conflictingReservations: [] }
+  }
+
+  const conflictingReservations = reservations.filter(reservation => {
+    if (excludeReservationId && reservation.id === excludeReservationId) {
+      return false
+    }
+
+    if (reservation.roomId !== roomId) {
+      return false
+    }
+
+    if (reservation.status === 'cancelled' || reservation.status === 'no-show') {
+      return false
+    }
+
+    const existingCheckIn = reservation.checkInDate
+    const existingCheckOut = reservation.checkOutDate
+
+    const hasOverlap = 
+      (checkInDate >= existingCheckIn && checkInDate < existingCheckOut) ||
+      (checkOutDate > existingCheckIn && checkOutDate <= existingCheckOut) ||
+      (checkInDate <= existingCheckIn && checkOutDate >= existingCheckOut)
+
+    return hasOverlap
+  })
+
+  return {
+    hasConflict: conflictingReservations.length > 0,
+    conflictingReservations
+  }
+}
+
 export function calculateOccupancyRate(occupied: number, total: number): number {
   if (total === 0) return 0
   return Math.round((occupied / total) * 100)
