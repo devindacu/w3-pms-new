@@ -164,6 +164,7 @@ import { PaymentTracking } from '@/components/PaymentTracking'
 import { DashboardWidgetManager } from '@/components/DashboardWidgetManager'
 import { WidgetRenderer } from '@/components/DashboardWidgets'
 import { getDefaultWidgetsForRole, getWidgetSize } from '@/lib/widgetConfig'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import type {
   DashboardLayout,
   DashboardWidget,
@@ -890,14 +891,17 @@ function App() {
               alt="W3 Hotel PMS" 
               className="h-8 w-auto object-contain floating-animation"
             />
-            <NotificationPanel
-              notifications={notifications || []}
-              onMarkAsRead={handleMarkAsRead}
-              onMarkAllAsRead={handleMarkAllAsRead}
-              onDismiss={handleDismiss}
-              onArchive={handleArchive}
-              onClearAll={handleClearAll}
-            />
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <NotificationPanel
+                notifications={notifications || []}
+                onMarkAsRead={handleMarkAsRead}
+                onMarkAllAsRead={handleMarkAllAsRead}
+                onDismiss={handleDismiss}
+                onArchive={handleArchive}
+                onClearAll={handleClearAll}
+              />
+            </div>
           </div>
           
           <div className="sm:hidden px-4 py-2 border-b glass-card">
