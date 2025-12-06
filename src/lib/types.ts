@@ -4172,3 +4172,246 @@ export interface RoleWidgetPreset {
     widgetSizes: Record<DashboardWidgetType, WidgetSize>
   }
 }
+
+export type CostCenterType = 'revenue' | 'service' | 'support' | 'administrative'
+export type ProfitCenterStatus = 'active' | 'inactive' | 'suspended'
+
+export interface CostCenter {
+  id: string
+  code: string
+  name: string
+  description?: string
+  type: CostCenterType
+  department?: Department
+  parentCostCenterId?: string
+  managerId?: string
+  managerName?: string
+  isActive: boolean
+  budget?: number
+  actualCost?: number
+  allocatedExpenses: string[]
+  costDriverMetric?: string
+  allocationBasis?: 'headcount' | 'square-footage' | 'revenue' | 'transactions' | 'custom'
+  allocationPercentage?: number
+  notes?: string
+  createdAt: number
+  updatedAt: number
+  createdBy: string
+}
+
+export interface ProfitCenter {
+  id: string
+  code: string
+  name: string
+  description?: string
+  department?: Department
+  managerId?: string
+  managerName?: string
+  costCenterIds: string[]
+  status: ProfitCenterStatus
+  targetRevenue?: number
+  targetProfit?: number
+  targetMargin?: number
+  actualRevenue?: number
+  actualCost?: number
+  actualProfit?: number
+  actualMargin?: number
+  revenueStreams: RevenueStream[]
+  performanceMetrics?: ProfitCenterPerformanceMetrics
+  notes?: string
+  createdAt: number
+  updatedAt: number
+  createdBy: string
+}
+
+export interface RevenueStream {
+  id: string
+  name: string
+  category: 'room' | 'fnb' | 'extra-services' | 'spa' | 'events' | 'other'
+  revenue: number
+  percentage: number
+}
+
+export interface ProfitCenterPerformanceMetrics {
+  period: string
+  revenue: number
+  directCosts: number
+  allocatedCosts: number
+  totalCosts: number
+  grossProfit: number
+  netProfit: number
+  grossMargin: number
+  netMargin: number
+  roi: number
+  revenueTrend: 'increasing' | 'stable' | 'decreasing'
+  profitTrend: 'increasing' | 'stable' | 'decreasing'
+}
+
+export interface CostCenterReport {
+  id: string
+  reportNumber: string
+  costCenterId: string
+  costCenterCode: string
+  costCenterName: string
+  period: {
+    from: number
+    to: number
+  }
+  budgetedAmount: number
+  actualAmount: number
+  variance: number
+  variancePercentage: number
+  expenseBreakdown: CostCenterExpenseBreakdown[]
+  monthlyTrend: MonthlyTrendData[]
+  topExpenseCategories: {
+    category: ExpenseCategory
+    amount: number
+    percentage: number
+  }[]
+  comparisonToPreviousPeriod: {
+    previousAmount: number
+    change: number
+    changePercentage: number
+  }
+  recommendations: string[]
+  generatedAt: number
+  generatedBy: string
+}
+
+export interface CostCenterExpenseBreakdown {
+  category: ExpenseCategory
+  department: Department
+  budgeted: number
+  actual: number
+  variance: number
+  variancePercentage: number
+  transactions: number
+  averageTransactionValue: number
+}
+
+export interface ProfitCenterReport {
+  id: string
+  reportNumber: string
+  profitCenterId: string
+  profitCenterCode: string
+  profitCenterName: string
+  period: {
+    from: number
+    to: number
+  }
+  revenue: number
+  directCosts: number
+  allocatedCosts: number
+  totalCosts: number
+  grossProfit: number
+  netProfit: number
+  grossMargin: number
+  netMargin: number
+  targetRevenue: number
+  targetProfit: number
+  targetMargin: number
+  revenueVariance: number
+  profitVariance: number
+  marginVariance: number
+  revenueByStream: RevenueStream[]
+  costByCenter: {
+    costCenterId: string
+    costCenterName: string
+    amount: number
+    percentage: number
+  }[]
+  monthlyTrend: MonthlyProfitTrendData[]
+  departmentalContribution: DepartmentalContribution[]
+  performanceRating: 'excellent' | 'good' | 'average' | 'below-average' | 'poor'
+  keyInsights: string[]
+  recommendations: string[]
+  generatedAt: number
+  generatedBy: string
+}
+
+export interface MonthlyTrendData {
+  month: string
+  period: number
+  budgeted: number
+  actual: number
+  variance: number
+  variancePercentage: number
+}
+
+export interface MonthlyProfitTrendData {
+  month: string
+  period: number
+  revenue: number
+  costs: number
+  profit: number
+  margin: number
+}
+
+export interface DepartmentalContribution {
+  department: Department
+  revenue: number
+  costs: number
+  profit: number
+  margin: number
+  revenuePercentage: number
+  contributionPercentage: number
+}
+
+export interface ConsolidatedFinancialReport {
+  id: string
+  reportNumber: string
+  reportType: 'cost-center' | 'profit-center' | 'departmental' | 'consolidated'
+  period: {
+    from: number
+    to: number
+  }
+  totalRevenue: number
+  totalCosts: number
+  totalProfit: number
+  overallMargin: number
+  profitCenterSummary: {
+    profitCenterId: string
+    profitCenterName: string
+    revenue: number
+    profit: number
+    margin: number
+    ranking: number
+  }[]
+  costCenterSummary: {
+    costCenterId: string
+    costCenterName: string
+    budgeted: number
+    actual: number
+    variance: number
+    variancePercentage: number
+    efficiency: number
+  }[]
+  departmentalSummary: {
+    department: Department
+    revenue: number
+    costs: number
+    profit: number
+    margin: number
+    headcount?: number
+    revenuePerEmployee?: number
+    profitPerEmployee?: number
+  }[]
+  topPerformers: {
+    type: 'profit-center' | 'cost-center'
+    id: string
+    name: string
+    metric: string
+    value: number
+  }[]
+  bottomPerformers: {
+    type: 'profit-center' | 'cost-center'
+    id: string
+    name: string
+    metric: string
+    value: number
+  }[]
+  executiveSummary: string
+  strategicRecommendations: string[]
+  generatedAt: number
+  generatedBy: string
+}

@@ -25,7 +25,8 @@ import {
   Calendar,
   FilePlus,
   Check,
-  Package
+  Package,
+  Buildings
 } from '@phosphor-icons/react'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { 
@@ -38,7 +39,9 @@ import {
   type ChartOfAccount, 
   type SystemUser,
   type GLEntry,
-  type BankReconciliation
+  type BankReconciliation,
+  type CostCenter,
+  type ProfitCenter
 } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/helpers'
 import { PercentageChangeIndicator } from './PercentageChangeIndicator'
@@ -58,6 +61,10 @@ import { FinanceReportsDialog } from './FinanceReportsDialog'
 import { APAgingDialog } from './APAgingDialog'
 import { TaxSummaryDialog } from './TaxSummaryDialog'
 import { PettyCashDialog } from './PettyCashDialog'
+import { CostCenterDialog } from './CostCenterDialog'
+import { ProfitCenterDialog } from './ProfitCenterDialog'
+import { CostCenterReportDialog } from './CostCenterReportDialog'
+import { ProfitCenterReportDialog } from './ProfitCenterReportDialog'
 import { toast } from 'sonner'
 
 interface FinanceProps {
@@ -121,12 +128,20 @@ export function Finance({
   const [apAgingDialogOpen, setApAgingDialogOpen] = useState(false)
   const [taxSummaryDialogOpen, setTaxSummaryDialogOpen] = useState(false)
   const [pettyCashDialogOpen, setPettyCashDialogOpen] = useState(false)
+  const [costCenterDialogOpen, setCostCenterDialogOpen] = useState(false)
+  const [profitCenterDialogOpen, setProfitCenterDialogOpen] = useState(false)
+  const [costCenterReportDialogOpen, setCostCenterReportDialogOpen] = useState(false)
+  const [profitCenterReportDialogOpen, setProfitCenterReportDialogOpen] = useState(false)
+  const [costCenters, setCostCenters] = useState<CostCenter[]>([])
+  const [profitCenters, setProfitCenters] = useState<ProfitCenter[]>([])
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | undefined>()
   const [selectedPayment, setSelectedPayment] = useState<Payment | undefined>()
   const [selectedExpense, setSelectedExpense] = useState<Expense | undefined>()
   const [selectedBudget, setSelectedBudget] = useState<Budget | undefined>()
   const [selectedJournal, setSelectedJournal] = useState<JournalEntry | undefined>()
   const [selectedReconciliation, setSelectedReconciliation] = useState<BankReconciliation | undefined>()
+  const [selectedCostCenter, setSelectedCostCenter] = useState<CostCenter | undefined>()
+  const [selectedProfitCenter, setSelectedProfitCenter] = useState<ProfitCenter | undefined>()
 
   const calculateMonthMetrics = () => {
     const now = new Date()
@@ -727,6 +742,8 @@ export function Finance({
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="expenses">Expenses</TabsTrigger>
           <TabsTrigger value="budgets">Budgets</TabsTrigger>
+          <TabsTrigger value="cost-centers">Cost Centers</TabsTrigger>
+          <TabsTrigger value="profit-centers">Profit Centers</TabsTrigger>
           <TabsTrigger value="petty-cash">Petty Cash</TabsTrigger>
           <TabsTrigger value="accounts">Chart of Accounts</TabsTrigger>
           <TabsTrigger value="journals">Journal Entries</TabsTrigger>
@@ -1419,6 +1436,245 @@ export function Finance({
           </Card>
         </TabsContent>
 
+        <TabsContent value="cost-centers" className="space-y-6">
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold">Cost Center Management</h3>
+                <p className="text-sm text-muted-foreground mt-1">Track and analyze costs by department and business unit</p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setCostCenterReportDialogOpen(true)}>
+                  <ChartBar size={18} className="mr-2" />
+                  View Reports
+                </Button>
+                <Button onClick={() => {
+                  setSelectedCostCenter(undefined)
+                  setCostCenterDialogOpen(true)
+                }}>
+                  <Plus size={18} className="mr-2" />
+                  New Cost Center
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {costCenters.length === 0 ? (
+                <div className="text-center py-12">
+                  <Buildings size={48} className="mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No cost centers created yet</p>
+                  <p className="text-sm text-muted-foreground mt-2">Cost centers help you track expenses and analyze performance by department</p>
+                  <Button onClick={() => {
+                    setSelectedCostCenter(undefined)
+                    setCostCenterDialogOpen(true)
+                  }} className="mt-4">
+                    <Plus size={18} className="mr-2" />
+                    Create First Cost Center
+                  </Button>
+                </div>
+              ) : (
+                costCenters.map((cc) => {
+                  const variance = (cc.budget || 0) - (cc.actualCost || 0)
+                  const variancePercentage = cc.budget ? (variance / cc.budget) * 100 : 0
+                  
+                  return (
+                    <div
+                      key={cc.id}
+                      className="p-4 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted transition-colors"
+                      onClick={() => {
+                        setSelectedCostCenter(cc)
+                        setCostCenterDialogOpen(true)
+                      }}
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <p className="font-semibold">{cc.code} - {cc.name}</p>
+                            <Badge variant={cc.isActive ? 'default' : 'secondary'}>
+                              {cc.isActive ? 'Active' : 'Inactive'}
+                            </Badge>
+                            <Badge variant="outline" className="capitalize">{cc.type.replace('-', ' ')}</Badge>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div>
+                              <span className="text-muted-foreground">Department:</span>
+                              <span className="ml-2 capitalize">{cc.department?.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') || 'N/A'}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Manager:</span>
+                              <span className="ml-2">{cc.managerName || 'Not Assigned'}</span>
+                            </div>
+                            {cc.allocationBasis && (
+                              <div>
+                                <span className="text-muted-foreground">Allocation:</span>
+                                <span className="ml-2 capitalize">{cc.allocationBasis.replace('-', ' ')}</span>
+                              </div>
+                            )}
+                            {cc.allocationPercentage && (
+                              <div>
+                                <span className="text-muted-foreground">Allocation %:</span>
+                                <span className="ml-2">{cc.allocationPercentage}%</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {cc.budget && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t">
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Budgeted</p>
+                            <p className="text-lg font-semibold">{formatCurrency(cc.budget)}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Actual</p>
+                            <p className="text-lg font-semibold text-destructive">{formatCurrency(cc.actualCost || 0)}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Variance</p>
+                            <div className="flex items-center gap-2">
+                              <p className={`text-lg font-semibold ${variance >= 0 ? 'text-success' : 'text-destructive'}`}>
+                                {formatCurrency(Math.abs(variance))}
+                              </p>
+                              <Badge className={variance >= 0 ? 'bg-success text-success-foreground' : 'bg-destructive text-destructive-foreground'}>
+                                {variance >= 0 ? 'Under' : 'Over'} {Math.abs(variancePercentage).toFixed(1)}%
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="profit-centers" className="space-y-6">
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold">Profit Center Management</h3>
+                <p className="text-sm text-muted-foreground mt-1">Monitor revenue, costs, and profitability by business unit</p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setProfitCenterReportDialogOpen(true)}>
+                  <ChartBar size={18} className="mr-2" />
+                  View Reports
+                </Button>
+                <Button onClick={() => {
+                  setSelectedProfitCenter(undefined)
+                  setProfitCenterDialogOpen(true)
+                }}>
+                  <Plus size={18} className="mr-2" />
+                  New Profit Center
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {profitCenters.length === 0 ? (
+                <div className="text-center py-12">
+                  <TrendUp size={48} className="mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No profit centers created yet</p>
+                  <p className="text-sm text-muted-foreground mt-2">Profit centers help you analyze revenue and profitability across your business units</p>
+                  <Button onClick={() => {
+                    setSelectedProfitCenter(undefined)
+                    setProfitCenterDialogOpen(true)
+                  }} className="mt-4">
+                    <Plus size={18} className="mr-2" />
+                    Create First Profit Center
+                  </Button>
+                </div>
+              ) : (
+                profitCenters.map((pc) => {
+                  const revenue = pc.actualRevenue || pc.targetRevenue || 0
+                  const costs = pc.actualCost || 0
+                  const profit = revenue - costs
+                  const margin = revenue > 0 ? (profit / revenue) * 100 : 0
+                  
+                  return (
+                    <div
+                      key={pc.id}
+                      className="p-4 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted transition-colors"
+                      onClick={() => {
+                        setSelectedProfitCenter(pc)
+                        setProfitCenterDialogOpen(true)
+                      }}
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <p className="font-semibold">{pc.code} - {pc.name}</p>
+                            <Badge variant={pc.status === 'active' ? 'default' : pc.status === 'inactive' ? 'secondary' : 'destructive'}>
+                              {pc.status}
+                            </Badge>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div>
+                              <span className="text-muted-foreground">Department:</span>
+                              <span className="ml-2 capitalize">{pc.department?.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') || 'N/A'}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Manager:</span>
+                              <span className="ml-2">{pc.managerName || 'Not Assigned'}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Cost Centers:</span>
+                              <span className="ml-2">{pc.costCenterIds.length}</span>
+                            </div>
+                            {pc.targetMargin && (
+                              <div>
+                                <span className="text-muted-foreground">Target Margin:</span>
+                                <span className="ml-2">{pc.targetMargin}%</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 pt-4 border-t">
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Revenue</p>
+                          <p className="text-lg font-semibold text-success">{formatCurrency(revenue)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Costs</p>
+                          <p className="text-lg font-semibold text-destructive">{formatCurrency(costs)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Profit</p>
+                          <p className={`text-lg font-semibold ${profit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                            {formatCurrency(profit)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Margin</p>
+                          <div className="flex items-center gap-2">
+                            <p className={`text-lg font-semibold ${margin >= (pc.targetMargin || 0) ? 'text-success' : 'text-destructive'}`}>
+                              {margin.toFixed(1)}%
+                            </p>
+                            {pc.targetMargin && (
+                              <>
+                                {margin >= pc.targetMargin ? (
+                                  <ArrowUp size={16} className="text-success" />
+                                ) : (
+                                  <ArrowDown size={16} className="text-destructive" />
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="petty-cash" className="space-y-6">
           <Card className="p-6">
             <div className="flex items-center justify-between mb-6">
@@ -2070,6 +2326,52 @@ export function Finance({
         onReplenish={(amount, notes) => {
           toast.success(`Petty cash fund replenished with ${formatCurrency(amount)}`)
         }}
+      />
+
+      <CostCenterDialog
+        open={costCenterDialogOpen}
+        onOpenChange={setCostCenterDialogOpen}
+        costCenter={selectedCostCenter}
+        costCenters={costCenters}
+        onSave={(costCenter) => {
+          if (selectedCostCenter) {
+            setCostCenters((prev) => prev.map((cc) => (cc.id === costCenter.id ? costCenter : cc)))
+          } else {
+            setCostCenters((prev) => [...prev, costCenter])
+          }
+          setCostCenterDialogOpen(false)
+        }}
+      />
+
+      <ProfitCenterDialog
+        open={profitCenterDialogOpen}
+        onOpenChange={setProfitCenterDialogOpen}
+        profitCenter={selectedProfitCenter}
+        costCenters={costCenters}
+        onSave={(profitCenter) => {
+          if (selectedProfitCenter) {
+            setProfitCenters((prev) => prev.map((pc) => (pc.id === profitCenter.id ? profitCenter : pc)))
+          } else {
+            setProfitCenters((prev) => [...prev, profitCenter])
+          }
+          setProfitCenterDialogOpen(false)
+        }}
+      />
+
+      <CostCenterReportDialog
+        open={costCenterReportDialogOpen}
+        onOpenChange={setCostCenterReportDialogOpen}
+        costCenters={costCenters}
+        expenses={expenses}
+        budgets={budgets}
+      />
+
+      <ProfitCenterReportDialog
+        open={profitCenterReportDialogOpen}
+        onOpenChange={setProfitCenterReportDialogOpen}
+        profitCenters={profitCenters}
+        costCenters={costCenters}
+        expenses={expenses}
       />
     </div>
   )
