@@ -77,7 +77,7 @@ export function GlobalSearch({
       ].filter(Boolean).join(' ').toLowerCase()
 
       if (matchFields.includes(searchLower)) {
-        const metadata = []
+        const metadata: string[] = []
         if (profile.email) metadata.push(profile.email)
         if (profile.phone) metadata.push(profile.phone)
         if (profile.totalSpent) metadata.push(formatCurrency(profile.totalSpent))
@@ -108,7 +108,7 @@ export function GlobalSearch({
         )
 
         if (!existingProfile) {
-          const metadata = []
+          const metadata: string[] = []
           if (guest.email) metadata.push(guest.email)
           if (guest.phone) metadata.push(guest.phone)
 
@@ -129,7 +129,7 @@ export function GlobalSearch({
       const guestName = guest ? `${guest.firstName} ${guest.lastName}` : ''
 
       const matchFields = [
-        reservation.confirmationNumber,
+        reservation.id,
         guestName,
         reservation.guestId,
         reservation.roomId,
@@ -137,7 +137,7 @@ export function GlobalSearch({
       ].filter(Boolean).join(' ').toLowerCase()
 
       if (matchFields.includes(searchLower)) {
-        const metadata = []
+        const metadata: string[] = []
         metadata.push(`Check-in: ${format(reservation.checkInDate, 'MMM dd, yyyy')}`)
         metadata.push(`Check-out: ${format(reservation.checkOutDate, 'MMM dd, yyyy')}`)
         if (reservation.totalAmount) metadata.push(formatCurrency(reservation.totalAmount))
@@ -145,7 +145,7 @@ export function GlobalSearch({
         results.push({
           id: reservation.id,
           type: 'reservation',
-          title: `Reservation ${reservation.confirmationNumber}`,
+          title: `Reservation ${reservation.id}`,
           subtitle: guestName || 'No guest assigned',
           badge: reservation.status,
           badgeVariant:
@@ -168,13 +168,12 @@ export function GlobalSearch({
         invoice.guestName,
         invoice.guestEmail,
         invoice.guestPhone,
-        invoice.folioNumber,
         invoice.status,
       ].filter(Boolean).join(' ').toLowerCase()
 
       if (matchFields.includes(searchLower)) {
-        const metadata = []
-        metadata.push(`Date: ${format(invoice.issueDate, 'MMM dd, yyyy')}`)
+        const metadata: string[] = []
+        metadata.push(`Date: ${format(invoice.invoiceDate, 'MMM dd, yyyy')}`)
         metadata.push(`Total: ${formatCurrency(invoice.grandTotal)}`)
         if (invoice.amountDue > 0) metadata.push(`Due: ${formatCurrency(invoice.amountDue)}`)
 
