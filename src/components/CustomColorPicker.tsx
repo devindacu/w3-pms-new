@@ -45,17 +45,17 @@ export function CustomColorPicker({ open, onOpenChange }: ColorPickerProps) {
   const [customMoods, setCustomMoods] = useKV<CustomColorMood[]>('custom-color-moods', [])
   
   const [moodName, setMoodName] = useState('')
-  const [primaryL, setPrimaryL] = useState(48)
-  const [primaryC, setPrimaryC] = useState(18)
+  const [primaryL, setPrimaryL] = useState(65)
+  const [primaryC, setPrimaryC] = useState(22)
   const [primaryH, setPrimaryH] = useState(265)
   
-  const [secondaryL, setSecondaryL] = useState(72)
-  const [secondaryC, setSecondaryC] = useState(14)
-  const [secondaryH, setSecondaryH] = useState(195)
+  const [secondaryL, setSecondaryL] = useState(55)
+  const [secondaryC, setSecondaryC] = useState(16)
+  const [secondaryH, setSecondaryH] = useState(220)
   
-  const [accentL, setAccentL] = useState(62)
-  const [accentC, setAccentC] = useState(20)
-  const [accentH, setAccentH] = useState(30)
+  const [accentL, setAccentL] = useState(68)
+  const [accentC, setAccentC] = useState(24)
+  const [accentH, setAccentH] = useState(35)
 
   const primaryColor = `oklch(${primaryL / 100} ${primaryC / 100} ${primaryH})`
   const secondaryColor = `oklch(${secondaryL / 100} ${secondaryC / 100} ${secondaryH})`
