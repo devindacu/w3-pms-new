@@ -81,20 +81,20 @@ export function CollapsibleSidebarGroup({
   }
 
   return (
-    <div className={cn("space-y-1", className)}>
+    <div className={cn("space-y-0.5", className)}>
       <Button
         variant="ghost"
-        className="w-full justify-between px-3 py-2 h-auto font-semibold text-xs uppercase tracking-wide text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+        className="w-full justify-between px-2 py-1.5 h-auto font-semibold text-[10px] uppercase tracking-wide text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
         onClick={handleToggle}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {icon}
           <span>{title}</span>
         </div>
         {isOpen ? (
-          <CaretDown size={16} className="shrink-0 transition-transform" />
+          <CaretDown size={14} className="shrink-0 transition-transform" />
         ) : (
-          <CaretRight size={16} className="shrink-0 transition-transform" />
+          <CaretRight size={14} className="shrink-0 transition-transform" />
         )}
       </Button>
       
@@ -103,7 +103,7 @@ export function CollapsibleSidebarGroup({
           axis="y"
           values={items}
           onReorder={handleReorder}
-          className="space-y-1 pl-2"
+          className="space-y-0.5 pl-1"
         >
           {items.map((item) => (
             <ReorderItem key={item.id} item={item} />
@@ -132,13 +132,13 @@ function ReorderItem({ item }: ReorderItemProps) {
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.2 }}
     >
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5">
         <button
-          className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 hover:bg-accent/50 rounded flex-shrink-0"
+          className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-0.5 hover:bg-accent/50 rounded flex-shrink-0"
           onPointerDown={(e) => dragControls.start(e)}
           aria-label="Drag to reorder"
         >
-          <DotsSixVertical size={14} className="text-muted-foreground" />
+          <DotsSixVertical size={12} className="text-muted-foreground" />
         </button>
         <div className="flex-1">
           {cloneElement(item.element, {
