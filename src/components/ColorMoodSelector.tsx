@@ -5,7 +5,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { Palette, Check, PaintBrush } from '@phosphor-icons/react'
+import { Palette, Check, PaintBrush, Sparkle } from '@phosphor-icons/react'
 import { useTheme, type ColorMood, colorMoods } from '@/hooks/use-theme'
 import { toast } from 'sonner'
 import { CustomColorPicker } from '@/components/CustomColorPicker'
@@ -17,6 +17,12 @@ const moodLabels: Record<ColorMood, string> = {
   orange: 'Sunset Orange',
   rose: 'Romantic Rose',
   cyan: 'Sky Cyan',
+  teal: 'Deep Teal',
+  amber: 'Golden Amber',
+  indigo: 'Midnight Indigo',
+  crimson: 'Bold Crimson',
+  emerald: 'Rich Emerald',
+  violet: 'Mystic Violet',
 }
 
 const moodDescriptions: Record<ColorMood, string> = {
@@ -26,6 +32,12 @@ const moodDescriptions: Record<ColorMood, string> = {
   orange: 'Energetic and warm',
   rose: 'Elegant and sophisticated',
   cyan: 'Modern and clean',
+  teal: 'Balanced and serene',
+  amber: 'Warm and inviting',
+  indigo: 'Deep and focused',
+  crimson: 'Powerful and dynamic',
+  emerald: 'Vibrant and lively',
+  violet: 'Mysterious and creative',
 }
 
 export function ColorMoodSelector() {
@@ -33,6 +45,7 @@ export function ColorMoodSelector() {
   const [open, setOpen] = useState(false)
   const [customPickerOpen, setCustomPickerOpen] = useState(false)
   const [hasCustomColors, setHasCustomColors] = useState(false)
+  const [isAnimating, setIsAnimating] = useState(false)
   const { applyColorMood } = useTheme()
 
   useEffect(() => {
@@ -49,14 +62,36 @@ export function ColorMoodSelector() {
     }
   }, [open])
 
+  const createColorTransitionEffect = () => {
+    const overlay = document.createElement('div')
+    overlay.className = 'theme-transition-overlay'
+    overlay.style.top = '50%'
+    overlay.style.left = '50%'
+    overlay.style.transform = 'translate(-50%, -50%)'
+    
+    document.body.appendChild(overlay)
+    
+    setTimeout(() => {
+      overlay.remove()
+    }, 1000)
+  }
+
   const handleMoodChange = (mood: ColorMood) => {
+    if (isAnimating) return
+    
+    setIsAnimating(true)
     setSelectedMood(mood)
     setHasCustomColors(false)
-    applyColorMood(mood)
-    setOpen(false)
-    toast.success(`Theme changed to ${moodLabels[mood]}`, {
-      description: moodDescriptions[mood],
-    })
+    createColorTransitionEffect()
+    
+    setTimeout(() => {
+      applyColorMood(mood)
+      setOpen(false)
+      toast.success(`Theme changed to ${moodLabels[mood]}`, {
+        description: moodDescriptions[mood],
+      })
+      setIsAnimating(false)
+    }, 200)
   }
 
   const getMoodPreviewColor = (mood: ColorMood) => {
@@ -80,7 +115,7 @@ export function ColorMoodSelector() {
             />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-72 p-4" align="end">
+        <PopoverContent className="w-96 p-4" align="end">
           <div className="space-y-3">
             <div className="flex items-center gap-2 pb-2 border-b">
               <Palette size={20} className="text-primary" weight="duotone" />
@@ -89,40 +124,38 @@ export function ColorMoodSelector() {
             <p className="text-xs text-muted-foreground">
               Choose a color palette to personalize your experience
             </p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2 max-h-[400px] overflow-y-auto pr-1">
               {(Object.keys(colorMoods) as ColorMood[]).map((mood) => {
                 const isSelected = mood === selectedMood && !hasCustomColors
                 return (
                   <button
                     key={mood}
                     onClick={() => handleMoodChange(mood)}
+                    disabled={isAnimating}
                     className={`
-                      relative p-3 rounded-lg border-2 transition-all duration-200
-                      hover:scale-105 hover:shadow-md
+                      relative p-2.5 rounded-lg border-2 transition-all duration-300
+                      hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed
                       ${isSelected 
-                        ? 'border-primary bg-primary/5 shadow-sm' 
+                        ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20' 
                         : 'border-border hover:border-primary/50'
                       }
                     `}
                   >
-                    <div className="flex items-center gap-2 mb-1.5">
+                    <div className="flex flex-col items-center gap-1.5">
                       <div 
-                        className="w-4 h-4 rounded-full ring-2 ring-offset-2 ring-offset-background"
+                        className={`w-8 h-8 rounded-full ring-2 ring-offset-2 ring-offset-background transition-all duration-300 ${isSelected ? 'ring-primary' : 'ring-transparent'}`}
                         style={{ 
                           backgroundColor: getMoodPreviewColor(mood),
-                          boxShadow: `0 0 12px ${getMoodPreviewColor(mood)}40`,
+                          boxShadow: `0 0 16px ${getMoodPreviewColor(mood)}50`,
                         }}
                       />
-                      <span className="text-xs font-medium">
+                      <span className="text-[10px] font-medium leading-tight text-center">
                         {moodLabels[mood]}
                       </span>
                     </div>
-                    <p className="text-[10px] text-muted-foreground text-left">
-                      {moodDescriptions[mood]}
-                    </p>
                     {isSelected && (
-                      <div className="absolute top-2 right-2">
-                        <Check size={14} weight="bold" className="text-primary" />
+                      <div className="absolute top-1 right-1 animate-in fade-in zoom-in duration-300">
+                        <Check size={12} weight="bold" className="text-primary" />
                       </div>
                     )}
                   </button>
@@ -133,7 +166,7 @@ export function ColorMoodSelector() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="w-full"
+                className="w-full shine-effect"
                 onClick={() => {
                   setOpen(false)
                   setCustomPickerOpen(true)
@@ -146,7 +179,10 @@ export function ColorMoodSelector() {
             <div className="pt-2 border-t">
               <p className="text-[10px] text-muted-foreground text-center">
                 {hasCustomColors ? (
-                  <span className="font-medium text-primary">Custom Colors Active</span>
+                  <span className="font-medium text-primary flex items-center justify-center gap-1">
+                    <Sparkle size={12} weight="fill" />
+                    Custom Colors Active
+                  </span>
                 ) : (
                   <>
                     Selected: <span className="font-medium text-foreground">{moodLabels[selectedMood]}</span>

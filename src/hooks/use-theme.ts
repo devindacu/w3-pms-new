@@ -6,7 +6,7 @@ export interface ThemeColors {
   accent: string
 }
 
-export type ColorMood = 'blue' | 'purple' | 'green' | 'orange' | 'rose' | 'cyan'
+export type ColorMood = 'blue' | 'purple' | 'green' | 'orange' | 'rose' | 'cyan' | 'teal' | 'amber' | 'indigo' | 'crimson' | 'emerald' | 'violet'
 
 export const colorMoods: Record<ColorMood, ThemeColors> = {
   blue: {
@@ -38,6 +38,36 @@ export const colorMoods: Record<ColorMood, ThemeColors> = {
     primary: 'oklch(0.60 0.22 200)',
     secondary: 'oklch(0.65 0.18 220)',
     accent: 'oklch(0.68 0.24 180)',
+  },
+  teal: {
+    primary: 'oklch(0.58 0.20 180)',
+    secondary: 'oklch(0.62 0.18 170)',
+    accent: 'oklch(0.66 0.24 195)',
+  },
+  amber: {
+    primary: 'oklch(0.68 0.24 75)',
+    secondary: 'oklch(0.70 0.20 60)',
+    accent: 'oklch(0.66 0.26 45)',
+  },
+  indigo: {
+    primary: 'oklch(0.60 0.24 285)',
+    secondary: 'oklch(0.64 0.20 275)',
+    accent: 'oklch(0.68 0.26 295)',
+  },
+  crimson: {
+    primary: 'oklch(0.60 0.26 20)',
+    secondary: 'oklch(0.64 0.22 10)',
+    accent: 'oklch(0.68 0.28 5)',
+  },
+  emerald: {
+    primary: 'oklch(0.60 0.22 160)',
+    secondary: 'oklch(0.64 0.18 145)',
+    accent: 'oklch(0.68 0.24 175)',
+  },
+  violet: {
+    primary: 'oklch(0.62 0.28 310)',
+    secondary: 'oklch(0.66 0.24 295)',
+    accent: 'oklch(0.70 0.30 325)',
   },
 }
 
@@ -74,7 +104,7 @@ const applyDarkMode = (isDark: boolean, animated: boolean = true) => {
   const root = document.documentElement
   const body = document.body
   
-  if (animated) {
+  if (!animated) {
     body.classList.add('no-theme-transition')
   }
   
@@ -86,10 +116,10 @@ const applyDarkMode = (isDark: boolean, animated: boolean = true) => {
     body.classList.remove('dark')
   }
   
-  if (animated) {
-    setTimeout(() => {
+  if (!animated) {
+    requestAnimationFrame(() => {
       body.classList.remove('no-theme-transition')
-    }, 100)
+    })
   }
 }
 

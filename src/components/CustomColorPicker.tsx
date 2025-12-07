@@ -67,10 +67,20 @@ export function CustomColorPicker({ open, onOpenChange }: ColorPickerProps) {
   }
 
   const handlePreview = () => {
-    applyTheme(previewColors)
-    toast.success('Preview applied!', {
-      description: 'These colors are temporary. Save to make them permanent.',
-    })
+    const overlay = document.createElement('div')
+    overlay.className = 'theme-transition-overlay'
+    overlay.style.top = '50%'
+    overlay.style.left = '50%'
+    overlay.style.transform = 'translate(-50%, -50%)'
+    document.body.appendChild(overlay)
+    setTimeout(() => overlay.remove(), 1000)
+    
+    setTimeout(() => {
+      applyTheme(previewColors)
+      toast.success('Preview applied!', {
+        description: 'These colors are temporary. Save to make them permanent.',
+      })
+    }, 200)
   }
 
   const handleSave = () => {
@@ -88,14 +98,24 @@ export function CustomColorPicker({ open, onOpenChange }: ColorPickerProps) {
 
     setCustomMoods((currentMoods) => [...(currentMoods || []), newMood])
     
-    applyCustomColors(previewColors)
+    const overlay = document.createElement('div')
+    overlay.className = 'theme-transition-overlay'
+    overlay.style.top = '50%'
+    overlay.style.left = '50%'
+    overlay.style.transform = 'translate(-50%, -50%)'
+    document.body.appendChild(overlay)
+    setTimeout(() => overlay.remove(), 1000)
     
-    toast.success('Color mood saved!', {
-      description: `"${moodName}" has been added to your custom moods`,
-    })
+    setTimeout(() => {
+      applyCustomColors(previewColors)
+      
+      toast.success('Color mood saved!', {
+        description: `"${moodName}" has been added to your custom moods`,
+      })
 
-    setMoodName('')
-    onOpenChange(false)
+      setMoodName('')
+      onOpenChange(false)
+    }, 200)
   }
 
   const handleDelete = (moodId: string) => {
@@ -107,21 +127,31 @@ export function CustomColorPicker({ open, onOpenChange }: ColorPickerProps) {
   }
 
   const handleApplyCustomMood = (mood: CustomColorMood) => {
-    applyCustomColors(mood.colors)
+    const overlay = document.createElement('div')
+    overlay.className = 'theme-transition-overlay'
+    overlay.style.top = '50%'
+    overlay.style.left = '50%'
+    overlay.style.transform = 'translate(-50%, -50%)'
+    document.body.appendChild(overlay)
+    setTimeout(() => overlay.remove(), 1000)
     
-    setPrimaryL(parseFloat(mood.colors.primary.match(/oklch\(([0-9.]+)/)?.[1] || '0.48') * 100)
-    setPrimaryC(parseFloat(mood.colors.primary.match(/oklch\([0-9.]+ ([0-9.]+)/)?.[1] || '0.18') * 100)
-    setPrimaryH(parseInt(mood.colors.primary.match(/oklch\([0-9.]+ [0-9.]+ ([0-9]+)\)/)?.[1] || '265'))
-    
-    setSecondaryL(parseFloat(mood.colors.secondary.match(/oklch\(([0-9.]+)/)?.[1] || '0.72') * 100)
-    setSecondaryC(parseFloat(mood.colors.secondary.match(/oklch\([0-9.]+ ([0-9.]+)/)?.[1] || '0.14') * 100)
-    setSecondaryH(parseInt(mood.colors.secondary.match(/oklch\([0-9.]+ [0-9.]+ ([0-9]+)\)/)?.[1] || '195'))
-    
-    setAccentL(parseFloat(mood.colors.accent.match(/oklch\(([0-9.]+)/)?.[1] || '0.62') * 100)
-    setAccentC(parseFloat(mood.colors.accent.match(/oklch\([0-9.]+ ([0-9.]+)\)/)?.[1] || '0.20') * 100)
-    setAccentH(parseInt(mood.colors.accent.match(/oklch\([0-9.]+ [0-9.]+ ([0-9]+)\)/)?.[1] || '30'))
-    
-    toast.success(`Applied "${mood.name}"`)
+    setTimeout(() => {
+      applyCustomColors(mood.colors)
+      
+      setPrimaryL(parseFloat(mood.colors.primary.match(/oklch\(([0-9.]+)/)?.[1] || '0.48') * 100)
+      setPrimaryC(parseFloat(mood.colors.primary.match(/oklch\([0-9.]+ ([0-9.]+)/)?.[1] || '0.18') * 100)
+      setPrimaryH(parseInt(mood.colors.primary.match(/oklch\([0-9.]+ [0-9.]+ ([0-9]+)\)/)?.[1] || '265'))
+      
+      setSecondaryL(parseFloat(mood.colors.secondary.match(/oklch\(([0-9.]+)/)?.[1] || '0.72') * 100)
+      setSecondaryC(parseFloat(mood.colors.secondary.match(/oklch\([0-9.]+ ([0-9.]+)/)?.[1] || '0.14') * 100)
+      setSecondaryH(parseInt(mood.colors.secondary.match(/oklch\([0-9.]+ [0-9.]+ ([0-9]+)\)/)?.[1] || '195'))
+      
+      setAccentL(parseFloat(mood.colors.accent.match(/oklch\(([0-9.]+)/)?.[1] || '0.62') * 100)
+      setAccentC(parseFloat(mood.colors.accent.match(/oklch\([0-9.]+ ([0-9.]+)\)/)?.[1] || '0.20') * 100)
+      setAccentH(parseInt(mood.colors.accent.match(/oklch\([0-9.]+ [0-9.]+ ([0-9]+)\)/)?.[1] || '30'))
+      
+      toast.success(`Applied "${mood.name}"`)
+    }, 200)
   }
 
   const colorPresets = [

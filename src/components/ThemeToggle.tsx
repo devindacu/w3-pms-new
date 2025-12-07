@@ -37,7 +37,7 @@ export function ThemeToggle() {
     
     setTimeout(() => {
       overlay.remove()
-    }, 800)
+    }, 1000)
   }
 
   const toggleDarkMode = () => {
@@ -49,14 +49,14 @@ export function ThemeToggle() {
     setTimeout(() => {
       const newDarkMode = !isDark
       setIsDark(newDarkMode)
-      applyDarkMode(newDarkMode)
+      applyDarkMode(newDarkMode, true)
       localStorage.setItem('theme-dark-mode', String(newDarkMode))
       
       setTimeout(() => {
         loadSavedTheme()
         setIsAnimating(false)
-      }, 100)
-    }, 100)
+      }, 150)
+    }, 150)
   }
 
   return (
