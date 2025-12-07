@@ -864,7 +864,7 @@ function App() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <aside className="hidden lg:block w-64 border-r bg-card p-4 space-y-2 overflow-y-auto fixed left-0 top-0 bottom-0 z-40">
+      <aside className="hidden lg:block w-64 border-r bg-card/80 backdrop-blur-md p-4 space-y-2 overflow-y-auto fixed left-0 top-0 bottom-0 z-40">
         <SidebarContent />
       </aside>
 
@@ -874,12 +874,12 @@ function App() {
         </SheetContent>
 
         <main className="flex-1 flex flex-col lg:ml-64 min-h-screen">
-          <div className="sticky top-0 z-30 border-b bg-card px-4 py-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur-md px-3 sm:px-4 py-3 flex items-center justify-between gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
               <div className="lg:hidden">
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <List size={24} />
+                  <Button variant="ghost" size="icon" className="shrink-0">
+                    <List size={20} />
                   </Button>
                 </SheetTrigger>
               </div>
@@ -896,9 +896,9 @@ function App() {
             <img 
               src={w3PMSLogo}
               alt="W3 Hotel PMS" 
-              className="h-8 w-auto object-contain"
+              className="h-7 sm:h-8 w-auto object-contain shrink-0"
             />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               <ColorMoodSelector />
               <ThemeToggle />
               <NotificationPanel
@@ -912,7 +912,7 @@ function App() {
             </div>
           </div>
           
-          <div className="sm:hidden px-4 py-2 border-b bg-card">
+          <div className="sm:hidden px-3 py-2 border-b bg-card/95 backdrop-blur-md">
             <GlobalSearch
               guests={guests || []}
               guestProfiles={guestProfiles || []}
@@ -1377,22 +1377,22 @@ function App() {
           )}
         </div>
         
-        <footer className="border-t border-border overflow-hidden mt-auto bg-card">
+        <footer className="border-t border-border overflow-hidden mt-auto bg-card/80 backdrop-blur-md">
           <div className="px-4 py-4 md:px-6 lg:px-8 md:py-5">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
-              <p className="text-sm font-medium text-foreground/80">
+              <p className="text-xs sm:text-sm font-medium text-foreground/70">
                 © {new Date().getFullYear()} {branding?.hotelName || 'W3 Hotel'} - Design & Developed by
               </p>
               <a 
                 href="https://www.w3media.lk/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                className="flex items-center gap-2 hover:opacity-80 transition-all duration-300 hover:scale-105"
               >
                 <img 
                   src={w3MediaLogo}
                   alt="W3 Media PVT LTD" 
-                  className="h-6 md:h-7"
+                  className="h-5 sm:h-6 md:h-7"
                 />
               </a>
             </div>
