@@ -876,10 +876,12 @@ function App() {
         <SheetContent side="left" className="w-64 p-4 overflow-y-auto">
           <SidebarContent />
         </SheetContent>
+      </Sheet>
 
-        <main className="flex-1 flex flex-col lg:ml-64 min-h-screen">
-          <div className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur-md px-3 sm:px-4 py-3 flex items-center justify-between gap-2 sm:gap-3">
-            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+      <main className="flex-1 flex flex-col lg:ml-64 min-h-screen">
+        <div className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur-md px-3 sm:px-4 py-3 flex items-center justify-between gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
               <div className="lg:hidden">
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="shrink-0">
@@ -887,44 +889,45 @@ function App() {
                   </Button>
                 </SheetTrigger>
               </div>
-              <div className="hidden sm:flex items-center gap-2 flex-1 max-w-md">
-                <GlobalSearch
-                  guests={guests || []}
-                  guestProfiles={guestProfiles || []}
-                  reservations={reservations || []}
-                  invoices={guestInvoices || []}
-                  onNavigate={handleNavigateFromSearch}
-                />
-              </div>
-            </div>
-            <img 
-              src={w3PMSLogo}
-              alt="W3 Hotel PMS" 
-              className="h-7 sm:h-8 w-auto object-contain shrink-0"
-            />
-            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-              <ColorMoodSelector />
-              <ThemeToggle />
-              <NotificationPanel
-                notifications={notifications || []}
-                onMarkAsRead={handleMarkAsRead}
-                onMarkAllAsRead={handleMarkAllAsRead}
-                onDismiss={handleDismiss}
-                onArchive={handleArchive}
-                onClearAll={handleClearAll}
+            </Sheet>
+            <div className="hidden sm:flex items-center gap-2 flex-1 max-w-md">
+              <GlobalSearch
+                guests={guests || []}
+                guestProfiles={guestProfiles || []}
+                reservations={reservations || []}
+                invoices={guestInvoices || []}
+                onNavigate={handleNavigateFromSearch}
               />
             </div>
           </div>
-          
-          <div className="sm:hidden px-3 py-2 border-b bg-card/95 backdrop-blur-md">
-            <GlobalSearch
-              guests={guests || []}
-              guestProfiles={guestProfiles || []}
-              reservations={reservations || []}
-              invoices={guestInvoices || []}
-              onNavigate={handleNavigateFromSearch}
+          <img 
+            src={w3PMSLogo}
+            alt="W3 Hotel PMS" 
+            className="h-7 sm:h-8 w-auto object-contain shrink-0"
+          />
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            <ColorMoodSelector />
+            <ThemeToggle />
+            <NotificationPanel
+              notifications={notifications || []}
+              onMarkAsRead={handleMarkAsRead}
+              onMarkAllAsRead={handleMarkAllAsRead}
+              onDismiss={handleDismiss}
+              onArchive={handleArchive}
+              onClearAll={handleClearAll}
             />
           </div>
+        </div>
+        
+        <div className="sm:hidden px-3 py-2 border-b bg-card/95 backdrop-blur-md">
+          <GlobalSearch
+            guests={guests || []}
+            guestProfiles={guestProfiles || []}
+            reservations={reservations || []}
+            invoices={guestInvoices || []}
+            onNavigate={handleNavigateFromSearch}
+          />
+        </div>
 
         <div className="flex-1 p-4 md:p-6 lg:p-8">{currentModule === 'dashboard' && renderDashboard()}
           {currentModule === 'front-office' && (
@@ -1402,8 +1405,7 @@ function App() {
             </div>
           </div>
         </footer>
-        </main>
-      </Sheet>
+      </main>
 
       <Toaster position="top-right" richColors />
     </div>
