@@ -560,15 +560,15 @@ function App() {
     }
 
     return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="space-y-4 md:space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-foreground">Hotel Dashboard</h1>
-          <p className="text-muted-foreground mt-1 text-sm md:text-base">Unified view of all hotel operations</p>
+        <div className="space-y-1">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground tracking-tight">Hotel Dashboard</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Unified view of all hotel operations</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {!hasData && (
-            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto">
+            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto shine-effect">
               <Database size={20} className="mr-2" />
               Load Sample Data
             </Button>
@@ -585,14 +585,18 @@ function App() {
       </div>
 
       {!hasData ? (
-        <Card className="p-8 md:p-12 lg:p-16 text-center">
-          <div className="max-w-md mx-auto">
-            <Gauge size={48} className="mx-auto text-primary mb-4 md:w-16 md:h-16" />
-            <h3 className="text-xl md:text-2xl font-semibold mb-2">Welcome to W3 Hotel PMS</h3>
-            <p className="text-muted-foreground mb-6 text-sm md:text-base">
-              Your comprehensive hotel management solution integrating all operations in one platform
-            </p>
-            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto">
+        <Card className="p-8 md:p-12 lg:p-16 text-center glass-card shine-effect">
+          <div className="max-w-md mx-auto space-y-6">
+            <div className="mx-auto w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-primary/10 flex items-center justify-center floating-animation">
+              <Gauge size={48} className="text-primary" />
+            </div>
+            <div className="space-y-3">
+              <h3 className="text-xl md:text-2xl font-bold gradient-text">Welcome to W3 Hotel PMS</h3>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                Your comprehensive hotel management solution integrating all operations in one platform
+              </p>
+            </div>
+            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto mt-4 shine-effect">
               <Database size={20} className="mr-2" />
               Load Sample Data to Get Started
             </Button>
@@ -606,12 +610,12 @@ function App() {
             onViewAll={() => setNotificationPanelOpen(true)}
           />
           
-          <div className={`grid gap-6 ${layout?.columns === 1 ? 'grid-cols-1' : layout?.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : layout?.columns === 4 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-2'}`}>
+          <div className={`grid gap-4 md:gap-6 ${layout?.columns === 1 ? 'grid-cols-1' : layout?.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : layout?.columns === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-2'}`}>
             {layout?.widgets
               .filter(w => w.isVisible)
               .sort((a, b) => a.position - b.position)
               .map(widget => (
-                <div key={widget.id} className="transition-all duration-200 hover:scale-[1.02]">
+                <div key={widget.id} className="animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: `${widget.position * 50}ms` }}>
                   <WidgetRenderer
                     widget={widget}
                     metrics={metrics}

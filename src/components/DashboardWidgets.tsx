@@ -41,26 +41,43 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
     switch (widget.type) {
       case 'occupancy':
         return (
-          <Card className="p-6 border-l-4 border-l-primary h-full glass-card glow-border">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-muted-foreground">Occupancy</h3>
-              <Bed size={20} className="text-primary floating-animation" />
+          <Card 
+            className="p-4 md:p-6 border-l-4 border-l-primary h-full glass-card shine-effect cursor-default transition-all hover:shadow-lg"
+            role="article"
+            aria-label="Occupancy widget"
+          >
+            <div className="flex items-center justify-between mb-3 md:mb-4">
+              <h3 className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-wide">Occupancy</h3>
+              <Bed size={20} className="text-primary floating-animation" weight="duotone" />
             </div>
-            <div className="space-y-2">
-              <p className="text-3xl font-semibold gradient-text">{formatPercent(metrics.occupancy.rate)}</p>
-              <div className="flex items-center gap-4 text-sm">
+            <div className="space-y-3">
+              <div>
+                <p className="text-3xl md:text-4xl font-bold gradient-text mb-1">{formatPercent(metrics.occupancy.rate)}</p>
+                <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+                  <div 
+                    className="bg-gradient-to-r from-primary to-accent h-full rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${metrics.occupancy.rate}%` }}
+                    role="progressbar"
+                    aria-valuenow={metrics.occupancy.rate}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={`Occupancy rate ${metrics.occupancy.rate}%`}
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs md:text-sm">
                 <span className="text-muted-foreground">
-                  {metrics.occupancy.occupied} / {metrics.occupancy.occupied + metrics.occupancy.available} rooms
+                  <span className="font-semibold text-foreground">{metrics.occupancy.occupied}</span> / {metrics.occupancy.occupied + metrics.occupancy.available} rooms
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-2 pt-2">
-                <div className="text-xs">
-                  <span className="text-muted-foreground">Available:</span>
-                  <span className="ml-1 font-medium">{metrics.occupancy.available}</span>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="p-2 rounded-lg bg-success/10 border border-success/20">
+                  <p className="text-xs text-muted-foreground">Available</p>
+                  <p className="text-base md:text-lg font-semibold text-success">{metrics.occupancy.available}</p>
                 </div>
-                <div className="text-xs">
-                  <span className="text-muted-foreground">Maintenance:</span>
-                  <span className="ml-1 font-medium">{metrics.occupancy.maintenance}</span>
+                <div className="p-2 rounded-lg bg-warning/10 border border-warning/20">
+                  <p className="text-xs text-muted-foreground">Maintenance</p>
+                  <p className="text-base md:text-lg font-semibold text-warning">{metrics.occupancy.maintenance}</p>
                 </div>
               </div>
             </div>
@@ -69,14 +86,37 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'revenue-today':
         return (
-          <Card className="p-6 border-l-4 border-l-success h-full glass-card glow-border">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-muted-foreground">Revenue Today</h3>
-              <CurrencyDollar size={20} className="text-success floating-animation" />
+          <Card 
+            className="p-4 md:p-6 border-l-4 border-l-success h-full glass-card shine-effect cursor-default transition-all hover:shadow-lg"
+            role="article"
+            aria-label="Revenue today widget"
+          >
+            <div className="flex items-center justify-between mb-3 md:mb-4">
+              <h3 className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-wide">Revenue Today</h3>
+              <CurrencyDollar size={20} className="text-success floating-animation" weight="duotone" />
             </div>
-            <div className="space-y-2">
-              <div className="flex items-baseline justify-between gap-2">
-                <p className="text-3xl font-semibold gradient-text">{formatCurrency(metrics.revenue.today)}</p>
+            <div className="space-y-3">
+              <div>
+                <p className="text-3xl md:text-4xl font-bold gradient-text mb-2">{formatCurrency(metrics.revenue.today)}</p>
+                {metrics.revenue.growth !== 0 && (
+                  <div className="flex items-center gap-2">
+                    {metrics.revenue.growth > 0 ? (
+                      <>
+                        <TrendUp size={16} className="text-success" weight="bold" />
+                        <span className="text-sm font-medium text-success">
+                          +{formatPercent(Math.abs(metrics.revenue.growth))} vs yesterday
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <TrendDown size={16} className="text-destructive" weight="bold" />
+                        <span className="text-sm font-medium text-destructive">
+                          -{formatPercent(Math.abs(metrics.revenue.growth))} vs yesterday
+                        </span>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </Card>
@@ -84,22 +124,28 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'housekeeping':
         return (
-          <Card className="p-6 border-l-4 border-l-accent h-full glass-card glow-border">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-muted-foreground">Housekeeping</h3>
-              <Broom size={20} className="text-accent floating-animation" />
+          <Card 
+            className="p-4 md:p-6 border-l-4 border-l-accent h-full glass-card shine-effect cursor-default transition-all hover:shadow-lg"
+            role="article"
+            aria-label="Housekeeping status widget"
+          >
+            <div className="flex items-center justify-between mb-3 md:mb-4">
+              <h3 className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-wide">Housekeeping</h3>
+              <Broom size={20} className="text-accent floating-animation" weight="duotone" />
             </div>
-            <div className="space-y-2">
-              <p className="text-3xl font-semibold gradient-text">{metrics.housekeeping.pendingTasks}</p>
-              <p className="text-sm text-muted-foreground">Pending tasks</p>
-              <div className="grid grid-cols-2 gap-2 pt-2">
-                <div className="text-xs">
-                  <span className="text-muted-foreground">Clean:</span>
-                  <span className="ml-1 font-medium text-success">{metrics.housekeeping.cleanRooms}</span>
+            <div className="space-y-3">
+              <div>
+                <p className="text-3xl md:text-4xl font-bold gradient-text mb-1">{metrics.housekeeping.pendingTasks}</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Pending tasks</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="p-2 rounded-lg bg-success/10 border border-success/20">
+                  <p className="text-xs text-muted-foreground">Clean</p>
+                  <p className="text-base md:text-lg font-semibold text-success">{metrics.housekeeping.cleanRooms}</p>
                 </div>
-                <div className="text-xs">
-                  <span className="text-muted-foreground">Dirty:</span>
-                  <span className="ml-1 font-medium text-destructive">{metrics.housekeeping.dirtyRooms}</span>
+                <div className="p-2 rounded-lg bg-destructive/10 border border-destructive/20">
+                  <p className="text-xs text-muted-foreground">Dirty</p>
+                  <p className="text-base md:text-lg font-semibold text-destructive">{metrics.housekeeping.dirtyRooms}</p>
                 </div>
               </div>
             </div>
