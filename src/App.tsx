@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense, useCallback, useMemo } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Toaster, toast } from 'sonner'
 import { useTheme } from '@/hooks/use-theme'
@@ -10,6 +10,8 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import w3MediaLogo from '@/assets/images/W3Media-Web-Green.png'
 import w3PMSLogo from '@/assets/images/W3-PMS.png'
+import { DashboardSkeleton, TableSkeleton } from '@/components/LoadingSkeleton'
+import { ErrorBoundary, ModuleErrorBoundary } from '@/components/ErrorBoundary'
 import {
   Gauge,
   Bed,
@@ -140,33 +142,34 @@ import { sampleGuestInvoices } from '@/lib/guestInvoiceSampleData'
 import { sampleOTAConnections, sampleChannelPerformance } from '@/lib/channelManagerSampleData'
 import { sampleEmailTemplates } from '@/lib/emailTemplateSampleData'
 import { sampleEmailTemplateAnalytics, sampleCampaignAnalytics, sampleEmailSentRecords } from '@/lib/emailAnalyticsSampleData'
-import { ConstructionManagement } from '@/components/ConstructionManagement'
-import { SupplierManagement } from '@/components/SupplierManagement'
-import { InventoryManagement } from '@/components/InventoryManagement'
-import { UserManagement } from '@/components/UserManagement'
-import { HRManagement } from '@/components/HRManagement'
-import { FrontOffice } from '@/components/FrontOffice'
-import { Housekeeping } from '@/components/Housekeeping'
-import { Procurement } from '@/components/Procurement'
-import { FnBPOS } from '@/components/FnBPOS'
-import { KitchenOperations } from '@/components/KitchenOperations'
-import { ForecastingAnalytics } from '@/components/ForecastingAnalytics'
 import { NotificationPanel } from '@/components/NotificationPanel'
 import { DashboardAlerts } from '@/components/DashboardAlerts'
 import { generateAllAlerts } from '@/lib/notificationHelpers'
 import { generateEmailFromNotifications, mockSendEmail } from '@/lib/emailHelpers'
-import { CRM } from '@/components/CRM'
 import { GlobalSearch } from '@/components/GlobalSearch'
-import { ChannelManager } from '@/components/ChannelManager'
-import { RoomRevenueManagement } from '@/components/RoomRevenueManagement'
-import { ExtraServicesManagement } from '@/components/ExtraServicesManagement'
-import { Analytics } from '@/components/Analytics'
-import { Settings } from '@/components/Settings'
-import { Finance } from '@/components/Finance'
-import { InvoiceManagement } from '@/components/InvoiceManagement'
-import { PaymentTracking } from '@/components/PaymentTracking'
 import { DashboardWidgetManager } from '@/components/DashboardWidgetManager'
 import { WidgetRenderer } from '@/components/DashboardWidgets'
+
+const ConstructionManagement = lazy(() => import('@/components/ConstructionManagement').then(m => ({ default: m.ConstructionManagement })))
+const SupplierManagement = lazy(() => import('@/components/SupplierManagement').then(m => ({ default: m.SupplierManagement })))
+const InventoryManagement = lazy(() => import('@/components/InventoryManagement').then(m => ({ default: m.InventoryManagement })))
+const UserManagement = lazy(() => import('@/components/UserManagement').then(m => ({ default: m.UserManagement })))
+const HRManagement = lazy(() => import('@/components/HRManagement').then(m => ({ default: m.HRManagement })))
+const FrontOffice = lazy(() => import('@/components/FrontOffice').then(m => ({ default: m.FrontOffice })))
+const Housekeeping = lazy(() => import('@/components/Housekeeping').then(m => ({ default: m.Housekeeping })))
+const Procurement = lazy(() => import('@/components/Procurement').then(m => ({ default: m.Procurement })))
+const FnBPOS = lazy(() => import('@/components/FnBPOS').then(m => ({ default: m.FnBPOS })))
+const KitchenOperations = lazy(() => import('@/components/KitchenOperations').then(m => ({ default: m.KitchenOperations })))
+const ForecastingAnalytics = lazy(() => import('@/components/ForecastingAnalytics').then(m => ({ default: m.ForecastingAnalytics })))
+const CRM = lazy(() => import('@/components/CRM').then(m => ({ default: m.CRM })))
+const ChannelManager = lazy(() => import('@/components/ChannelManager').then(m => ({ default: m.ChannelManager })))
+const RoomRevenueManagement = lazy(() => import('@/components/RoomRevenueManagement').then(m => ({ default: m.RoomRevenueManagement })))
+const ExtraServicesManagement = lazy(() => import('@/components/ExtraServicesManagement').then(m => ({ default: m.ExtraServicesManagement })))
+const Analytics = lazy(() => import('@/components/Analytics').then(m => ({ default: m.Analytics })))
+const Settings = lazy(() => import('@/components/Settings').then(m => ({ default: m.Settings })))
+const Finance = lazy(() => import('@/components/Finance').then(m => ({ default: m.Finance })))
+const InvoiceManagement = lazy(() => import('@/components/InvoiceManagement').then(m => ({ default: m.InvoiceManagement })))
+const PaymentTracking = lazy(() => import('@/components/PaymentTracking').then(m => ({ default: m.PaymentTracking })))
 import { getDefaultWidgetsForRole, getWidgetSize } from '@/lib/widgetConfig'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { ColorMoodSelector } from '@/components/ColorMoodSelector'
@@ -306,48 +309,41 @@ function App() {
 
   useTheme()
 
-  useEffect(() => {
-    const refreshNotifications = () => {
-      const newNotifications = generateAllAlerts(
-        foodItems || [],
-        amenities || [],
-        constructionMaterials || [],
-        generalProducts || [],
-        requisitions || [],
-        purchaseOrders || [],
-        invoices || [],
-        housekeepingTasks || [],
-        rooms || [],
-        reservations || [],
-        orders || [],
-        leaveRequests || [],
-        constructionProjects || [],
-        forecasts || []
+  const refreshNotifications = useCallback(() => {
+    const newNotifications = generateAllAlerts(
+      foodItems || [],
+      amenities || [],
+      constructionMaterials || [],
+      generalProducts || [],
+      requisitions || [],
+      purchaseOrders || [],
+      invoices || [],
+      housekeepingTasks || [],
+      rooms || [],
+      reservations || [],
+      orders || [],
+      leaveRequests || [],
+      constructionProjects || [],
+      forecasts || []
+    )
+
+    setNotifications((currentNotifs) => {
+      const existingIds = new Set((currentNotifs || []).map(n => 
+        `${n.type}-${n.resourceId || 'global'}-${n.title}`
+      ))
+      
+      const filtered = newNotifications.filter(n => {
+        const key = `${n.type}-${n.resourceId || 'global'}-${n.title}`
+        return !existingIds.has(key)
+      })
+
+      const active = (currentNotifs || []).filter(n => 
+        n.status !== 'archived' && n.status !== 'dismissed' &&
+        (!n.expiresAt || n.expiresAt > Date.now())
       )
 
-      setNotifications((currentNotifs) => {
-        const existingIds = new Set((currentNotifs || []).map(n => 
-          `${n.type}-${n.resourceId || 'global'}-${n.title}`
-        ))
-        
-        const filtered = newNotifications.filter(n => {
-          const key = `${n.type}-${n.resourceId || 'global'}-${n.title}`
-          return !existingIds.has(key)
-        })
-
-        const active = (currentNotifs || []).filter(n => 
-          n.status !== 'archived' && n.status !== 'dismissed' &&
-          (!n.expiresAt || n.expiresAt > Date.now())
-        )
-
-        return [...active, ...filtered]
-      })
-    }
-
-    const interval = setInterval(refreshNotifications, 60000)
-    refreshNotifications()
-
-    return () => clearInterval(interval)
+      return [...active, ...filtered]
+    })
   }, [
     foodItems,
     amenities,
@@ -362,8 +358,16 @@ function App() {
     orders,
     leaveRequests,
     constructionProjects,
-    forecasts
+    forecasts,
+    setNotifications
   ])
+
+  useEffect(() => {
+    const interval = setInterval(refreshNotifications, 300000)
+    refreshNotifications()
+
+    return () => clearInterval(interval)
+  }, [refreshNotifications])
   
   const currentUser = (systemUsers || [])[0] || sampleSystemUsers[0]
 
@@ -476,16 +480,19 @@ function App() {
     toast.success('Sample data loaded successfully')
   }
 
-  const metrics = calculateDashboardMetrics(
+  const metrics = useMemo(() => calculateDashboardMetrics(
     rooms || [],
     reservations || [],
     housekeepingTasks || [],
     orders || [],
     inventory || [],
     maintenanceRequests || []
-  )
+  ), [rooms, reservations, housekeepingTasks, orders, inventory, maintenanceRequests])
 
-  const historicalComparison = calculateHistoricalComparison(orders || [])
+  const historicalComparison = useMemo(() => 
+    calculateHistoricalComparison(orders || []),
+    [orders]
+  )
 
   const hasData = (rooms || []).length > 0
 
@@ -901,6 +908,7 @@ function App() {
   )
 
   return (
+    <ErrorBoundary>
     <div className="flex min-h-screen bg-background">
       <aside className="hidden lg:block w-56 border-r bg-card/80 backdrop-blur-md p-3 space-y-1 overflow-y-auto fixed left-0 top-0 bottom-0 z-40">
         <SidebarContent />
@@ -963,7 +971,10 @@ function App() {
           />
         </div>
 
-        <div className="flex-1 p-4 md:p-6 lg:p-8">{currentModule === 'dashboard' && renderDashboard()}
+        <div className="flex-1 p-4 md:p-6 lg:p-8">
+          {currentModule === 'dashboard' && renderDashboard()}
+          <Suspense fallback={<TableSkeleton rows={10} />}>
+            <ModuleErrorBoundary>
           {currentModule === 'front-office' && (
             <FrontOffice
               guests={guests || []}
@@ -1416,6 +1427,8 @@ function App() {
               currentUser={currentUser}
             />
           )}
+            </ModuleErrorBoundary>
+          </Suspense>
         </div>
         
         <footer className="border-t border-border overflow-hidden mt-auto bg-card/80 backdrop-blur-md">
@@ -1443,6 +1456,7 @@ function App() {
 
       <Toaster position="top-right" richColors />
     </div>
+    </ErrorBoundary>
   )
 }
 
