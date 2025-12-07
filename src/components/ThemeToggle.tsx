@@ -6,7 +6,7 @@ import { useTheme } from '@/hooks/use-theme'
 export function ThemeToggle() {
   const [isDark, setIsDark] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
-  const { applyDarkMode } = useTheme()
+  const { applyDarkMode, loadSavedTheme } = useTheme()
   const buttonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
@@ -53,8 +53,9 @@ export function ThemeToggle() {
       localStorage.setItem('theme-dark-mode', String(newDarkMode))
       
       setTimeout(() => {
+        loadSavedTheme()
         setIsAnimating(false)
-      }, 400)
+      }, 100)
     }, 100)
   }
 

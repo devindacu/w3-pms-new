@@ -97,14 +97,39 @@ const applyColorMood = (mood: ColorMood) => {
   const colors = colorMoods[mood]
   applyTheme(colors)
   localStorage.setItem('theme-color-mood', mood)
+  localStorage.removeItem('theme-custom-colors')
+}
+
+const applyCustomColors = (colors: ThemeColors) => {
+  applyTheme(colors)
+  localStorage.setItem('theme-custom-colors', JSON.stringify(colors))
+  localStorage.removeItem('theme-color-mood')
+}
+
+const loadSavedTheme = () => {
+  const savedCustomColors = localStorage.getItem('theme-custom-colors')
+  if (savedCustomColors) {
+    try {
+      const colors = JSON.parse(savedCustomColors) as ThemeColors
+      applyTheme(colors)
+      return true
+    } catch {
+      localStorage.removeItem('theme-custom-colors')
+    }
+  }
+  
+  const savedMood = localStorage.getItem('theme-color-mood') as ColorMood | null
+  if (savedMood && colorMoods[savedMood]) {
+    applyTheme(colorMoods[savedMood])
+    return true
+  }
+  
+  return false
 }
 
 export function useTheme() {
   useEffect(() => {
-    const savedMood = localStorage.getItem('theme-color-mood') as ColorMood | null
-    if (savedMood && colorMoods[savedMood]) {
-      applyTheme(colorMoods[savedMood])
-    }
+    loadSavedTheme()
 
     const savedDarkMode = localStorage.getItem('theme-dark-mode')
     if (savedDarkMode !== null) {
@@ -117,5 +142,5 @@ export function useTheme() {
     }
   }, [])
 
-  return { applyTheme, applyDarkMode, applyColorMood }
+  return { applyTheme, applyDarkMode, applyColorMood, applyCustomColors, loadSavedTheme }
 }

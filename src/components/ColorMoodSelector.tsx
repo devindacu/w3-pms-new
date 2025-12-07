@@ -32,17 +32,26 @@ export function ColorMoodSelector() {
   const [selectedMood, setSelectedMood] = useState<ColorMood>('blue')
   const [open, setOpen] = useState(false)
   const [customPickerOpen, setCustomPickerOpen] = useState(false)
+  const [hasCustomColors, setHasCustomColors] = useState(false)
   const { applyColorMood } = useTheme()
 
   useEffect(() => {
+    const savedCustomColors = localStorage.getItem('theme-custom-colors')
+    if (savedCustomColors) {
+      setHasCustomColors(true)
+      return
+    }
+    
     const savedMood = localStorage.getItem('theme-color-mood') as ColorMood | null
     if (savedMood && colorMoods[savedMood]) {
       setSelectedMood(savedMood)
+      setHasCustomColors(false)
     }
   }, [open])
 
   const handleMoodChange = (mood: ColorMood) => {
     setSelectedMood(mood)
+    setHasCustomColors(false)
     applyColorMood(mood)
     setOpen(false)
     toast.success(`Theme changed to ${moodLabels[mood]}`, {
@@ -82,7 +91,7 @@ export function ColorMoodSelector() {
             </p>
             <div className="grid grid-cols-2 gap-2">
               {(Object.keys(colorMoods) as ColorMood[]).map((mood) => {
-                const isSelected = mood === selectedMood
+                const isSelected = mood === selectedMood && !hasCustomColors
                 return (
                   <button
                     key={mood}
@@ -136,7 +145,13 @@ export function ColorMoodSelector() {
             </div>
             <div className="pt-2 border-t">
               <p className="text-[10px] text-muted-foreground text-center">
-                Selected: <span className="font-medium text-foreground">{moodLabels[selectedMood]}</span>
+                {hasCustomColors ? (
+                  <span className="font-medium text-primary">Custom Colors Active</span>
+                ) : (
+                  <>
+                    Selected: <span className="font-medium text-foreground">{moodLabels[selectedMood]}</span>
+                  </>
+                )}
               </p>
             </div>
           </div>

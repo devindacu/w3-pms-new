@@ -40,7 +40,7 @@ interface ColorPickerProps {
 }
 
 export function CustomColorPicker({ open, onOpenChange }: ColorPickerProps) {
-  const { applyTheme } = useTheme()
+  const { applyTheme, applyCustomColors } = useTheme()
   const [customMoods, setCustomMoods] = useKV<CustomColorMood[]>('custom-color-moods', [])
   
   const [moodName, setMoodName] = useState('')
@@ -88,7 +88,7 @@ export function CustomColorPicker({ open, onOpenChange }: ColorPickerProps) {
 
     setCustomMoods((currentMoods) => [...(currentMoods || []), newMood])
     
-    applyTheme(previewColors)
+    applyCustomColors(previewColors)
     
     toast.success('Color mood saved!', {
       description: `"${moodName}" has been added to your custom moods`,
@@ -107,7 +107,7 @@ export function CustomColorPicker({ open, onOpenChange }: ColorPickerProps) {
   }
 
   const handleApplyCustomMood = (mood: CustomColorMood) => {
-    applyTheme(mood.colors)
+    applyCustomColors(mood.colors)
     
     setPrimaryL(parseFloat(mood.colors.primary.match(/oklch\(([0-9.]+)/)?.[1] || '0.48') * 100)
     setPrimaryC(parseFloat(mood.colors.primary.match(/oklch\([0-9.]+ ([0-9.]+)/)?.[1] || '0.18') * 100)
