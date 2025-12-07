@@ -170,6 +170,7 @@ import { WidgetRenderer } from '@/components/DashboardWidgets'
 import { getDefaultWidgetsForRole, getWidgetSize } from '@/lib/widgetConfig'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { ColorMoodSelector } from '@/components/ColorMoodSelector'
+import { CollapsibleSidebarGroup } from '@/components/CollapsibleSidebarGroup'
 import type {
   DashboardLayout,
   DashboardWidget,
@@ -668,20 +669,22 @@ function App() {
 
       <nav className="space-y-1" onClick={() => setSidebarOpen(false)}>
         <Button
-            variant={currentModule === 'dashboard' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('dashboard')}
-          >
-            <Gauge size={18} className="mr-2" />
-            Dashboard
-          </Button>
+          variant={currentModule === 'dashboard' ? 'default' : 'ghost'}
+          className="w-full justify-start"
+          onClick={() => setCurrentModule('dashboard')}
+        >
+          <Gauge size={18} className="mr-2" />
+          Dashboard
+        </Button>
 
-          <Separator className="my-2" />
+        <Separator className="my-2" />
 
-          <div className="px-3 py-2">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Property Management</p>
-          </div>
-
+        <CollapsibleSidebarGroup
+          title="Property Management"
+          groupId="property-management"
+          icon={<Buildings size={14} />}
+          defaultOpen={['front-office', 'crm', 'extra-services', 'housekeeping', 'fnb'].includes(currentModule)}
+        >
           <Button
             variant={currentModule === 'front-office' ? 'default' : 'ghost'}
             className="w-full justify-start"
@@ -726,9 +729,16 @@ function App() {
             <ForkKnife size={18} className="mr-2" />
             F&B / POS
           </Button>
+        </CollapsibleSidebarGroup>
 
-          <Separator className="my-2" />
+        <Separator className="my-2" />
 
+        <CollapsibleSidebarGroup
+          title="Revenue Management"
+          groupId="revenue-management"
+          icon={<CurrencyDollar size={14} />}
+          defaultOpen={['room-revenue', 'channel-manager'].includes(currentModule)}
+        >
           <Button
             variant={currentModule === 'room-revenue' ? 'default' : 'ghost'}
             className="w-full justify-start"
@@ -746,9 +756,16 @@ function App() {
             <Buildings size={18} className="mr-2" />
             Channel Manager
           </Button>
+        </CollapsibleSidebarGroup>
 
-          <Separator className="my-2" />
+        <Separator className="my-2" />
 
+        <CollapsibleSidebarGroup
+          title="Inventory & Procurement"
+          groupId="inventory-procurement"
+          icon={<Package size={14} />}
+          defaultOpen={['inventory', 'suppliers', 'procurement'].includes(currentModule)}
+        >
           <Button
             variant={currentModule === 'inventory' ? 'default' : 'ghost'}
             className="w-full justify-start"
@@ -775,20 +792,27 @@ function App() {
             <ShoppingCart size={18} className="mr-2" />
             Procurement & Invoices
           </Button>
+        </CollapsibleSidebarGroup>
 
-          <Separator className="my-2" />
+        <Separator className="my-2" />
 
-          <Button
-            variant={currentModule === 'kitchen' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('kitchen')}
-          >
-            <ChefHat size={18} className="mr-2" />
-            Kitchen Operations
-          </Button>
+        <Button
+          variant={currentModule === 'kitchen' ? 'default' : 'ghost'}
+          className="w-full justify-start"
+          onClick={() => setCurrentModule('kitchen')}
+        >
+          <ChefHat size={18} className="mr-2" />
+          Kitchen Operations
+        </Button>
 
-          <Separator className="my-2" />
+        <Separator className="my-2" />
 
+        <CollapsibleSidebarGroup
+          title="Finance & Operations"
+          groupId="finance-operations"
+          icon={<CurrencyDollar size={14} />}
+          defaultOpen={['finance', 'hr', 'user-management', 'construction'].includes(currentModule)}
+        >
           <Button
             variant={currentModule === 'finance' ? 'default' : 'ghost'}
             className="w-full justify-start"
@@ -824,7 +848,16 @@ function App() {
             <Hammer size={18} className="mr-2" />
             Maintenance & Constructions
           </Button>
+        </CollapsibleSidebarGroup>
 
+        <Separator className="my-2" />
+
+        <CollapsibleSidebarGroup
+          title="Analytics & Insights"
+          groupId="analytics-insights"
+          icon={<ChartBar size={14} />}
+          defaultOpen={['analytics', 'forecasting'].includes(currentModule)}
+        >
           <Button
             variant={currentModule === 'analytics' ? 'default' : 'ghost'}
             className="w-full justify-start"
@@ -842,28 +875,29 @@ function App() {
             <Sparkle size={18} className="mr-2" />
             AI Forecasting
           </Button>
+        </CollapsibleSidebarGroup>
 
-          <Separator className="my-2" />
+        <Separator className="my-2" />
 
-          <Button
-            variant={currentModule === 'invoice-center' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('invoice-center')}
-          >
-            <Receipt size={18} className="mr-2" />
-            Invoice Center
-          </Button>
+        <Button
+          variant={currentModule === 'invoice-center' ? 'default' : 'ghost'}
+          className="w-full justify-start"
+          onClick={() => setCurrentModule('invoice-center')}
+        >
+          <Receipt size={18} className="mr-2" />
+          Invoice Center
+        </Button>
 
-          <Button
-            variant={currentModule === 'settings' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('settings')}
-          >
-            <UserGear size={18} className="mr-2" />
-            Settings
-          </Button>
-        </nav>
-      </>
+        <Button
+          variant={currentModule === 'settings' ? 'default' : 'ghost'}
+          className="w-full justify-start"
+          onClick={() => setCurrentModule('settings')}
+        >
+          <UserGear size={18} className="mr-2" />
+          Settings
+        </Button>
+      </nav>
+    </>
   )
 
   return (
