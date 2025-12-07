@@ -86,28 +86,6 @@ const applyDarkMode = (isDark: boolean, animated: boolean = true) => {
     body.classList.remove('dark')
   }
   
-  requestAnimationFrame(() => {
-    const savedTheme = localStorage.getItem('theme-colors')
-    if (savedTheme) {
-      try {
-        const colors: ThemeColors = JSON.parse(savedTheme)
-        applyTheme(colors)
-      } catch (error) {
-        console.error('Failed to reapply saved theme:', error)
-      }
-    }
-    
-    const activeCustom = localStorage.getItem('active-custom-mood')
-    if (activeCustom) {
-      try {
-        const customColors: ThemeColors = JSON.parse(activeCustom)
-        applyTheme(customColors)
-      } catch (error) {
-        console.error('Failed to reapply custom theme:', error)
-      }
-    }
-  })
-  
   if (animated) {
     setTimeout(() => {
       body.classList.remove('no-theme-transition')
@@ -119,34 +97,13 @@ const applyColorMood = (mood: ColorMood) => {
   const colors = colorMoods[mood]
   applyTheme(colors)
   localStorage.setItem('theme-color-mood', mood)
-  localStorage.setItem('theme-colors', JSON.stringify(colors))
 }
 
 export function useTheme() {
   useEffect(() => {
-    const activeCustom = localStorage.getItem('active-custom-mood')
-    if (activeCustom) {
-      try {
-        const customColors: ThemeColors = JSON.parse(activeCustom)
-        applyTheme(customColors)
-      } catch (error) {
-        console.error('Failed to load custom theme:', error)
-      }
-    } else {
-      const savedMood = localStorage.getItem('theme-color-mood') as ColorMood | null
-      if (savedMood && colorMoods[savedMood]) {
-        applyTheme(colorMoods[savedMood])
-      } else {
-        const savedTheme = localStorage.getItem('theme-colors')
-        if (savedTheme) {
-          try {
-            const colors: ThemeColors = JSON.parse(savedTheme)
-            applyTheme(colors)
-          } catch (error) {
-            console.error('Failed to load saved theme:', error)
-          }
-        }
-      }
+    const savedMood = localStorage.getItem('theme-color-mood') as ColorMood | null
+    if (savedMood && colorMoods[savedMood]) {
+      applyTheme(colorMoods[savedMood])
     }
 
     const savedDarkMode = localStorage.getItem('theme-dark-mode')

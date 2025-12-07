@@ -21,8 +21,7 @@ import {
   FloppyDisk, 
   Trash,
   Sparkle,
-  PaintBrush,
-  Check
+  PaintBrush
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { useTheme, type ThemeColors } from '@/hooks/use-theme'
@@ -90,9 +89,6 @@ export function CustomColorPicker({ open, onOpenChange }: ColorPickerProps) {
     setCustomMoods((currentMoods) => [...(currentMoods || []), newMood])
     
     applyTheme(previewColors)
-    localStorage.setItem('theme-colors', JSON.stringify(previewColors))
-    localStorage.setItem('active-custom-mood', newMood.id)
-    localStorage.removeItem('theme-color-mood')
     
     toast.success('Color mood saved!', {
       description: `"${moodName}" has been added to your custom moods`,
@@ -107,18 +103,11 @@ export function CustomColorPicker({ open, onOpenChange }: ColorPickerProps) {
       (currentMoods || []).filter(m => m.id !== moodId)
     )
     
-    if (localStorage.getItem('active-custom-mood') === moodId) {
-      localStorage.removeItem('active-custom-mood')
-    }
-    
     toast.success('Custom mood deleted')
   }
 
   const handleApplyCustomMood = (mood: CustomColorMood) => {
     applyTheme(mood.colors)
-    localStorage.setItem('theme-colors', JSON.stringify(mood.colors))
-    localStorage.setItem('active-custom-mood', mood.id)
-    localStorage.removeItem('theme-color-mood')
     
     setPrimaryL(parseFloat(mood.colors.primary.match(/oklch\(([0-9.]+)/)?.[1] || '0.48') * 100)
     setPrimaryC(parseFloat(mood.colors.primary.match(/oklch\([0-9.]+ ([0-9.]+)/)?.[1] || '0.18') * 100)
@@ -518,17 +507,8 @@ export function CustomColorPicker({ open, onOpenChange }: ColorPickerProps) {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {(customMoods || []).map((mood) => {
-                  const isActive = localStorage.getItem('active-custom-mood') === mood.id
                   return (
-                    <Card key={mood.id} className={`p-4 relative ${isActive ? 'ring-2 ring-primary' : ''}`}>
-                      {isActive && (
-                        <div className="absolute top-2 right-2">
-                          <Badge className="bg-primary text-primary-foreground">
-                            <Check size={12} className="mr-1" />
-                            Active
-                          </Badge>
-                        </div>
-                      )}
+                    <Card key={mood.id} className="p-4 relative">
                       <h4 className="font-semibold mb-3">{mood.name}</h4>
                       <div className="flex gap-2 mb-4">
                         <div
