@@ -784,7 +784,7 @@ function App() {
                 variant="ghost" 
                 size="icon" 
                 className="hidden lg:flex rounded-xl bg-muted/50 hover:bg-muted"
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                onClick={() => setSidebarCollapsed((current) => !current)}
                 title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               >
                 <List size={20} />
