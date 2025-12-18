@@ -1316,11 +1316,6 @@ function App() {
           className: 'rounded-xl border border-border/50 shadow-lg',
         }}
       />
-                <img 
-    </ErrorBoundary>
-}
-
-                />
     </div>
     </ErrorBoundary>
   )
