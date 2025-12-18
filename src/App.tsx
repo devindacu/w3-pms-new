@@ -4,13 +4,12 @@ import { Toaster, toast } from 'sonner'
 import { useTheme } from '@/hooks/use-theme'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import w3MediaLogo from '@/assets/images/W3Media-Web-Green.png'
 import w3PMSLogo from '@/assets/images/W3-PMS.png'
-import { DashboardSkeleton, TableSkeleton } from '@/components/LoadingSkeleton'
+import { TableSkeleton } from '@/components/LoadingSkeleton'
 import { ErrorBoundary, ModuleErrorBoundary } from '@/components/ErrorBoundary'
 import {
   Gauge,
@@ -21,23 +20,14 @@ import {
   ShoppingCart,
   CurrencyDollar,
   Users,
-  Wrench,
   ChartBar,
-  Plus,
   Database,
-  ArrowUp,
-  ArrowDown,
-  Warning,
-  Carrot,
-  Basket,
   Hammer,
   Buildings,
-  ClipboardText,
   UserGear,
   Receipt,
   ChefHat,
   Sparkle,
-  Bell,
   List,
   FileText
 } from '@phosphor-icons/react'
@@ -90,15 +80,10 @@ import {
   formatCurrency, 
   formatPercent,
   calculateDashboardMetrics,
-  getRoomStatusColor,
-  getStockStatus,
-  generateNumber,
   getUrgentFoodItems,
   getExpiringFoodItems,
-  getUrgentAmenities,
-  calculateHistoricalComparison
+  getUrgentAmenities
 } from '@/lib/helpers'
-import { PercentageChangeIndicator } from '@/components/PercentageChangeIndicator'
 import {
   sampleGuests,
   sampleRooms,
@@ -173,7 +158,6 @@ const PaymentTracking = lazy(() => import('@/components/PaymentTracking').then(m
 import { getDefaultWidgetsForRole, getWidgetSize } from '@/lib/widgetConfig'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { ColorMoodSelector } from '@/components/ColorMoodSelector'
-import { CollapsibleSidebarGroup } from '@/components/CollapsibleSidebarGroup'
 import type {
   DashboardLayout,
   DashboardWidget,
@@ -489,11 +473,6 @@ function App() {
     maintenanceRequests || []
   ), [rooms, reservations, housekeepingTasks, orders, inventory, maintenanceRequests])
 
-  const historicalComparison = useMemo(() => 
-    calculateHistoricalComparison(orders || []),
-    [orders]
-  )
-
   const hasData = (rooms || []).length > 0
 
   const initializeDefaultLayout = () => {
@@ -568,15 +547,16 @@ function App() {
     }
 
     return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Overview of hotel operations</p>
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-primary">Welcome back</p>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">Real-time overview of your hotel operations</p>
         </div>
         <div className="flex items-center gap-3">
           {!hasData && (
-            <Button onClick={loadSampleData} size="lg">
+            <Button onClick={loadSampleData} size="lg" className="rounded-xl shadow-lg hover:shadow-xl transition-shadow">
               <Database size={20} className="mr-2" />
               Load Sample Data
             </Button>
@@ -593,16 +573,18 @@ function App() {
       </div>
 
       {!hasData ? (
-        <Card className="p-12 text-center">
-          <div className="max-w-md mx-auto space-y-4">
-            <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <Gauge size={32} className="text-primary" />
+        <Card className="glass-card p-16 text-center border-dashed">
+          <div className="max-w-md mx-auto space-y-6">
+            <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+              <Gauge size={40} className="text-primary" weight="duotone" />
             </div>
-            <h3 className="text-xl font-semibold">Welcome to W3 Hotel PMS</h3>
-            <p className="text-muted-foreground">
-              Your comprehensive hotel management solution
-            </p>
-            <Button onClick={loadSampleData} size="lg" className="mt-4">
+            <div className="space-y-2">
+              <h3 className="text-2xl font-bold">Welcome to W3 Hotel PMS</h3>
+              <p className="text-muted-foreground text-lg">
+                Your comprehensive hotel management solution. Start by loading sample data to explore all features.
+              </p>
+            </div>
+            <Button onClick={loadSampleData} size="lg" className="rounded-xl shadow-lg hover:shadow-xl transition-all">
               <Database size={20} className="mr-2" />
               Get Started
             </Button>
@@ -616,12 +598,12 @@ function App() {
             onViewAll={() => setNotificationPanelOpen(true)}
           />
           
-          <div className={`grid gap-4 md:gap-6 ${layout?.columns === 1 ? 'grid-cols-1' : layout?.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : layout?.columns === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-2'}`}>
+          <div className={`grid gap-5 md:gap-6 ${layout?.columns === 1 ? 'grid-cols-1' : layout?.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : layout?.columns === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-2'}`}>
             {layout?.widgets
               .filter(w => w.isVisible)
               .sort((a, b) => a.position - b.position)
               .map((widget, index) => (
-                <div key={widget.id} className="fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
+                <div key={widget.id} className="fade-in-up" style={{ animationDelay: `${index * 40}ms` }}>
                   <WidgetRenderer
                     widget={widget}
                     metrics={metrics}
@@ -659,305 +641,182 @@ function App() {
   )
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
-  const SidebarContent = () => (
-    <>
-      <div className="px-4 py-5 mb-2">
-        <div className="flex items-center gap-3">
-          <img 
-            src={w3PMSLogo}
-            alt="W3 Hotel PMS" 
-            className="h-8 w-auto object-contain"
-          />
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: Gauge },
+    { id: 'divider-1', type: 'divider' },
+    { id: 'front-office', label: 'Front Office', icon: Bed, group: 'Property' },
+    { id: 'crm', label: 'Guest Relations', icon: Users, group: 'Property' },
+    { id: 'extra-services', label: 'Extra Services', icon: Sparkle, group: 'Property' },
+    { id: 'housekeeping', label: 'Housekeeping', icon: Broom, group: 'Property' },
+    { id: 'fnb', label: 'F&B / POS', icon: ForkKnife, group: 'Property' },
+    { id: 'divider-2', type: 'divider' },
+    { id: 'room-revenue', label: 'Room & Revenue', icon: Buildings, group: 'Revenue' },
+    { id: 'channel-manager', label: 'Channel Manager', icon: ChartBar, group: 'Revenue' },
+    { id: 'divider-3', type: 'divider' },
+    { id: 'inventory', label: 'Inventory', icon: Package, group: 'Operations' },
+    { id: 'suppliers', label: 'Suppliers', icon: Buildings, group: 'Operations' },
+    { id: 'procurement', label: 'Procurement', icon: ShoppingCart, group: 'Operations' },
+    { id: 'kitchen', label: 'Kitchen', icon: ChefHat, group: 'Operations' },
+    { id: 'divider-4', type: 'divider' },
+    { id: 'finance', label: 'Finance', icon: CurrencyDollar, group: 'Admin' },
+    { id: 'hr', label: 'HR & Staff', icon: Users, group: 'Admin' },
+    { id: 'user-management', label: 'Users', icon: UserGear, group: 'Admin' },
+    { id: 'construction', label: 'Maintenance', icon: Hammer, group: 'Admin' },
+    { id: 'divider-5', type: 'divider' },
+    { id: 'analytics', label: 'Analytics', icon: ChartBar, group: 'Insights' },
+    { id: 'forecasting', label: 'AI Forecasting', icon: Sparkle, group: 'Insights' },
+    { id: 'divider-6', type: 'divider' },
+    { id: 'invoice-center', label: 'Invoices', icon: Receipt },
+    { id: 'settings', label: 'Settings', icon: UserGear },
+  ] as const
+
+  const NavItem = ({ item, onClick }: { item: typeof navItems[number], onClick?: () => void }) => {
+    if ('type' in item && item.type === 'divider') {
+      return <div className="h-px bg-border/50 my-2 mx-3" />
+    }
+    
+    const Icon = 'icon' in item ? item.icon : Gauge
+    const isActive = currentModule === item.id
+    
+    return (
+      <button
+        onClick={() => {
+          setCurrentModule(item.id as Module)
+          onClick?.()
+        }}
+        className={`
+          nav-item w-full text-left
+          ${isActive ? 'active' : ''}
+          ${sidebarCollapsed ? 'justify-center px-3' : ''}
+        `}
+        title={'label' in item ? item.label : ''}
+      >
+        <Icon size={20} weight={isActive ? 'fill' : 'regular'} className="shrink-0" />
+        {!sidebarCollapsed && 'label' in item && (
+          <span className="truncate">{item.label}</span>
+        )}
+      </button>
+    )
+  }
+
+  const SidebarContent = ({ onItemClick }: { onItemClick?: () => void }) => (
+    <div className="flex flex-col h-full">
+      <div className={`p-4 border-b border-sidebar-border ${sidebarCollapsed ? 'px-3' : ''}`}>
+        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-3'}`}>
+          {sidebarCollapsed ? (
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Gauge size={22} className="text-primary" weight="fill" />
+            </div>
+          ) : (
+            <img 
+              src={w3PMSLogo}
+              alt="W3 Hotel PMS" 
+              className="h-9 w-auto object-contain"
+            />
+          )}
         </div>
       </div>
 
-      <nav className="space-y-1 px-3" onClick={() => setSidebarOpen(false)}>
-        <Button
-          variant={currentModule === 'dashboard' ? 'default' : 'ghost'}
-          className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-          onClick={() => setCurrentModule('dashboard')}
-        >
-          <Gauge size={18} className="mr-2.5 shrink-0" />
-          Dashboard
-        </Button>
-
-        <Separator className="my-2" />
-
-        <CollapsibleSidebarGroup
-          title="Property Management"
-          groupId="property-management"
-          icon={<Buildings size={14} />}
-          defaultOpen={['front-office', 'crm', 'extra-services', 'housekeeping', 'fnb'].includes(currentModule)}
-        >
-          <Button
-            variant={currentModule === 'front-office' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-            onClick={() => setCurrentModule('front-office')}
-          >
-            <Bed size={18} className="mr-2.5 shrink-0" />
-            Front Office
-          </Button>
-
-          <Button
-            variant={currentModule === 'crm' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-            onClick={() => setCurrentModule('crm')}
-          >
-            <Users size={18} className="mr-2.5 shrink-0" />
-            Guest Relations
-          </Button>
-
-          <Button
-            variant={currentModule === 'extra-services' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-            onClick={() => setCurrentModule('extra-services')}
-          >
-            <Sparkle size={18} className="mr-2.5 shrink-0" />
-            Extra Services
-          </Button>
-
-          <Button
-            variant={currentModule === 'housekeeping' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-            onClick={() => setCurrentModule('housekeeping')}
-          >
-            <Broom size={18} className="mr-2.5 shrink-0" />
-            Housekeeping
-          </Button>
-
-          <Button
-            variant={currentModule === 'fnb' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-            onClick={() => setCurrentModule('fnb')}
-          >
-            <ForkKnife size={18} className="mr-2.5 shrink-0" />
-            F&B / POS
-          </Button>
-        </CollapsibleSidebarGroup>
-
-        <Separator className="my-2" />
-
-        <CollapsibleSidebarGroup
-          title="Revenue Management"
-          groupId="revenue-management"
-          icon={<CurrencyDollar size={14} />}
-          defaultOpen={['room-revenue', 'channel-manager'].includes(currentModule)}
-        >
-          <Button
-            variant={currentModule === 'room-revenue' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-            onClick={() => setCurrentModule('room-revenue')}
-          >
-            <Buildings size={18} className="mr-2.5 shrink-0" />
-            Room & Revenue
-          </Button>
-
-          <Button
-            variant={currentModule === 'channel-manager' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-            onClick={() => setCurrentModule('channel-manager')}
-          >
-            <Buildings size={18} className="mr-2.5 shrink-0" />
-            Channel Manager
-          </Button>
-        </CollapsibleSidebarGroup>
-
-        <Separator className="my-2" />
-
-        <CollapsibleSidebarGroup
-          title="Inventory & Procurement"
-          groupId="inventory-procurement"
-          icon={<Package size={14} />}
-          defaultOpen={['inventory', 'suppliers', 'procurement'].includes(currentModule)}
-        >
-          <Button
-            variant={currentModule === 'inventory' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-            onClick={() => setCurrentModule('inventory')}
-          >
-            <Package size={18} className="mr-2.5 shrink-0" />
-            Inventory
-          </Button>
-
-          <Button
-            variant={currentModule === 'suppliers' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-            onClick={() => setCurrentModule('suppliers')}
-          >
-            <Buildings size={18} className="mr-2.5 shrink-0" />
-            Suppliers
-          </Button>
-
-          <Button
-            variant={currentModule === 'procurement' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-            onClick={() => setCurrentModule('procurement')}
-          >
-            <ShoppingCart size={18} className="mr-2.5 shrink-0" />
-            Procurement
-          </Button>
-        </CollapsibleSidebarGroup>
-
-        <Separator className="my-2" />
-
-        <Button
-          variant={currentModule === 'kitchen' ? 'default' : 'ghost'}
-          className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-          onClick={() => setCurrentModule('kitchen')}
-        >
-          <ChefHat size={18} className="mr-2.5 shrink-0" />
-          Kitchen Operations
-        </Button>
-
-        <Separator className="my-2" />
-
-        <CollapsibleSidebarGroup
-          title="Finance & Operations"
-          groupId="finance-operations"
-          icon={<CurrencyDollar size={14} />}
-          defaultOpen={['finance', 'hr', 'user-management', 'construction'].includes(currentModule)}
-        >
-          <Button
-            variant={currentModule === 'finance' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-            onClick={() => setCurrentModule('finance')}
-          >
-            <CurrencyDollar size={18} className="mr-2.5 shrink-0" />
-            Finance
-          </Button>
-
-          <Button
-            variant={currentModule === 'hr' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-            onClick={() => setCurrentModule('hr')}
-          >
-            <Users size={18} className="mr-2.5 shrink-0" />
-            HR & Staff
-          </Button>
-
-          <Button
-            variant={currentModule === 'user-management' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-            onClick={() => setCurrentModule('user-management')}
-          >
-            <UserGear size={18} className="mr-2.5 shrink-0" />
-            User Management
-          </Button>
-
-          <Button
-            variant={currentModule === 'construction' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-            onClick={() => setCurrentModule('construction')}
-          >
-            <Hammer size={18} className="mr-2.5 shrink-0" />
-            Maintenance
-          </Button>
-        </CollapsibleSidebarGroup>
-
-        <Separator className="my-2" />
-
-        <CollapsibleSidebarGroup
-          title="Analytics & Insights"
-          groupId="analytics-insights"
-          icon={<ChartBar size={14} />}
-          defaultOpen={['analytics', 'forecasting'].includes(currentModule)}
-        >
-          <Button
-            variant={currentModule === 'analytics' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-            onClick={() => setCurrentModule('analytics')}
-          >
-            <ChartBar size={18} className="mr-2.5 shrink-0" />
-            Analytics
-          </Button>
-
-          <Button
-            variant={currentModule === 'forecasting' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-            onClick={() => setCurrentModule('forecasting')}
-          >
-            <Sparkle size={18} className="mr-2.5 shrink-0" />
-            AI Forecasting
-          </Button>
-        </CollapsibleSidebarGroup>
-
-        <Separator className="my-2" />
-
-        <Button
-          variant={currentModule === 'invoice-center' ? 'default' : 'ghost'}
-          className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-          onClick={() => setCurrentModule('invoice-center')}
-        >
-          <Receipt size={18} className="mr-2.5 shrink-0" />
-          Invoice Center
-        </Button>
-
-        <Button
-          variant={currentModule === 'settings' ? 'default' : 'ghost'}
-          className="w-full justify-start text-sm h-10 px-3 rounded-xl"
-          onClick={() => setCurrentModule('settings')}
-        >
-          <UserGear size={18} className="mr-2.5 shrink-0" />
-          Settings
-        </Button>
+      <nav className="flex-1 overflow-y-auto py-3 scrollbar-thin">
+        {navItems.map((item) => (
+          <NavItem key={item.id} item={item} onClick={onItemClick} />
+        ))}
       </nav>
-    </>
+
+      <div className={`p-4 border-t border-sidebar-border ${sidebarCollapsed ? 'hidden lg:block' : ''}`}>
+        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-3'}`}>
+          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+            <span className="text-sm font-semibold text-primary">
+              {currentUser.firstName?.[0]}{currentUser.lastName?.[0]}
+            </span>
+          </div>
+          {!sidebarCollapsed && (
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{currentUser.firstName} {currentUser.lastName}</p>
+              <p className="text-xs text-muted-foreground truncate">{currentUser.role}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   )
 
   return (
     <ErrorBoundary>
     <div className="flex min-h-screen bg-background">
-      <aside className="hidden lg:flex flex-col w-[240px] border-r border-border bg-sidebar fixed left-0 top-0 bottom-0 z-40">
-        <div className="flex-1 overflow-y-auto">
-          <SidebarContent />
-        </div>
+      <aside 
+        className={`
+          hidden lg:flex flex-col sidebar-nav fixed left-0 top-0 bottom-0 z-40
+          transition-all duration-300 ease-out
+          ${sidebarCollapsed ? 'w-[72px]' : 'w-[260px]'}
+        `}
+      >
+        <SidebarContent />
       </aside>
 
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="w-[280px] p-0 overflow-y-auto bg-sidebar">
-          <SidebarContent />
+        <SheetContent side="left" className="w-[280px] p-0 bg-sidebar border-r-0">
+          <SidebarContent onItemClick={() => setSidebarOpen(false)} />
         </SheetContent>
       </Sheet>
 
-      <main className="flex-1 flex flex-col lg:ml-[240px] min-h-screen">
-        <header className="sticky top-0 z-30 h-16 border-b border-border bg-background/95 backdrop-blur-sm px-4 md:px-6 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4 flex-1">
-            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-              <div className="lg:hidden">
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-xl">
-                    <List size={22} />
-                  </Button>
-                </SheetTrigger>
+      <main 
+        className={`
+          flex-1 flex flex-col min-h-screen transition-all duration-300 ease-out
+          ${sidebarCollapsed ? 'lg:ml-[72px]' : 'lg:ml-[260px]'}
+        `}
+      >
+        <header className="sticky top-0 z-30 glass-panel border-b border-border/50">
+          <div className="h-16 px-4 md:px-6 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-1">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="lg:hidden rounded-xl bg-muted/50 hover:bg-muted"
+                onClick={() => setSidebarOpen(true)}
+              >
+                <List size={20} />
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="hidden lg:flex rounded-xl bg-muted/50 hover:bg-muted"
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              >
+                <List size={20} />
+              </Button>
+              
+              <div className="hidden sm:flex flex-1 max-w-lg">
+                <GlobalSearch
+                  guests={guests || []}
+                  guestProfiles={guestProfiles || []}
+                  reservations={reservations || []}
+                  invoices={guestInvoices || []}
+                  onNavigate={handleNavigateFromSearch}
+                />
               </div>
-            </Sheet>
-            <div className="hidden sm:flex flex-1 max-w-md">
-              <GlobalSearch
-                guests={guests || []}
-                guestProfiles={guestProfiles || []}
-                reservations={reservations || []}
-                invoices={guestInvoices || []}
-                onNavigate={handleNavigateFromSearch}
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <ColorMoodSelector />
+              <ThemeToggle />
+              <NotificationPanel
+                notifications={notifications || []}
+                onMarkAsRead={handleMarkAsRead}
+                onMarkAllAsRead={handleMarkAllAsRead}
+                onDismiss={handleDismiss}
+                onArchive={handleArchive}
+                onClearAll={handleClearAll}
               />
             </div>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <ColorMoodSelector />
-            <ThemeToggle />
-            <NotificationPanel
-              notifications={notifications || []}
-              onMarkAsRead={handleMarkAsRead}
-              onMarkAllAsRead={handleMarkAllAsRead}
-              onDismiss={handleDismiss}
-              onArchive={handleArchive}
-              onClearAll={handleClearAll}
-            />
-          </div>
         </header>
         
-        <div className="sm:hidden px-4 py-3 border-b border-border bg-background">
+        <div className="sm:hidden px-4 py-3 border-b border-border/50 bg-background/80 backdrop-blur-sm">
           <GlobalSearch
             guests={guests || []}
             guestProfiles={guestProfiles || []}
@@ -967,7 +826,7 @@ function App() {
           />
         </div>
 
-        <div className="flex-1 p-4 md:p-6 lg:p-8">
+        <div className="flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden">
           {currentModule === 'dashboard' && renderDashboard()}
           <Suspense fallback={<TableSkeleton rows={10} />}>
             <ModuleErrorBoundary>
@@ -1365,7 +1224,7 @@ function App() {
                     <Card className="p-6 border-l-4 border-l-secondary">
                       <div className="flex items-center justify-between mb-2">
                         <h3 className="text-sm font-medium text-muted-foreground">Quick Actions</h3>
-                        <ClipboardText size={20} className="text-secondary" />
+                        <FileText size={20} className="text-secondary" />
                       </div>
                       <div className="space-y-2 mt-4">
                         <Button variant="outline" className="w-full justify-start" size="sm">
@@ -1427,22 +1286,22 @@ function App() {
           </Suspense>
         </div>
         
-        <footer className="border-t border-border mt-auto bg-background">
+        <footer className="border-t border-border/50 mt-auto bg-background/80 backdrop-blur-sm">
           <div className="px-4 py-4 md:px-6">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
-              <p className="text-sm text-muted-foreground">
-                © {new Date().getFullYear()} {branding?.hotelName || 'W3 Hotel'} · Powered by
-              </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-sm text-muted-foreground">
+              <span>© {new Date().getFullYear()} {branding?.hotelName || 'W3 Hotel'}</span>
+              <span className="hidden sm:inline">·</span>
               <a 
                 href="https://www.w3media.lk/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                className="flex items-center gap-2 hover:text-foreground transition-colors"
               >
+                Powered by
                 <img 
                   src={w3MediaLogo}
-                  alt="W3 Media PVT LTD" 
-                  className="h-5"
+                  alt="W3 Media" 
+                  className="h-4 opacity-70 hover:opacity-100 transition-opacity"
                 />
               </a>
             </div>
@@ -1450,7 +1309,13 @@ function App() {
         </footer>
       </main>
 
-      <Toaster position="top-right" richColors />
+      <Toaster 
+        position="top-right" 
+        richColors 
+        toastOptions={{
+          className: 'rounded-xl border border-border/50 shadow-lg',
+        }}
+      />
     </div>
     </ErrorBoundary>
   )

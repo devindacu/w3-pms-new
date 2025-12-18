@@ -6,68 +6,48 @@ export interface ThemeColors {
   accent: string
 }
 
-export type ColorMood = 'blue' | 'purple' | 'green' | 'orange' | 'rose' | 'cyan' | 'teal' | 'amber' | 'indigo' | 'crimson' | 'emerald' | 'violet'
+export type ColorMood = 'indigo' | 'violet' | 'emerald' | 'rose' | 'amber' | 'cyan' | 'slate' | 'crimson'
 
 export const colorMoods: Record<ColorMood, ThemeColors> = {
-  blue: {
-    primary: 'oklch(0.65 0.22 265)',
-    secondary: 'oklch(0.55 0.16 220)',
-    accent: 'oklch(0.68 0.24 35)',
+  indigo: {
+    primary: 'oklch(0.55 0.24 265)',
+    secondary: 'oklch(0.50 0.20 280)',
+    accent: 'oklch(0.62 0.20 180)',
   },
-  purple: {
-    primary: 'oklch(0.62 0.26 300)',
-    secondary: 'oklch(0.58 0.20 280)',
-    accent: 'oklch(0.68 0.28 320)',
+  violet: {
+    primary: 'oklch(0.60 0.28 300)',
+    secondary: 'oklch(0.55 0.24 290)',
+    accent: 'oklch(0.68 0.22 320)',
   },
-  green: {
-    primary: 'oklch(0.58 0.20 150)',
-    secondary: 'oklch(0.62 0.18 130)',
-    accent: 'oklch(0.65 0.24 90)',
-  },
-  orange: {
-    primary: 'oklch(0.65 0.24 40)',
-    secondary: 'oklch(0.68 0.20 60)',
-    accent: 'oklch(0.70 0.26 25)',
+  emerald: {
+    primary: 'oklch(0.55 0.22 160)',
+    secondary: 'oklch(0.50 0.20 150)',
+    accent: 'oklch(0.62 0.24 180)',
   },
   rose: {
-    primary: 'oklch(0.62 0.24 10)',
-    secondary: 'oklch(0.65 0.20 350)',
-    accent: 'oklch(0.68 0.26 340)',
+    primary: 'oklch(0.60 0.24 10)',
+    secondary: 'oklch(0.55 0.22 350)',
+    accent: 'oklch(0.68 0.20 30)',
+  },
+  amber: {
+    primary: 'oklch(0.70 0.22 70)',
+    secondary: 'oklch(0.65 0.20 60)',
+    accent: 'oklch(0.62 0.24 45)',
   },
   cyan: {
     primary: 'oklch(0.60 0.22 200)',
-    secondary: 'oklch(0.65 0.18 220)',
-    accent: 'oklch(0.68 0.24 180)',
+    secondary: 'oklch(0.55 0.20 210)',
+    accent: 'oklch(0.65 0.24 180)',
   },
-  teal: {
-    primary: 'oklch(0.58 0.20 180)',
-    secondary: 'oklch(0.62 0.18 170)',
-    accent: 'oklch(0.66 0.24 195)',
-  },
-  amber: {
-    primary: 'oklch(0.68 0.24 75)',
-    secondary: 'oklch(0.70 0.20 60)',
-    accent: 'oklch(0.66 0.26 45)',
-  },
-  indigo: {
-    primary: 'oklch(0.60 0.24 285)',
-    secondary: 'oklch(0.64 0.20 275)',
-    accent: 'oklch(0.68 0.26 295)',
+  slate: {
+    primary: 'oklch(0.50 0.05 260)',
+    secondary: 'oklch(0.45 0.04 260)',
+    accent: 'oklch(0.60 0.20 200)',
   },
   crimson: {
-    primary: 'oklch(0.60 0.26 20)',
-    secondary: 'oklch(0.64 0.22 10)',
-    accent: 'oklch(0.68 0.28 5)',
-  },
-  emerald: {
-    primary: 'oklch(0.60 0.22 160)',
-    secondary: 'oklch(0.64 0.18 145)',
-    accent: 'oklch(0.68 0.24 175)',
-  },
-  violet: {
-    primary: 'oklch(0.62 0.28 310)',
-    secondary: 'oklch(0.66 0.24 295)',
-    accent: 'oklch(0.70 0.30 325)',
+    primary: 'oklch(0.55 0.26 20)',
+    secondary: 'oklch(0.50 0.24 10)',
+    accent: 'oklch(0.65 0.22 35)',
   },
 }
 
@@ -78,26 +58,24 @@ const applyTheme = (colors: ThemeColors) => {
   root.style.setProperty('--secondary', colors.secondary)
   root.style.setProperty('--accent', colors.accent)
   
-  const glowPrimary = colors.primary.replace(')', ' / 0.35)')
-  const glowAccent = colors.accent.replace(')', ' / 0.30)')
-  root.style.setProperty('--glow-primary', glowPrimary)
-  root.style.setProperty('--glow-accent', glowAccent)
+  const primaryGlow = colors.primary.replace(')', ' / 0.25)')
+  root.style.setProperty('--primary-glow', primaryGlow)
+  
+  const primaryHover = colors.primary.replace(/(\d+\.?\d*)\)$/, (match, num) => {
+    const newNum = Math.max(0.4, parseFloat(num) - 0.05)
+    return `${newNum})`
+  })
+  root.style.setProperty('--primary-hover', primaryHover)
   
   root.style.setProperty('--ring', colors.primary)
   root.style.setProperty('--sidebar-primary', colors.primary)
   root.style.setProperty('--sidebar-ring', colors.primary)
   
-  const chart1 = colors.primary
-  const chart2 = colors.secondary
-  const chart3 = 'oklch(0.60 0.18 155)'
-  const chart4 = colors.accent
-  const chart5 = colors.primary.replace(/\d+\)$/, '310)')
-  
-  root.style.setProperty('--chart-1', chart1)
-  root.style.setProperty('--chart-2', chart2)
-  root.style.setProperty('--chart-3', chart3)
-  root.style.setProperty('--chart-4', chart4)
-  root.style.setProperty('--chart-5', chart5)
+  root.style.setProperty('--chart-1', colors.primary)
+  root.style.setProperty('--chart-2', colors.accent)
+  root.style.setProperty('--chart-3', colors.secondary)
+  root.style.setProperty('--chart-4', 'oklch(0.72 0.20 70)')
+  root.style.setProperty('--chart-5', 'oklch(0.55 0.24 25)')
 }
 
 const applyDarkMode = (isDark: boolean, animated: boolean = true) => {
@@ -105,7 +83,8 @@ const applyDarkMode = (isDark: boolean, animated: boolean = true) => {
   const body = document.body
   
   if (!animated) {
-    body.classList.add('no-theme-transition')
+    body.style.transition = 'none'
+    root.style.transition = 'none'
   }
   
   if (isDark) {
@@ -118,7 +97,8 @@ const applyDarkMode = (isDark: boolean, animated: boolean = true) => {
   
   if (!animated) {
     requestAnimationFrame(() => {
-      body.classList.remove('no-theme-transition')
+      body.style.transition = ''
+      root.style.transition = ''
     })
   }
 }

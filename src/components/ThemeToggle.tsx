@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Moon, Sun } from '@phosphor-icons/react'
 import { useTheme } from '@/hooks/use-theme'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export function ThemeToggle() {
   const [isDark, setIsDark] = useState(false)
@@ -31,13 +32,13 @@ export function ThemeToggle() {
     
     const rect = buttonRef.current.getBoundingClientRect()
     overlay.style.top = `${rect.top + rect.height / 2}px`
-    overlay.style.right = `${window.innerWidth - rect.right + rect.width / 2}px`
+    overlay.style.left = `${rect.left + rect.width / 2}px`
     
     document.body.appendChild(overlay)
     
     setTimeout(() => {
       overlay.remove()
-    }, 1000)
+    }, 800)
   }
 
   const toggleDarkMode = () => {
@@ -55,8 +56,8 @@ export function ThemeToggle() {
       setTimeout(() => {
         loadSavedTheme()
         setIsAnimating(false)
-      }, 150)
-    }, 150)
+      }, 100)
+    }, 100)
   }
 
   return (
@@ -66,14 +67,32 @@ export function ThemeToggle() {
       size="icon"
       onClick={toggleDarkMode}
       disabled={isAnimating}
-      className="rounded-xl hover:bg-muted"
+      className="relative w-10 h-10 rounded-xl bg-muted/50 hover:bg-muted border border-border/50 overflow-hidden"
       title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
     >
-      {isDark ? (
-        <Sun size={20} className="text-primary" weight="duotone" />
-      ) : (
-        <Moon size={20} className="text-primary" weight="duotone" />
-      )}
+      <AnimatePresence mode="wait" initial={false}>
+        {isDark ? (
+          <motion.div
+            key="sun"
+            initial={{ y: -20, opacity: 0, rotate: -90 }}
+            animate={{ y: 0, opacity: 1, rotate: 0 }}
+            exit={{ y: 20, opacity: 0, rotate: 90 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+          >
+            <Sun size={20} className="text-amber-400" weight="fill" />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="moon"
+            initial={{ y: -20, opacity: 0, rotate: 90 }}
+            animate={{ y: 0, opacity: 1, rotate: 0 }}
+            exit={{ y: 20, opacity: 0, rotate: -90 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+          >
+            <Moon size={20} className="text-primary" weight="fill" />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Button>
   )
 }

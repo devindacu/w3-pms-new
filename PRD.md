@@ -138,34 +138,35 @@ A comprehensive cloud-based Property Management System integrating Front Office,
 
 ## Design Direction
 
-**Light Theme**: The design embodies modern hotel luxury with a sophisticated, professional aesthetic. The warm cream backgrounds paired with rich jewel-tone accents create an inviting, premium atmosphere. Visual hierarchy is achieved through purposeful use of color, generous whitespace, and refined typography that feels both welcoming and efficient.
+**Modern 2026 Design Philosophy**: The interface embraces a refined, contemporary aesthetic with clean lines, generous whitespace, and purposeful micro-interactions. Both light and dark themes prioritize readability, visual hierarchy, and premium feel through subtle gradients, glass effects, and smooth transitions.
 
-**Dark Theme**: The design embodies a futuristic, sophisticated aesthetic inspired by 2026 design trends - featuring dark mode with vibrant neon accents, glassmorphism effects, bold gradients, and fluid micro-interactions. The interface feels premium and immersive while maintaining operational clarity through strong visual hierarchy, purposeful animations, and intelligent use of light and color to guide user attention.
+**Light Theme**: A sophisticated, airy design with warm undertones. Clean white cards float above subtle cream backgrounds. Accent colors are used sparingly but impactfully to draw attention to key actions and metrics.
+
+**Dark Theme**: A deep, immersive experience with rich navy backgrounds and vibrant accent colors. Glassmorphism effects add depth without clutter. Carefully calibrated contrast ensures readability while maintaining visual elegance.
 
 ## Color Selection
 
-**Light Theme**: Sophisticated, modern hotel brand palette with warm cream backgrounds and rich jewel-toned accents creating a premium, professional atmosphere that feels fresh and inviting.
+**Light Theme**: Modern professional palette emphasizing clarity and warmth.
 
-- **Primary Color**: Royal Indigo (oklch(0.48 0.18 265)) - Deep, sophisticated purple-blue conveying trust, professionalism, and premium hotel service
-- **Secondary Color**: Coastal Teal (oklch(0.72 0.14 195)) - Fresh, calming aqua representing relaxation and hospitality
-- **Accent Color**: Sunset Coral (oklch(0.62 0.20 30)) - Warm, welcoming orange-red for CTAs and important actions creating energy and urgency
-- **Success Color**: Garden Green (oklch(0.55 0.16 155)) - Natural emerald green for positive confirmations
-- **Destructive Color**: Ruby Red (oklch(0.58 0.22 20)) - Clear warning and alert color
+- **Primary Color**: Deep Indigo (oklch(0.55 0.24 265)) - Conveys trust, professionalism, and premium quality
+- **Secondary Color**: Soft Gray (oklch(0.96 0.01 260)) - Clean neutral for secondary elements
+- **Accent Color**: Teal Cyan (oklch(0.62 0.20 180)) - Fresh, modern highlight for CTAs and important elements
+- **Success Color**: Emerald (oklch(0.55 0.20 150)) - Clear positive feedback
+- **Warning Color**: Amber (oklch(0.72 0.20 70)) - Attention without alarm
+- **Destructive Color**: Ruby (oklch(0.55 0.24 25)) - Clear danger/error states
 - **Foreground/Background Pairings**:
-  - Background (Warm Cream oklch(0.98 0.008 85)): Deep Indigo text (oklch(0.20 0.015 265)) - Ratio 15.2:1 ✓
-  - Card (Pure White oklch(1 0 0)): Deep Indigo text (oklch(0.22 0.015 265)) - Ratio 13.8:1 ✓
-  - Primary (Royal Indigo oklch(0.48 0.18 265)): White text (oklch(0.99 0 0)) - Ratio 8.9:1 ✓
-  - Secondary (Coastal Teal oklch(0.72 0.14 195)): White text (oklch(0.98 0 0)) - Ratio 5.8:1 ✓
-  - Accent (Sunset Coral oklch(0.62 0.20 30)): White text (oklch(0.99 0 0)) - Ratio 5.2:1 ✓
-  - Success (Garden Green oklch(0.55 0.16 155)): White text (oklch(0.99 0 0)) - Ratio 6.5:1 ✓
+  - Background (oklch(0.98 0.005 260)): Foreground (oklch(0.18 0.02 260)) - Ratio 12.5:1 ✓
+  - Card (oklch(1 0 0)): Card Foreground (oklch(0.18 0.02 260)) - Ratio 14.2:1 ✓
+  - Primary (oklch(0.55 0.24 265)): Primary Foreground (oklch(0.99 0 0)) - Ratio 7.8:1 ✓
 
-**Dark Theme**: Futuristic cyberpunk-inspired scheme with deep dark backgrounds and vibrant neon accents creating a high-tech, premium atmosphere for night operations.
+**Dark Theme**: Contemporary dark mode with vibrant accents.
 
-- **Primary Color**: Electric Purple (oklch(0.75 0.22 280)) - Bold, modern accent for key actions and focal points
-- **Secondary Colors**: Vivid Magenta (oklch(0.65 0.18 310)) for secondary actions; Deep Navy (oklch(0.13 0.015 250)) for backgrounds
-- **Accent Color**: Neon Cyan (oklch(0.70 0.25 180)) - Striking highlight color for CTAs and interactive elements
-- **Success Color**: Bright Lime (oklch(0.68 0.20 150)) - Clear positive feedback
-- **Destructive Color**: Hot Coral (oklch(0.60 0.25 25)) - Attention-grabbing alerts
+- **Primary Color**: Electric Purple (oklch(0.70 0.25 280)) - Bold, modern accent for key actions
+- **Secondary Color**: Slate (oklch(0.22 0.025 265)) - Supporting dark neutral
+- **Accent Color**: Neon Teal (oklch(0.68 0.24 180)) - Vibrant highlight color
+- **Foreground/Background Pairings**:
+  - Background (oklch(0.12 0.02 265)): Foreground (oklch(0.96 0.005 260)) - Ratio 11.8:1 ✓
+  - Card (oklch(0.16 0.025 265)): Card Foreground (oklch(0.96 0.005 260)) - Ratio 10.2:1 ✓
 
 ## Font Selection
 
