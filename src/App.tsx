@@ -158,6 +158,11 @@ const PaymentTracking = lazy(() => import('@/components/PaymentTracking').then(m
 import { getDefaultWidgetsForRole, getWidgetSize } from '@/lib/widgetConfig'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { ColorMoodSelector } from '@/components/ColorMoodSelector'
+import { OfflineIndicator } from '@/components/OfflineIndicator'
+import { OfflineModeBanner } from '@/components/OfflineModeBanner'
+import { MobileOfflineTools } from '@/components/MobileOfflineTools'
+import { OfflineOperationsPanel } from '@/components/OfflineOperationsPanel'
+import { useOfflineStatus } from '@/hooks/use-offline'
 import type {
   DashboardLayout,
   DashboardWidget,
@@ -194,7 +199,7 @@ import type {
   EmailCampaignAnalytics
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings'
+type Module = 'dashboard' | 'quick-ops' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -292,6 +297,7 @@ function App() {
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
 
   useTheme()
+  const { isOnline } = useOfflineStatus()
 
   const refreshNotifications = useCallback(() => {
     const newNotifications = generateAllAlerts(
@@ -646,6 +652,7 @@ function App() {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Gauge },
     { id: 'divider-1', type: 'divider' },
+    { id: 'quick-ops', label: 'Quick Operations', icon: Sparkle, group: 'Property' },
     { id: 'front-office', label: 'Front Office', icon: Bed, group: 'Property' },
     { id: 'crm', label: 'Guest Relations', icon: Users, group: 'Property' },
     { id: 'extra-services', label: 'Extra Services', icon: Sparkle, group: 'Property' },
@@ -805,6 +812,10 @@ function App() {
                 <ThemeToggle />
               </div>
               
+              <div className="hidden md:block">
+                <OfflineIndicator />
+              </div>
+              
               <NotificationPanel
                 notifications={notifications || []}
                 onMarkAsRead={handleMarkAsRead}
@@ -819,12 +830,27 @@ function App() {
             
         <div className="sm:hidden px-4 py-3 border-b border-border/50 bg-background/80 backdrop-blur-sm">
           <div className="flex items-center justify-center gap-2">
+            <MobileOfflineTools />
             <ColorMoodSelector />
             <ThemeToggle />
           </div>
         </div>
+        
+        <OfflineModeBanner />
         <div className="flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden">
           {currentModule === 'dashboard' && renderDashboard()}
+          {currentModule === 'quick-ops' && (
+            <OfflineOperationsPanel
+              rooms={rooms || []}
+              onUpdateRoom={(roomId, updates) => {
+                setRooms((current) =>
+                  (current || []).map((r) =>
+                    r.id === roomId ? { ...r, ...updates } : r
+                  )
+                )
+              }}
+            />
+          )}
           <Suspense fallback={<TableSkeleton rows={10} />}>
             <ModuleErrorBoundary>
           {currentModule === 'front-office' && (
