@@ -910,17 +910,17 @@ function App() {
   return (
     <ErrorBoundary>
     <div className="flex min-h-screen bg-background">
-      <aside className="hidden lg:block w-52 border-r bg-card/80 backdrop-blur-md p-2.5 space-y-1 overflow-y-auto fixed left-0 top-0 bottom-0 z-40">
+      <aside className="hidden lg:block w-[20%] min-w-[200px] max-w-[280px] border-r bg-card/80 backdrop-blur-md p-2.5 space-y-1 overflow-y-auto fixed left-0 top-0 bottom-0 z-40">
         <SidebarContent />
       </aside>
 
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="w-60 p-2.5 overflow-y-auto">
+        <SheetContent side="left" className="w-[75vw] max-w-[280px] p-2.5 overflow-y-auto">
           <SidebarContent />
         </SheetContent>
       </Sheet>
 
-      <main className="flex-1 flex flex-col lg:ml-52 min-h-screen">
+      <main className="flex-1 flex flex-col lg:ml-[20%] lg:w-[80%] min-h-screen">
         <div className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur-md px-3 sm:px-4 py-3 flex items-center justify-between gap-2 sm:gap-3">
           <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
