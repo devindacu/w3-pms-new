@@ -790,42 +790,39 @@ function App() {
                 <List size={20} />
               </Button>
               
-                onClick={() => setSidebarOpen(true)}
-              >
-                <List size={20} />
-              </Button>
+              <GlobalSearch
+                guests={guests || []}
+                guestProfiles={guestProfiles || []}
+                reservations={reservations || []}
+                invoices={guestInvoices || []}
+                onNavigate={handleNavigateFromSearch}
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2">
+                <ColorMoodSelector />
+                <ThemeToggle />
+              </div>
               
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="hidden lg:flex rounded-xl bg-muted/50 hover:bg-muted"
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              >
-                <List size={20} />
-              </Button>
-              
+              <NotificationPanel
                 notifications={notifications || []}
                 onMarkAsRead={handleMarkAsRead}
                 onMarkAllAsRead={handleMarkAllAsRead}
                 onDismiss={handleDismiss}
-                  reservations={reservations || []}
-                  invoices={guestInvoices || []}
+                onArchive={handleArchive}
+                onClearAll={handleClearAll}
               />
             </div>
           </div>
         </header>
             
         <div className="sm:hidden px-4 py-3 border-b border-border/50 bg-background/80 backdrop-blur-sm">
-              <ColorMoodSelector />
-              <ThemeToggle />
-            guestProfiles={guestProfiles || []}
-            reservations={reservations || []}
-            invoices={guestInvoices || []}
-            onNavigate={handleNavigateFromSearch}
-          />
-                onArchive={handleArchive}
-                onClearAll={handleClearAll}
+          <div className="flex items-center justify-center gap-2">
+            <ColorMoodSelector />
+            <ThemeToggle />
+          </div>
+        </div>
         <div className="flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden">
           {currentModule === 'dashboard' && renderDashboard()}
           <Suspense fallback={<TableSkeleton rows={10} />}>
