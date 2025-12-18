@@ -41,43 +41,34 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
     switch (widget.type) {
       case 'occupancy':
         return (
-          <Card 
-            className="p-4 md:p-6 border-l-4 border-l-primary h-full glass-card shine-effect cursor-default transition-all hover:shadow-lg"
-            role="article"
-            aria-label="Occupancy widget"
-          >
-            <div className="flex items-center justify-between mb-3 md:mb-4">
-              <h3 className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-wide">Occupancy</h3>
-              <Bed size={20} className="text-primary floating-animation" weight="duotone" />
+          <Card className="stat-card h-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Occupancy</h3>
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Bed size={20} className="text-primary" weight="duotone" />
+              </div>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
-                <p className="text-3xl md:text-4xl font-bold gradient-text mb-1">{formatPercent(metrics.occupancy.rate)}</p>
-                <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+                <p className="text-3xl font-bold">{formatPercent(metrics.occupancy.rate)}</p>
+                <div className="progress-bar mt-2">
                   <div 
-                    className="bg-gradient-to-r from-primary to-accent h-full rounded-full transition-all duration-500 ease-out"
+                    className="progress-bar-fill"
                     style={{ width: `${metrics.occupancy.rate}%` }}
-                    role="progressbar"
-                    aria-valuenow={metrics.occupancy.rate}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-label={`Occupancy rate ${metrics.occupancy.rate}%`}
                   />
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-xs md:text-sm">
-                <span className="text-muted-foreground">
-                  <span className="font-semibold text-foreground">{metrics.occupancy.occupied}</span> / {metrics.occupancy.occupied + metrics.occupancy.available} rooms
-                </span>
+              <div className="text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">{metrics.occupancy.occupied}</span> / {metrics.occupancy.occupied + metrics.occupancy.available} rooms
               </div>
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <div className="p-2 rounded-lg bg-success/10 border border-success/20">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-success/10">
                   <p className="text-xs text-muted-foreground">Available</p>
-                  <p className="text-base md:text-lg font-semibold text-success">{metrics.occupancy.available}</p>
+                  <p className="text-lg font-semibold text-success">{metrics.occupancy.available}</p>
                 </div>
-                <div className="p-2 rounded-lg bg-warning/10 border border-warning/20">
+                <div className="p-3 rounded-xl bg-warning/10">
                   <p className="text-xs text-muted-foreground">Maintenance</p>
-                  <p className="text-base md:text-lg font-semibold text-warning">{metrics.occupancy.maintenance}</p>
+                  <p className="text-lg font-semibold text-warning">{metrics.occupancy.maintenance}</p>
                 </div>
               </div>
             </div>
@@ -86,66 +77,47 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'revenue-today':
         return (
-          <Card 
-            className="p-4 md:p-6 border-l-4 border-l-success h-full glass-card shine-effect cursor-default transition-all hover:shadow-lg"
-            role="article"
-            aria-label="Revenue today widget"
-          >
-            <div className="flex items-center justify-between mb-3 md:mb-4">
-              <h3 className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-wide">Revenue Today</h3>
-              <CurrencyDollar size={20} className="text-success floating-animation" weight="duotone" />
+          <Card className="stat-card h-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Revenue Today</h3>
+              <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+                <CurrencyDollar size={20} className="text-success" weight="duotone" />
+              </div>
             </div>
             <div className="space-y-3">
-              <div>
-                <p className="text-3xl md:text-4xl font-bold gradient-text mb-2">{formatCurrency(metrics.revenue.today)}</p>
-                {metrics.revenue.growth !== 0 && (
-                  <div className="flex items-center gap-2">
-                    {metrics.revenue.growth > 0 ? (
-                      <>
-                        <TrendUp size={16} className="text-success" weight="bold" />
-                        <span className="text-sm font-medium text-success">
-                          +{formatPercent(Math.abs(metrics.revenue.growth))} vs yesterday
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <TrendDown size={16} className="text-destructive" weight="bold" />
-                        <span className="text-sm font-medium text-destructive">
-                          -{formatPercent(Math.abs(metrics.revenue.growth))} vs yesterday
-                        </span>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
+              <p className="text-3xl font-bold">{formatCurrency(metrics.revenue.today)}</p>
+              {metrics.revenue.growth !== 0 && (
+                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium ${metrics.revenue.growth > 0 ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
+                  {metrics.revenue.growth > 0 ? <TrendUp size={16} weight="bold" /> : <TrendDown size={16} weight="bold" />}
+                  {metrics.revenue.growth > 0 ? '+' : ''}{formatPercent(Math.abs(metrics.revenue.growth))} vs yesterday
+                </div>
+              )}
             </div>
           </Card>
         )
 
       case 'housekeeping':
         return (
-          <Card 
-            className="p-4 md:p-6 border-l-4 border-l-accent h-full glass-card shine-effect cursor-default transition-all hover:shadow-lg"
-            role="article"
-            aria-label="Housekeeping status widget"
-          >
-            <div className="flex items-center justify-between mb-3 md:mb-4">
-              <h3 className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-wide">Housekeeping</h3>
-              <Broom size={20} className="text-accent floating-animation" weight="duotone" />
-            </div>
-            <div className="space-y-3">
-              <div>
-                <p className="text-3xl md:text-4xl font-bold gradient-text mb-1">{metrics.housekeeping.pendingTasks}</p>
-                <p className="text-xs md:text-sm text-muted-foreground">Pending tasks</p>
+          <Card className="stat-card h-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Housekeeping</h3>
+              <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+                <Broom size={20} className="text-accent" weight="duotone" />
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="p-2 rounded-lg bg-success/10 border border-success/20">
+            </div>
+            <div className="space-y-4">
+              <div>
+                <p className="text-3xl font-bold">{metrics.housekeeping.pendingTasks}</p>
+                <p className="text-sm text-muted-foreground">Pending tasks</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-success/10">
                   <p className="text-xs text-muted-foreground">Clean</p>
-                  <p className="text-base md:text-lg font-semibold text-success">{metrics.housekeeping.cleanRooms}</p>
+                  <p className="text-lg font-semibold text-success">{metrics.housekeeping.cleanRooms}</p>
                 </div>
-                <div className="p-2 rounded-lg bg-destructive/10 border border-destructive/20">
+                <div className="p-3 rounded-xl bg-destructive/10">
                   <p className="text-xs text-muted-foreground">Dirty</p>
-                  <p className="text-base md:text-lg font-semibold text-destructive">{metrics.housekeeping.dirtyRooms}</p>
+                  <p className="text-lg font-semibold text-destructive">{metrics.housekeeping.dirtyRooms}</p>
                 </div>
               </div>
             </div>

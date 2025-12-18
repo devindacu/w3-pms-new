@@ -81,20 +81,20 @@ export function CollapsibleSidebarGroup({
   }
 
   return (
-    <div className={cn("space-y-0.5", className)}>
+    <div className={cn("space-y-1", className)}>
       <Button
         variant="ghost"
-        className="w-full justify-between px-2 py-1.5 h-auto font-semibold text-[10px] uppercase tracking-wide text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+        className="w-full justify-between px-3 py-2 h-auto font-medium text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl"
         onClick={handleToggle}
       >
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           {icon}
           <span>{title}</span>
         </div>
         {isOpen ? (
-          <CaretDown size={14} className="shrink-0 transition-transform" />
+          <CaretDown size={14} className="shrink-0" />
         ) : (
-          <CaretRight size={14} className="shrink-0 transition-transform" />
+          <CaretRight size={14} className="shrink-0" />
         )}
       </Button>
       
@@ -103,7 +103,7 @@ export function CollapsibleSidebarGroup({
           axis="y"
           values={items}
           onReorder={handleReorder}
-          className="space-y-0.5 pl-1"
+          className="space-y-1 pl-2"
         >
           {items.map((item) => (
             <ReorderItem key={item.id} item={item} />
@@ -127,22 +127,22 @@ function ReorderItem({ item }: ReorderItemProps) {
       dragListener={false}
       dragControls={dragControls}
       className="relative group"
-      initial={{ opacity: 0, y: -10 }}
+      initial={{ opacity: 0, y: -5 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.2 }}
+      exit={{ opacity: 0, y: -5 }}
+      transition={{ duration: 0.15 }}
     >
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center gap-1">
         <button
-          className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-0.5 hover:bg-accent/50 rounded flex-shrink-0"
+          className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded-lg flex-shrink-0"
           onPointerDown={(e) => dragControls.start(e)}
           aria-label="Drag to reorder"
         >
-          <DotsSixVertical size={12} className="text-muted-foreground" />
+          <DotsSixVertical size={14} className="text-muted-foreground" />
         </button>
         <div className="flex-1">
           {cloneElement(item.element, {
-            className: cn(item.element.props.className, "transition-all")
+            className: cn(item.element.props.className)
           })}
         </div>
       </div>

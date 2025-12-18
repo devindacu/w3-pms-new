@@ -568,15 +568,15 @@ function App() {
     }
 
     return (
-    <div className="space-y-4 md:space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground tracking-tight">Hotel Dashboard</h1>
-          <p className="text-sm md:text-base text-muted-foreground">Unified view of all hotel operations</p>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground mt-1">Overview of hotel operations</p>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
           {!hasData && (
-            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto shine-effect">
+            <Button onClick={loadSampleData} size="lg">
               <Database size={20} className="mr-2" />
               Load Sample Data
             </Button>
@@ -593,20 +593,18 @@ function App() {
       </div>
 
       {!hasData ? (
-        <Card className="p-8 md:p-12 lg:p-16 text-center glass-card shine-effect">
-          <div className="max-w-md mx-auto space-y-6">
-            <div className="mx-auto w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-primary/10 flex items-center justify-center floating-animation">
-              <Gauge size={48} className="text-primary" />
+        <Card className="p-12 text-center">
+          <div className="max-w-md mx-auto space-y-4">
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Gauge size={32} className="text-primary" />
             </div>
-            <div className="space-y-3">
-              <h3 className="text-xl md:text-2xl font-bold gradient-text">Welcome to W3 Hotel PMS</h3>
-              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                Your comprehensive hotel management solution integrating all operations in one platform
-              </p>
-            </div>
-            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto mt-4 shine-effect">
+            <h3 className="text-xl font-semibold">Welcome to W3 Hotel PMS</h3>
+            <p className="text-muted-foreground">
+              Your comprehensive hotel management solution
+            </p>
+            <Button onClick={loadSampleData} size="lg" className="mt-4">
               <Database size={20} className="mr-2" />
-              Load Sample Data to Get Started
+              Get Started
             </Button>
           </div>
         </Card>
@@ -622,8 +620,8 @@ function App() {
             {layout?.widgets
               .filter(w => w.isVisible)
               .sort((a, b) => a.position - b.position)
-              .map(widget => (
-                <div key={widget.id} className="animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: `${widget.position * 50}ms` }}>
+              .map((widget, index) => (
+                <div key={widget.id} className="fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
                   <WidgetRenderer
                     widget={widget}
                     metrics={metrics}
@@ -664,243 +662,243 @@ function App() {
 
   const SidebarContent = () => (
     <>
-      <div className="px-1.5 py-2.5 mb-1.5">
-        <div className="flex items-center justify-center">
+      <div className="px-4 py-5 mb-2">
+        <div className="flex items-center gap-3">
           <img 
             src={w3PMSLogo}
             alt="W3 Hotel PMS" 
-            className="h-9 w-auto object-contain"
+            className="h-8 w-auto object-contain"
           />
         </div>
       </div>
 
-      <nav className="space-y-0.5" onClick={() => setSidebarOpen(false)}>
+      <nav className="space-y-1 px-3" onClick={() => setSidebarOpen(false)}>
         <Button
           variant={currentModule === 'dashboard' ? 'default' : 'ghost'}
-          className="w-full justify-start text-xs h-8 px-2"
+          className="w-full justify-start text-sm h-10 px-3 rounded-xl"
           onClick={() => setCurrentModule('dashboard')}
         >
-          <Gauge size={15} className="mr-1.5 shrink-0" />
+          <Gauge size={18} className="mr-2.5 shrink-0" />
           Dashboard
         </Button>
 
-        <Separator className="my-1" />
+        <Separator className="my-2" />
 
         <CollapsibleSidebarGroup
           title="Property Management"
           groupId="property-management"
-          icon={<Buildings size={11} />}
+          icon={<Buildings size={14} />}
           defaultOpen={['front-office', 'crm', 'extra-services', 'housekeeping', 'fnb'].includes(currentModule)}
         >
           <Button
             variant={currentModule === 'front-office' ? 'default' : 'ghost'}
-            className="w-full justify-start text-xs h-8 px-2"
+            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
             onClick={() => setCurrentModule('front-office')}
           >
-            <Bed size={15} className="mr-1.5 shrink-0" />
+            <Bed size={18} className="mr-2.5 shrink-0" />
             Front Office
           </Button>
 
           <Button
             variant={currentModule === 'crm' ? 'default' : 'ghost'}
-            className="w-full justify-start text-xs h-8 px-2"
+            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
             onClick={() => setCurrentModule('crm')}
           >
-            <Users size={15} className="mr-1.5 shrink-0" />
+            <Users size={18} className="mr-2.5 shrink-0" />
             Guest Relations
           </Button>
 
           <Button
             variant={currentModule === 'extra-services' ? 'default' : 'ghost'}
-            className="w-full justify-start text-xs h-8 px-2"
+            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
             onClick={() => setCurrentModule('extra-services')}
           >
-            <Sparkle size={15} className="mr-1.5 shrink-0" />
+            <Sparkle size={18} className="mr-2.5 shrink-0" />
             Extra Services
           </Button>
 
           <Button
             variant={currentModule === 'housekeeping' ? 'default' : 'ghost'}
-            className="w-full justify-start text-xs h-8 px-2"
+            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
             onClick={() => setCurrentModule('housekeeping')}
           >
-            <Broom size={15} className="mr-1.5 shrink-0" />
+            <Broom size={18} className="mr-2.5 shrink-0" />
             Housekeeping
           </Button>
 
           <Button
             variant={currentModule === 'fnb' ? 'default' : 'ghost'}
-            className="w-full justify-start text-xs h-8 px-2"
+            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
             onClick={() => setCurrentModule('fnb')}
           >
-            <ForkKnife size={15} className="mr-1.5 shrink-0" />
+            <ForkKnife size={18} className="mr-2.5 shrink-0" />
             F&B / POS
           </Button>
         </CollapsibleSidebarGroup>
 
-        <Separator className="my-1" />
+        <Separator className="my-2" />
 
         <CollapsibleSidebarGroup
           title="Revenue Management"
           groupId="revenue-management"
-          icon={<CurrencyDollar size={11} />}
+          icon={<CurrencyDollar size={14} />}
           defaultOpen={['room-revenue', 'channel-manager'].includes(currentModule)}
         >
           <Button
             variant={currentModule === 'room-revenue' ? 'default' : 'ghost'}
-            className="w-full justify-start text-xs h-8 px-2"
+            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
             onClick={() => setCurrentModule('room-revenue')}
           >
-            <Buildings size={15} className="mr-1.5 shrink-0" />
+            <Buildings size={18} className="mr-2.5 shrink-0" />
             Room & Revenue
           </Button>
 
           <Button
             variant={currentModule === 'channel-manager' ? 'default' : 'ghost'}
-            className="w-full justify-start text-xs h-8 px-2"
+            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
             onClick={() => setCurrentModule('channel-manager')}
           >
-            <Buildings size={15} className="mr-1.5 shrink-0" />
+            <Buildings size={18} className="mr-2.5 shrink-0" />
             Channel Manager
           </Button>
         </CollapsibleSidebarGroup>
 
-        <Separator className="my-1" />
+        <Separator className="my-2" />
 
         <CollapsibleSidebarGroup
           title="Inventory & Procurement"
           groupId="inventory-procurement"
-          icon={<Package size={11} />}
+          icon={<Package size={14} />}
           defaultOpen={['inventory', 'suppliers', 'procurement'].includes(currentModule)}
         >
           <Button
             variant={currentModule === 'inventory' ? 'default' : 'ghost'}
-            className="w-full justify-start text-xs h-8 px-2"
+            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
             onClick={() => setCurrentModule('inventory')}
           >
-            <Package size={15} className="mr-1.5 shrink-0" />
+            <Package size={18} className="mr-2.5 shrink-0" />
             Inventory
           </Button>
 
           <Button
             variant={currentModule === 'suppliers' ? 'default' : 'ghost'}
-            className="w-full justify-start text-xs h-8 px-2"
+            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
             onClick={() => setCurrentModule('suppliers')}
           >
-            <Buildings size={15} className="mr-1.5 shrink-0" />
+            <Buildings size={18} className="mr-2.5 shrink-0" />
             Suppliers
           </Button>
 
           <Button
             variant={currentModule === 'procurement' ? 'default' : 'ghost'}
-            className="w-full justify-start text-xs h-8 px-2"
+            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
             onClick={() => setCurrentModule('procurement')}
           >
-            <ShoppingCart size={15} className="mr-1.5 shrink-0" />
+            <ShoppingCart size={18} className="mr-2.5 shrink-0" />
             Procurement
           </Button>
         </CollapsibleSidebarGroup>
 
-        <Separator className="my-1" />
+        <Separator className="my-2" />
 
         <Button
           variant={currentModule === 'kitchen' ? 'default' : 'ghost'}
-          className="w-full justify-start text-xs h-8 px-2"
+          className="w-full justify-start text-sm h-10 px-3 rounded-xl"
           onClick={() => setCurrentModule('kitchen')}
         >
-          <ChefHat size={15} className="mr-1.5 shrink-0" />
+          <ChefHat size={18} className="mr-2.5 shrink-0" />
           Kitchen Operations
         </Button>
 
-        <Separator className="my-1" />
+        <Separator className="my-2" />
 
         <CollapsibleSidebarGroup
           title="Finance & Operations"
           groupId="finance-operations"
-          icon={<CurrencyDollar size={11} />}
+          icon={<CurrencyDollar size={14} />}
           defaultOpen={['finance', 'hr', 'user-management', 'construction'].includes(currentModule)}
         >
           <Button
             variant={currentModule === 'finance' ? 'default' : 'ghost'}
-            className="w-full justify-start text-xs h-8 px-2"
+            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
             onClick={() => setCurrentModule('finance')}
           >
-            <CurrencyDollar size={15} className="mr-1.5 shrink-0" />
+            <CurrencyDollar size={18} className="mr-2.5 shrink-0" />
             Finance
           </Button>
 
           <Button
             variant={currentModule === 'hr' ? 'default' : 'ghost'}
-            className="w-full justify-start text-xs h-8 px-2"
+            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
             onClick={() => setCurrentModule('hr')}
           >
-            <Users size={15} className="mr-1.5 shrink-0" />
+            <Users size={18} className="mr-2.5 shrink-0" />
             HR & Staff
           </Button>
 
           <Button
             variant={currentModule === 'user-management' ? 'default' : 'ghost'}
-            className="w-full justify-start text-xs h-8 px-2"
+            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
             onClick={() => setCurrentModule('user-management')}
           >
-            <UserGear size={15} className="mr-1.5 shrink-0" />
+            <UserGear size={18} className="mr-2.5 shrink-0" />
             User Management
           </Button>
 
           <Button
             variant={currentModule === 'construction' ? 'default' : 'ghost'}
-            className="w-full justify-start text-xs h-8 px-2"
+            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
             onClick={() => setCurrentModule('construction')}
           >
-            <Hammer size={15} className="mr-1.5 shrink-0" />
+            <Hammer size={18} className="mr-2.5 shrink-0" />
             Maintenance
           </Button>
         </CollapsibleSidebarGroup>
 
-        <Separator className="my-1" />
+        <Separator className="my-2" />
 
         <CollapsibleSidebarGroup
           title="Analytics & Insights"
           groupId="analytics-insights"
-          icon={<ChartBar size={11} />}
+          icon={<ChartBar size={14} />}
           defaultOpen={['analytics', 'forecasting'].includes(currentModule)}
         >
           <Button
             variant={currentModule === 'analytics' ? 'default' : 'ghost'}
-            className="w-full justify-start text-xs h-8 px-2"
+            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
             onClick={() => setCurrentModule('analytics')}
           >
-            <ChartBar size={15} className="mr-1.5 shrink-0" />
+            <ChartBar size={18} className="mr-2.5 shrink-0" />
             Analytics
           </Button>
 
           <Button
             variant={currentModule === 'forecasting' ? 'default' : 'ghost'}
-            className="w-full justify-start text-xs h-8 px-2"
+            className="w-full justify-start text-sm h-10 px-3 rounded-xl"
             onClick={() => setCurrentModule('forecasting')}
           >
-            <Sparkle size={15} className="mr-1.5 shrink-0" />
+            <Sparkle size={18} className="mr-2.5 shrink-0" />
             AI Forecasting
           </Button>
         </CollapsibleSidebarGroup>
 
-        <Separator className="my-1" />
+        <Separator className="my-2" />
 
         <Button
           variant={currentModule === 'invoice-center' ? 'default' : 'ghost'}
-          className="w-full justify-start text-xs h-8 px-2"
+          className="w-full justify-start text-sm h-10 px-3 rounded-xl"
           onClick={() => setCurrentModule('invoice-center')}
         >
-          <Receipt size={15} className="mr-1.5 shrink-0" />
+          <Receipt size={18} className="mr-2.5 shrink-0" />
           Invoice Center
         </Button>
 
         <Button
           variant={currentModule === 'settings' ? 'default' : 'ghost'}
-          className="w-full justify-start text-xs h-8 px-2"
+          className="w-full justify-start text-sm h-10 px-3 rounded-xl"
           onClick={() => setCurrentModule('settings')}
         >
-          <UserGear size={15} className="mr-1.5 shrink-0" />
+          <UserGear size={18} className="mr-2.5 shrink-0" />
           Settings
         </Button>
       </nav>
@@ -910,29 +908,31 @@ function App() {
   return (
     <ErrorBoundary>
     <div className="flex min-h-screen bg-background">
-      <aside className="hidden lg:block w-[20%] min-w-[200px] max-w-[280px] border-r bg-card/80 backdrop-blur-md p-2.5 space-y-1 overflow-y-auto fixed left-0 top-0 bottom-0 z-40">
-        <SidebarContent />
+      <aside className="hidden lg:flex flex-col w-[240px] border-r border-border bg-sidebar fixed left-0 top-0 bottom-0 z-40">
+        <div className="flex-1 overflow-y-auto">
+          <SidebarContent />
+        </div>
       </aside>
 
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="w-[75vw] max-w-[280px] p-2.5 overflow-y-auto">
+        <SheetContent side="left" className="w-[280px] p-0 overflow-y-auto bg-sidebar">
           <SidebarContent />
         </SheetContent>
       </Sheet>
 
-      <main className="flex-1 flex flex-col lg:ml-[20%] lg:w-[80%] min-h-screen">
-        <div className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur-md px-3 sm:px-4 py-3 flex items-center justify-between gap-2 sm:gap-3">
-          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+      <main className="flex-1 flex flex-col lg:ml-[240px] min-h-screen">
+        <header className="sticky top-0 z-30 h-16 border-b border-border bg-background/95 backdrop-blur-sm px-4 md:px-6 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 flex-1">
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
               <div className="lg:hidden">
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="shrink-0">
-                    <List size={20} />
+                  <Button variant="ghost" size="icon" className="rounded-xl">
+                    <List size={22} />
                   </Button>
                 </SheetTrigger>
               </div>
             </Sheet>
-            <div className="hidden sm:flex items-center gap-2 flex-1 max-w-md">
+            <div className="hidden sm:flex flex-1 max-w-md">
               <GlobalSearch
                 guests={guests || []}
                 guestProfiles={guestProfiles || []}
@@ -942,12 +942,8 @@ function App() {
               />
             </div>
           </div>
-          <img 
-            src={w3PMSLogo}
-            alt="W3 Hotel PMS" 
-            className="h-7 sm:h-8 w-auto object-contain shrink-0"
-          />
-          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          
+          <div className="flex items-center gap-2">
             <ColorMoodSelector />
             <ThemeToggle />
             <NotificationPanel
@@ -959,9 +955,9 @@ function App() {
               onClearAll={handleClearAll}
             />
           </div>
-        </div>
+        </header>
         
-        <div className="sm:hidden px-3 py-2 border-b bg-card/95 backdrop-blur-md">
+        <div className="sm:hidden px-4 py-3 border-b border-border bg-background">
           <GlobalSearch
             guests={guests || []}
             guestProfiles={guestProfiles || []}
@@ -1431,22 +1427,22 @@ function App() {
           </Suspense>
         </div>
         
-        <footer className="border-t border-border overflow-hidden mt-auto bg-card/80 backdrop-blur-md">
-          <div className="px-4 py-4 md:px-6 lg:px-8 md:py-5">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
-              <p className="text-xs sm:text-sm font-medium text-foreground/70">
-                © {new Date().getFullYear()} {branding?.hotelName || 'W3 Hotel'} - Design & Developed by
+        <footer className="border-t border-border mt-auto bg-background">
+          <div className="px-4 py-4 md:px-6">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+              <p className="text-sm text-muted-foreground">
+                © {new Date().getFullYear()} {branding?.hotelName || 'W3 Hotel'} · Powered by
               </p>
               <a 
                 href="https://www.w3media.lk/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:opacity-80 transition-all duration-300 hover:scale-105"
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
               >
                 <img 
                   src={w3MediaLogo}
                   alt="W3 Media PVT LTD" 
-                  className="h-5 sm:h-6 md:h-7"
+                  className="h-5"
                 />
               </a>
             </div>

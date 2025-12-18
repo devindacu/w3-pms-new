@@ -66,24 +66,14 @@ export function ThemeToggle() {
       size="icon"
       onClick={toggleDarkMode}
       disabled={isAnimating}
-      className="shine-effect relative group"
+      className="rounded-xl hover:bg-muted"
       title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
     >
-      <div className="relative">
-        {isDark ? (
-          <Sun 
-            size={20} 
-            className="text-primary transition-all duration-500 group-hover:rotate-180 group-hover:scale-110" 
-            weight="duotone" 
-          />
-        ) : (
-          <Moon 
-            size={20} 
-            className="text-primary transition-all duration-500 group-hover:-rotate-12 group-hover:scale-110" 
-            weight="duotone" 
-          />
-        )}
-      </div>
+      {isDark ? (
+        <Sun size={20} className="text-primary" weight="duotone" />
+      ) : (
+        <Moon size={20} className="text-primary" weight="duotone" />
+      )}
     </Button>
   )
 }

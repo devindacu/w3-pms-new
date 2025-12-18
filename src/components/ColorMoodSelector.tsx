@@ -105,26 +105,19 @@ export function ColorMoodSelector() {
           <Button
             variant="ghost"
             size="icon"
-            className="shine-effect relative group"
+            className="rounded-xl hover:bg-muted"
             title="Change color theme"
           >
-            <Palette 
-              size={20} 
-              className="text-primary transition-all duration-300 group-hover:scale-110" 
-              weight="duotone" 
-            />
+            <Palette size={20} className="text-primary" weight="duotone" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-96 p-4" align="end">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 pb-2 border-b">
-              <Palette size={20} className="text-primary" weight="duotone" />
-              <h3 className="font-semibold text-sm">Color Mood</h3>
+        <PopoverContent className="w-80 p-4" align="end">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Palette size={18} className="text-primary" weight="duotone" />
+              <h3 className="font-semibold text-sm">Color Theme</h3>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Choose a color palette to personalize your experience
-            </p>
-            <div className="grid grid-cols-3 gap-2 max-h-[400px] overflow-y-auto pr-1">
+            <div className="grid grid-cols-4 gap-2">
               {(Object.keys(colorMoods) as ColorMood[]).map((mood) => {
                 const isSelected = mood === selectedMood && !hasCustomColors
                 return (
@@ -133,63 +126,41 @@ export function ColorMoodSelector() {
                     onClick={() => handleMoodChange(mood)}
                     disabled={isAnimating}
                     className={`
-                      relative p-2.5 rounded-lg border-2 transition-all duration-300
-                      hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed
-                      ${isSelected 
-                        ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20' 
-                        : 'border-border hover:border-primary/50'
-                      }
+                      relative p-2 rounded-xl border-2 transition-all
+                      hover:scale-105 disabled:opacity-50
+                      ${isSelected ? 'border-primary bg-primary/5' : 'border-transparent hover:border-border'}
                     `}
                   >
                     <div className="flex flex-col items-center gap-1.5">
                       <div 
-                        className={`w-8 h-8 rounded-full ring-2 ring-offset-2 ring-offset-background transition-all duration-300 ${isSelected ? 'ring-primary' : 'ring-transparent'}`}
-                        style={{ 
-                          backgroundColor: getMoodPreviewColor(mood),
-                          boxShadow: `0 0 16px ${getMoodPreviewColor(mood)}50`,
-                        }}
+                        className="w-8 h-8 rounded-full"
+                        style={{ backgroundColor: getMoodPreviewColor(mood) }}
                       />
-                      <span className="text-[10px] font-medium leading-tight text-center">
-                        {moodLabels[mood]}
+                      <span className="text-[10px] font-medium truncate w-full text-center">
+                        {moodLabels[mood].split(' ')[0]}
                       </span>
                     </div>
                     {isSelected && (
-                      <div className="absolute top-1 right-1 animate-in fade-in zoom-in duration-300">
-                        <Check size={12} weight="bold" className="text-primary" />
+                      <div className="absolute top-1 right-1">
+                        <Check size={10} weight="bold" className="text-primary" />
                       </div>
                     )}
                   </button>
                 )
               })}
             </div>
-            <div className="pt-3 border-t">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full shine-effect"
-                onClick={() => {
-                  setOpen(false)
-                  setCustomPickerOpen(true)
-                }}
-              >
-                <PaintBrush size={16} className="mr-2" />
-                Create Custom Colors
-              </Button>
-            </div>
-            <div className="pt-2 border-t">
-              <p className="text-[10px] text-muted-foreground text-center">
-                {hasCustomColors ? (
-                  <span className="font-medium text-primary flex items-center justify-center gap-1">
-                    <Sparkle size={12} weight="fill" />
-                    Custom Colors Active
-                  </span>
-                ) : (
-                  <>
-                    Selected: <span className="font-medium text-foreground">{moodLabels[selectedMood]}</span>
-                  </>
-                )}
-              </p>
-            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full"
+              onClick={() => {
+                setOpen(false)
+                setCustomPickerOpen(true)
+              }}
+            >
+              <PaintBrush size={16} className="mr-2" />
+              Custom Colors
+            </Button>
           </div>
         </PopoverContent>
       </Popover>
