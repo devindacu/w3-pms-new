@@ -664,12 +664,12 @@ function App() {
 
   const SidebarContent = () => (
     <>
-      <div className="px-2 py-3 mb-2">
+      <div className="px-1.5 py-2.5 mb-1.5">
         <div className="flex items-center justify-center">
           <img 
             src={w3PMSLogo}
             alt="W3 Hotel PMS" 
-            className="h-10 w-auto object-contain"
+            className="h-9 w-auto object-contain"
           />
         </div>
       </div>
@@ -677,230 +677,230 @@ function App() {
       <nav className="space-y-0.5" onClick={() => setSidebarOpen(false)}>
         <Button
           variant={currentModule === 'dashboard' ? 'default' : 'ghost'}
-          className="w-full justify-start text-sm h-9"
+          className="w-full justify-start text-xs h-8 px-2"
           onClick={() => setCurrentModule('dashboard')}
         >
-          <Gauge size={16} className="mr-2 shrink-0" />
+          <Gauge size={15} className="mr-1.5 shrink-0" />
           Dashboard
         </Button>
 
-        <Separator className="my-1.5" />
+        <Separator className="my-1" />
 
         <CollapsibleSidebarGroup
           title="Property Management"
           groupId="property-management"
-          icon={<Buildings size={12} />}
+          icon={<Buildings size={11} />}
           defaultOpen={['front-office', 'crm', 'extra-services', 'housekeeping', 'fnb'].includes(currentModule)}
         >
           <Button
             variant={currentModule === 'front-office' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-9"
+            className="w-full justify-start text-xs h-8 px-2"
             onClick={() => setCurrentModule('front-office')}
           >
-            <Bed size={16} className="mr-2 shrink-0" />
+            <Bed size={15} className="mr-1.5 shrink-0" />
             Front Office
           </Button>
 
           <Button
             variant={currentModule === 'crm' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-9"
+            className="w-full justify-start text-xs h-8 px-2"
             onClick={() => setCurrentModule('crm')}
           >
-            <Users size={16} className="mr-2 shrink-0" />
+            <Users size={15} className="mr-1.5 shrink-0" />
             Guest Relations
           </Button>
 
           <Button
             variant={currentModule === 'extra-services' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-9"
+            className="w-full justify-start text-xs h-8 px-2"
             onClick={() => setCurrentModule('extra-services')}
           >
-            <Sparkle size={16} className="mr-2 shrink-0" />
+            <Sparkle size={15} className="mr-1.5 shrink-0" />
             Extra Services
           </Button>
 
           <Button
             variant={currentModule === 'housekeeping' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-9"
+            className="w-full justify-start text-xs h-8 px-2"
             onClick={() => setCurrentModule('housekeeping')}
           >
-            <Broom size={16} className="mr-2 shrink-0" />
+            <Broom size={15} className="mr-1.5 shrink-0" />
             Housekeeping
           </Button>
 
           <Button
             variant={currentModule === 'fnb' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-9"
+            className="w-full justify-start text-xs h-8 px-2"
             onClick={() => setCurrentModule('fnb')}
           >
-            <ForkKnife size={16} className="mr-2 shrink-0" />
+            <ForkKnife size={15} className="mr-1.5 shrink-0" />
             F&B / POS
           </Button>
         </CollapsibleSidebarGroup>
 
-        <Separator className="my-1.5" />
+        <Separator className="my-1" />
 
         <CollapsibleSidebarGroup
           title="Revenue Management"
           groupId="revenue-management"
-          icon={<CurrencyDollar size={12} />}
+          icon={<CurrencyDollar size={11} />}
           defaultOpen={['room-revenue', 'channel-manager'].includes(currentModule)}
         >
           <Button
             variant={currentModule === 'room-revenue' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-9"
+            className="w-full justify-start text-xs h-8 px-2"
             onClick={() => setCurrentModule('room-revenue')}
           >
-            <Buildings size={16} className="mr-2 shrink-0" />
+            <Buildings size={15} className="mr-1.5 shrink-0" />
             Room & Revenue
           </Button>
 
           <Button
             variant={currentModule === 'channel-manager' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-9"
+            className="w-full justify-start text-xs h-8 px-2"
             onClick={() => setCurrentModule('channel-manager')}
           >
-            <Buildings size={16} className="mr-2 shrink-0" />
+            <Buildings size={15} className="mr-1.5 shrink-0" />
             Channel Manager
           </Button>
         </CollapsibleSidebarGroup>
 
-        <Separator className="my-1.5" />
+        <Separator className="my-1" />
 
         <CollapsibleSidebarGroup
           title="Inventory & Procurement"
           groupId="inventory-procurement"
-          icon={<Package size={12} />}
+          icon={<Package size={11} />}
           defaultOpen={['inventory', 'suppliers', 'procurement'].includes(currentModule)}
         >
           <Button
             variant={currentModule === 'inventory' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-9"
+            className="w-full justify-start text-xs h-8 px-2"
             onClick={() => setCurrentModule('inventory')}
           >
-            <Package size={16} className="mr-2 shrink-0" />
+            <Package size={15} className="mr-1.5 shrink-0" />
             Inventory
           </Button>
 
           <Button
             variant={currentModule === 'suppliers' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-9"
+            className="w-full justify-start text-xs h-8 px-2"
             onClick={() => setCurrentModule('suppliers')}
           >
-            <Buildings size={16} className="mr-2 shrink-0" />
+            <Buildings size={15} className="mr-1.5 shrink-0" />
             Suppliers
           </Button>
 
           <Button
             variant={currentModule === 'procurement' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-9"
+            className="w-full justify-start text-xs h-8 px-2"
             onClick={() => setCurrentModule('procurement')}
           >
-            <ShoppingCart size={16} className="mr-2 shrink-0" />
-            Procurement & Invoices
+            <ShoppingCart size={15} className="mr-1.5 shrink-0" />
+            Procurement
           </Button>
         </CollapsibleSidebarGroup>
 
-        <Separator className="my-1.5" />
+        <Separator className="my-1" />
 
         <Button
           variant={currentModule === 'kitchen' ? 'default' : 'ghost'}
-          className="w-full justify-start text-sm h-9"
+          className="w-full justify-start text-xs h-8 px-2"
           onClick={() => setCurrentModule('kitchen')}
         >
-          <ChefHat size={16} className="mr-2 shrink-0" />
+          <ChefHat size={15} className="mr-1.5 shrink-0" />
           Kitchen Operations
         </Button>
 
-        <Separator className="my-1.5" />
+        <Separator className="my-1" />
 
         <CollapsibleSidebarGroup
           title="Finance & Operations"
           groupId="finance-operations"
-          icon={<CurrencyDollar size={12} />}
+          icon={<CurrencyDollar size={11} />}
           defaultOpen={['finance', 'hr', 'user-management', 'construction'].includes(currentModule)}
         >
           <Button
             variant={currentModule === 'finance' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-9"
+            className="w-full justify-start text-xs h-8 px-2"
             onClick={() => setCurrentModule('finance')}
           >
-            <CurrencyDollar size={16} className="mr-2 shrink-0" />
+            <CurrencyDollar size={15} className="mr-1.5 shrink-0" />
             Finance
           </Button>
 
           <Button
             variant={currentModule === 'hr' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-9"
+            className="w-full justify-start text-xs h-8 px-2"
             onClick={() => setCurrentModule('hr')}
           >
-            <Users size={16} className="mr-2 shrink-0" />
+            <Users size={15} className="mr-1.5 shrink-0" />
             HR & Staff
           </Button>
 
           <Button
             variant={currentModule === 'user-management' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-9"
+            className="w-full justify-start text-xs h-8 px-2"
             onClick={() => setCurrentModule('user-management')}
           >
-            <UserGear size={16} className="mr-2 shrink-0" />
+            <UserGear size={15} className="mr-1.5 shrink-0" />
             User Management
           </Button>
 
           <Button
             variant={currentModule === 'construction' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-9"
+            className="w-full justify-start text-xs h-8 px-2"
             onClick={() => setCurrentModule('construction')}
           >
-            <Hammer size={16} className="mr-2 shrink-0" />
-            Maintenance & Constructions
+            <Hammer size={15} className="mr-1.5 shrink-0" />
+            Maintenance
           </Button>
         </CollapsibleSidebarGroup>
 
-        <Separator className="my-1.5" />
+        <Separator className="my-1" />
 
         <CollapsibleSidebarGroup
           title="Analytics & Insights"
           groupId="analytics-insights"
-          icon={<ChartBar size={12} />}
+          icon={<ChartBar size={11} />}
           defaultOpen={['analytics', 'forecasting'].includes(currentModule)}
         >
           <Button
             variant={currentModule === 'analytics' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-9"
+            className="w-full justify-start text-xs h-8 px-2"
             onClick={() => setCurrentModule('analytics')}
           >
-            <ChartBar size={16} className="mr-2 shrink-0" />
+            <ChartBar size={15} className="mr-1.5 shrink-0" />
             Analytics
           </Button>
 
           <Button
             variant={currentModule === 'forecasting' ? 'default' : 'ghost'}
-            className="w-full justify-start text-sm h-9"
+            className="w-full justify-start text-xs h-8 px-2"
             onClick={() => setCurrentModule('forecasting')}
           >
-            <Sparkle size={16} className="mr-2 shrink-0" />
+            <Sparkle size={15} className="mr-1.5 shrink-0" />
             AI Forecasting
           </Button>
         </CollapsibleSidebarGroup>
 
-        <Separator className="my-1.5" />
+        <Separator className="my-1" />
 
         <Button
           variant={currentModule === 'invoice-center' ? 'default' : 'ghost'}
-          className="w-full justify-start text-sm h-9"
+          className="w-full justify-start text-xs h-8 px-2"
           onClick={() => setCurrentModule('invoice-center')}
         >
-          <Receipt size={16} className="mr-2 shrink-0" />
+          <Receipt size={15} className="mr-1.5 shrink-0" />
           Invoice Center
         </Button>
 
         <Button
           variant={currentModule === 'settings' ? 'default' : 'ghost'}
-          className="w-full justify-start text-sm h-9"
+          className="w-full justify-start text-xs h-8 px-2"
           onClick={() => setCurrentModule('settings')}
         >
-          <UserGear size={16} className="mr-2 shrink-0" />
+          <UserGear size={15} className="mr-1.5 shrink-0" />
           Settings
         </Button>
       </nav>
@@ -910,17 +910,17 @@ function App() {
   return (
     <ErrorBoundary>
     <div className="flex min-h-screen bg-background">
-      <aside className="hidden lg:block w-56 border-r bg-card/80 backdrop-blur-md p-3 space-y-1 overflow-y-auto fixed left-0 top-0 bottom-0 z-40">
+      <aside className="hidden lg:block w-52 border-r bg-card/80 backdrop-blur-md p-2.5 space-y-1 overflow-y-auto fixed left-0 top-0 bottom-0 z-40">
         <SidebarContent />
       </aside>
 
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="w-64 p-3 overflow-y-auto">
+        <SheetContent side="left" className="w-60 p-2.5 overflow-y-auto">
           <SidebarContent />
         </SheetContent>
       </Sheet>
 
-      <main className="flex-1 flex flex-col lg:ml-56 min-h-screen">
+      <main className="flex-1 flex flex-col lg:ml-52 min-h-screen">
         <div className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur-md px-3 sm:px-4 py-3 flex items-center justify-between gap-2 sm:gap-3">
           <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
