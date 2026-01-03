@@ -133,7 +133,7 @@ import { generateAllAlerts } from '@/lib/notificationHelpers'
 import { generateEmailFromNotifications, mockSendEmail } from '@/lib/emailHelpers'
 import { GlobalSearch } from '@/components/GlobalSearch'
 import { DashboardWidgetManager } from '@/components/DashboardWidgetManager'
-import { WidgetRenderer } from '@/components/DashboardWidgets'
+import { WidgetRenderer } from '@/components/DashboardWidgetsModern'
 
 const ConstructionManagement = lazy(() => import('@/components/ConstructionManagement').then(m => ({ default: m.ConstructionManagement })))
 const SupplierManagement = lazy(() => import('@/components/SupplierManagement').then(m => ({ default: m.SupplierManagement })))
@@ -553,24 +553,16 @@ function App() {
     }
 
     return (
-    <div className="space-y-6">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-12 bg-gradient-to-b from-primary to-accent rounded-full" />
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Welcome back, {currentUser.firstName}</p>
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
-                Dashboard Overview
-              </h1>
-            </div>
-          </div>
-          <p className="text-muted-foreground pl-5">Monitor your hotel performance in real-time</p>
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">Hotel Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Unified view of all hotel operations</p>
         </div>
-        <div className="flex items-center gap-3 pl-5 lg:pl-0">
+        <div className="flex items-center gap-2">
           {!hasData && (
-            <Button onClick={loadSampleData} size="lg" className="rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary">
-              <Database size={20} className="mr-2" weight="duotone" />
+            <Button onClick={loadSampleData} size="sm" className="rounded-lg">
+              <Database size={16} className="mr-2" />
               Load Sample Data
             </Button>
           )}
@@ -586,29 +578,24 @@ function App() {
       </div>
 
       {!hasData ? (
-        <Card className="relative overflow-hidden border-2 border-dashed border-border/50 bg-gradient-to-br from-background via-background to-muted/20">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(var(--primary-rgb),0.05),transparent_50%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(var(--accent-rgb),0.05),transparent_50%)]" />
-          <div className="relative p-12 md:p-16 text-center">
-            <div className="max-w-lg mx-auto space-y-8">
-              <div className="relative inline-flex">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 blur-2xl rounded-full" />
-                <div className="relative w-28 h-28 rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 flex items-center justify-center border border-primary/10 shadow-2xl">
-                  <Gauge size={56} className="text-primary" weight="duotone" />
-                </div>
+        <Card className="relative overflow-hidden border border-dashed">
+          <div className="p-12 md:p-16 text-center">
+            <div className="max-w-lg mx-auto space-y-6">
+              <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+                <Gauge size={40} className="text-primary" weight="duotone" />
               </div>
-              <div className="space-y-4">
-                <h3 className="text-3xl font-bold tracking-tight">Welcome to W3 Hotel PMS</h3>
-                <p className="text-muted-foreground text-lg leading-relaxed max-w-md mx-auto">
-                  Your all-in-one hotel management solution. Get started by loading sample data to explore the full capabilities of the system.
+              <div className="space-y-2">
+                <h3 className="text-2xl font-bold">Welcome to W3 Hotel PMS</h3>
+                <p className="text-muted-foreground text-sm">
+                  Get started by loading sample data to explore the system capabilities.
                 </p>
               </div>
               <Button 
                 onClick={loadSampleData} 
                 size="lg" 
-                className="rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary px-8 py-6 text-base"
+                className="rounded-lg"
               >
-                <Database size={22} className="mr-2" weight="duotone" />
+                <Database size={20} className="mr-2" />
                 Load Sample Data
               </Button>
             </div>
@@ -616,18 +603,17 @@ function App() {
         </Card>
       ) : (
         <>
-          <DashboardAlerts
-            notifications={notifications || []}
-            onDismiss={handleDismiss}
-            onViewAll={() => setNotificationPanelOpen(true)}
-          />
-          
-          <div className={`grid gap-6 ${layout?.columns === 1 ? 'grid-cols-1' : layout?.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : layout?.columns === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 lg:grid-cols-2'}`}>
+          <div className={`grid gap-4 ${
+            layout?.columns === 1 ? 'grid-cols-1' : 
+            layout?.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 
+            layout?.columns === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 
+            'grid-cols-1 lg:grid-cols-2'
+          }`}>
             {layout?.widgets
               .filter(w => w.isVisible)
               .sort((a, b) => a.position - b.position)
-              .map((widget, index) => (
-                <div key={widget.id} className="fade-in-up" style={{ animationDelay: `${index * 40}ms` }}>
+              .map((widget) => (
+                <div key={widget.id} className={widget.size === 'full' ? 'col-span-full' : ''}>
                   <WidgetRenderer
                     widget={widget}
                     metrics={metrics}
@@ -699,7 +685,7 @@ function App() {
 
   const NavItem = ({ item, onClick }: { item: typeof navItems[number], onClick?: () => void }) => {
     if ('type' in item && item.type === 'divider') {
-      return <div className="h-px bg-border/50 my-2 mx-3" />
+      return <div className="h-px bg-border/30 my-1 mx-2" />
     }
     
     const Icon = 'icon' in item ? item.icon : Gauge
@@ -712,55 +698,58 @@ function App() {
           onClick?.()
         }}
         className={`
-          nav-item w-full text-left
-          ${isActive ? 'active' : ''}
-          ${sidebarCollapsed ? 'justify-center px-3' : ''}
+          flex items-center gap-2 w-full text-left px-3 py-2 mx-2 my-0.5 rounded-lg text-sm transition-all
+          ${isActive 
+            ? 'bg-primary text-primary-foreground font-medium shadow-sm' 
+            : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+          }
+          ${sidebarCollapsed ? 'justify-center px-2' : ''}
         `}
         title={'label' in item ? item.label : ''}
       >
-        <Icon size={20} weight={isActive ? 'fill' : 'regular'} className="shrink-0" />
+        <Icon size={18} weight={isActive ? 'fill' : 'regular'} className="shrink-0" />
         {!sidebarCollapsed && 'label' in item && (
-          <span className="truncate">{item.label}</span>
+          <span className="truncate text-xs">{item.label}</span>
         )}
       </button>
     )
   }
 
   const SidebarContent = ({ onItemClick }: { onItemClick?: () => void }) => (
-    <div className="flex flex-col h-full">
-      <div className={`p-5 border-b border-sidebar-border ${sidebarCollapsed ? 'px-3' : ''}`}>
-        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-3'}`}>
+    <div className="flex flex-col h-full bg-sidebar">
+      <div className={`p-4 border-b border-sidebar-border ${sidebarCollapsed ? 'px-3' : ''}`}>
+        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2'}`}>
           {sidebarCollapsed ? (
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center border border-primary/10 shadow-sm">
-              <Gauge size={24} className="text-primary" weight="fill" />
+            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Gauge size={20} className="text-primary" weight="fill" />
             </div>
           ) : (
             <img 
               src={w3PMSLogo}
               alt="W3 Hotel PMS" 
-              className="h-10 w-auto object-contain"
+              className="h-8 w-auto object-contain"
             />
           )}
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-4 scrollbar-thin">
+      <nav className="flex-1 overflow-y-auto py-2 scrollbar-thin">
         {navItems.map((item) => (
           <NavItem key={item.id} item={item} onClick={onItemClick} />
         ))}
       </nav>
 
-      <div className={`p-5 border-t border-sidebar-border bg-sidebar-accent/30 ${sidebarCollapsed ? 'hidden lg:block' : ''}`}>
-        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-3'}`}>
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/15 to-primary/10 flex items-center justify-center border border-primary/10 shadow-sm">
-            <span className="text-sm font-bold text-primary">
+      <div className={`p-3 border-t border-sidebar-border ${sidebarCollapsed ? 'hidden lg:block' : ''}`}>
+        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2'}`}>
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <span className="text-xs font-bold text-primary">
               {currentUser.firstName?.[0]}{currentUser.lastName?.[0]}
             </span>
           </div>
           {!sidebarCollapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate text-foreground">{currentUser.firstName} {currentUser.lastName}</p>
-              <p className="text-xs text-muted-foreground truncate capitalize">{currentUser.role.replace('-', ' ')}</p>
+              <p className="text-xs font-semibold truncate text-sidebar-foreground">{currentUser.firstName} {currentUser.lastName}</p>
+              <p className="text-[10px] text-muted-foreground truncate capitalize">{currentUser.role.replace('-', ' ')}</p>
             </div>
           )}
         </div>
@@ -773,9 +762,9 @@ function App() {
     <div className="flex min-h-screen bg-background">
       <aside 
         className={`
-          hidden lg:flex flex-col sidebar-nav fixed left-0 top-0 bottom-0 z-40
-          transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
-          ${sidebarCollapsed ? 'w-[72px]' : 'w-[280px]'}
+          hidden lg:flex flex-col fixed left-0 top-0 bottom-0 z-40 border-r border-sidebar-border
+          transition-all duration-300 ease-in-out
+          ${sidebarCollapsed ? 'w-16' : 'w-[240px]'}
         `}
       >
         <SidebarContent />
@@ -789,12 +778,12 @@ function App() {
 
       <main 
         className={`
-          flex-1 flex flex-col min-h-screen transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
-          ${sidebarCollapsed ? 'lg:ml-[72px]' : 'lg:ml-[280px]'}
+          flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out
+          ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-[240px]'}
         `}
       >
-        <header className="sticky top-0 z-30 glass-panel border-b border-border/30 backdrop-blur-xl">
-          <div className="h-16 px-4 md:px-6 flex items-center justify-between gap-4">
+        <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
+          <div className="h-14 px-4 md:px-6 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 flex-1">
               <Button 
                 variant="ghost" 
@@ -855,7 +844,7 @@ function App() {
         </div>
         
         <OfflineModeBanner />
-        <div className="flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden max-w-[1920px] mx-auto w-full">
+        <div className="flex-1 p-4 md:p-5 overflow-x-hidden max-w-[1920px] mx-auto w-full bg-muted/30">
           {currentModule === 'dashboard' && renderDashboard()}
           {currentModule === 'quick-ops' && (
             <OfflineOperationsPanel
