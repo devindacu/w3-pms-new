@@ -40,34 +40,43 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
     switch (widget.type) {
       case 'occupancy':
         return (
-          <Card className="stat-card h-full">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-sm font-medium text-muted-foreground">Occupancy Rate</h3>
-              <div className="icon-badge">
-                <Bed size={20} weight="duotone" />
-              </div>
-            </div>
-            <div className="space-y-5">
-              <div>
-                <p className="text-4xl font-bold tracking-tight">{formatPercent(metrics.occupancy.rate)}</p>
-                <div className="progress-bar mt-3">
-                  <div 
-                    className="progress-bar-fill"
-                    style={{ width: `${metrics.occupancy.rate}%` }}
-                  />
+          <Card className="group relative overflow-hidden border border-border/50 bg-gradient-to-br from-card via-card to-card/50 hover:border-primary/30 transition-all duration-500 h-full shadow-sm hover:shadow-lg">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative p-6">
+              <div className="flex items-start justify-between mb-6">
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Occupancy</p>
+                  <h3 className="text-sm font-medium text-foreground/80">Current Rate</h3>
+                </div>
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center border border-primary/10 group-hover:scale-110 transition-transform duration-300">
+                  <Bed size={22} weight="duotone" className="text-primary" />
                 </div>
               </div>
-              <div className="text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">{metrics.occupancy.occupied}</span> of {metrics.occupancy.occupied + metrics.occupancy.available} rooms occupied
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-xl bg-success/5 border border-success/10">
-                  <p className="text-xs text-muted-foreground mb-1">Available</p>
-                  <p className="text-xl font-bold text-success">{metrics.occupancy.available}</p>
+              <div className="space-y-6">
+                <div>
+                  <p className="text-5xl font-bold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">{formatPercent(metrics.occupancy.rate)}</p>
+                  <div className="relative mt-4 h-2.5 rounded-full bg-muted/50 overflow-hidden">
+                    <div 
+                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary via-primary to-primary/80 rounded-full transition-all duration-700 ease-out"
+                      style={{ width: `${metrics.occupancy.rate}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="p-3 rounded-xl bg-warning/5 border border-warning/10">
-                  <p className="text-xs text-muted-foreground mb-1">Maintenance</p>
-                  <p className="text-xl font-bold text-warning">{metrics.occupancy.maintenance}</p>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="font-bold text-foreground">{metrics.occupancy.occupied}</span>
+                  <span className="text-muted-foreground">of {metrics.occupancy.occupied + metrics.occupancy.available} rooms occupied</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="relative p-4 rounded-xl bg-gradient-to-br from-success/5 to-success/[0.02] border border-success/10 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-success/5 to-transparent opacity-0 hover:opacity-100 transition-opacity" />
+                    <p className="relative text-xs text-muted-foreground mb-2 font-medium">Available</p>
+                    <p className="relative text-2xl font-bold text-success">{metrics.occupancy.available}</p>
+                  </div>
+                  <div className="relative p-4 rounded-xl bg-gradient-to-br from-warning/5 to-warning/[0.02] border border-warning/10 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-warning/5 to-transparent opacity-0 hover:opacity-100 transition-opacity" />
+                    <p className="relative text-xs text-muted-foreground mb-2 font-medium">Maintenance</p>
+                    <p className="relative text-2xl font-bold text-warning">{metrics.occupancy.maintenance}</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -76,21 +85,28 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'revenue-today':
         return (
-          <Card className="stat-card h-full">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-sm font-medium text-muted-foreground">Revenue Today</h3>
-              <div className="icon-badge-success">
-                <CurrencyDollar size={20} weight="duotone" />
-              </div>
-            </div>
-            <div className="space-y-4">
-              <p className="text-4xl font-bold tracking-tight">{formatCurrency(metrics.revenue.today)}</p>
-              {metrics.revenue.growth !== 0 && (
-                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${metrics.revenue.growth > 0 ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
-                  {metrics.revenue.growth > 0 ? <TrendUp size={16} weight="bold" /> : <TrendDown size={16} weight="bold" />}
-                  {metrics.revenue.growth > 0 ? '+' : ''}{formatPercent(Math.abs(metrics.revenue.growth))} vs yesterday
+          <Card className="group relative overflow-hidden border border-border/50 bg-gradient-to-br from-card via-card to-card/50 hover:border-success/30 transition-all duration-500 h-full shadow-sm hover:shadow-lg">
+            <div className="absolute inset-0 bg-gradient-to-br from-success/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative p-6">
+              <div className="flex items-start justify-between mb-6">
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Revenue</p>
+                  <h3 className="text-sm font-medium text-foreground/80">Today's Earnings</h3>
                 </div>
-              )}
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-success/10 to-success/5 flex items-center justify-center border border-success/10 group-hover:scale-110 transition-transform duration-300">
+                  <CurrencyDollar size={22} weight="duotone" className="text-success" />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <p className="text-5xl font-bold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">{formatCurrency(metrics.revenue.today)}</p>
+                {metrics.revenue.growth !== 0 && (
+                  <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${metrics.revenue.growth > 0 ? 'bg-success/10 text-success border border-success/20' : 'bg-destructive/10 text-destructive border border-destructive/20'}`}>
+                    {metrics.revenue.growth > 0 ? <TrendUp size={18} weight="bold" /> : <TrendDown size={18} weight="bold" />}
+                    <span>{metrics.revenue.growth > 0 ? '+' : ''}{formatPercent(Math.abs(metrics.revenue.growth))}</span>
+                    <span className="text-xs opacity-70">vs yesterday</span>
+                  </div>
+                )}
+              </div>
             </div>
           </Card>
         )
