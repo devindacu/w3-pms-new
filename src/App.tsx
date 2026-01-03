@@ -556,13 +556,13 @@ function App() {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div className="space-y-1">
-          <p className="text-sm font-medium text-primary">Welcome back</p>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Real-time overview of your hotel operations</p>
+          <p className="text-sm font-semibold text-primary tracking-wide uppercase">Welcome back</p>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground text-base">Real-time overview of your hotel operations</p>
         </div>
         <div className="flex items-center gap-3">
           {!hasData && (
-            <Button onClick={loadSampleData} size="lg" className="rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+            <Button onClick={loadSampleData} size="lg" className="rounded-xl shadow-md hover:shadow-lg transition-all duration-200">
               <Database size={20} className="mr-2" />
               Load Sample Data
             </Button>
@@ -579,18 +579,18 @@ function App() {
       </div>
 
       {!hasData ? (
-        <Card className="glass-card p-16 text-center border-dashed">
+        <Card className="glass-card p-16 text-center border-dashed border-2">
           <div className="max-w-md mx-auto space-y-6">
-            <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-              <Gauge size={40} className="text-primary" weight="duotone" />
+            <div className="mx-auto w-24 h-24 rounded-3xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center shadow-md">
+              <Gauge size={48} className="text-primary" weight="duotone" />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h3 className="text-2xl font-bold">Welcome to W3 Hotel PMS</h3>
-              <p className="text-muted-foreground text-lg">
+              <p className="text-muted-foreground text-base leading-relaxed">
                 Your comprehensive hotel management solution. Start by loading sample data to explore all features.
               </p>
             </div>
-            <Button onClick={loadSampleData} size="lg" className="rounded-xl shadow-lg hover:shadow-xl transition-all">
+            <Button onClick={loadSampleData} size="lg" className="rounded-xl shadow-md hover:shadow-lg transition-all duration-200">
               <Database size={20} className="mr-2" />
               Get Started
             </Button>
@@ -609,7 +609,7 @@ function App() {
               .filter(w => w.isVisible)
               .sort((a, b) => a.position - b.position)
               .map((widget, index) => (
-                <div key={widget.id} className="fade-in-up" style={{ animationDelay: `${index * 40}ms` }}>
+                <div key={widget.id} className="fade-in-up" style={{ animationDelay: `${index * 30}ms` }}>
                   <WidgetRenderer
                     widget={widget}
                     metrics={metrics}
@@ -756,8 +756,8 @@ function App() {
       <aside 
         className={`
           hidden lg:flex flex-col sidebar-nav fixed left-0 top-0 bottom-0 z-40
-          transition-all duration-300 ease-out
-          ${sidebarCollapsed ? 'w-[72px]' : 'w-[260px]'}
+          transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
+          ${sidebarCollapsed ? 'w-[72px]' : 'w-[280px]'}
         `}
       >
         <SidebarContent />
@@ -771,17 +771,17 @@ function App() {
 
       <main 
         className={`
-          flex-1 flex flex-col min-h-screen transition-all duration-300 ease-out
-          ${sidebarCollapsed ? 'lg:ml-[72px]' : 'lg:ml-[260px]'}
+          flex-1 flex flex-col min-h-screen transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
+          ${sidebarCollapsed ? 'lg:ml-[72px]' : 'lg:ml-[280px]'}
         `}
       >
-        <header className="sticky top-0 z-30 glass-panel border-b border-border/50">
+        <header className="sticky top-0 z-30 glass-panel border-b border-border/40">
           <div className="h-16 px-4 md:px-6 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 flex-1">
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="lg:hidden rounded-xl bg-muted/50 hover:bg-muted"
+                className="lg:hidden rounded-xl hover:bg-muted transition-all"
                 onClick={() => setSidebarOpen(true)}
               >
                 <List size={20} />
@@ -790,7 +790,7 @@ function App() {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="hidden lg:flex rounded-xl bg-muted/50 hover:bg-muted"
+                className="hidden lg:flex rounded-xl hover:bg-muted transition-all"
                 onClick={() => setSidebarCollapsed((current) => !current)}
                 title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               >
@@ -828,7 +828,7 @@ function App() {
           </div>
         </header>
             
-        <div className="sm:hidden px-4 py-3 border-b border-border/50 bg-background/80 backdrop-blur-sm">
+        <div className="sm:hidden px-4 py-3 border-b border-border/40 bg-background/95 backdrop-blur-sm">
           <div className="flex items-center justify-center gap-2">
             <MobileOfflineTools />
             <ColorMoodSelector />
@@ -837,7 +837,7 @@ function App() {
         </div>
         
         <OfflineModeBanner />
-        <div className="flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden">
+        <div className="flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden max-w-[1920px] mx-auto w-full">
           {currentModule === 'dashboard' && renderDashboard()}
           {currentModule === 'quick-ops' && (
             <OfflineOperationsPanel
@@ -1309,7 +1309,7 @@ function App() {
           </Suspense>
         </div>
         
-        <footer className="border-t border-border/50 mt-auto bg-background/80 backdrop-blur-sm">
+        <footer className="border-t border-border/40 mt-auto bg-background/95 backdrop-blur-sm">
           <div className="px-4 py-4 md:px-6">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-sm text-muted-foreground">
               <span>© {new Date().getFullYear()} {branding?.hotelName || 'W3 Hotel'}</span>
@@ -1318,13 +1318,13 @@ function App() {
                 href="https://www.w3media.lk/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:text-foreground transition-colors"
+                className="flex items-center gap-2 hover:text-foreground transition-colors duration-200"
               >
                 Powered by
                 <img 
                   src={w3MediaLogo}
                   alt="W3 Media" 
-                  className="h-4 opacity-70 hover:opacity-100 transition-opacity"
+                  className="h-4 opacity-70 hover:opacity-100 transition-opacity duration-200"
                 />
               </a>
             </div>
@@ -1336,7 +1336,8 @@ function App() {
         position="top-right" 
         richColors 
         toastOptions={{
-          className: 'rounded-xl border border-border/50 shadow-lg',
+          className: 'rounded-xl border border-border/40 shadow-lg backdrop-blur-sm',
+          duration: 4000,
         }}
       />
     </div>
