@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, lazy, Suspense, useCallback, useMemo } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Toaster, toast } from 'sonner'
 import { useTheme } from '@/hooks/use-theme'
