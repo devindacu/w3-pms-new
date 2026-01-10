@@ -68,6 +68,13 @@ import {
   sampleEmployees,
   sampleMaintenanceRequests
 } from '@/lib/sampleData'
+import {
+  sampleRoomTypeConfigs,
+  sampleRatePlans,
+  sampleSeasons,
+  sampleEventDays,
+  sampleCorporateAccounts
+} from '@/lib/revenueManagementSampleData'
 import { ModuleLoadingSkeleton } from '@/components/ModuleLoadingSkeleton'
 
 const FrontOffice = lazy(() => import('@/components/FrontOffice').then(m => ({ default: m.FrontOffice })))
@@ -124,11 +131,11 @@ function App() {
   const [kitchenInventoryIssues, setKitchenInventoryIssues] = useKV<any[]>('w3-hotel-kitchen-inventory-issues', [])
   const [wasteTracking, setWasteTracking] = useKV<any[]>('w3-hotel-waste-tracking', [])
   
-  const [roomTypeConfigs, setRoomTypeConfigs] = useKV<any[]>('w3-hotel-room-type-configs', [])
-  const [ratePlans, setRatePlans] = useKV<any[]>('w3-hotel-rate-plans', [])
-  const [seasons, setSeasons] = useKV<any[]>('w3-hotel-seasons', [])
-  const [eventDays, setEventDays] = useKV<any[]>('w3-hotel-event-days', [])
-  const [corporateAccounts, setCorporateAccounts] = useKV<any[]>('w3-hotel-corporate-accounts', [])
+  const [roomTypeConfigs, setRoomTypeConfigs] = useKV<any[]>('w3-hotel-room-type-configs', sampleRoomTypeConfigs)
+  const [ratePlans, setRatePlans] = useKV<any[]>('w3-hotel-rate-plans', sampleRatePlans)
+  const [seasons, setSeasons] = useKV<any[]>('w3-hotel-seasons', sampleSeasons)
+  const [eventDays, setEventDays] = useKV<any[]>('w3-hotel-event-days', sampleEventDays)
+  const [corporateAccounts, setCorporateAccounts] = useKV<any[]>('w3-hotel-corporate-accounts', sampleCorporateAccounts)
   const [rateCalendar, setRateCalendar] = useKV<any[]>('w3-hotel-rate-calendar', [])
   
   const [invoices, setInvoices] = useKV<any[]>('w3-hotel-finance-invoices', [])
