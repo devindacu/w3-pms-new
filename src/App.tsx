@@ -157,6 +157,43 @@ function App() {
   const [consumptionLogs, setConsumptionLogs] = useKV<any[]>('w3-hotel-consumption-logs', [])
   const [purchaseOrders, setPurchaseOrders] = useKV<any[]>('w3-hotel-purchase-orders', [])
   
+  const [branding, setBranding] = useKV<any>('w3-hotel-branding', null)
+  const [taxes, setTaxes] = useKV<any[]>('w3-hotel-taxes', [])
+  const [serviceCharge, setServiceCharge] = useKV<any>('w3-hotel-service-charge', null)
+  const [emailTemplates, setEmailTemplates] = useKV<any[]>('w3-hotel-email-templates', [])
+  const [emailAnalytics, setEmailAnalytics] = useKV<any[]>('w3-hotel-email-analytics', [])
+  const [campaignAnalytics, setCampaignAnalytics] = useKV<any[]>('w3-hotel-campaign-analytics', [])
+  const [emailRecords, setEmailRecords] = useKV<any[]>('w3-hotel-email-records', [])
+  
+  const [attendance, setAttendance] = useKV<any[]>('w3-hotel-attendance', [])
+  const [leaveRequests, setLeaveRequests] = useKV<any[]>('w3-hotel-leave-requests', [])
+  const [shifts, setShifts] = useKV<any[]>('w3-hotel-shifts', [])
+  const [dutyRosters, setDutyRosters] = useKV<any[]>('w3-hotel-duty-rosters', [])
+  const [performanceReviews, setPerformanceReviews] = useKV<any[]>('w3-hotel-performance-reviews', [])
+  
+  const [otaConnections, setOtaConnections] = useKV<any[]>('w3-hotel-ota-connections', [])
+  const [channelInventory, setChannelInventory] = useKV<any[]>('w3-hotel-channel-inventory', [])
+  const [channelRates, setChannelRates] = useKV<any[]>('w3-hotel-channel-rates', [])
+  const [channelReservations, setChannelReservations] = useKV<any[]>('w3-hotel-channel-reservations', [])
+  const [syncLogs, setSyncLogs] = useKV<any[]>('w3-hotel-sync-logs', [])
+  const [channelPerformance, setChannelPerformance] = useKV<any[]>('w3-hotel-channel-performance', [])
+  const [channelReviews, setChannelReviews] = useKV<any[]>('w3-hotel-channel-reviews', [])
+  const [bulkOperations, setBulkOperations] = useKV<any[]>('w3-hotel-bulk-operations', [])
+  
+  const [amenityUsageLogs, setAmenityUsageLogs] = useKV<any[]>('w3-hotel-amenity-usage-logs', [])
+  const [amenityAutoOrders, setAmenityAutoOrders] = useKV<any[]>('w3-hotel-amenity-auto-orders', [])
+  
+  const [requisitions, setRequisitions] = useKV<any[]>('w3-hotel-requisitions', [])
+  const [procurementInvoices, setProcurementInvoices] = useKV<any[]>('w3-hotel-procurement-invoices', [])
+  
+  const [foodItems, setFoodItems] = useKV<any[]>('w3-hotel-food-items', [])
+  const [amenities, setAmenities] = useKV<any[]>('w3-hotel-amenities', [])
+  const [constructionMaterials, setConstructionMaterials] = useKV<any[]>('w3-hotel-construction-materials', [])
+  const [generalProducts, setGeneralProducts] = useKV<any[]>('w3-hotel-general-products', [])
+  
+  const [constructionProjects, setConstructionProjects] = useKV<any[]>('w3-hotel-construction-projects', [])
+  const [contractors, setContractors] = useKV<any[]>('w3-hotel-contractors', [])
+  
   const currentUser = (systemUsers || [])[0] || sampleSystemUsers[0]
 
   const navigationGroups = [
@@ -543,9 +580,70 @@ function App() {
               />
             </Suspense>
           )}
-          {currentModule === 'channel-manager' && renderComingSoon('Channel Manager')}
-          {currentModule === 'inventory' && renderComingSoon('Inventory')}
-          {currentModule === 'procurement' && renderComingSoon('Procurement')}
+          {currentModule === 'channel-manager' && (
+            <Suspense fallback={<ModuleLoadingSkeleton />}>
+              <ChannelManager
+                connections={otaConnections || []}
+                setConnections={setOtaConnections}
+                ratePlans={ratePlans || []}
+                setRatePlans={setRatePlans}
+                inventory={channelInventory || []}
+                setInventory={setChannelInventory}
+                rates={channelRates || []}
+                setRates={setChannelRates}
+                reservations={channelReservations || []}
+                setReservations={setChannelReservations}
+                syncLogs={syncLogs || []}
+                setSyncLogs={setSyncLogs}
+                performance={channelPerformance || []}
+                reviews={channelReviews || []}
+                setReviews={setChannelReviews}
+                bulkOperations={bulkOperations || []}
+                setBulkOperations={setBulkOperations}
+                rooms={rooms || []}
+                currentUser={currentUser}
+              />
+            </Suspense>
+          )}
+          {currentModule === 'inventory' && (
+            <Suspense fallback={<ModuleLoadingSkeleton />}>
+              <InventoryManagement
+                foodItems={foodItems || []}
+                setFoodItems={setFoodItems}
+                amenities={amenities || []}
+                setAmenities={setAmenities}
+                amenityUsageLogs={amenityUsageLogs || []}
+                setAmenityUsageLogs={setAmenityUsageLogs}
+                amenityAutoOrders={amenityAutoOrders || []}
+                setAmenityAutoOrders={setAmenityAutoOrders}
+                constructionMaterials={constructionMaterials || []}
+                generalProducts={generalProducts || []}
+                setGeneralProducts={setGeneralProducts}
+                suppliers={suppliers || []}
+              />
+            </Suspense>
+          )}
+          {currentModule === 'procurement' && (
+            <Suspense fallback={<ModuleLoadingSkeleton />}>
+              <Procurement
+                requisitions={requisitions || []}
+                setRequisitions={setRequisitions}
+                suppliers={suppliers || []}
+                foodItems={foodItems || []}
+                amenities={amenities || []}
+                constructionMaterials={constructionMaterials || []}
+                generalProducts={generalProducts || []}
+                purchaseOrders={purchaseOrders || []}
+                setPurchaseOrders={setPurchaseOrders}
+                grns={grns || []}
+                setGRNs={setGrns}
+                inventory={inventory || []}
+                currentUser={currentUser}
+                invoices={procurementInvoices || []}
+                setInvoices={setProcurementInvoices}
+              />
+            </Suspense>
+          )}
           {currentModule === 'suppliers' && (
             <Suspense fallback={<ModuleLoadingSkeleton />}>
               <SupplierManagement
@@ -574,12 +672,29 @@ function App() {
               />
             </Suspense>
           )}
-          {currentModule === 'hr' && renderComingSoon('HR & Staff')}
+          {currentModule === 'hr' && (
+            <Suspense fallback={<ModuleLoadingSkeleton />}>
+              <HRManagement
+                employees={employees || []}
+                setEmployees={setEmployees}
+                attendance={attendance || []}
+                setAttendance={setAttendance}
+                leaveRequests={leaveRequests || []}
+                setLeaveRequests={setLeaveRequests}
+                shifts={shifts || []}
+                setShifts={setShifts}
+                dutyRosters={dutyRosters || []}
+                setDutyRosters={setDutyRosters}
+                performanceReviews={performanceReviews || []}
+                setPerformanceReviews={setPerformanceReviews}
+              />
+            </Suspense>
+          )}
           {currentModule === 'analytics' && (
             <Suspense fallback={<ModuleLoadingSkeleton />}>
               <Analytics
                 orders={orders || []}
-                foodItems={[]}
+                foodItems={foodItems || []}
                 suppliers={suppliers || []}
                 grns={grns || []}
                 recipes={recipes || []}
@@ -589,7 +704,19 @@ function App() {
               />
             </Suspense>
           )}
-          {currentModule === 'construction' && renderComingSoon('Maintenance')}
+          {currentModule === 'construction' && (
+            <Suspense fallback={<ModuleLoadingSkeleton />}>
+              <ConstructionManagement
+                materials={constructionMaterials || []}
+                setMaterials={setConstructionMaterials}
+                projects={constructionProjects || []}
+                setProjects={setConstructionProjects}
+                suppliers={suppliers || []}
+                contractors={contractors || []}
+                setContractors={setContractors}
+              />
+            </Suspense>
+          )}
           {currentModule === 'user-management' && (
             <Suspense fallback={<ModuleLoadingSkeleton />}>
               <UserManagement
@@ -601,7 +728,24 @@ function App() {
               />
             </Suspense>
           )}
-          {currentModule === 'settings' && renderComingSoon('Settings')}
+          {currentModule === 'settings' && (
+            <Suspense fallback={<ModuleLoadingSkeleton />}>
+              <Settings
+                branding={branding}
+                setBranding={setBranding}
+                taxes={taxes || []}
+                setTaxes={setTaxes}
+                serviceCharge={serviceCharge}
+                setServiceCharge={setServiceCharge}
+                emailTemplates={emailTemplates || []}
+                setEmailTemplates={setEmailTemplates}
+                emailAnalytics={emailAnalytics || []}
+                campaignAnalytics={campaignAnalytics || []}
+                emailRecords={emailRecords || []}
+                currentUser={currentUser}
+              />
+            </Suspense>
+          )}
         </div>
       </main>
 
