@@ -1,41 +1,48 @@
-import * as React from 'react'
 import { Suspense, useEffect, useState } from 'react'
+import { ReactInitializer } from './ReactInitializer'
 import App from './App'
-
-if (!React) {
-  throw new Error('React module is not available in AppWrapper')
-}
 
 export function AppWrapper() {
   const [isReady, setIsReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const checkSparkAvailability = () => {
+    let mounted = true
+    
+    const checkSparkAvailability = async () => {
       try {
         if (typeof window === 'undefined') {
-          setError('Window object not available')
+          if (mounted) setError('Window object not available')
           return
         }
 
         if (typeof window.spark === 'undefined') {
-          setError('Spark runtime not available')
+          if (mounted) setError('Spark runtime not available')
           return
         }
         
         if (typeof window.spark.kv === 'undefined') {
-          setError('Spark KV store not available')
+          if (mounted) setError('Spark KV store not available')
           return
         }
 
-        setIsReady(true)
+        await new Promise(resolve => setTimeout(resolve, 50))
+        
+        if (mounted) {
+          setIsReady(true)
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error during initialization')
+        if (mounted) {
+          setError(err instanceof Error ? err.message : 'Unknown error during initialization')
+        }
       }
     }
 
-    const timer = setTimeout(checkSparkAvailability, 100)
-    return () => clearTimeout(timer)
+    checkSparkAvailability()
+    
+    return () => {
+      mounted = false
+    }
   }, [])
 
   if (error) {
@@ -123,30 +130,32 @@ export function AppWrapper() {
   }
 
   return (
-    <Suspense fallback={
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: '#fafafa'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{
-            width: '4rem',
-            height: '4rem',
-            border: '4px solid rgba(59, 130, 246, 0.2)',
-            borderTopColor: '#3b82f6',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 1rem'
-          }} />
-          <p style={{ color: '#6b7280' }}>Loading W3 Hotel PMS...</p>
+    <ReactInitializer>
+      <Suspense fallback={
+        <div style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#fafafa'
+        }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{
+              width: '4rem',
+              height: '4rem',
+              border: '4px solid rgba(59, 130, 246, 0.2)',
+              borderTopColor: '#3b82f6',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+              margin: '0 auto 1rem'
+            }} />
+            <p style={{ color: '#6b7280' }}>Loading W3 Hotel PMS...</p>
+          </div>
         </div>
-      </div>
-    }>
-      <App />
-    </Suspense>
+      }>
+        <App />
+      </Suspense>
+    </ReactInitializer>
   )
 }
 

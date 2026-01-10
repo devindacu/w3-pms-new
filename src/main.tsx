@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ErrorBoundary } from "react-error-boundary"
@@ -9,10 +8,6 @@ import "./main.css"
 import AppWrapper from './AppWrapper'
 import { ErrorFallback } from './ErrorFallback'
 
-if (!React) {
-  throw new Error('React is not available')
-}
-
 const rootElement = document.getElementById('root')
 if (!rootElement) {
   throw new Error('Failed to find root element')
@@ -22,19 +17,17 @@ try {
   const root = createRoot(rootElement)
   
   root.render(
-    <StrictMode>
-      <ErrorBoundary 
-        FallbackComponent={ErrorFallback}
-        onError={(error, info) => {
-          console.error('React Error Boundary caught an error:', error, info)
-        }}
-        onReset={() => {
-          window.location.reload()
-        }}
-      >
-        <AppWrapper />
-      </ErrorBoundary>
-    </StrictMode>
+    <ErrorBoundary 
+      FallbackComponent={ErrorFallback}
+      onError={(error, info) => {
+        console.error('React Error Boundary caught an error:', error, info)
+      }}
+      onReset={() => {
+        window.location.reload()
+      }}
+    >
+      <AppWrapper />
+    </ErrorBoundary>
   )
 } catch (error) {
   console.error('Fatal error during React initialization:', error)
