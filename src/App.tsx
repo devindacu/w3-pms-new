@@ -845,7 +845,8 @@ function App() {
         </div>
         
         <OfflineModeBanner />
-        <div className="flex-1 p-4 lg:p-8 overflow-x-hidden max-w-[1920px] mx-auto w-full">{currentModule === 'dashboard' && renderDashboard()}
+        <div className="flex-1 p-4 lg:p-8 overflow-x-hidden max-w-[1920px] mx-auto w-full">
+          {currentModule === 'dashboard' && renderDashboard()}
           {currentModule === 'quick-ops' && (
             <OfflineOperationsPanel
               rooms={rooms || []}
@@ -858,470 +859,546 @@ function App() {
               }}
             />
           )}
-          <Suspense fallback={<TableSkeleton rows={10} />}>
-            <ModuleErrorBoundary>
           {currentModule === 'front-office' && (
-            <FrontOffice
-              guests={guests || []}
-              setGuests={setGuests}
-              guestProfiles={guestProfiles || []}
-              setGuestProfiles={setGuestProfiles}
-              reservations={reservations || []}
-              setReservations={setReservations}
-              rooms={rooms || []}
-              setRooms={setRooms}
-              folios={folios || []}
-              setFolios={setFolios}
-              extraServices={extraServices || []}
-              serviceCategories={serviceCategories || []}
-              folioExtraServices={folioExtraServices || []}
-              setFolioExtraServices={setFolioExtraServices}
-              currentUser={currentUser}
-            />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <FrontOffice
+                  guests={guests || []}
+                  setGuests={setGuests}
+                  guestProfiles={guestProfiles || []}
+                  setGuestProfiles={setGuestProfiles}
+                  reservations={reservations || []}
+                  setReservations={setReservations}
+                  rooms={rooms || []}
+                  setRooms={setRooms}
+                  folios={folios || []}
+                  setFolios={setFolios}
+                  extraServices={extraServices || []}
+                  serviceCategories={serviceCategories || []}
+                  folioExtraServices={folioExtraServices || []}
+                  setFolioExtraServices={setFolioExtraServices}
+                  currentUser={currentUser}
+                />
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
           {currentModule === 'room-revenue' && (
-            <RoomRevenueManagement
-              rooms={rooms || []}
-              setRooms={setRooms}
-              roomTypes={roomTypeConfigs || []}
-              setRoomTypes={setRoomTypeConfigs}
-              ratePlans={ratePlanConfigs || []}
-              setRatePlans={setRatePlanConfigs}
-              seasons={seasons || []}
-              setSeasons={setSeasons}
-              eventDays={eventDays || []}
-              setEventDays={setEventDays}
-              corporateAccounts={corporateAccounts || []}
-              setCorporateAccounts={setCorporateAccounts}
-              rateCalendar={rateCalendar || []}
-              setRateCalendar={setRateCalendar}
-              currentUser={currentUser}
-            />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <RoomRevenueManagement
+                  rooms={rooms || []}
+                  setRooms={setRooms}
+                  roomTypes={roomTypeConfigs || []}
+                  setRoomTypes={setRoomTypeConfigs}
+                  ratePlans={ratePlanConfigs || []}
+                  setRatePlans={setRatePlanConfigs}
+                  seasons={seasons || []}
+                  setSeasons={setSeasons}
+                  eventDays={eventDays || []}
+                  setEventDays={setEventDays}
+                  corporateAccounts={corporateAccounts || []}
+                  setCorporateAccounts={setCorporateAccounts}
+                  rateCalendar={rateCalendar || []}
+                  setRateCalendar={setRateCalendar}
+                  currentUser={currentUser}
+                />
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
           {currentModule === 'housekeeping' && (
-            <Housekeeping
-              rooms={rooms || []}
-              setRooms={setRooms}
-              tasks={housekeepingTasks || []}
-              setTasks={setHousekeepingTasks}
-              employees={employees || []}
-            />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <Housekeeping
+                  rooms={rooms || []}
+                  setRooms={setRooms}
+                  tasks={housekeepingTasks || []}
+                  setTasks={setHousekeepingTasks}
+                  employees={employees || []}
+                />
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
           {currentModule === 'fnb' && (
-            <FnBPOS
-              menuItems={menuItems || []}
-              setMenuItems={setMenuItems}
-              orders={orders || []}
-              setOrders={setOrders}
-              guests={guests || []}
-              rooms={rooms || []}
-            />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <FnBPOS
+                  menuItems={menuItems || []}
+                  setMenuItems={setMenuItems}
+                  orders={orders || []}
+                  setOrders={setOrders}
+                  guests={guests || []}
+                  rooms={rooms || []}
+                />
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
           {currentModule === 'inventory' && (
-            <InventoryManagement
-              foodItems={foodItems || []}
-              setFoodItems={setFoodItems}
-              amenities={amenities || []}
-              setAmenities={setAmenities}
-              amenityUsageLogs={amenityUsageLogs || []}
-              setAmenityUsageLogs={setAmenityUsageLogs}
-              amenityAutoOrders={amenityAutoOrders || []}
-              setAmenityAutoOrders={setAmenityAutoOrders}
-              constructionMaterials={constructionMaterials || []}
-              generalProducts={generalProducts || []}
-              setGeneralProducts={setGeneralProducts}
-              suppliers={suppliers || []}
-            />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <InventoryManagement
+                  foodItems={foodItems || []}
+                  setFoodItems={setFoodItems}
+                  amenities={amenities || []}
+                  setAmenities={setAmenities}
+                  amenityUsageLogs={amenityUsageLogs || []}
+                  setAmenityUsageLogs={setAmenityUsageLogs}
+                  amenityAutoOrders={amenityAutoOrders || []}
+                  setAmenityAutoOrders={setAmenityAutoOrders}
+                  constructionMaterials={constructionMaterials || []}
+                  generalProducts={generalProducts || []}
+                  setGeneralProducts={setGeneralProducts}
+                  suppliers={suppliers || []}
+                />
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
 
           {currentModule === 'suppliers' && (
-            <SupplierManagement
-              suppliers={suppliers || []}
-              setSuppliers={setSuppliers}
-            />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <SupplierManagement
+                  suppliers={suppliers || []}
+                  setSuppliers={setSuppliers}
+                />
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
           {currentModule === 'procurement' && (
-            <Procurement
-              requisitions={requisitions || []}
-              setRequisitions={setRequisitions}
-              purchaseOrders={purchaseOrders || []}
-              setPurchaseOrders={setPurchaseOrders}
-              grns={grns || []}
-              setGRNs={setGRNs}
-              suppliers={suppliers || []}
-              inventory={inventory || []}
-              foodItems={foodItems || []}
-              amenities={amenities || []}
-              constructionMaterials={constructionMaterials || []}
-              generalProducts={generalProducts || []}
-              currentUser={currentUser}
-              invoices={invoices || []}
-              setInvoices={setInvoices}
-            />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <Procurement
+                  requisitions={requisitions || []}
+                  setRequisitions={setRequisitions}
+                  purchaseOrders={purchaseOrders || []}
+                  setPurchaseOrders={setPurchaseOrders}
+                  grns={grns || []}
+                  setGRNs={setGRNs}
+                  suppliers={suppliers || []}
+                  inventory={inventory || []}
+                  foodItems={foodItems || []}
+                  amenities={amenities || []}
+                  constructionMaterials={constructionMaterials || []}
+                  generalProducts={generalProducts || []}
+                  currentUser={currentUser}
+                  invoices={invoices || []}
+                  setInvoices={setInvoices}
+                />
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
           {currentModule === 'kitchen' && (
-            <KitchenOperations
-              recipes={recipes || []}
-              setRecipes={setRecipes}
-              menus={menus || []}
-              setMenus={setMenus}
-              consumptionLogs={consumptionLogs || []}
-              setConsumptionLogs={setConsumptionLogs}
-              stations={kitchenStations || []}
-              setStations={setKitchenStations}
-              kitchenStaff={kitchenStaff || []}
-              setKitchenStaff={setKitchenStaff}
-              productionSchedules={productionSchedules || []}
-              setProductionSchedules={setProductionSchedules}
-              inventoryIssues={inventoryIssues || []}
-              setInventoryIssues={setInventoryIssues}
-              wasteTracking={wasteTracking || []}
-              setWasteTracking={setWasteTracking}
-              foodItems={foodItems || []}
-              suppliers={suppliers || []}
-              orders={orders || []}
-              employees={employees || []}
-            />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <KitchenOperations
+                  recipes={recipes || []}
+                  setRecipes={setRecipes}
+                  menus={menus || []}
+                  setMenus={setMenus}
+                  consumptionLogs={consumptionLogs || []}
+                  setConsumptionLogs={setConsumptionLogs}
+                  stations={kitchenStations || []}
+                  setStations={setKitchenStations}
+                  kitchenStaff={kitchenStaff || []}
+                  setKitchenStaff={setKitchenStaff}
+                  productionSchedules={productionSchedules || []}
+                  setProductionSchedules={setProductionSchedules}
+                  inventoryIssues={inventoryIssues || []}
+                  setInventoryIssues={setInventoryIssues}
+                  wasteTracking={wasteTracking || []}
+                  setWasteTracking={setWasteTracking}
+                  foodItems={foodItems || []}
+                  suppliers={suppliers || []}
+                  orders={orders || []}
+                  employees={employees || []}
+                />
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
           {currentModule === 'finance' && (
-            <Finance
-              invoices={invoices || []}
-              setInvoices={setInvoices}
-              payments={payments || []}
-              setPayments={setPayments}
-              expenses={expenses || []}
-              setExpenses={setExpenses}
-              accounts={accounts || []}
-              budgets={budgets || []}
-              setBudgets={setBudgets}
-              journalEntries={journalEntries || []}
-              setJournalEntries={setJournalEntries}
-              chartOfAccounts={chartOfAccounts || []}
-              setChartOfAccounts={setChartOfAccounts}
-              glEntries={glEntries || []}
-              setGLEntries={setGLEntries}
-              bankReconciliations={bankReconciliations || []}
-              setBankReconciliations={setBankReconciliations}
-              guestInvoices={guestInvoices || []}
-              costCenters={costCenters || []}
-              setCostCenters={setCostCenters}
-              profitCenters={profitCenters || []}
-              setProfitCenters={setProfitCenters}
-              costCenterReports={costCenterReports || []}
-              profitCenterReports={profitCenterReports || []}
-              currentUser={currentUser}
-            />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <Finance
+                  invoices={invoices || []}
+                  setInvoices={setInvoices}
+                  payments={payments || []}
+                  setPayments={setPayments}
+                  expenses={expenses || []}
+                  setExpenses={setExpenses}
+                  accounts={accounts || []}
+                  budgets={budgets || []}
+                  setBudgets={setBudgets}
+                  journalEntries={journalEntries || []}
+                  setJournalEntries={setJournalEntries}
+                  chartOfAccounts={chartOfAccounts || []}
+                  setChartOfAccounts={setChartOfAccounts}
+                  glEntries={glEntries || []}
+                  setGLEntries={setGLEntries}
+                  bankReconciliations={bankReconciliations || []}
+                  setBankReconciliations={setBankReconciliations}
+                  guestInvoices={guestInvoices || []}
+                  costCenters={costCenters || []}
+                  setCostCenters={setCostCenters}
+                  profitCenters={profitCenters || []}
+                  setProfitCenters={setProfitCenters}
+                  costCenterReports={costCenterReports || []}
+                  profitCenterReports={profitCenterReports || []}
+                  currentUser={currentUser}
+                />
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
           {currentModule === 'hr' && (
-            <HRManagement
-              employees={employees || []}
-              setEmployees={setEmployees}
-              attendance={attendance || []}
-              setAttendance={setAttendance}
-              leaveRequests={leaveRequests || []}
-              setLeaveRequests={setLeaveRequests}
-              shifts={shifts || []}
-              setShifts={setShifts}
-              dutyRosters={dutyRosters || []}
-              setDutyRosters={setDutyRosters}
-              performanceReviews={performanceReviews || []}
-              setPerformanceReviews={setPerformanceReviews}
-            />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <HRManagement
+                  employees={employees || []}
+                  setEmployees={setEmployees}
+                  attendance={attendance || []}
+                  setAttendance={setAttendance}
+                  leaveRequests={leaveRequests || []}
+                  setLeaveRequests={setLeaveRequests}
+                  shifts={shifts || []}
+                  setShifts={setShifts}
+                  dutyRosters={dutyRosters || []}
+                  setDutyRosters={setDutyRosters}
+                  performanceReviews={performanceReviews || []}
+                  setPerformanceReviews={setPerformanceReviews}
+                />
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
           {currentModule === 'user-management' && (
-            <UserManagement
-              users={systemUsers || []}
-              setUsers={setSystemUsers}
-              currentUser={currentUser}
-              activityLogs={activityLogs || []}
-              setActivityLogs={setActivityLogs}
-            />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <UserManagement
+                  users={systemUsers || []}
+                  setUsers={setSystemUsers}
+                  currentUser={currentUser}
+                  activityLogs={activityLogs || []}
+                  setActivityLogs={setActivityLogs}
+                />
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
           {currentModule === 'construction' && (
-            <ConstructionManagement
-              materials={constructionMaterials || []}
-              setMaterials={setConstructionMaterials}
-              projects={constructionProjects || []}
-              setProjects={setConstructionProjects}
-              suppliers={suppliers || []}
-              contractors={contractors || []}
-              setContractors={setContractors}
-            />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <ConstructionManagement
+                  materials={constructionMaterials || []}
+                  setMaterials={setConstructionMaterials}
+                  projects={constructionProjects || []}
+                  setProjects={setConstructionProjects}
+                  suppliers={suppliers || []}
+                  contractors={contractors || []}
+                  setContractors={setContractors}
+                />
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
           {currentModule === 'analytics' && (
-            <Analytics
-              orders={orders || []}
-              foodItems={foodItems || []}
-              suppliers={suppliers || []}
-              grns={grns || []}
-              recipes={recipes || []}
-              menus={menus || []}
-              consumptionLogs={consumptionLogs || []}
-              purchaseOrders={purchaseOrders || []}
-            />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <Analytics
+                  orders={orders || []}
+                  foodItems={foodItems || []}
+                  suppliers={suppliers || []}
+                  grns={grns || []}
+                  recipes={recipes || []}
+                  menus={menus || []}
+                  consumptionLogs={consumptionLogs || []}
+                  purchaseOrders={purchaseOrders || []}
+                />
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
           {currentModule === 'forecasting' && (
-            <ForecastingAnalytics
-              foodItems={foodItems || []}
-              amenities={amenities || []}
-              constructionMaterials={constructionMaterials || []}
-              generalProducts={generalProducts || []}
-              suppliers={suppliers || []}
-              rooms={rooms || []}
-              reservations={reservations || []}
-              consumptionLogs={consumptionLogs || []}
-              recipes={recipes || []}
-              menus={menus || []}
-            />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <ForecastingAnalytics
+                  foodItems={foodItems || []}
+                  amenities={amenities || []}
+                  constructionMaterials={constructionMaterials || []}
+                  generalProducts={generalProducts || []}
+                  suppliers={suppliers || []}
+                  rooms={rooms || []}
+                  reservations={reservations || []}
+                  consumptionLogs={consumptionLogs || []}
+                  recipes={recipes || []}
+                  menus={menus || []}
+                />
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
           {currentModule === 'crm' && (
-            <CRM
-              guestProfiles={guestProfiles || []}
-              setGuestProfiles={setGuestProfiles}
-              complaints={complaints || []}
-              setComplaints={setComplaints}
-              feedback={guestFeedback || []}
-              setFeedback={setGuestFeedback}
-              campaigns={marketingCampaigns || []}
-              setCampaigns={setMarketingCampaigns}
-              templates={marketingTemplates || []}
-              setTemplates={setMarketingTemplates}
-              upsellOffers={upsellOffers || []}
-              setUpsellOffers={setUpsellOffers}
-              upsellTransactions={upsellTransactions || []}
-              setUpsellTransactions={setUpsellTransactions}
-              loyaltyTransactions={loyaltyTransactions || []}
-              setLoyaltyTransactions={setLoyaltyTransactions}
-              reservations={reservations || []}
-              rooms={rooms || []}
-              orders={orders || []}
-              folioExtraServices={folioExtraServices || []}
-            />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <CRM
+                  guestProfiles={guestProfiles || []}
+                  setGuestProfiles={setGuestProfiles}
+                  complaints={complaints || []}
+                  setComplaints={setComplaints}
+                  feedback={guestFeedback || []}
+                  setFeedback={setGuestFeedback}
+                  campaigns={marketingCampaigns || []}
+                  setCampaigns={setMarketingCampaigns}
+                  templates={marketingTemplates || []}
+                  setTemplates={setMarketingTemplates}
+                  upsellOffers={upsellOffers || []}
+                  setUpsellOffers={setUpsellOffers}
+                  upsellTransactions={upsellTransactions || []}
+                  setUpsellTransactions={setUpsellTransactions}
+                  loyaltyTransactions={loyaltyTransactions || []}
+                  setLoyaltyTransactions={setLoyaltyTransactions}
+                  reservations={reservations || []}
+                  rooms={rooms || []}
+                  orders={orders || []}
+                  folioExtraServices={folioExtraServices || []}
+                />
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
           {currentModule === 'channel-manager' && (
-            <ChannelManager
-              connections={otaConnections || []}
-              setConnections={setOTAConnections}
-              ratePlans={ratePlans || []}
-              setRatePlans={setRatePlans}
-              inventory={channelInventory || []}
-              setInventory={setChannelInventory}
-              rates={channelRates || []}
-              setRates={setChannelRates}
-              reservations={channelReservations || []}
-              setReservations={setChannelReservations}
-              syncLogs={syncLogs || []}
-              setSyncLogs={setSyncLogs}
-              performance={channelPerformance || []}
-              reviews={channelReviews || []}
-              setReviews={setChannelReviews}
-              bulkOperations={bulkOperations || []}
-              setBulkOperations={setBulkOperations}
-              rooms={rooms || []}
-              currentUser={currentUser}
-            />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <ChannelManager
+                  connections={otaConnections || []}
+                  setConnections={setOTAConnections}
+                  ratePlans={ratePlans || []}
+                  setRatePlans={setRatePlans}
+                  inventory={channelInventory || []}
+                  setInventory={setChannelInventory}
+                  rates={channelRates || []}
+                  setRates={setChannelRates}
+                  reservations={channelReservations || []}
+                  setReservations={setChannelReservations}
+                  syncLogs={syncLogs || []}
+                  setSyncLogs={setSyncLogs}
+                  performance={channelPerformance || []}
+                  reviews={channelReviews || []}
+                  setReviews={setChannelReviews}
+                  bulkOperations={bulkOperations || []}
+                  setBulkOperations={setBulkOperations}
+                  rooms={rooms || []}
+                  currentUser={currentUser}
+                />
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
           {currentModule === 'extra-services' && (
-            <ExtraServicesManagement
-              services={extraServices || []}
-              setServices={setExtraServices}
-              categories={serviceCategories || []}
-              setCategories={setServiceCategories}
-              currentUser={currentUser}
-            />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <ExtraServicesManagement
+                  services={extraServices || []}
+                  setServices={setExtraServices}
+                  categories={serviceCategories || []}
+                  setCategories={setServiceCategories}
+                  currentUser={currentUser}
+                />
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
           {currentModule === 'invoice-center' && (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <h1 className="text-3xl font-semibold">Invoice Center</h1>
-                  <p className="text-muted-foreground mt-1">
-                    Centralized hub for all invoice management - guest invoices, supplier invoices, and payments
-                  </p>
-                </div>
-              </div>
-
-              <Tabs defaultValue="guest" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
-                  <TabsTrigger value="guest">
-                    <Receipt size={18} className="mr-2" />
-                    Guest Invoices
-                  </TabsTrigger>
-                  <TabsTrigger value="payments">
-                    <CurrencyDollar size={18} className="mr-2" />
-                    Payments
-                  </TabsTrigger>
-                  <TabsTrigger value="supplier">
-                    <FileText size={18} className="mr-2" />
-                    Supplier Invoices
-                  </TabsTrigger>
-                  <TabsTrigger value="analytics">
-                    <ChartBar size={18} className="mr-2" />
-                    Analytics
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="guest">
-                  <InvoiceManagement
-                    invoices={guestInvoices || []}
-                    setInvoices={setGuestInvoices}
-                    branding={branding || null}
-                    currentUser={currentUser}
-                  />
-                </TabsContent>
-
-                <TabsContent value="payments">
-                  <PaymentTracking
-                    payments={payments || []}
-                    invoices={guestInvoices || []}
-                    onUpdatePayment={(payment) => {
-                      setPayments((prev) => 
-                        (prev || []).map(p => p.id === payment.id ? payment : p)
-                      )
-                    }}
-                    onUpdateInvoice={(invoice) => {
-                      setGuestInvoices((prev) => 
-                        (prev || []).map(inv => inv.id === invoice.id ? invoice : inv)
-                      )
-                    }}
-                    currentUser={currentUser}
-                  />
-                </TabsContent>
-
-                <TabsContent value="supplier">
-                  <Card className="p-6">
-                    <div className="text-center py-12">
-                      <FileText size={64} className="mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-xl font-semibold mb-2">Supplier Invoice Management</h3>
-                      <p className="text-muted-foreground mb-6">
-                        Manage supplier invoices, approvals, and three-way matching
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <h1 className="text-3xl font-semibold">Invoice Center</h1>
+                      <p className="text-muted-foreground mt-1">
+                        Centralized hub for all invoice management - guest invoices, supplier invoices, and payments
                       </p>
-                      <Button onClick={() => setCurrentModule('procurement')}>
-                        Go to Procurement & Invoices
-                      </Button>
                     </div>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="analytics">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Card className="p-6 border-l-4 border-l-primary">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-medium text-muted-foreground">Guest Invoices</h3>
-                        <Receipt size={20} className="text-primary" />
-                      </div>
-                      <p className="text-3xl font-semibold">{(guestInvoices || []).length}</p>
-                      <div className="mt-3 space-y-1">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Total Amount:</span>
-                          <span className="font-medium">{formatCurrency((guestInvoices || []).reduce((sum, inv) => sum + inv.grandTotal, 0))}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Amount Due:</span>
-                          <span className="font-medium text-destructive">{formatCurrency((guestInvoices || []).reduce((sum, inv) => sum + inv.amountDue, 0))}</span>
-                        </div>
-                      </div>
-                    </Card>
-
-                    <Card className="p-6 border-l-4 border-l-accent">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-medium text-muted-foreground">Supplier Invoices</h3>
-                        <FileText size={20} className="text-accent" />
-                      </div>
-                      <p className="text-3xl font-semibold">{(invoices || []).length}</p>
-                      <div className="mt-3 space-y-1">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Total Count:</span>
-                          <span className="font-medium">{(invoices || []).length}</span>
-                        </div>
-                      </div>
-                    </Card>
-
-                    <Card className="p-6 border-l-4 border-l-success">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-medium text-muted-foreground">Payments</h3>
-                        <CurrencyDollar size={20} className="text-success" />
-                      </div>
-                      <p className="text-3xl font-semibold">{(payments || []).length}</p>
-                      <div className="mt-3 space-y-1">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Total:</span>
-                          <span className="font-medium">{formatCurrency((payments || []).reduce((sum, p) => sum + p.amount, 0))}</span>
-                        </div>
-                      </div>
-                    </Card>
-
-                    <Card className="p-6 border-l-4 border-l-secondary">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-medium text-muted-foreground">Quick Actions</h3>
-                        <FileText size={20} className="text-secondary" />
-                      </div>
-                      <div className="space-y-2 mt-4">
-                        <Button variant="outline" className="w-full justify-start" size="sm">
-                          <Receipt size={16} className="mr-2" />
-                          New Invoice
-                        </Button>
-                        <Button variant="outline" className="w-full justify-start" size="sm" onClick={() => setCurrentModule('finance')}>
-                          <CurrencyDollar size={16} className="mr-2" />
-                          Record Payment
-                        </Button>
-                      </div>
-                    </Card>
                   </div>
 
-                  <Card className="p-6 mt-6">
-                    <h3 className="text-lg font-semibold mb-4">Recent Guest Invoices</h3>
-                    <div className="space-y-3">
-                      {(guestInvoices || []).slice(0, 5).map((invoice) => (
-                        <div key={invoice.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                          <div>
-                            <p className="font-medium">{invoice.invoiceNumber}</p>
-                            <p className="text-sm text-muted-foreground">{invoice.guestName}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold">{formatCurrency(invoice.grandTotal)}</p>
-                            <Badge className={
-                              invoice.status === 'final' ? 'bg-green-100 text-green-800' :
-                              invoice.status === 'draft' ? 'bg-gray-100 text-gray-800' :
-                              'bg-blue-100 text-blue-800'
-                            }>
-                              {invoice.status}
-                            </Badge>
-                          </div>
+                  <Tabs defaultValue="guest" className="space-y-6">
+                    <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+                      <TabsTrigger value="guest">
+                        <Receipt size={18} className="mr-2" />
+                        Guest Invoices
+                      </TabsTrigger>
+                      <TabsTrigger value="payments">
+                        <CurrencyDollar size={18} className="mr-2" />
+                        Payments
+                      </TabsTrigger>
+                      <TabsTrigger value="supplier">
+                        <FileText size={18} className="mr-2" />
+                        Supplier Invoices
+                      </TabsTrigger>
+                      <TabsTrigger value="analytics">
+                        <ChartBar size={18} className="mr-2" />
+                        Analytics
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="guest">
+                      <InvoiceManagement
+                        invoices={guestInvoices || []}
+                        setInvoices={setGuestInvoices}
+                        branding={branding || null}
+                        currentUser={currentUser}
+                      />
+                    </TabsContent>
+
+                    <TabsContent value="payments">
+                      <PaymentTracking
+                        payments={payments || []}
+                        invoices={guestInvoices || []}
+                        onUpdatePayment={(payment) => {
+                          setPayments((prev) => 
+                            (prev || []).map(p => p.id === payment.id ? payment : p)
+                          )
+                        }}
+                        onUpdateInvoice={(invoice) => {
+                          setGuestInvoices((prev) => 
+                            (prev || []).map(inv => inv.id === invoice.id ? invoice : inv)
+                          )
+                        }}
+                        currentUser={currentUser}
+                      />
+                    </TabsContent>
+
+                    <TabsContent value="supplier">
+                      <Card className="p-6">
+                        <div className="text-center py-12">
+                          <FileText size={64} className="mx-auto text-muted-foreground mb-4" />
+                          <h3 className="text-xl font-semibold mb-2">Supplier Invoice Management</h3>
+                          <p className="text-muted-foreground mb-6">
+                            Manage supplier invoices, approvals, and three-way matching
+                          </p>
+                          <Button onClick={() => setCurrentModule('procurement')}>
+                            Go to Procurement & Invoices
+                          </Button>
                         </div>
-                      ))}
-                    </div>
-                  </Card>
-                </TabsContent>
-              </Tabs>
-            </div>
+                      </Card>
+                    </TabsContent>
+
+                    <TabsContent value="analytics">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <Card className="p-6 border-l-4 border-l-primary">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-sm font-medium text-muted-foreground">Guest Invoices</h3>
+                            <Receipt size={20} className="text-primary" />
+                          </div>
+                          <p className="text-3xl font-semibold">{(guestInvoices || []).length}</p>
+                          <div className="mt-3 space-y-1">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">Total Amount:</span>
+                              <span className="font-medium">{formatCurrency((guestInvoices || []).reduce((sum, inv) => sum + inv.grandTotal, 0))}</span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">Amount Due:</span>
+                              <span className="font-medium text-destructive">{formatCurrency((guestInvoices || []).reduce((sum, inv) => sum + inv.amountDue, 0))}</span>
+                            </div>
+                          </div>
+                        </Card>
+
+                        <Card className="p-6 border-l-4 border-l-accent">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-sm font-medium text-muted-foreground">Supplier Invoices</h3>
+                            <FileText size={20} className="text-accent" />
+                          </div>
+                          <p className="text-3xl font-semibold">{(invoices || []).length}</p>
+                          <div className="mt-3 space-y-1">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">Total Count:</span>
+                              <span className="font-medium">{(invoices || []).length}</span>
+                            </div>
+                          </div>
+                        </Card>
+
+                        <Card className="p-6 border-l-4 border-l-success">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-sm font-medium text-muted-foreground">Payments</h3>
+                            <CurrencyDollar size={20} className="text-success" />
+                          </div>
+                          <p className="text-3xl font-semibold">{(payments || []).length}</p>
+                          <div className="mt-3 space-y-1">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">Total:</span>
+                              <span className="font-medium">{formatCurrency((payments || []).reduce((sum, p) => sum + p.amount, 0))}</span>
+                            </div>
+                          </div>
+                        </Card>
+
+                        <Card className="p-6 border-l-4 border-l-secondary">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-sm font-medium text-muted-foreground">Quick Actions</h3>
+                            <FileText size={20} className="text-secondary" />
+                          </div>
+                          <div className="space-y-2 mt-4">
+                            <Button variant="outline" className="w-full justify-start" size="sm">
+                              <Receipt size={16} className="mr-2" />
+                              New Invoice
+                            </Button>
+                            <Button variant="outline" className="w-full justify-start" size="sm" onClick={() => setCurrentModule('finance')}>
+                              <CurrencyDollar size={16} className="mr-2" />
+                              Record Payment
+                            </Button>
+                          </div>
+                        </Card>
+                      </div>
+
+                      <Card className="p-6 mt-6">
+                        <h3 className="text-lg font-semibold mb-4">Recent Guest Invoices</h3>
+                        <div className="space-y-3">
+                          {(guestInvoices || []).slice(0, 5).map((invoice) => (
+                            <div key={invoice.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                              <div>
+                                <p className="font-medium">{invoice.invoiceNumber}</p>
+                                <p className="text-sm text-muted-foreground">{invoice.guestName}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-semibold">{formatCurrency(invoice.grandTotal)}</p>
+                                <Badge className={
+                                  invoice.status === 'final' ? 'bg-green-100 text-green-800' :
+                                  invoice.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                                  'bg-blue-100 text-blue-800'
+                                }>
+                                  {invoice.status}
+                                </Badge>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </Card>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
           {currentModule === 'settings' && (
-            <Settings
-              branding={branding || null}
-              setBranding={setBranding}
-              taxes={taxes || []}
-              setTaxes={setTaxes}
-              serviceCharge={serviceCharge || null}
-              setServiceCharge={setServiceCharge}
-              emailTemplates={emailTemplates || []}
-              setEmailTemplates={setEmailTemplates}
-              emailAnalytics={emailAnalytics || []}
-              campaignAnalytics={campaignAnalytics || []}
-              emailRecords={emailRecords || []}
-              currentUser={currentUser}
-            />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <Settings
+                  branding={branding || null}
+                  setBranding={setBranding}
+                  taxes={taxes || []}
+                  setTaxes={setTaxes}
+                  serviceCharge={serviceCharge || null}
+                  setServiceCharge={setServiceCharge}
+                  emailTemplates={emailTemplates || []}
+                  setEmailTemplates={setEmailTemplates}
+                  emailAnalytics={emailAnalytics || []}
+                  campaignAnalytics={campaignAnalytics || []}
+                  emailRecords={emailRecords || []}
+                  currentUser={currentUser}
+                />
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
           {currentModule === 'revenue-comparison' && (
-            <RevenueComparison
-              guestInvoices={guestInvoices || []}
-              reservations={reservations || []}
-              orders={orders || []}
-              folios={folios || []}
-            />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <ModuleErrorBoundary>
+                <RevenueComparison
+                  guestInvoices={guestInvoices || []}
+                  reservations={reservations || []}
+                  orders={orders || []}
+                  folios={folios || []}
+                />
+              </ModuleErrorBoundary>
+            </Suspense>
           )}
-            </ModuleErrorBoundary>
-          </Suspense>
         </div>
         
         <footer className="border-t border-border/30 mt-auto bg-background/80 backdrop-blur-sm">
