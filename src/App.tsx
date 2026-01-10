@@ -31,6 +31,7 @@ import {
   List,
   FileText
 } from '@phosphor-icons/react'
+import { ColorMoodSelector } from '@/components/ColorMoodSelector'
 import { 
   type Room, 
   type Guest, 
@@ -814,6 +815,7 @@ function App() {
 
             <div className="flex items-center gap-2">
               <div className="hidden sm:flex items-center gap-2">
+                <ColorMoodSelector />
                 <ThemeToggle />
               </div>
               
@@ -836,6 +838,7 @@ function App() {
         <div className="sm:hidden px-4 py-3 border-b border-border/40 bg-background/95 backdrop-blur-sm">
           <div className="flex items-center justify-center gap-2">
             <MobileOfflineTools />
+            <ColorMoodSelector />
             <ThemeToggle />
           </div>
         </div>
