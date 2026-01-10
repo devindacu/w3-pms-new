@@ -18,7 +18,8 @@ import {
   Users,
   Bed,
   Download,
-  Sparkle
+  Sparkle,
+  ForkKnife
 } from '@phosphor-icons/react'
 import { formatCurrency, formatPercent, calculatePercentageChange } from '@/lib/helpers'
 import {
@@ -34,7 +35,10 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  ComposedChart
+  ComposedChart,
+  PieChart,
+  Pie,
+  Cell
 } from 'recharts'
 import type { GuestInvoice, Reservation, Order, Folio } from '@/lib/types'
 
@@ -511,13 +515,462 @@ export function RevenueComparison({
         />
       </div>
 
-      <Tabs defaultValue="trends" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="room-vs-fnb" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="room-vs-fnb">Room vs F&B</TabsTrigger>
           <TabsTrigger value="trends">Trends</TabsTrigger>
           <TabsTrigger value="breakdown">Breakdown</TabsTrigger>
           <TabsTrigger value="detailed">Detailed View</TabsTrigger>
           <TabsTrigger value="insights">Insights</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="room-vs-fnb" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Bed size={20} className="text-primary" weight="duotone" />
+                Room Revenue Analysis
+              </h3>
+              <div className="space-y-4">
+                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-muted-foreground">{currentPeriod.label}</span>
+                    <Badge className="bg-primary/10 text-primary border-primary/20">Current</Badge>
+                  </div>
+                  <p className="text-3xl font-bold text-primary mb-1">
+                    {formatCurrency(currentMetrics.roomRevenue)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {currentMetrics.totalRevenue > 0 
+                      ? `${((currentMetrics.roomRevenue / currentMetrics.totalRevenue) * 100).toFixed(1)}% of total revenue`
+                      : 'No revenue data'}
+                  </p>
+                </div>
+
+                <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-muted-foreground">{previousPeriod.label}</span>
+                    <Badge variant="outline">Previous</Badge>
+                  </div>
+                  <p className="text-2xl font-semibold text-foreground mb-1">
+                    {formatCurrency(previousMetrics.roomRevenue)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {previousMetrics.totalRevenue > 0 
+                      ? `${((previousMetrics.roomRevenue / previousMetrics.totalRevenue) * 100).toFixed(1)}% of total revenue`
+                      : 'No revenue data'}
+                  </p>
+                </div>
+
+                <Separator />
+
+                <div className="flex items-center justify-between p-3 bg-background rounded-lg border">
+                  <span className="text-sm font-medium">Period Change</span>
+                  <div className="flex items-center gap-2">
+                    {(() => {
+                      const change = calculatePercentageChange(currentMetrics.roomRevenue, previousMetrics.roomRevenue)
+                      const isPositive = change >= 0
+                      return (
+                        <>
+                          <Badge className={isPositive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                            {isPositive ? <TrendUp size={14} className="mr-1" /> : <TrendDown size={14} className="mr-1" />}
+                            {Math.abs(change).toFixed(1)}%
+                          </Badge>
+                          <span className="text-sm font-semibold">
+                            {formatCurrency(currentMetrics.roomRevenue - previousMetrics.roomRevenue)}
+                          </span>
+                        </>
+                      )
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <ForkKnife size={20} className="text-accent" weight="duotone" />
+                F&B Revenue Analysis
+              </h3>
+              <div className="space-y-4">
+                <div className="p-4 bg-accent/5 rounded-lg border border-accent/20">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-muted-foreground">{currentPeriod.label}</span>
+                    <Badge className="bg-accent/10 text-accent border-accent/20">Current</Badge>
+                  </div>
+                  <p className="text-3xl font-bold text-accent mb-1">
+                    {formatCurrency(currentMetrics.fnbRevenue)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {currentMetrics.totalRevenue > 0 
+                      ? `${((currentMetrics.fnbRevenue / currentMetrics.totalRevenue) * 100).toFixed(1)}% of total revenue`
+                      : 'No revenue data'}
+                  </p>
+                </div>
+
+                <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-muted-foreground">{previousPeriod.label}</span>
+                    <Badge variant="outline">Previous</Badge>
+                  </div>
+                  <p className="text-2xl font-semibold text-foreground mb-1">
+                    {formatCurrency(previousMetrics.fnbRevenue)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {previousMetrics.totalRevenue > 0 
+                      ? `${((previousMetrics.fnbRevenue / previousMetrics.totalRevenue) * 100).toFixed(1)}% of total revenue`
+                      : 'No revenue data'}
+                  </p>
+                </div>
+
+                <Separator />
+
+                <div className="flex items-center justify-between p-3 bg-background rounded-lg border">
+                  <span className="text-sm font-medium">Period Change</span>
+                  <div className="flex items-center gap-2">
+                    {(() => {
+                      const change = calculatePercentageChange(currentMetrics.fnbRevenue, previousMetrics.fnbRevenue)
+                      const isPositive = change >= 0
+                      return (
+                        <>
+                          <Badge className={isPositive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                            {isPositive ? <TrendUp size={14} className="mr-1" /> : <TrendDown size={14} className="mr-1" />}
+                            {Math.abs(change).toFixed(1)}%
+                          </Badge>
+                          <span className="text-sm font-semibold">
+                            {formatCurrency(currentMetrics.fnbRevenue - previousMetrics.fnbRevenue)}
+                          </span>
+                        </>
+                      )
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Room vs F&B Revenue Comparison</h3>
+            <ResponsiveContainer width="100%" height={400}>
+              <ComposedChart data={[
+                {
+                  period: currentPeriod.label,
+                  roomRevenue: currentMetrics.roomRevenue,
+                  fnbRevenue: currentMetrics.fnbRevenue,
+                  otherRevenue: currentMetrics.otherRevenue
+                },
+                {
+                  period: previousPeriod.label,
+                  roomRevenue: previousMetrics.roomRevenue,
+                  fnbRevenue: previousMetrics.fnbRevenue,
+                  otherRevenue: previousMetrics.otherRevenue
+                }
+              ]}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="period" className="text-xs" />
+                <YAxis 
+                  label={{ value: 'Revenue', angle: -90, position: 'insideLeft' }}
+                  tickFormatter={(value) => formatCurrency(value)}
+                  className="text-xs"
+                />
+                <Tooltip 
+                  formatter={(value: any) => formatCurrency(Number(value))}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))' }}
+                />
+                <Legend />
+                <Bar dataKey="roomRevenue" fill="hsl(var(--primary))" name="Room Revenue" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="fnbRevenue" fill="hsl(var(--accent))" name="F&B Revenue" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="otherRevenue" fill="hsl(var(--muted-foreground))" name="Other Revenue" radius={[8, 8, 0, 0]} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </Card>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">{currentPeriod.label} - Revenue Mix</h3>
+              <div className="flex items-center justify-center">
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Room Revenue', value: currentMetrics.roomRevenue, color: 'hsl(var(--primary))' },
+                        { name: 'F&B Revenue', value: currentMetrics.fnbRevenue, color: 'hsl(var(--accent))' },
+                        { name: 'Other Revenue', value: currentMetrics.otherRevenue, color: 'hsl(var(--muted-foreground))' }
+                      ].filter(item => item.value > 0)}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {[
+                        { name: 'Room Revenue', value: currentMetrics.roomRevenue, color: 'hsl(var(--primary))' },
+                        { name: 'F&B Revenue', value: currentMetrics.fnbRevenue, color: 'hsl(var(--accent))' },
+                        { name: 'Other Revenue', value: currentMetrics.otherRevenue, color: 'hsl(var(--muted-foreground))' }
+                      ].filter(item => item.value > 0).map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: any) => formatCurrency(Number(value))} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">{previousPeriod.label} - Revenue Mix</h3>
+              <div className="flex items-center justify-center">
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Room Revenue', value: previousMetrics.roomRevenue, color: 'hsl(var(--primary))' },
+                        { name: 'F&B Revenue', value: previousMetrics.fnbRevenue, color: 'hsl(var(--accent))' },
+                        { name: 'Other Revenue', value: previousMetrics.otherRevenue, color: 'hsl(var(--muted-foreground))' }
+                      ].filter(item => item.value > 0)}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {[
+                        { name: 'Room Revenue', value: previousMetrics.roomRevenue, color: 'hsl(var(--primary))' },
+                        { name: 'F&B Revenue', value: previousMetrics.fnbRevenue, color: 'hsl(var(--accent))' },
+                        { name: 'Other Revenue', value: previousMetrics.otherRevenue, color: 'hsl(var(--muted-foreground))' }
+                      ].filter(item => item.value > 0).map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: any) => formatCurrency(Number(value))} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </div>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Revenue Stream Performance Metrics</h3>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Revenue Stream</TableHead>
+                  <TableHead className="text-right">{currentPeriod.label}</TableHead>
+                  <TableHead className="text-right">{previousPeriod.label}</TableHead>
+                  <TableHead className="text-right">Absolute Change</TableHead>
+                  <TableHead className="text-right">% Change</TableHead>
+                  <TableHead className="text-right">Growth Rate</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow className="bg-primary/5">
+                  <TableCell className="font-semibold flex items-center gap-2">
+                    <Bed size={18} className="text-primary" weight="duotone" />
+                    Room Revenue
+                  </TableCell>
+                  <TableCell className="text-right font-semibold">{formatCurrency(currentMetrics.roomRevenue)}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(previousMetrics.roomRevenue)}</TableCell>
+                  <TableCell className="text-right">
+                    <span className={currentMetrics.roomRevenue - previousMetrics.roomRevenue >= 0 ? 'text-green-700' : 'text-red-700'}>
+                      {formatCurrency(currentMetrics.roomRevenue - previousMetrics.roomRevenue)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Badge className={calculatePercentageChange(currentMetrics.roomRevenue, previousMetrics.roomRevenue) >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                      {calculatePercentageChange(currentMetrics.roomRevenue, previousMetrics.roomRevenue) >= 0 ? '+' : ''}
+                      {calculatePercentageChange(currentMetrics.roomRevenue, previousMetrics.roomRevenue).toFixed(1)}%
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {(() => {
+                      const change = calculatePercentageChange(currentMetrics.roomRevenue, previousMetrics.roomRevenue)
+                      return change > 10 ? '🚀 Excellent' : change > 5 ? '📈 Strong' : change > 0 ? '✅ Positive' : change > -5 ? '⚠️ Declining' : '📉 Critical'
+                    })()}
+                  </TableCell>
+                </TableRow>
+
+                <TableRow className="bg-accent/5">
+                  <TableCell className="font-semibold flex items-center gap-2">
+                    <ForkKnife size={18} className="text-accent" weight="duotone" />
+                    F&B Revenue
+                  </TableCell>
+                  <TableCell className="text-right font-semibold">{formatCurrency(currentMetrics.fnbRevenue)}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(previousMetrics.fnbRevenue)}</TableCell>
+                  <TableCell className="text-right">
+                    <span className={currentMetrics.fnbRevenue - previousMetrics.fnbRevenue >= 0 ? 'text-green-700' : 'text-red-700'}>
+                      {formatCurrency(currentMetrics.fnbRevenue - previousMetrics.fnbRevenue)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Badge className={calculatePercentageChange(currentMetrics.fnbRevenue, previousMetrics.fnbRevenue) >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                      {calculatePercentageChange(currentMetrics.fnbRevenue, previousMetrics.fnbRevenue) >= 0 ? '+' : ''}
+                      {calculatePercentageChange(currentMetrics.fnbRevenue, previousMetrics.fnbRevenue).toFixed(1)}%
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {(() => {
+                      const change = calculatePercentageChange(currentMetrics.fnbRevenue, previousMetrics.fnbRevenue)
+                      return change > 10 ? '🚀 Excellent' : change > 5 ? '📈 Strong' : change > 0 ? '✅ Positive' : change > -5 ? '⚠️ Declining' : '📉 Critical'
+                    })()}
+                  </TableCell>
+                </TableRow>
+
+                <TableRow>
+                  <TableCell className="font-semibold flex items-center gap-2">
+                    <ChartBar size={18} className="text-muted-foreground" weight="duotone" />
+                    Other Revenue
+                  </TableCell>
+                  <TableCell className="text-right font-semibold">{formatCurrency(currentMetrics.otherRevenue)}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(previousMetrics.otherRevenue)}</TableCell>
+                  <TableCell className="text-right">
+                    <span className={currentMetrics.otherRevenue - previousMetrics.otherRevenue >= 0 ? 'text-green-700' : 'text-red-700'}>
+                      {formatCurrency(currentMetrics.otherRevenue - previousMetrics.otherRevenue)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Badge className={calculatePercentageChange(currentMetrics.otherRevenue, previousMetrics.otherRevenue) >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                      {calculatePercentageChange(currentMetrics.otherRevenue, previousMetrics.otherRevenue) >= 0 ? '+' : ''}
+                      {calculatePercentageChange(currentMetrics.otherRevenue, previousMetrics.otherRevenue).toFixed(1)}%
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {(() => {
+                      const change = calculatePercentageChange(currentMetrics.otherRevenue, previousMetrics.otherRevenue)
+                      return change > 10 ? '🚀 Excellent' : change > 5 ? '📈 Strong' : change > 0 ? '✅ Positive' : change > -5 ? '⚠️ Declining' : '📉 Critical'
+                    })()}
+                  </TableCell>
+                </TableRow>
+
+                <TableRow className="font-bold bg-muted/30 border-t-2">
+                  <TableCell className="font-bold">Total Revenue</TableCell>
+                  <TableCell className="text-right font-bold">{formatCurrency(currentMetrics.totalRevenue)}</TableCell>
+                  <TableCell className="text-right font-bold">{formatCurrency(previousMetrics.totalRevenue)}</TableCell>
+                  <TableCell className="text-right font-bold">
+                    <span className={currentMetrics.totalRevenue - previousMetrics.totalRevenue >= 0 ? 'text-green-700' : 'text-red-700'}>
+                      {formatCurrency(currentMetrics.totalRevenue - previousMetrics.totalRevenue)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Badge className={calculatePercentageChange(currentMetrics.totalRevenue, previousMetrics.totalRevenue) >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                      {calculatePercentageChange(currentMetrics.totalRevenue, previousMetrics.totalRevenue) >= 0 ? '+' : ''}
+                      {calculatePercentageChange(currentMetrics.totalRevenue, previousMetrics.totalRevenue).toFixed(1)}%
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right font-bold">
+                    {(() => {
+                      const change = calculatePercentageChange(currentMetrics.totalRevenue, previousMetrics.totalRevenue)
+                      return change > 10 ? '🚀 Excellent' : change > 5 ? '📈 Strong' : change > 0 ? '✅ Positive' : change > -5 ? '⚠️ Declining' : '📉 Critical'
+                    })()}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Sparkle size={20} className="text-primary" weight="duotone" />
+              Room vs F&B Insights
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {(() => {
+                const roomChange = calculatePercentageChange(currentMetrics.roomRevenue, previousMetrics.roomRevenue)
+                const fnbChange = calculatePercentageChange(currentMetrics.fnbRevenue, previousMetrics.fnbRevenue)
+                const roomShare = currentMetrics.totalRevenue > 0 ? (currentMetrics.roomRevenue / currentMetrics.totalRevenue) * 100 : 0
+                const fnbShare = currentMetrics.totalRevenue > 0 ? (currentMetrics.fnbRevenue / currentMetrics.totalRevenue) * 100 : 0
+                const prevRoomShare = previousMetrics.totalRevenue > 0 ? (previousMetrics.roomRevenue / previousMetrics.totalRevenue) * 100 : 0
+                const prevFnbShare = previousMetrics.totalRevenue > 0 ? (previousMetrics.fnbRevenue / previousMetrics.totalRevenue) * 100 : 0
+
+                const insights: Array<{
+                  type: 'success' | 'warning' | 'info'
+                  title: string
+                  description: string
+                }> = []
+
+                if (roomChange > fnbChange && roomChange > 5) {
+                  insights.push({
+                    type: 'success',
+                    title: 'Strong Room Revenue Growth',
+                    description: `Room revenue grew by ${roomChange.toFixed(1)}%, outpacing F&B growth of ${fnbChange.toFixed(1)}%. Room bookings are performing exceptionally well.`
+                  })
+                } else if (fnbChange > roomChange && fnbChange > 5) {
+                  insights.push({
+                    type: 'success',
+                    title: 'Excellent F&B Performance',
+                    description: `F&B revenue grew by ${fnbChange.toFixed(1)}%, exceeding room revenue growth of ${roomChange.toFixed(1)}%. Your restaurant and bar services are gaining traction.`
+                  })
+                }
+
+                if (fnbShare < 15 && currentMetrics.roomRevenue > 0) {
+                  insights.push({
+                    type: 'warning',
+                    title: 'F&B Revenue Opportunity',
+                    description: `F&B represents only ${fnbShare.toFixed(1)}% of total revenue. Consider promoting dining services, creating meal packages, or enhancing F&B offerings to capture more guest spending.`
+                  })
+                }
+
+                if (roomShare > 80) {
+                  insights.push({
+                    type: 'info',
+                    title: 'Room-Dependent Revenue Mix',
+                    description: `Room revenue accounts for ${roomShare.toFixed(1)}% of total revenue. Diversifying revenue streams through F&B and other services could reduce dependency on room bookings.`
+                  })
+                }
+
+                const shareChange = roomShare - prevRoomShare
+                if (Math.abs(shareChange) > 5) {
+                  insights.push({
+                    type: 'info',
+                    title: 'Revenue Mix Shift',
+                    description: `Room revenue share ${shareChange > 0 ? 'increased' : 'decreased'} by ${Math.abs(shareChange).toFixed(1)} percentage points. This indicates a shift in your revenue composition.`
+                  })
+                }
+
+                if (roomChange < 0 && fnbChange > 0) {
+                  insights.push({
+                    type: 'warning',
+                    title: 'Room Revenue Declining',
+                    description: `While F&B revenue is growing (${fnbChange.toFixed(1)}%), room revenue declined by ${Math.abs(roomChange).toFixed(1)}%. Review room pricing, marketing, and occupancy strategies.`
+                  })
+                }
+
+                if (roomChange > 0 && fnbChange < 0) {
+                  insights.push({
+                    type: 'warning',
+                    title: 'F&B Revenue Declining',
+                    description: `While room revenue is growing (${roomChange.toFixed(1)}%), F&B revenue declined by ${Math.abs(fnbChange).toFixed(1)}%. Consider reviewing F&B pricing, menu offerings, and guest engagement.`
+                  })
+                }
+
+                if (insights.length === 0) {
+                  insights.push({
+                    type: 'info',
+                    title: 'Balanced Performance',
+                    description: 'Both room and F&B revenues are showing relatively stable performance compared to the previous period.'
+                  })
+                }
+
+                return insights.slice(0, 4).map((insight, index) => (
+                  <div
+                    key={index}
+                    className={`p-4 rounded-lg border-l-4 ${
+                      insight.type === 'success' ? 'bg-green-50 border-green-500' :
+                      insight.type === 'warning' ? 'bg-yellow-50 border-yellow-500' :
+                      'bg-blue-50 border-blue-500'
+                    }`}
+                  >
+                    <h4 className="font-semibold mb-2">{insight.title}</h4>
+                    <p className="text-sm text-muted-foreground">{insight.description}</p>
+                  </div>
+                ))
+              })()}
+            </div>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="trends" className="space-y-6">
           <Card className="p-6">

@@ -32,6 +32,7 @@ import {
   FileText
 } from '@phosphor-icons/react'
 import { ColorMoodSelector } from '@/components/ColorMoodSelector'
+import { ArrowsLeftRight } from '@phosphor-icons/react'
 import { 
   type Room, 
   type Guest, 
@@ -156,6 +157,7 @@ const Settings = lazy(() => import('@/components/Settings').then(m => ({ default
 const Finance = lazy(() => import('@/components/Finance').then(m => ({ default: m.Finance })))
 const InvoiceManagement = lazy(() => import('@/components/InvoiceManagement').then(m => ({ default: m.InvoiceManagement })))
 const PaymentTracking = lazy(() => import('@/components/PaymentTracking').then(m => ({ default: m.PaymentTracking })))
+const RevenueComparison = lazy(() => import('@/components/RevenueComparison').then(m => ({ default: m.RevenueComparison })))
 import { getDefaultWidgetsForRole, getWidgetSize } from '@/lib/widgetConfig'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { OfflineIndicator } from '@/components/OfflineIndicator'
@@ -199,7 +201,7 @@ import type {
   EmailCampaignAnalytics
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'quick-ops' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings'
+type Module = 'dashboard' | 'quick-ops' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'revenue-comparison' | 'settings'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -665,6 +667,7 @@ function App() {
     { id: 'divider-2', type: 'divider' },
     { id: 'room-revenue', label: 'Room & Revenue', icon: Buildings, group: 'Revenue' },
     { id: 'channel-manager', label: 'Channel Manager', icon: ChartBar, group: 'Revenue' },
+    { id: 'revenue-comparison', label: 'Revenue Comparison', icon: ArrowsLeftRight, group: 'Revenue' },
     { id: 'divider-3', type: 'divider' },
     { id: 'inventory', label: 'Inventory', icon: Package, group: 'Operations' },
     { id: 'suppliers', label: 'Suppliers', icon: Buildings, group: 'Operations' },
@@ -1309,6 +1312,14 @@ function App() {
               campaignAnalytics={campaignAnalytics || []}
               emailRecords={emailRecords || []}
               currentUser={currentUser}
+            />
+          )}
+          {currentModule === 'revenue-comparison' && (
+            <RevenueComparison
+              guestInvoices={guestInvoices || []}
+              reservations={reservations || []}
+              orders={orders || []}
+              folios={folios || []}
             />
           )}
             </ModuleErrorBoundary>
