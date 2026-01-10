@@ -11,6 +11,7 @@ import { DialogSettings } from '@/components/DialogSettings'
 import { TestEmailTemplate } from '@/components/TestEmailTemplate'
 import { NavigationInsights } from '@/components/NavigationInsights'
 import { VersionControl } from '@/components/VersionControl'
+import { IntegrationTestRunner } from '@/tests/integration/test-runner'
 import type { 
   HotelBranding, 
   TaxConfiguration, 
@@ -30,7 +31,8 @@ import {
   ChartBar,
   FrameCorners,
   Sparkle,
-  Database
+  Database,
+  TestTube
 } from '@phosphor-icons/react'
 
 interface SettingsProps {
@@ -80,7 +82,7 @@ export function Settings({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9 gap-1">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-10 gap-1">
           <TabsTrigger value="branding" className="gap-2">
             <Palette size={18} />
             <span className="hidden sm:inline">Branding</span>
@@ -112,6 +114,10 @@ export function Settings({
           <TabsTrigger value="version-control" className="gap-2">
             <Database size={18} />
             <span className="hidden sm:inline">Backups</span>
+          </TabsTrigger>
+          <TabsTrigger value="testing" className="gap-2">
+            <TestTube size={18} />
+            <span className="hidden sm:inline">Testing</span>
           </TabsTrigger>
           <TabsTrigger value="preferences" className="gap-2">
             <User size={18} />
@@ -202,6 +208,10 @@ export function Settings({
 
         <TabsContent value="version-control" className="mt-6">
           <VersionControl />
+        </TabsContent>
+
+        <TabsContent value="testing" className="mt-6">
+          <IntegrationTestRunner />
         </TabsContent>
 
         <TabsContent value="preferences" className="mt-6">
