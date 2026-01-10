@@ -65,6 +65,7 @@ import { CostCenterDialog } from './CostCenterDialog'
 import { ProfitCenterDialog } from './ProfitCenterDialog'
 import { CostCenterReportDialog } from './CostCenterReportDialog'
 import { ProfitCenterReportDialog } from './ProfitCenterReportDialog'
+import { RevenueComparison } from './RevenueComparison'
 import { toast } from 'sonner'
 
 interface FinanceProps {
@@ -748,6 +749,7 @@ export function Finance({
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="revenue-comparison">Revenue Comparison</TabsTrigger>
           <TabsTrigger value="invoices">Invoices</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="expenses">Expenses</TabsTrigger>
@@ -760,6 +762,10 @@ export function Finance({
           <TabsTrigger value="reconciliation">Bank Reconciliation</TabsTrigger>
           <TabsTrigger value="reports">Financial Reports</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="revenue-comparison">
+          <RevenueComparison guestInvoices={guestInvoices} />
+        </TabsContent>
 
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
