@@ -10,11 +10,31 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <link href="/src/main.css" rel="stylesheet" />
+    <script>
+        window.addEventListener('error', function(e) {
+            console.error('Global error caught:', e.error);
+            if (e.error && e.error.message && e.error.message.includes('useState')) {
+                console.error('React initialization error detected. This may be caused by module loading issues.');
+                const root = document.getElementById('root');
+                if (root && !root.hasChildNodes()) {
+                    root.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem;background:#fafafa;"><div style="max-width:28rem;text-align:center;"><h1 style="color:#dc2626;font-size:1.25rem;font-weight:600;margin-bottom:1rem;">Module Loading Error</h1><p style="color:#6b7280;margin-bottom:1rem;">The application failed to load properly. This may be due to a browser cache issue.</p><button onclick="location.reload()" style="padding:0.5rem 1rem;background:#3b82f6;color:white;border:none;border-radius:0.375rem;cursor:pointer;">Reload Application</button></div></div>';
+                }
+            }
+        });
+    </script>
 </head>
 
 <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <noscript>
+        <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem;background:#fafafa;">
+            <div style="max-width:28rem;text-align:center;">
+                <h1 style="color:#dc2626;font-size:1.25rem;font-weight:600;margin-bottom:1rem;">JavaScript Required</h1>
+                <p style="color:#6b7280;">W3 Hotel PMS requires JavaScript to be enabled. Please enable JavaScript in your browser settings.</p>
+            </div>
+        </div>
+    </noscript>
 </body>
 
 </html>

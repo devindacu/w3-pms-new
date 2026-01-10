@@ -1,5 +1,10 @@
+import * as React from 'react'
 import { Suspense, useEffect, useState } from 'react'
 import App from './App'
+
+if (!React) {
+  throw new Error('React module is not available in AppWrapper')
+}
 
 export function AppWrapper() {
   const [isReady, setIsReady] = useState(false)
@@ -7,17 +12,26 @@ export function AppWrapper() {
 
   useEffect(() => {
     const checkSparkAvailability = () => {
-      if (typeof window.spark === 'undefined') {
-        setError('Spark runtime not available')
-        return
-      }
-      
-      if (typeof window.spark.kv === 'undefined') {
-        setError('Spark KV store not available')
-        return
-      }
+      try {
+        if (typeof window === 'undefined') {
+          setError('Window object not available')
+          return
+        }
 
-      setIsReady(true)
+        if (typeof window.spark === 'undefined') {
+          setError('Spark runtime not available')
+          return
+        }
+        
+        if (typeof window.spark.kv === 'undefined') {
+          setError('Spark KV store not available')
+          return
+        }
+
+        setIsReady(true)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error during initialization')
+      }
     }
 
     const timer = setTimeout(checkSparkAvailability, 100)
@@ -26,11 +40,53 @@ export function AppWrapper() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="max-w-md text-center space-y-4">
-          <div className="text-destructive text-lg font-semibold">Initialization Error</div>
-          <p className="text-muted-foreground">{error}</p>
-          <p className="text-sm text-muted-foreground">Please refresh the page to try again.</p>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1rem',
+        background: '#fafafa'
+      }}>
+        <div style={{
+          maxWidth: '28rem',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            color: '#dc2626',
+            fontSize: '1.125rem',
+            fontWeight: '600',
+            marginBottom: '1rem'
+          }}>
+            Initialization Error
+          </div>
+          <p style={{
+            color: '#6b7280',
+            marginBottom: '0.5rem'
+          }}>
+            {error}
+          </p>
+          <p style={{
+            color: '#9ca3af',
+            fontSize: '0.875rem'
+          }}>
+            Please refresh the page to try again.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              marginTop: '1rem',
+              padding: '0.5rem 1rem',
+              background: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.375rem',
+              cursor: 'pointer',
+              fontSize: '0.875rem'
+            }}
+          >
+            Reload Page
+          </button>
         </div>
       </div>
     )
@@ -38,10 +94,29 @@ export function AppWrapper() {
 
   if (!isReady) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto" />
-          <p className="text-muted-foreground">Initializing W3 Hotel PMS...</p>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#fafafa'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '4rem',
+            height: '4rem',
+            border: '4px solid rgba(59, 130, 246, 0.2)',
+            borderTopColor: '#3b82f6',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 1rem'
+          }} />
+          <p style={{ color: '#6b7280' }}>Initializing W3 Hotel PMS...</p>
+          <style>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
         </div>
       </div>
     )
@@ -49,10 +124,24 @@ export function AppWrapper() {
 
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto" />
-          <p className="text-muted-foreground">Loading W3 Hotel PMS...</p>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#fafafa'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '4rem',
+            height: '4rem',
+            border: '4px solid rgba(59, 130, 246, 0.2)',
+            borderTopColor: '#3b82f6',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 1rem'
+          }} />
+          <p style={{ color: '#6b7280' }}>Loading W3 Hotel PMS...</p>
         </div>
       </div>
     }>

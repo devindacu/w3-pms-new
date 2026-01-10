@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { useState, lazy, Suspense } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { useAutoBackup } from '@/hooks/use-auto-backup'
