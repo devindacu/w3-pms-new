@@ -34,29 +34,29 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
     switch (widget.type) {
       case 'occupancy':
         return (
-          <Card className="p-5 hover:shadow-md transition-shadow border-l-4 border-l-primary">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Occupancy</p>
+          <Card className="p-6 hover:shadow-md transition-all border-l-4 border-l-primary">
+            <div className="flex items-start justify-between mb-5">
+              <div className="flex-1">
+                <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">Occupancy</p>
                 <div className="flex items-baseline gap-2">
-                  <h3 className="text-3xl font-bold">{formatPercent(metrics.occupancy.rate)}</h3>
+                  <h3 className="text-3xl font-bold tracking-tight">{formatPercent(metrics.occupancy.rate)}</h3>
                   <span className="text-sm text-muted-foreground">
                     {metrics.occupancy.occupied} / {metrics.occupancy.occupied + metrics.occupancy.available} rooms
                   </span>
                 </div>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Bed size={20} className="text-primary" />
+              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Bed size={22} className="text-primary" weight="duotone" />
               </div>
             </div>
-            <div className="flex items-center gap-4 text-xs">
+            <div className="flex items-center gap-6 text-xs pt-3 border-t border-border/50">
               <div>
                 <span className="text-muted-foreground">Available:</span>
-                <span className="ml-1 font-semibold">{metrics.occupancy.available}</span>
+                <span className="ml-1.5 font-semibold text-foreground">{metrics.occupancy.available}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">Maintenance:</span>
-                <span className="ml-1 font-semibold">{metrics.occupancy.maintenance}</span>
+                <span className="ml-1.5 font-semibold text-foreground">{metrics.occupancy.maintenance}</span>
               </div>
             </div>
           </Card>
@@ -64,38 +64,38 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'revenue-today':
         return (
-          <Card className="p-5 hover:shadow-md transition-shadow border-l-4 border-l-success">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Revenue Today</p>
-                <h3 className="text-3xl font-bold">{formatCurrency(0)}</h3>
+          <Card className="p-6 hover:shadow-md transition-all border-l-4 border-l-success">
+            <div className="flex items-start justify-between mb-5">
+              <div className="flex-1">
+                <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">Revenue Today</p>
+                <h3 className="text-3xl font-bold tracking-tight">{formatCurrency(0)}</h3>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
-                <CurrencyDollar size={20} className="text-success" />
+              <div className="w-11 h-11 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
+                <CurrencyDollar size={22} className="text-success" weight="duotone" />
               </div>
             </div>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <span>Revenue MTD</span>
-              <span className="ml-auto font-semibold">{formatCurrency(0)}</span>
+            <div className="flex items-center justify-between text-xs pt-3 border-t border-border/50">
+              <span className="text-muted-foreground">Revenue MTD</span>
+              <span className="font-semibold text-foreground">{formatCurrency(0)}</span>
             </div>
           </Card>
         )
 
       case 'financial-summary':
         return (
-          <Card className="p-5 hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Financial Summary</p>
+          <Card className="p-6 hover:shadow-md transition-all">
+            <div className="flex items-start justify-between mb-5">
+              <div className="flex-1">
+                <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">Financial Summary</p>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-                <CurrencyDollar size={20} className="text-accent" />
+              <div className="w-11 h-11 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+                <CurrencyDollar size={22} className="text-accent" weight="duotone" />
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Revenue Today</span>
-                <span className="font-semibold">{formatCurrency(0)}</span>
+                <span className="font-semibold text-foreground">{formatCurrency(0)}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Revenue MTD</span>
