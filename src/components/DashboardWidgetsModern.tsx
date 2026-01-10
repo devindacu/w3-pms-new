@@ -13,10 +13,12 @@ import {
   CalendarCheck,
   SignOut,
   Receipt,
-  Package
+  Package,
+  ChartLine
 } from '@phosphor-icons/react'
 import type { DashboardWidget, DashboardMetrics } from '@/lib/types'
 import { formatCurrency, formatPercent } from '@/lib/helpers'
+import { LineChart, Line, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts'
 
 interface WidgetRendererProps {
   widget: DashboardWidget
@@ -256,6 +258,176 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
                 </div>
                 <p className="text-2xl font-bold">{(data?.guestFeedback || []).length}</p>
               </div>
+            </div>
+          </Card>
+        )
+
+      case 'revenue-analytics':
+        const revenueData = [
+          { month: 'Jan', rooms: 45000, fnb: 18000, services: 8000, total: 71000 },
+          { month: 'Feb', rooms: 52000, fnb: 21000, services: 9500, total: 82500 },
+          { month: 'Mar', rooms: 58000, fnb: 24000, services: 11000, total: 93000 },
+          { month: 'Apr', rooms: 61000, fnb: 26000, services: 12000, total: 99000 },
+          { month: 'May', rooms: 68000, fnb: 29000, services: 14000, total: 111000 },
+          { month: 'Jun', rooms: 72000, fnb: 31000, services: 15500, total: 118500 }
+        ]
+
+        const revenueBySource = [
+          { name: 'Room Revenue', value: 356000, color: 'oklch(0.65 0.23 262)' },
+          { name: 'F&B Revenue', value: 149000, color: 'oklch(0.75 0.20 140)' },
+          { name: 'Services', value: 70000, color: 'oklch(0.80 0.18 85)' },
+          { name: 'Other', value: 25000, color: 'oklch(0.70 0.15 40)' }
+        ]
+
+        const totalRevenue = revenueBySource.reduce((sum, item) => sum + item.value, 0)
+
+        return (
+          <Card className="p-6 hover:shadow-md transition-shadow col-span-full">
+            <div className="flex items-start justify-between mb-6">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Revenue Analytics</p>
+                <h3 className="text-2xl font-bold">{formatCurrency(totalRevenue)}</h3>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge className="bg-success/10 text-success border-success/20">
+                    <TrendUp size={14} className="mr-1" />
+                    +12.5% vs last period
+                  </Badge>
+                </div>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <ChartLine size={24} className="text-primary" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+              <div className="lg:col-span-2">
+                <div className="mb-4">
+                  <h4 className="text-sm font-semibold mb-1">Revenue Trend (6 Months)</h4>
+                  <p className="text-xs text-muted-foreground">Monthly revenue breakdown by category</p>
+                </div>
+                <ResponsiveContainer width="100%" height={240}>
+                  <AreaChart data={revenueData}>
+                    <defs>
+                      <linearGradient id="colorRooms" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="oklch(0.65 0.23 262)" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="oklch(0.65 0.23 262)" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorFnB" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="oklch(0.75 0.20 140)" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="oklch(0.75 0.20 140)" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorServices" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="oklch(0.80 0.18 85)" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="oklch(0.80 0.18 85)" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.5 0 0 / 0.1)" />
+                    <XAxis 
+                      dataKey="month" 
+                      tick={{ fill: 'oklch(0.5 0 0)', fontSize: 12 }}
+                      tickLine={false}
+                      axisLine={{ stroke: 'oklch(0.5 0 0 / 0.2)' }}
+                    />
+                    <YAxis 
+                      tick={{ fill: 'oklch(0.5 0 0)', fontSize: 12 }}
+                      tickLine={false}
+                      axisLine={{ stroke: 'oklch(0.5 0 0 / 0.2)' }}
+                      tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'oklch(1 0 0)',
+                        border: '1px solid oklch(0.9 0 0)',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 12px oklch(0 0 0 / 0.1)'
+                      }}
+                      formatter={(value: any) => formatCurrency(value)}
+                    />
+                    <Legend 
+                      wrapperStyle={{ fontSize: '12px', paddingTop: '12px' }}
+                      iconType="circle"
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="rooms" 
+                      name="Rooms"
+                      stroke="oklch(0.65 0.23 262)" 
+                      fillOpacity={1} 
+                      fill="url(#colorRooms)"
+                      strokeWidth={2}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="fnb" 
+                      name="F&B"
+                      stroke="oklch(0.75 0.20 140)" 
+                      fillOpacity={1} 
+                      fill="url(#colorFnB)"
+                      strokeWidth={2}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="services" 
+                      name="Services"
+                      stroke="oklch(0.80 0.18 85)" 
+                      fillOpacity={1} 
+                      fill="url(#colorServices)"
+                      strokeWidth={2}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div>
+                <div className="mb-4">
+                  <h4 className="text-sm font-semibold mb-1">Revenue Distribution</h4>
+                  <p className="text-xs text-muted-foreground">By revenue source</p>
+                </div>
+                <ResponsiveContainer width="100%" height={240}>
+                  <PieChart>
+                    <Pie
+                      data={revenueBySource}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {revenueBySource.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'oklch(1 0 0)',
+                        border: '1px solid oklch(0.9 0 0)',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 12px oklch(0 0 0 / 0.1)'
+                      }}
+                      formatter={(value: any, name: string) => [formatCurrency(value), name]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {revenueBySource.map((source) => (
+                <div key={source.name} className="p-4 rounded-lg border border-border/40 bg-card/50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: source.color }}
+                    />
+                    <p className="text-xs text-muted-foreground">{source.name}</p>
+                  </div>
+                  <p className="text-lg font-bold">{formatCurrency(source.value)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formatPercent(source.value / totalRevenue)} of total
+                  </p>
+                </div>
+              ))}
             </div>
           </Card>
         )

@@ -113,6 +113,7 @@ export function DashboardWidgetManager({
       'arrivals-departures': 'Arrivals & Departures',
       'guest-feedback': 'Recent Guest Feedback',
       'revenue-chart': 'Revenue Chart',
+      'revenue-analytics': 'Revenue Analytics',
       'occupancy-chart': 'Occupancy Chart',
       'department-performance': 'Department Performance',
       'pending-approvals': 'Pending Approvals',
