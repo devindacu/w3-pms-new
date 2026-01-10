@@ -964,9 +964,10 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'inventory' && (
-            <Suspense fallback={<ModuleLoadingFallback moduleName="Inventory Management" />}>
-              <ModuleErrorBoundary>
-                <InventoryManagement
+            <ModuleSuspenseErrorBoundary moduleName="Inventory Management">
+              <Suspense fallback={<ModuleLoadingFallback moduleName="Inventory Management" />}>
+                <ModuleErrorBoundary>
+                  <InventoryManagement
                   foodItems={foodItems || []}
                   setFoodItems={setFoodItems}
                   amenities={amenities || []}
@@ -980,24 +981,28 @@ function App() {
                   setGeneralProducts={setGeneralProducts}
                   suppliers={suppliers || []}
                 />
-              </ModuleErrorBoundary>
-            </Suspense>
+                </ModuleErrorBoundary>
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
 
           {currentModule === 'suppliers' && (
-            <Suspense fallback={<ModuleLoadingFallback moduleName="Supplier Management" />}>
-              <ModuleErrorBoundary>
-                <SupplierManagement
+            <ModuleSuspenseErrorBoundary moduleName="Supplier Management">
+              <Suspense fallback={<ModuleLoadingFallback moduleName="Supplier Management" />}>
+                <ModuleErrorBoundary>
+                  <SupplierManagement
                   suppliers={suppliers || []}
                   setSuppliers={setSuppliers}
                 />
-              </ModuleErrorBoundary>
-            </Suspense>
+                </ModuleErrorBoundary>
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'procurement' && (
-            <Suspense fallback={<ModuleLoadingFallback moduleName="Procurement" />}>
-              <ModuleErrorBoundary>
-                <Procurement
+            <ModuleSuspenseErrorBoundary moduleName="Procurement">
+              <Suspense fallback={<ModuleLoadingFallback moduleName="Procurement" />}>
+                <ModuleErrorBoundary>
+                  <Procurement
                   requisitions={requisitions || []}
                   setRequisitions={setRequisitions}
                   purchaseOrders={purchaseOrders || []}
@@ -1014,8 +1019,9 @@ function App() {
                   invoices={invoices || []}
                   setInvoices={setInvoices}
                 />
-              </ModuleErrorBoundary>
-            </Suspense>
+                </ModuleErrorBoundary>
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'kitchen' && (
             <Suspense fallback={<ModuleLoadingFallback moduleName="Kitchen Operations" />}>
@@ -1046,9 +1052,10 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'finance' && (
-            <Suspense fallback={<ModuleLoadingFallback moduleName="Finance" />}>
-              <ModuleErrorBoundary>
-                <Finance
+            <ModuleSuspenseErrorBoundary moduleName="Finance">
+              <Suspense fallback={<ModuleLoadingFallback moduleName="Finance" />}>
+                <ModuleErrorBoundary>
+                  <Finance
                   invoices={invoices || []}
                   setInvoices={setInvoices}
                   payments={payments || []}
@@ -1075,8 +1082,9 @@ function App() {
                   profitCenterReports={profitCenterReports || []}
                   currentUser={currentUser}
                 />
-              </ModuleErrorBoundary>
-            </Suspense>
+                </ModuleErrorBoundary>
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'hr' && (
             <Suspense fallback={<ModuleLoadingFallback moduleName="HR & Staff Management" />}>
@@ -1099,17 +1107,19 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'user-management' && (
-            <Suspense fallback={<ModuleLoadingFallback moduleName="User Management" />}>
-              <ModuleErrorBoundary>
-                <UserManagement
+            <ModuleSuspenseErrorBoundary moduleName="User Management">
+              <Suspense fallback={<ModuleLoadingFallback moduleName="User Management" />}>
+                <ModuleErrorBoundary>
+                  <UserManagement
                   users={systemUsers || []}
                   setUsers={setSystemUsers}
                   currentUser={currentUser}
                   activityLogs={activityLogs || []}
                   setActivityLogs={setActivityLogs}
                 />
-              </ModuleErrorBoundary>
-            </Suspense>
+                </ModuleErrorBoundary>
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'construction' && (
             <Suspense fallback={<ModuleLoadingFallback moduleName="Maintenance & Construction" />}>
@@ -1127,9 +1137,10 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'analytics' && (
-            <Suspense fallback={<ModuleLoadingFallback moduleName="Analytics" />}>
-              <ModuleErrorBoundary>
-                <Analytics
+            <ModuleSuspenseErrorBoundary moduleName="Analytics">
+              <Suspense fallback={<ModuleLoadingFallback moduleName="Analytics" />}>
+                <ModuleErrorBoundary>
+                  <Analytics
                   orders={orders || []}
                   foodItems={foodItems || []}
                   suppliers={suppliers || []}
@@ -1139,8 +1150,9 @@ function App() {
                   consumptionLogs={consumptionLogs || []}
                   purchaseOrders={purchaseOrders || []}
                 />
-              </ModuleErrorBoundary>
-            </Suspense>
+                </ModuleErrorBoundary>
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'forecasting' && (
             <Suspense fallback={<ModuleLoadingFallback moduleName="AI Forecasting" />}>
@@ -1161,9 +1173,10 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'crm' && (
-            <Suspense fallback={<ModuleLoadingFallback moduleName="Guest Relations & CRM" />}>
-              <ModuleErrorBoundary>
-                <CRM
+            <ModuleSuspenseErrorBoundary moduleName="Guest Relations & CRM">
+              <Suspense fallback={<ModuleLoadingFallback moduleName="Guest Relations & CRM" />}>
+                <ModuleErrorBoundary>
+                  <CRM
                   guestProfiles={guestProfiles || []}
                   setGuestProfiles={setGuestProfiles}
                   complaints={complaints || []}
@@ -1185,13 +1198,15 @@ function App() {
                   orders={orders || []}
                   folioExtraServices={folioExtraServices || []}
                 />
-              </ModuleErrorBoundary>
-            </Suspense>
+                </ModuleErrorBoundary>
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'channel-manager' && (
-            <Suspense fallback={<ModuleLoadingFallback moduleName="Channel Manager" />}>
-              <ModuleErrorBoundary>
-                <ChannelManager
+            <ModuleSuspenseErrorBoundary moduleName="Channel Manager">
+              <Suspense fallback={<ModuleLoadingFallback moduleName="Channel Manager" />}>
+                <ModuleErrorBoundary>
+                  <ChannelManager
                   connections={otaConnections || []}
                   setConnections={setOTAConnections}
                   ratePlans={ratePlans || []}
@@ -1212,21 +1227,24 @@ function App() {
                   rooms={rooms || []}
                   currentUser={currentUser}
                 />
-              </ModuleErrorBoundary>
-            </Suspense>
+                </ModuleErrorBoundary>
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'extra-services' && (
-            <Suspense fallback={<ModuleLoadingFallback moduleName="Extra Services" />}>
-              <ModuleErrorBoundary>
-                <ExtraServicesManagement
+            <ModuleSuspenseErrorBoundary moduleName="Extra Services">
+              <Suspense fallback={<ModuleLoadingFallback moduleName="Extra Services" />}>
+                <ModuleErrorBoundary>
+                  <ExtraServicesManagement
                   services={extraServices || []}
                   setServices={setExtraServices}
                   categories={serviceCategories || []}
                   setCategories={setServiceCategories}
                   currentUser={currentUser}
                 />
-              </ModuleErrorBoundary>
-            </Suspense>
+                </ModuleErrorBoundary>
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'invoice-center' && (
             <Suspense fallback={<ModuleLoadingFallback moduleName="Invoice Center" />}>
@@ -1399,9 +1417,10 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'settings' && (
-            <Suspense fallback={<ModuleLoadingFallback moduleName="Settings" />}>
-              <ModuleErrorBoundary>
-                <Settings
+            <ModuleSuspenseErrorBoundary moduleName="Settings">
+              <Suspense fallback={<ModuleLoadingFallback moduleName="Settings" />}>
+                <ModuleErrorBoundary>
+                  <Settings
                   branding={branding || null}
                   setBranding={setBranding}
                   taxes={taxes || []}
@@ -1417,8 +1436,9 @@ function App() {
                   navigationInsights={getNavigationInsights()}
                   onClearNavigationHistory={clearNavigationHistory}
                 />
-              </ModuleErrorBoundary>
-            </Suspense>
+                </ModuleErrorBoundary>
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'revenue-comparison' && (
             <Suspense fallback={<ModuleLoadingFallback moduleName="Revenue Comparison" />}>
