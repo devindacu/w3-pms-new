@@ -36,7 +36,6 @@ import {
   List,
   FileText
 } from '@phosphor-icons/react'
-import { ColorMoodSelector } from '@/components/ColorMoodSelector'
 import { ArrowsLeftRight } from '@phosphor-icons/react'
 import { 
   type Room, 
@@ -164,7 +163,6 @@ const InvoiceManagement = lazy(() => import('@/components/InvoiceManagement').th
 const PaymentTracking = lazy(() => import('@/components/PaymentTracking').then(m => ({ default: m.PaymentTracking })))
 const RevenueComparison = lazy(() => import('@/components/RevenueComparison').then(m => ({ default: m.RevenueComparison })))
 import { getDefaultWidgetsForRole, getWidgetSize } from '@/lib/widgetConfig'
-import { ThemeToggle } from '@/components/ThemeToggle'
 import { OfflineIndicator } from '@/components/OfflineIndicator'
 import { OfflineModeBanner } from '@/components/OfflineModeBanner'
 import { MobileOfflineTools } from '@/components/MobileOfflineTools'
@@ -849,11 +847,6 @@ function App() {
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="hidden sm:flex items-center gap-2">
-                <ColorMoodSelector />
-                <ThemeToggle />
-              </div>
-              
               <div className="hidden md:block">
                 <OfflineIndicator />
               </div>
@@ -873,8 +866,6 @@ function App() {
         <div className="sm:hidden px-4 py-2.5 border-b border-border/40 bg-background/95 backdrop-blur-sm">
           <div className="flex items-center justify-center gap-2">
             <MobileOfflineTools />
-            <ColorMoodSelector />
-            <ThemeToggle />
           </div>
         </div>
         

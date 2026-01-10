@@ -9,7 +9,6 @@ import { EmailTemplateManagement } from '@/components/EmailTemplateSettings'
 import { EmailTemplateAnalyticsComponent } from '@/components/EmailTemplateAnalytics'
 import { DialogSettings } from '@/components/DialogSettings'
 import { TestEmailTemplate } from '@/components/TestEmailTemplate'
-import { ThemeCustomization } from '@/components/ThemeCustomization'
 import { NavigationInsights } from '@/components/NavigationInsights'
 import type { 
   HotelBranding, 
@@ -29,7 +28,6 @@ import {
   EnvelopeSimple,
   ChartBar,
   FrameCorners,
-  PaintBrush,
   Sparkle
 } from '@phosphor-icons/react'
 
@@ -80,14 +78,10 @@ export function Settings({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9 gap-1">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-1">
           <TabsTrigger value="branding" className="gap-2">
             <Palette size={18} />
             <span className="hidden sm:inline">Branding</span>
-          </TabsTrigger>
-          <TabsTrigger value="theme" className="gap-2">
-            <PaintBrush size={18} />
-            <span className="hidden sm:inline">Theme</span>
           </TabsTrigger>
           <TabsTrigger value="system" className="gap-2">
             <Gear size={18} />
@@ -125,10 +119,6 @@ export function Settings({
             setBranding={setBranding}
             currentUser={currentUser}
           />
-        </TabsContent>
-
-        <TabsContent value="theme" className="mt-6">
-          <ThemeCustomization currentUser={currentUser} />
         </TabsContent>
 
         <TabsContent value="system" className="mt-6">
