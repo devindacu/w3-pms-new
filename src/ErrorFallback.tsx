@@ -1,4 +1,3 @@
-import React from "react";
 import { Alert, AlertTitle, AlertDescription } from "./components/ui/alert";
 import { Button } from "./components/ui/button";
 import { Warning, ArrowClockwise } from "@phosphor-icons/react";
@@ -8,7 +7,7 @@ interface ErrorFallbackProps {
   resetErrorBoundary: () => void;
 }
 
-export const ErrorFallback = ({ error, resetErrorBoundary }: ErrorFallbackProps) => {
+export function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps) {
   if (import.meta.env.DEV) throw error;
 
   return (

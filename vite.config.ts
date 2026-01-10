@@ -19,7 +19,13 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': resolve(projectRoot, 'src')
-    }
+      '@': resolve(projectRoot, 'src'),
+      'react': resolve(projectRoot, 'node_modules/react'),
+      'react-dom': resolve(projectRoot, 'node_modules/react-dom')
+    },
+    dedupe: ['react', 'react-dom']
   },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react/jsx-runtime']
+  }
 });
