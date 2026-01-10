@@ -1,6 +1,6 @@
 # W3 Hotel PMS - Product Requirement Document
 
-A comprehensive, modern hotel property management system designed for efficiency, clarity, and seamless operations in 2026.
+A comprehensive, modern hotel property management system with a clean, minimalist interface designed for efficiency and seamless operations.
 
 ## Mission Statement
 

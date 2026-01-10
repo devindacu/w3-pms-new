@@ -5,8 +5,9 @@ import { useAutoBackup } from '@/hooks/use-auto-backup'
 import { Toaster } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Input } from '@/components/ui/input'
 import w3PMSLogo from '@/assets/images/W3-PMS.png'
 import {
   LayoutDashboard,
@@ -22,14 +23,17 @@ import {
   UserCog,
   Wrench,
   BarChart3,
-  Receipt,
   Settings as SettingsIcon,
-  Menu,
   Search,
   Bell,
   TrendingUp,
+  TrendingDown,
   Calendar,
-  ChevronRight
+  ArrowUpRight,
+  ArrowDownRight,
+  ChevronRight,
+  Menu,
+  X
 } from 'lucide-react'
 import type { 
   SystemUser,
@@ -77,8 +81,6 @@ import {
   sampleEventDays,
   sampleCorporateAccounts
 } from '@/lib/revenueManagementSampleData'
-import { ModuleLoadingSkeleton } from '@/components/ModuleLoadingSkeleton'
-import { QuickBackupDialog } from '@/components/QuickBackupDialog'
 
 const FrontOffice = lazy(() => import('@/components/FrontOffice').then(m => ({ default: m.FrontOffice })))
 const Housekeeping = lazy(() => import('@/components/Housekeeping').then(m => ({ default: m.Housekeeping })))
@@ -97,6 +99,15 @@ const Analytics = lazy(() => import('@/components/Analytics').then(m => ({ defau
 const ConstructionManagement = lazy(() => import('@/components/ConstructionManagement').then(m => ({ default: m.ConstructionManagement })))
 const UserManagement = lazy(() => import('@/components/UserManagement').then(m => ({ default: m.UserManagement })))
 const Settings = lazy(() => import('@/components/Settings').then(m => ({ default: m.Settings })))
+
+const LoadingState = () => (
+  <div className="flex items-center justify-center h-full min-h-[400px]">
+    <div className="flex flex-col items-center gap-4">
+      <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <p className="text-sm text-muted-foreground">Loading module...</p>
+    </div>
+  </div>
+)
 
 type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'kitchen' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'settings'
 
@@ -196,66 +207,186 @@ function App() {
   
   const currentUser = (systemUsers || [])[0] || sampleSystemUsers[0]
 
-  const navigationGroups = [
-    {
-      label: 'Overview',
-      items: [
-        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      ]
-    },
-    {
-      label: 'Operations',
-      items: [
-        { id: 'front-office', label: 'Front Office', icon: BedDouble },
-        { id: 'housekeeping', label: 'Housekeeping', icon: ClipboardList },
-        { id: 'fnb', label: 'F&B / POS', icon: UtensilsCrossed },
-        { id: 'kitchen', label: 'Kitchen', icon: UtensilsCrossed },
-      ]
-    },
-    {
-      label: 'Business',
-      items: [
-        { id: 'crm', label: 'Guest Relations', icon: Users },
-        { id: 'extra-services', label: 'Extra Services', icon: Sparkles },
-        { id: 'room-revenue', label: 'Room & Revenue', icon: Building2 },
-        { id: 'channel-manager', label: 'Channel Manager', icon: TrendingUp },
-      ]
-    },
-    {
-      label: 'Management',
-      items: [
-        { id: 'inventory', label: 'Inventory', icon: Package },
-        { id: 'procurement', label: 'Procurement', icon: ShoppingCart },
-        { id: 'suppliers', label: 'Suppliers', icon: Building2 },
-        { id: 'finance', label: 'Finance', icon: DollarSign },
-        { id: 'hr', label: 'HR & Staff', icon: Users },
-      ]
-    },
-    {
-      label: 'System',
-      items: [
-        { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-        { id: 'construction', label: 'Maintenance', icon: Wrench },
-        { id: 'user-management', label: 'Users', icon: UserCog },
-        { id: 'settings', label: 'Settings', icon: SettingsIcon },
-      ]
-    }
+  const navigationItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'front-office', label: 'Front Office', icon: BedDouble },
+    { id: 'housekeeping', label: 'Housekeeping', icon: ClipboardList },
+    { id: 'fnb', label: 'F&B / POS', icon: UtensilsCrossed },
+    { id: 'kitchen', label: 'Kitchen', icon: UtensilsCrossed },
+    { id: 'crm', label: 'Guest Relations', icon: Users },
+    { id: 'extra-services', label: 'Extra Services', icon: Sparkles },
+    { id: 'room-revenue', label: 'Room & Revenue', icon: Building2 },
+    { id: 'channel-manager', label: 'Channel Manager', icon: TrendingUp },
+    { id: 'inventory', label: 'Inventory', icon: Package },
+    { id: 'procurement', label: 'Procurement', icon: ShoppingCart },
+    { id: 'suppliers', label: 'Suppliers', icon: Building2 },
+    { id: 'finance', label: 'Finance', icon: DollarSign },
+    { id: 'hr', label: 'HR & Staff', icon: Users },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'construction', label: 'Maintenance', icon: Wrench },
+    { id: 'user-management', label: 'Users', icon: UserCog },
+    { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ]
 
-  const SidebarContent = ({ onClose }: { onClose?: () => void }) => (
-    <div className="flex flex-col h-full bg-sidebar-background">
-      <div className="h-16 px-6 flex items-center border-b border-sidebar-border">
-        <img src={w3PMSLogo} alt="W3 PMS" className="h-8" />
+  const stats = [
+    { 
+      label: 'Total Revenue', 
+      value: '$124,592', 
+      change: 12.5, 
+      trend: 'up',
+      icon: DollarSign,
+      color: 'text-green-600 bg-green-50'
+    },
+    { 
+      label: 'Occupancy Rate', 
+      value: '87%', 
+      change: 5.2, 
+      trend: 'up',
+      icon: BedDouble,
+      color: 'text-primary bg-primary/10'
+    },
+    { 
+      label: 'Active Guests', 
+      value: '142', 
+      change: -2.4, 
+      trend: 'down',
+      icon: Users,
+      color: 'text-accent bg-accent/10'
+    },
+    { 
+      label: 'Pending Tasks', 
+      value: '23', 
+      change: 8.1, 
+      trend: 'up',
+      icon: ClipboardList,
+      color: 'text-warning bg-warning/10'
+    },
+  ]
+
+  const renderDashboard = () => (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground mt-2">Welcome back, {currentUser.firstName}</p>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
-        {navigationGroups.map((group) => (
-          <div key={group.label}>
-            <h3 className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              {group.label}
-            </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat) => {
+          const Icon = stat.icon
+          const TrendIcon = stat.trend === 'up' ? ArrowUpRight : ArrowDownRight
+          return (
+            <Card key={stat.label} className="p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <div className={`p-3 rounded-xl ${stat.color}`}>
+                  <Icon className="h-5 w-5" />
+                </div>
+                <Badge variant={stat.trend === 'up' ? 'default' : 'secondary'} className="gap-1">
+                  <TrendIcon className="h-3 w-3" />
+                  {Math.abs(stat.change)}%
+                </Badge>
+              </div>
+              <h3 className="text-3xl font-bold mb-1">{stat.value}</h3>
+              <p className="text-sm text-muted-foreground">{stat.label}</p>
+            </Card>
+          )
+        })}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="p-6">
+          <h3 className="text-xl font-semibold mb-6">Recent Reservations</h3>
+          <div className="space-y-4">
+            {(reservations || []).slice(0, 5).map((reservation) => {
+              const guest = guests?.find(g => g.id === reservation.guestId)
+              const room = rooms?.find(r => r.id === reservation.roomId)
+              const guestName = guest ? `${guest.firstName} ${guest.lastName}` : 'Guest'
+              return (
+                <div key={reservation.id} className="flex items-center gap-4 p-4 rounded-lg hover:bg-muted/50 transition-colors">
+                  <Avatar>
+                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                      {guestName.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{guestName}</p>
+                    <p className="text-sm text-muted-foreground">{room ? `Room ${room.roomNumber}` : 'Room pending'}</p>
+                  </div>
+                  <div className="text-right">
+                    <Badge variant={reservation.status === 'confirmed' ? 'default' : 'secondary'}>
+                      {reservation.status}
+                    </Badge>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="text-xl font-semibold mb-6">Quick Actions</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <Button 
+              variant="outline" 
+              className="h-auto flex-col gap-2 py-6"
+              onClick={() => setCurrentModule('front-office')}
+            >
+              <BedDouble className="h-6 w-6" />
+              <span className="text-sm">New Booking</span>
+            </Button>
+            <Button 
+              variant="outline" 
+              className="h-auto flex-col gap-2 py-6"
+              onClick={() => setCurrentModule('front-office')}
+            >
+              <Users className="h-6 w-6" />
+              <span className="text-sm">Check In</span>
+            </Button>
+            <Button 
+              variant="outline" 
+              className="h-auto flex-col gap-2 py-6"
+              onClick={() => setCurrentModule('housekeeping')}
+            >
+              <ClipboardList className="h-6 w-6" />
+              <span className="text-sm">Assign Task</span>
+            </Button>
+            <Button 
+              variant="outline" 
+              className="h-auto flex-col gap-2 py-6"
+              onClick={() => setCurrentModule('fnb')}
+            >
+              <UtensilsCrossed className="h-6 w-6" />
+              <span className="text-sm">New Order</span>
+            </Button>
+          </div>
+        </Card>
+      </div>
+    </div>
+  )
+
+  return (
+    <div className="flex h-screen bg-background overflow-hidden">
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-72 bg-sidebar-background border-r border-sidebar-border
+        transform transition-transform duration-300 ease-in-out
+        lg:translate-x-0 lg:static
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <div className="flex flex-col h-full">
+          <div className="h-20 px-6 flex items-center justify-between border-b border-sidebar-border">
+            <img src={w3PMSLogo} alt="W3 PMS" className="h-10" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+
+          <nav className="flex-1 overflow-y-auto px-4 py-6">
             <div className="space-y-1">
-              {group.items.map((item) => {
+              {navigationItems.map((item) => {
                 const Icon = item.icon
                 const isActive = currentModule === item.id
                 return (
@@ -263,175 +394,48 @@ function App() {
                     key={item.id}
                     onClick={() => {
                       setCurrentModule(item.id as Module)
-                      onClose?.()
+                      setSidebarOpen(false)
                     }}
                     className={`
-                      w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all
+                      w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
                       ${isActive 
                         ? 'bg-primary text-primary-foreground shadow-sm' 
-                        : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                        : 'text-sidebar-foreground hover:bg-sidebar-accent'
                       }
                     `}
                   >
-                    <Icon size={18} />
-                    <span>{item.label}</span>
-                    {isActive && <ChevronRight size={16} className="ml-auto" />}
+                    <Icon className="h-5 w-5 shrink-0" />
+                    <span className="truncate">{item.label}</span>
+                    {isActive && <ChevronRight className="h-4 w-4 ml-auto shrink-0" />}
                   </button>
                 )
               })}
             </div>
-          </div>
-        ))}
-      </nav>
+          </nav>
 
-      <div className="h-16 px-4 flex items-center gap-3 border-t border-sidebar-border">
-        <Avatar className="h-9 w-9">
-          <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-            {currentUser.firstName?.[0]}{currentUser.lastName?.[0]}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold truncate">{currentUser.firstName} {currentUser.lastName}</p>
-          <p className="text-xs text-muted-foreground truncate capitalize">{currentUser.role.replace('-', ' ')}</p>
+          <div className="h-20 px-4 flex items-center gap-3 border-t border-sidebar-border">
+            <Avatar className="h-10 w-10">
+              <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+                {currentUser.firstName?.[0]}{currentUser.lastName?.[0]}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold truncate">{currentUser.firstName} {currentUser.lastName}</p>
+              <p className="text-xs text-muted-foreground truncate capitalize">{currentUser.role.replace('-', ' ')}</p>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  )
-
-  const renderDashboard = () => (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Welcome to W3 Hotel PMS</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <BedDouble className="h-5 w-5 text-primary" />
-            </div>
-            <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">+12%</span>
-          </div>
-          <h3 className="text-2xl font-bold">156</h3>
-          <p className="text-sm text-muted-foreground">Total Rooms</p>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-2 bg-accent/10 rounded-lg">
-              <Users className="h-5 w-5 text-accent" />
-            </div>
-            <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">+8%</span>
-          </div>
-          <h3 className="text-2xl font-bold">1,247</h3>
-          <p className="text-sm text-muted-foreground">Total Guests</p>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-2 bg-green-500/10 rounded-lg">
-              <DollarSign className="h-5 w-5 text-green-600" />
-            </div>
-            <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">+15%</span>
-          </div>
-          <h3 className="text-2xl font-bold">$45,231</h3>
-          <p className="text-sm text-muted-foreground">Revenue (MTD)</p>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-2 bg-orange-500/10 rounded-lg">
-              <Calendar className="h-5 w-5 text-orange-600" />
-            </div>
-            <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">+5%</span>
-          </div>
-          <h3 className="text-2xl font-bold">89%</h3>
-          <p className="text-sm text-muted-foreground">Occupancy Rate</p>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 p-6">
-          <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
-          <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex items-center gap-4 pb-4 border-b last:border-0 last:pb-0">
-                <div className="p-2 bg-muted rounded-lg">
-                  <Receipt className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">New reservation created</p>
-                  <p className="text-xs text-muted-foreground">Room 101 - John Doe</p>
-                </div>
-                <span className="text-xs text-muted-foreground">2 min ago</span>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-          <div className="space-y-2">
-            <Button className="w-full justify-start" variant="outline">
-              <BedDouble className="mr-2 h-4 w-4" />
-              New Reservation
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              <Users className="mr-2 h-4 w-4" />
-              Check In Guest
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              <Receipt className="mr-2 h-4 w-4" />
-              Create Invoice
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              <ClipboardList className="mr-2 h-4 w-4" />
-              Assign Task
-            </Button>
-          </div>
-        </Card>
-      </div>
-    </div>
-  )
-
-  const renderComingSoon = (title: string) => (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">{title}</h1>
-        <p className="text-muted-foreground mt-1">Module under development</p>
-      </div>
-      <Card className="p-12 text-center">
-        <div className="max-w-md mx-auto space-y-4">
-          <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto">
-            <SettingsIcon className="h-8 w-8 text-muted-foreground" />
-          </div>
-          <h3 className="text-xl font-semibold">Coming Soon</h3>
-          <p className="text-muted-foreground">
-            This module is currently under development. Stay tuned for updates.
-          </p>
-          <Button onClick={() => setCurrentModule('dashboard')}>
-            Back to Dashboard
-          </Button>
-        </div>
-      </Card>
-    </div>
-  )
-
-  return (
-    <div className="flex h-screen bg-background">
-      <aside className="hidden lg:flex w-64 border-r border-sidebar-border">
-        <SidebarContent />
       </aside>
 
-      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="w-64 p-0">
-          <SidebarContent onClose={() => setSidebarOpen(false)} />
-        </SheetContent>
-      </Sheet>
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
       <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 border-b border-border bg-card px-4 lg:px-6 flex items-center gap-4">
+        <header className="h-20 border-b border-border bg-card px-6 flex items-center gap-4 shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -441,29 +445,33 @@ function App() {
             <Menu className="h-5 w-5" />
           </Button>
 
-          <div className="flex-1 flex items-center gap-4">
-            <div className="relative flex-1 max-w-md">
+          <div className="flex-1 max-w-md">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
+              <Input
                 type="text"
-                placeholder="Search..."
-                className="w-full pl-10 pr-4 py-2 bg-muted border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                placeholder="Search anything..."
+                className="pl-10 bg-muted/50 border-0 focus-visible:ring-1"
               />
             </div>
           </div>
 
-          <QuickBackupDialog />
-
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-destructive rounded-full"></span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="relative">
+              <Bell className="h-5 w-5" />
+              <span className="absolute top-2 right-2 h-2 w-2 bg-destructive rounded-full" />
+            </Button>
+            
+            <Button variant="ghost" size="icon">
+              <Calendar className="h-5 w-5" />
+            </Button>
+          </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-6 lg:p-8">
+        <div className="flex-1 overflow-y-auto p-8">
           {currentModule === 'dashboard' && renderDashboard()}
           {currentModule === 'front-office' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
+            <Suspense fallback={<LoadingState />}>
               <FrontOffice
                 guests={guests || []}
                 setGuests={setGuests}
@@ -484,7 +492,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'housekeeping' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
+            <Suspense fallback={<LoadingState />}>
               <Housekeeping
                 tasks={housekeepingTasks || []}
                 setTasks={setHousekeepingTasks}
@@ -495,7 +503,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'fnb' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
+            <Suspense fallback={<LoadingState />}>
               <FnBPOS
                 menuItems={menuItems || []}
                 setMenuItems={setMenuItems}
@@ -507,7 +515,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'kitchen' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
+            <Suspense fallback={<LoadingState />}>
               <KitchenManagement
                 stations={kitchenStations || []}
                 setStations={setKitchenStations}
@@ -525,7 +533,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'crm' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
+            <Suspense fallback={<LoadingState />}>
               <CRM
                 guestProfiles={guestProfiles || []}
                 setGuestProfiles={setGuestProfiles}
@@ -551,7 +559,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'extra-services' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
+            <Suspense fallback={<LoadingState />}>
               <ExtraServicesManagement
                 services={extraServices || []}
                 setServices={setExtraServices}
@@ -562,7 +570,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'room-revenue' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
+            <Suspense fallback={<LoadingState />}>
               <RevenueManagement
                 roomTypes={roomTypeConfigs || []}
                 setRoomTypes={setRoomTypeConfigs}
@@ -581,7 +589,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'channel-manager' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
+            <Suspense fallback={<LoadingState />}>
               <ChannelManager
                 connections={otaConnections || []}
                 setConnections={setOtaConnections}
@@ -606,7 +614,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'inventory' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
+            <Suspense fallback={<LoadingState />}>
               <InventoryManagement
                 foodItems={foodItems || []}
                 setFoodItems={setFoodItems}
@@ -624,7 +632,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'procurement' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
+            <Suspense fallback={<LoadingState />}>
               <Procurement
                 requisitions={requisitions || []}
                 setRequisitions={setRequisitions}
@@ -645,7 +653,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'suppliers' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
+            <Suspense fallback={<LoadingState />}>
               <SupplierManagement
                 suppliers={suppliers || []}
                 setSuppliers={setSuppliers}
@@ -653,7 +661,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'finance' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
+            <Suspense fallback={<LoadingState />}>
               <Finance
                 invoices={invoices || []}
                 setInvoices={setInvoices}
@@ -673,7 +681,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'hr' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
+            <Suspense fallback={<LoadingState />}>
               <HRManagement
                 employees={employees || []}
                 setEmployees={setEmployees}
@@ -691,7 +699,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'analytics' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
+            <Suspense fallback={<LoadingState />}>
               <Analytics
                 orders={orders || []}
                 foodItems={foodItems || []}
@@ -705,7 +713,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'construction' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
+            <Suspense fallback={<LoadingState />}>
               <ConstructionManagement
                 materials={constructionMaterials || []}
                 setMaterials={setConstructionMaterials}
@@ -718,7 +726,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'user-management' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
+            <Suspense fallback={<LoadingState />}>
               <UserManagement
                 users={systemUsers || []}
                 setUsers={() => {}}
@@ -729,7 +737,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'settings' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
+            <Suspense fallback={<LoadingState />}>
               <Settings
                 branding={branding}
                 setBranding={setBranding}
@@ -749,7 +757,7 @@ function App() {
         </div>
       </main>
 
-      <Toaster position="top-right" richColors />
+      <Toaster position="top-right" richColors closeButton />
     </div>
   )
 }
