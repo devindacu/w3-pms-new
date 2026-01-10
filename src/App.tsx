@@ -553,11 +553,11 @@ function App() {
     }
 
     return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Hotel Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Unified view of all hotel operations</p>
+          <h1 className="text-3xl font-semibold text-foreground">Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-1">Unified view of all hotel operations</p>
         </div>
         <div className="flex items-center gap-2">
           {!hasData && (
@@ -603,7 +603,7 @@ function App() {
         </Card>
       ) : (
         <>
-          <div className={`grid gap-4 ${
+          <div className={`grid gap-6 ${
             layout?.columns === 1 ? 'grid-cols-1' : 
             layout?.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 
             layout?.columns === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 
@@ -685,7 +685,7 @@ function App() {
 
   const NavItem = ({ item, onClick }: { item: typeof navItems[number], onClick?: () => void }) => {
     if ('type' in item && item.type === 'divider') {
-      return <div className="h-px bg-border/30 my-1 mx-2" />
+      return <div className="h-px bg-border/40 my-2 mx-3" />
     }
     
     const Icon = 'icon' in item ? item.icon : Gauge
@@ -698,18 +698,18 @@ function App() {
           onClick?.()
         }}
         className={`
-          flex items-center gap-2 w-full text-left px-3 py-2 mx-2 my-0.5 rounded-lg text-sm transition-all
+          flex items-center gap-3 w-full text-left px-4 py-2.5 mx-2 my-0.5 rounded-lg text-sm font-medium transition-all
           ${isActive 
-            ? 'bg-primary text-primary-foreground font-medium shadow-sm' 
+            ? 'bg-primary text-primary-foreground shadow-sm' 
             : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
           }
           ${sidebarCollapsed ? 'justify-center px-2' : ''}
         `}
         title={'label' in item ? item.label : ''}
       >
-        <Icon size={18} weight={isActive ? 'fill' : 'regular'} className="shrink-0" />
+        <Icon size={20} weight={isActive ? 'fill' : 'regular'} className="shrink-0" />
         {!sidebarCollapsed && 'label' in item && (
-          <span className="truncate text-xs">{item.label}</span>
+          <span className="truncate">{item.label}</span>
         )}
       </button>
     )
@@ -717,39 +717,39 @@ function App() {
 
   const SidebarContent = ({ onItemClick }: { onItemClick?: () => void }) => (
     <div className="flex flex-col h-full bg-sidebar">
-      <div className={`p-4 border-b border-sidebar-border ${sidebarCollapsed ? 'px-3' : ''}`}>
-        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2'}`}>
+      <div className={`p-5 border-b border-sidebar-border ${sidebarCollapsed ? 'px-4' : ''}`}>
+        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-3'}`}>
           {sidebarCollapsed ? (
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Gauge size={20} className="text-primary" weight="fill" />
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Gauge size={22} className="text-primary" weight="fill" />
             </div>
           ) : (
             <img 
               src={w3PMSLogo}
               alt="W3 Hotel PMS" 
-              className="h-8 w-auto object-contain"
+              className="h-9 w-auto object-contain"
             />
           )}
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-2 scrollbar-thin">
+      <nav className="flex-1 overflow-y-auto py-3 scrollbar-thin">
         {navItems.map((item) => (
           <NavItem key={item.id} item={item} onClick={onItemClick} />
         ))}
       </nav>
 
-      <div className={`p-3 border-t border-sidebar-border ${sidebarCollapsed ? 'hidden lg:block' : ''}`}>
-        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2'}`}>
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <span className="text-xs font-bold text-primary">
+      <div className={`p-4 border-t border-sidebar-border ${sidebarCollapsed ? 'hidden lg:block' : ''}`}>
+        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-3'}`}>
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <span className="text-sm font-bold text-primary">
               {currentUser.firstName?.[0]}{currentUser.lastName?.[0]}
             </span>
           </div>
           {!sidebarCollapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold truncate text-sidebar-foreground">{currentUser.firstName} {currentUser.lastName}</p>
-              <p className="text-[10px] text-muted-foreground truncate capitalize">{currentUser.role.replace('-', ' ')}</p>
+              <p className="text-sm font-semibold truncate text-sidebar-foreground">{currentUser.firstName} {currentUser.lastName}</p>
+              <p className="text-xs text-muted-foreground truncate capitalize">{currentUser.role.replace('-', ' ')}</p>
             </div>
           )}
         </div>
@@ -762,16 +762,16 @@ function App() {
     <div className="flex min-h-screen bg-background">
       <aside 
         className={`
-          hidden lg:flex flex-col fixed left-0 top-0 bottom-0 z-40 border-r border-sidebar-border
+          hidden lg:flex flex-col fixed left-0 top-0 bottom-0 z-40 border-r border-sidebar-border bg-sidebar
           transition-all duration-300 ease-in-out
-          ${sidebarCollapsed ? 'w-16' : 'w-[240px]'}
+          ${sidebarCollapsed ? 'w-20' : 'w-64'}
         `}
       >
         <SidebarContent />
       </aside>
 
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="w-[280px] p-0 bg-sidebar border-r-0">
+        <SheetContent side="left" className="w-64 p-0 bg-sidebar border-r-0">
           <SidebarContent onItemClick={() => setSidebarOpen(false)} />
         </SheetContent>
       </Sheet>
@@ -779,16 +779,16 @@ function App() {
       <main 
         className={`
           flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out
-          ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-[240px]'}
+          ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}
         `}
       >
         <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
-          <div className="h-14 px-4 md:px-6 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 flex-1">
+          <div className="h-16 px-4 lg:px-6 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-1 max-w-2xl">
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="lg:hidden rounded-xl hover:bg-sidebar-accent transition-all"
+                className="lg:hidden rounded-lg hover:bg-sidebar-accent transition-all"
                 onClick={() => setSidebarOpen(true)}
               >
                 <List size={20} />
@@ -797,7 +797,7 @@ function App() {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="hidden lg:flex rounded-xl hover:bg-sidebar-accent transition-all"
+                className="hidden lg:flex rounded-lg hover:bg-sidebar-accent transition-all"
                 onClick={() => setSidebarCollapsed((current) => !current)}
                 title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               >
@@ -844,8 +844,7 @@ function App() {
         </div>
         
         <OfflineModeBanner />
-        <div className="flex-1 p-4 md:p-5 overflow-x-hidden max-w-[1920px] mx-auto w-full bg-muted/30">
-          {currentModule === 'dashboard' && renderDashboard()}
+        <div className="flex-1 p-6 lg:p-8 overflow-x-hidden max-w-[1920px] mx-auto w-full">{currentModule === 'dashboard' && renderDashboard()}
           {currentModule === 'quick-ops' && (
             <OfflineOperationsPanel
               rooms={rooms || []}
