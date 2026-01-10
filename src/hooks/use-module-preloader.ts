@@ -50,6 +50,16 @@ const moduleImports: Record<Module, () => Promise<any>> = {
 
 const preloadedModules = new Set<Module>()
 const preloadingModules = new Map<Module, Promise<any>>()
+const preloadListeners = new Set<(module: Module) => void>()
+
+export function addPreloadListener(callback: (module: Module) => void) {
+  preloadListeners.add(callback)
+  return () => preloadListeners.delete(callback)
+}
+
+function notifyPreloadListeners(module: Module) {
+  preloadListeners.forEach(listener => listener(module))
+}
 
 export function useModulePreloader() {
   const preloadTimeoutRef = useRef<number | undefined>(undefined)
@@ -63,6 +73,8 @@ export function useModulePreloader() {
     if (!importFn) {
       return Promise.resolve(null)
     }
+
+    notifyPreloadListeners(moduleName)
 
     const importPromise = importFn()
       .then((module) => {

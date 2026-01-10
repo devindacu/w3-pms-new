@@ -10,6 +10,7 @@ import { EmailTemplateAnalyticsComponent } from '@/components/EmailTemplateAnaly
 import { DialogSettings } from '@/components/DialogSettings'
 import { TestEmailTemplate } from '@/components/TestEmailTemplate'
 import { ThemeCustomization } from '@/components/ThemeCustomization'
+import { NavigationInsights } from '@/components/NavigationInsights'
 import type { 
   HotelBranding, 
   TaxConfiguration, 
@@ -28,7 +29,8 @@ import {
   EnvelopeSimple,
   ChartBar,
   FrameCorners,
-  PaintBrush
+  PaintBrush,
+  Sparkle
 } from '@phosphor-icons/react'
 
 interface SettingsProps {
@@ -44,6 +46,12 @@ interface SettingsProps {
   campaignAnalytics: EmailCampaignAnalytics[]
   emailRecords: EmailSentRecord[]
   currentUser: SystemUser
+  navigationInsights?: {
+    mostVisited: Array<{ module: string; count: number }>
+    commonPatterns: any[]
+    timeBasedPreferences: Record<string, string[]>
+  }
+  onClearNavigationHistory?: () => void
 }
 
 export function Settings({
@@ -58,7 +66,9 @@ export function Settings({
   emailAnalytics,
   campaignAnalytics,
   emailRecords,
-  currentUser
+  currentUser,
+  navigationInsights,
+  onClearNavigationHistory
 }: SettingsProps) {
   const [activeTab, setActiveTab] = useState('branding')
 
@@ -70,7 +80,7 @@ export function Settings({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-1">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9 gap-1">
           <TabsTrigger value="branding" className="gap-2">
             <Palette size={18} />
             <span className="hidden sm:inline">Branding</span>
@@ -98,6 +108,10 @@ export function Settings({
           <TabsTrigger value="email-analytics" className="gap-2">
             <ChartBar size={18} />
             <span className="hidden sm:inline">Analytics</span>
+          </TabsTrigger>
+          <TabsTrigger value="navigation" className="gap-2">
+            <Sparkle size={18} />
+            <span className="hidden sm:inline">Navigation AI</span>
           </TabsTrigger>
           <TabsTrigger value="preferences" className="gap-2">
             <User size={18} />
@@ -169,6 +183,25 @@ export function Settings({
             campaignAnalytics={campaignAnalytics}
             emailRecords={emailRecords}
           />
+        </TabsContent>
+
+        <TabsContent value="navigation" className="mt-6">
+          {navigationInsights && onClearNavigationHistory ? (
+            <NavigationInsights
+              mostVisited={navigationInsights.mostVisited}
+              commonPatterns={navigationInsights.commonPatterns}
+              timeBasedPreferences={navigationInsights.timeBasedPreferences}
+              onClearHistory={onClearNavigationHistory}
+            />
+          ) : (
+            <Card className="p-8 text-center">
+              <Sparkle size={48} className="mx-auto mb-4 text-muted-foreground opacity-50" />
+              <h3 className="text-lg font-semibold mb-2">Navigation Insights Unavailable</h3>
+              <p className="text-sm text-muted-foreground">
+                Navigation pattern data is not available at this time.
+              </p>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="preferences" className="mt-6">

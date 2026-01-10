@@ -3,6 +3,8 @@ import { useKV } from '@github/spark/hooks'
 import { Toaster, toast } from 'sonner'
 import { useTheme } from '@/hooks/use-theme'
 import { useModulePreloader } from '@/hooks/use-module-preloader'
+import { usePredictivePreload } from '@/hooks/use-predictive-preload'
+import { usePreloadIndicator } from '@/hooks/use-preload-indicator'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -168,6 +170,7 @@ import { OfflineModeBanner } from '@/components/OfflineModeBanner'
 import { MobileOfflineTools } from '@/components/MobileOfflineTools'
 import { OfflineOperationsPanel } from '@/components/OfflineOperationsPanel'
 import { useOfflineStatus } from '@/hooks/use-offline'
+import { PreloadIndicator } from '@/components/PreloadIndicator'
 import type {
   DashboardLayout,
   DashboardWidget,
@@ -303,7 +306,16 @@ function App() {
 
   useTheme()
   const { isOnline } = useOfflineStatus()
-  const { preloadOnHover } = useModulePreloader()
+  const { preloadModule, preloadOnHover } = useModulePreloader()
+  const { 
+    getPredictedModules, 
+    getNavigationInsights, 
+    clearNavigationHistory 
+  } = usePredictivePreload(
+    currentModule as any,
+    (module: string) => preloadModule(module as any)
+  )
+  const { isPreloading, preloadingModule } = usePreloadIndicator()
 
   const refreshNotifications = useCallback(() => {
     const newNotifications = generateAllAlerts(
@@ -697,6 +709,7 @@ function App() {
     
     const Icon = 'icon' in item ? item.icon : Gauge
     const isActive = currentModule === item.id
+    const isPredicted = 'id' in item && getPredictedModules(currentModule as any).includes(item.id as any)
     
     const handleMouseEnter = () => {
       if ('id' in item && item.id !== 'dashboard' && item.id !== 'quick-ops') {
@@ -712,7 +725,7 @@ function App() {
         }}
         onMouseEnter={handleMouseEnter}
         className={`
-          flex items-center gap-3 w-full text-left px-3 py-2 mx-2 my-0.5 rounded-lg text-sm font-medium transition-all
+          flex items-center gap-3 w-full text-left px-3 py-2 mx-2 my-0.5 rounded-lg text-sm font-medium transition-all relative
           ${isActive 
             ? 'bg-primary text-primary-foreground shadow-sm' 
             : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
@@ -721,6 +734,11 @@ function App() {
         `}
         title={'label' in item ? item.label : ''}
       >
+        {isPredicted && !isActive && !sidebarCollapsed && (
+          <span className="absolute right-2 top-1/2 -translate-y-1/2">
+            <Sparkle size={12} className="text-primary animate-pulse" weight="fill" />
+          </span>
+        )}
         <Icon size={18} weight={isActive ? 'fill' : 'regular'} className="shrink-0" />
         {!sidebarCollapsed && 'label' in item && (
           <span className="truncate">{item.label}</span>
@@ -1396,6 +1414,8 @@ function App() {
                   campaignAnalytics={campaignAnalytics || []}
                   emailRecords={emailRecords || []}
                   currentUser={currentUser}
+                  navigationInsights={getNavigationInsights()}
+                  onClearNavigationHistory={clearNavigationHistory}
                 />
               </ModuleErrorBoundary>
             </Suspense>
@@ -1445,6 +1465,8 @@ function App() {
           duration: 4000,
         }}
       />
+      
+      <PreloadIndicator isActive={isPreloading} moduleName={preloadingModule} />
     </div>
     </ErrorBoundary>
   )
