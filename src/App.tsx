@@ -118,6 +118,33 @@ function App() {
   const [upsellTransactions, setUpsellTransactions] = useKV<UpsellTransaction[]>('w3-hotel-upsell-transactions', [])
   const [loyaltyTransactions, setLoyaltyTransactions] = useKV<LoyaltyTransaction[]>('w3-hotel-loyalty-transactions', [])
   
+  const [kitchenStations, setKitchenStations] = useKV<any[]>('w3-hotel-kitchen-stations', [])
+  const [kitchenStaff, setKitchenStaff] = useKV<any[]>('w3-hotel-kitchen-staff', [])
+  const [productionSchedules, setProductionSchedules] = useKV<any[]>('w3-hotel-production-schedules', [])
+  const [kitchenInventoryIssues, setKitchenInventoryIssues] = useKV<any[]>('w3-hotel-kitchen-inventory-issues', [])
+  const [wasteTracking, setWasteTracking] = useKV<any[]>('w3-hotel-waste-tracking', [])
+  
+  const [roomTypeConfigs, setRoomTypeConfigs] = useKV<any[]>('w3-hotel-room-type-configs', [])
+  const [ratePlans, setRatePlans] = useKV<any[]>('w3-hotel-rate-plans', [])
+  const [seasons, setSeasons] = useKV<any[]>('w3-hotel-seasons', [])
+  const [eventDays, setEventDays] = useKV<any[]>('w3-hotel-event-days', [])
+  const [corporateAccounts, setCorporateAccounts] = useKV<any[]>('w3-hotel-corporate-accounts', [])
+  const [rateCalendar, setRateCalendar] = useKV<any[]>('w3-hotel-rate-calendar', [])
+  
+  const [invoices, setInvoices] = useKV<any[]>('w3-hotel-finance-invoices', [])
+  const [payments, setPayments] = useKV<any[]>('w3-hotel-finance-payments', [])
+  const [expenses, setExpenses] = useKV<any[]>('w3-hotel-finance-expenses', [])
+  const [accounts, setAccounts] = useKV<any[]>('w3-hotel-finance-accounts', [])
+  const [budgets, setBudgets] = useKV<any[]>('w3-hotel-finance-budgets', [])
+  const [journalEntries, setJournalEntries] = useKV<any[]>('w3-hotel-journal-entries', [])
+  const [chartOfAccounts, setChartOfAccounts] = useKV<any[]>('w3-hotel-chart-of-accounts', [])
+  
+  const [grns, setGrns] = useKV<any[]>('w3-hotel-grns', [])
+  const [recipes, setRecipes] = useKV<any[]>('w3-hotel-recipes', [])
+  const [menus, setMenus] = useKV<any[]>('w3-hotel-menus', [])
+  const [consumptionLogs, setConsumptionLogs] = useKV<any[]>('w3-hotel-consumption-logs', [])
+  const [purchaseOrders, setPurchaseOrders] = useKV<any[]>('w3-hotel-purchase-orders', [])
+  
   const currentUser = (systemUsers || [])[0] || sampleSystemUsers[0]
 
   const navigationGroups = [
@@ -428,7 +455,24 @@ function App() {
               />
             </Suspense>
           )}
-          {currentModule === 'kitchen' && renderComingSoon('Kitchen')}
+          {currentModule === 'kitchen' && (
+            <Suspense fallback={<ModuleLoadingSkeleton />}>
+              <KitchenManagement
+                stations={kitchenStations || []}
+                setStations={setKitchenStations}
+                staff={kitchenStaff || []}
+                setStaff={setKitchenStaff}
+                schedules={productionSchedules || []}
+                setSchedules={setProductionSchedules}
+                inventoryIssues={kitchenInventoryIssues || []}
+                setInventoryIssues={setKitchenInventoryIssues}
+                wasteTracking={wasteTracking || []}
+                setWasteTracking={setWasteTracking}
+                employees={employees || []}
+                foodItems={[]}
+              />
+            </Suspense>
+          )}
           {currentModule === 'crm' && (
             <Suspense fallback={<ModuleLoadingSkeleton />}>
               <CRM
@@ -466,7 +510,25 @@ function App() {
               />
             </Suspense>
           )}
-          {currentModule === 'room-revenue' && renderComingSoon('Room & Revenue')}
+          {currentModule === 'room-revenue' && (
+            <Suspense fallback={<ModuleLoadingSkeleton />}>
+              <RevenueManagement
+                roomTypes={roomTypeConfigs || []}
+                setRoomTypes={setRoomTypeConfigs}
+                ratePlans={ratePlans || []}
+                setRatePlans={setRatePlans}
+                seasons={seasons || []}
+                setSeasons={setSeasons}
+                eventDays={eventDays || []}
+                setEventDays={setEventDays}
+                corporateAccounts={corporateAccounts || []}
+                setCorporateAccounts={setCorporateAccounts}
+                rateCalendar={rateCalendar || []}
+                setRateCalendar={setRateCalendar}
+                currentUser={currentUser}
+              />
+            </Suspense>
+          )}
           {currentModule === 'channel-manager' && renderComingSoon('Channel Manager')}
           {currentModule === 'inventory' && renderComingSoon('Inventory')}
           {currentModule === 'procurement' && renderComingSoon('Procurement')}
@@ -478,9 +540,41 @@ function App() {
               />
             </Suspense>
           )}
-          {currentModule === 'finance' && renderComingSoon('Finance')}
+          {currentModule === 'finance' && (
+            <Suspense fallback={<ModuleLoadingSkeleton />}>
+              <Finance
+                invoices={invoices || []}
+                setInvoices={setInvoices}
+                payments={payments || []}
+                setPayments={setPayments}
+                expenses={expenses || []}
+                setExpenses={setExpenses}
+                accounts={accounts || []}
+                budgets={budgets || []}
+                setBudgets={setBudgets}
+                journalEntries={journalEntries || []}
+                setJournalEntries={setJournalEntries}
+                chartOfAccounts={chartOfAccounts || []}
+                setChartOfAccounts={setChartOfAccounts}
+                currentUser={currentUser}
+              />
+            </Suspense>
+          )}
           {currentModule === 'hr' && renderComingSoon('HR & Staff')}
-          {currentModule === 'analytics' && renderComingSoon('Analytics')}
+          {currentModule === 'analytics' && (
+            <Suspense fallback={<ModuleLoadingSkeleton />}>
+              <Analytics
+                orders={orders || []}
+                foodItems={[]}
+                suppliers={suppliers || []}
+                grns={grns || []}
+                recipes={recipes || []}
+                menus={menus || []}
+                consumptionLogs={consumptionLogs || []}
+                purchaseOrders={purchaseOrders || []}
+              />
+            </Suspense>
+          )}
           {currentModule === 'construction' && renderComingSoon('Maintenance')}
           {currentModule === 'user-management' && (
             <Suspense fallback={<ModuleLoadingSkeleton />}>
