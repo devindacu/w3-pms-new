@@ -143,69 +143,126 @@ export function VersionControl() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <Database className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold">Total Versions</h3>
+      <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-primary/20">
+        <div className="p-6">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
+                <Save className="h-5 w-5 text-primary" />
+                Create Manual Backup
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Before making major system changes, create a backup to preserve the current state. 
+                You can restore to this point if needed.
+              </p>
+            </div>
           </div>
-          <p className="text-3xl font-bold">{stats.totalVersions}</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            {stats.autoBackups} auto, {stats.manualBackups} manual
-          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50">
+              <div className="p-2 rounded-full bg-primary/10">
+                <Database className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold">{stats.totalVersions}</div>
+                <div className="text-xs text-muted-foreground">Total Backups</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50">
+              <div className="p-2 rounded-full bg-primary/10">
+                <HardDrive className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold">{formatBytes(stats.totalSize)}</div>
+                <div className="text-xs text-muted-foreground">Storage Used</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50">
+              <div className="p-2 rounded-full bg-primary/10">
+                <Clock className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <div className="text-lg font-bold">
+                  {stats.newestBackup ? new Date(stats.newestBackup).toLocaleDateString() : 'Never'}
+                </div>
+                <div className="text-xs text-muted-foreground">Last Backup</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <Button size="lg" onClick={() => setShowCreateDialog(true)} className="gap-2">
+              <Save className="h-5 w-5" />
+              Create Manual Backup Now
+            </Button>
+
+            <Button variant="outline" onClick={() => setShowConfigDialog(true)} className="gap-2">
+              <Settings className="h-4 w-4" />
+              Configure Auto-Backup
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            <h3 className="font-semibold">Auto Backup Status</h3>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Enabled</span>
+              <Badge variant={config.autoBackup ? 'default' : 'secondary'}>
+                {config.autoBackup ? 'Active' : 'Disabled'}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Retention Period</span>
+              <span className="font-medium">{config.retentionDays} days</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Max Versions</span>
+              <span className="font-medium">{config.maxVersions}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Auto Backups</span>
+              <span className="font-medium">{stats.autoBackups}</span>
+            </div>
+          </div>
         </Card>
 
         <Card className="p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <HardDrive className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold">Storage Used</h3>
+          <div className="flex items-center gap-3 mb-4">
+            <User className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold">Manual Backup Stats</h3>
           </div>
-          <p className="text-3xl font-bold">{formatBytes(stats.totalSize)}</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Across all versions
-          </p>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <Clock className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold">Latest Backup</h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Manual Backups</span>
+              <span className="font-medium">{stats.manualBackups}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Scheduled Backups</span>
+              <span className="font-medium">{stats.scheduledBackups}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Oldest Backup</span>
+              <span className="font-medium text-xs">
+                {stats.oldestBackup ? new Date(stats.oldestBackup).toLocaleDateString() : 'N/A'}
+              </span>
+            </div>
           </div>
-          <p className="text-lg font-bold">
-            {stats.newestBackup ? new Date(stats.newestBackup).toLocaleDateString() : 'N/A'}
-          </p>
-          <p className="text-sm text-muted-foreground mt-1">
-            {stats.newestBackup ? new Date(stats.newestBackup).toLocaleTimeString() : ''}
-          </p>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <Calendar className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold">Retention</h3>
-          </div>
-          <p className="text-3xl font-bold">{config.retentionDays}</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            days
-          </p>
         </Card>
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <Button onClick={() => setShowCreateDialog(true)}>
-          <Save className="h-4 w-4 mr-2" />
-          Create Backup
-        </Button>
-
-        <Button variant="outline" onClick={() => setShowConfigDialog(true)}>
-          <Settings className="h-4 w-4 mr-2" />
-          Configure
-        </Button>
-
         <Button variant="outline" asChild>
-          <label>
+          <label className="cursor-pointer">
             <Upload className="h-4 w-4 mr-2" />
-            Import Backup
+            Import Backup File
             <input
               type="file"
               accept=".json"
@@ -215,6 +272,13 @@ export function VersionControl() {
             />
           </label>
         </Button>
+
+        {importing && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            Importing backup...
+          </div>
+        )}
       </div>
 
       <Card>

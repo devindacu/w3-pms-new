@@ -77,6 +77,7 @@ import {
   sampleCorporateAccounts
 } from '@/lib/revenueManagementSampleData'
 import { ModuleLoadingSkeleton } from '@/components/ModuleLoadingSkeleton'
+import { QuickBackupDialog } from '@/components/QuickBackupDialog'
 
 const FrontOffice = lazy(() => import('@/components/FrontOffice').then(m => ({ default: m.FrontOffice })))
 const Housekeeping = lazy(() => import('@/components/Housekeeping').then(m => ({ default: m.Housekeeping })))
@@ -412,6 +413,8 @@ function App() {
               />
             </div>
           </div>
+
+          <QuickBackupDialog />
 
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />

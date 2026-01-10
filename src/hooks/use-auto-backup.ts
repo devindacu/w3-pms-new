@@ -8,7 +8,7 @@ export function useAutoBackup(hookConfig?: {
   const { config, createBackup } = useBackup()
   const debounceMs = hookConfig?.debounceMs || 5000
   const excludeKeys = hookConfig?.excludeKeys || []
-  const timeoutRef = useRef<NodeJS.Timeout>()
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const lastSnapshotRef = useRef<Record<string, any>>({})
 
   useEffect(() => {
