@@ -19,8 +19,10 @@ import {
   Bed,
   Download,
   Sparkle,
-  ForkKnife
+  ForkKnife,
+  Lightning
 } from '@phosphor-icons/react'
+import { RevenueForecast } from '@/components/RevenueForecast'
 import { formatCurrency, formatPercent, calculatePercentageChange } from '@/lib/helpers'
 import {
   BarChart,
@@ -516,12 +518,16 @@ export function RevenueComparison({
       </div>
 
       <Tabs defaultValue="room-vs-fnb" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="room-vs-fnb">Room vs F&B</TabsTrigger>
           <TabsTrigger value="trends">Trends</TabsTrigger>
           <TabsTrigger value="breakdown">Breakdown</TabsTrigger>
           <TabsTrigger value="detailed">Detailed View</TabsTrigger>
           <TabsTrigger value="insights">Insights</TabsTrigger>
+          <TabsTrigger value="forecast">
+            <Lightning size={18} className="mr-2" weight="fill" />
+            Forecasting
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="room-vs-fnb" className="space-y-6">
@@ -1245,6 +1251,14 @@ export function RevenueComparison({
               })()}
             </div>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="forecast">
+          <RevenueForecast
+            guestInvoices={guestInvoices}
+            reservations={reservations}
+            orders={orders}
+          />
         </TabsContent>
       </Tabs>
     </div>
