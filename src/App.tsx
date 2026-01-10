@@ -57,6 +57,9 @@ import type {
   UpsellTransaction,
   LoyaltyTransaction
 } from '@/lib/types'
+import { AdvancedAnalyticsWidgets } from '@/components/AdvancedAnalyticsWidgets'
+import { PerformanceMetrics } from '@/components/PerformanceMetrics'
+import { RealtimeActivityFeed } from '@/components/RealtimeActivityFeed'
 import { 
   sampleSystemUsers,
   sampleGuests,
@@ -295,43 +298,83 @@ function App() {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold">Recent Reservations</h3>
-            <Button variant="ghost" size="sm" onClick={() => setCurrentModule('front-office')}>
-              View All
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </div>
-          <div className="space-y-3">
-            {(reservations || []).slice(0, 5).map((reservation) => {
-              const guest = guests?.find(g => g.id === reservation.guestId)
-              const room = rooms?.find(r => r.id === reservation.roomId)
-              const guestName = guest ? `${guest.firstName} ${guest.lastName}` : 'Guest'
-              return (
-                <div key={reservation.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                      {guestName.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{guestName}</p>
-                    <p className="text-xs text-muted-foreground">{room ? `Room ${room.roomNumber}` : 'Room pending'}</p>
-                  </div>
-                  <Badge variant={reservation.status === 'confirmed' ? 'default' : 'secondary'} className="text-xs">
-                    {reservation.status}
-                  </Badge>
-                </div>
-              )
-            })}
-          </div>
-        </Card>
+      <AdvancedAnalyticsWidgets 
+        data={{
+          reservations: reservations || [],
+          rooms: rooms || [],
+          orders: orders || [],
+          folios: folios || [],
+          guests: guests || []
+        }}
+        onNavigate={(module) => setCurrentModule(module as Module)}
+      />
 
-        <Card className="p-6">
-          <h3 className="font-semibold mb-6">Quick Actions</h3>
-          <div className="grid grid-cols-2 gap-3">
+      <PerformanceMetrics 
+        data={{
+          rooms: rooms || [],
+          reservations: reservations || [],
+          folios: folios || [],
+          orders: orders || [],
+          housekeepingTasks: housekeepingTasks || [],
+          maintenanceRequests: maintenanceRequests || []
+        }}
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-semibold">Recent Reservations</h3>
+              <Button variant="ghost" size="sm" onClick={() => setCurrentModule('front-office')}>
+                View All
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+            <div className="space-y-3">
+              {(reservations || []).slice(0, 5).map((reservation) => {
+                const guest = guests?.find(g => g.id === reservation.guestId)
+                const room = rooms?.find(r => r.id === reservation.roomId)
+                const guestName = guest ? `${guest.firstName} ${guest.lastName}` : 'Guest'
+                return (
+                  <div key={reservation.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                        {guestName.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{guestName}</p>
+                      <p className="text-xs text-muted-foreground">{room ? `Room ${room.roomNumber}` : 'Room pending'}</p>
+                    </div>
+                    <Badge variant={reservation.status === 'confirmed' ? 'default' : 'secondary'} className="text-xs">
+                      {reservation.status}
+                    </Badge>
+                  </div>
+                )
+              })}
+            </div>
+          </Card>
+        </div>
+
+        <div>
+          <RealtimeActivityFeed 
+            data={{
+              reservations: reservations || [],
+              guests: guests || [],
+              folios: folios || [],
+              orders: orders || [],
+              housekeepingTasks: housekeepingTasks || [],
+              maintenanceRequests: maintenanceRequests || [],
+              inventory: inventory || []
+            }}
+            limit={15}
+          />
+        </div>
+      </div>
+
+      <Card className="p-6">
+        <h3 className="font-semibold mb-6">Quick Actions</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Button 
               variant="outline" 
               className="h-auto flex-col gap-2 py-5 transition-all duration-200 hover:shadow-md"
@@ -366,7 +409,6 @@ function App() {
             </Button>
           </div>
         </Card>
-      </div>
     </div>
   )
 
