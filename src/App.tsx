@@ -1,7 +1,5 @@
-import * as React from 'react'
 import { useState, lazy, Suspense } from 'react'
 import { useKV } from '@github/spark/hooks'
-import { useAutoBackup } from '@/hooks/use-auto-backup'
 import { Toaster } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -26,14 +24,13 @@ import {
   Settings as SettingsIcon,
   Search,
   Bell,
+  Menu,
+  X,
   TrendingUp,
   TrendingDown,
-  Calendar,
   ArrowUpRight,
   ArrowDownRight,
-  ChevronRight,
-  Menu,
-  X
+  ChevronRight
 } from 'lucide-react'
 import type { 
   SystemUser,
@@ -101,10 +98,13 @@ const UserManagement = lazy(() => import('@/components/UserManagement').then(m =
 const Settings = lazy(() => import('@/components/Settings').then(m => ({ default: m.Settings })))
 
 const LoadingState = () => (
-  <div className="flex items-center justify-center h-full min-h-[400px]">
+  <div className="flex items-center justify-center h-full min-h-[500px]">
     <div className="flex flex-col items-center gap-4">
-      <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      <p className="text-sm text-muted-foreground">Loading module...</p>
+      <div className="relative w-16 h-16">
+        <div className="absolute inset-0 border-4 border-primary/20 rounded-full" />
+        <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+      <p className="text-sm font-medium text-muted-foreground">Loading module...</p>
     </div>
   </div>
 )
@@ -112,8 +112,6 @@ const LoadingState = () => (
 type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'kitchen' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'settings'
 
 function App() {
-  useAutoBackup({ debounceMs: 10000 })
-  
   const [systemUsers] = useKV<SystemUser[]>('w3-hotel-system-users', sampleSystemUsers)
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -204,7 +202,7 @@ function App() {
   
   const [constructionProjects, setConstructionProjects] = useKV<any[]>('w3-hotel-construction-projects', [])
   const [contractors, setContractors] = useKV<any[]>('w3-hotel-contractors', [])
-  
+
   const currentUser = (systemUsers || [])[0] || sampleSystemUsers[0]
 
   const navigationItems = [
@@ -233,15 +231,15 @@ function App() {
       label: 'Total Revenue', 
       value: '$124,592', 
       change: 12.5, 
-      trend: 'up',
+      trend: 'up' as const,
       icon: DollarSign,
-      color: 'text-green-600 bg-green-50'
+      color: 'text-success bg-success/10'
     },
     { 
       label: 'Occupancy Rate', 
       value: '87%', 
       change: 5.2, 
-      trend: 'up',
+      trend: 'up' as const,
       icon: BedDouble,
       color: 'text-primary bg-primary/10'
     },
@@ -249,7 +247,7 @@ function App() {
       label: 'Active Guests', 
       value: '142', 
       change: -2.4, 
-      trend: 'down',
+      trend: 'down' as const,
       icon: Users,
       color: 'text-accent bg-accent/10'
     },
@@ -257,36 +255,41 @@ function App() {
       label: 'Pending Tasks', 
       value: '23', 
       change: 8.1, 
-      trend: 'up',
+      trend: 'up' as const,
       icon: ClipboardList,
       color: 'text-warning bg-warning/10'
     },
   ]
 
   const renderDashboard = () => (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">Welcome back, {currentUser.firstName}</p>
+        <h1>Dashboard</h1>
+        <p className="text-muted-foreground mt-1">Welcome back, {currentUser.firstName}</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => {
           const Icon = stat.icon
-          const TrendIcon = stat.trend === 'up' ? ArrowUpRight : ArrowDownRight
+          const TrendIcon = stat.trend === 'up' ? TrendingUp : TrendingDown
           return (
-            <Card key={stat.label} className="p-6 hover:shadow-lg transition-shadow">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-xl ${stat.color}`}>
+            <Card key={stat.label} className="p-6 transition-all duration-200 hover:shadow-lg">
+              <div className="flex items-start justify-between mb-3">
+                <div className={`p-2.5 rounded-lg ${stat.color}`}>
                   <Icon className="h-5 w-5" />
                 </div>
-                <Badge variant={stat.trend === 'up' ? 'default' : 'secondary'} className="gap-1">
+                <Badge 
+                  variant={stat.trend === 'up' ? 'default' : 'secondary'} 
+                  className="gap-1 font-medium"
+                >
                   <TrendIcon className="h-3 w-3" />
                   {Math.abs(stat.change)}%
                 </Badge>
               </div>
-              <h3 className="text-3xl font-bold mb-1">{stat.value}</h3>
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
+              <div className="space-y-0.5">
+                <h3 className="text-2xl font-bold">{stat.value}</h3>
+                <p className="text-sm text-muted-foreground">{stat.label}</p>
+              </div>
             </Card>
           )
         })}
@@ -294,28 +297,32 @@ function App() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="p-6">
-          <h3 className="text-xl font-semibold mb-6">Recent Reservations</h3>
-          <div className="space-y-4">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-semibold">Recent Reservations</h3>
+            <Button variant="ghost" size="sm" onClick={() => setCurrentModule('front-office')}>
+              View All
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+          <div className="space-y-3">
             {(reservations || []).slice(0, 5).map((reservation) => {
               const guest = guests?.find(g => g.id === reservation.guestId)
               const room = rooms?.find(r => r.id === reservation.roomId)
               const guestName = guest ? `${guest.firstName} ${guest.lastName}` : 'Guest'
               return (
-                <div key={reservation.id} className="flex items-center gap-4 p-4 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Avatar>
-                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                <div key={reservation.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
                       {guestName.split(' ').map(n => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{guestName}</p>
-                    <p className="text-sm text-muted-foreground">{room ? `Room ${room.roomNumber}` : 'Room pending'}</p>
+                    <p className="font-medium text-sm truncate">{guestName}</p>
+                    <p className="text-xs text-muted-foreground">{room ? `Room ${room.roomNumber}` : 'Room pending'}</p>
                   </div>
-                  <div className="text-right">
-                    <Badge variant={reservation.status === 'confirmed' ? 'default' : 'secondary'}>
-                      {reservation.status}
-                    </Badge>
-                  </div>
+                  <Badge variant={reservation.status === 'confirmed' ? 'default' : 'secondary'} className="text-xs">
+                    {reservation.status}
+                  </Badge>
                 </div>
               )
             })}
@@ -323,39 +330,39 @@ function App() {
         </Card>
 
         <Card className="p-6">
-          <h3 className="text-xl font-semibold mb-6">Quick Actions</h3>
+          <h3 className="font-semibold mb-6">Quick Actions</h3>
           <div className="grid grid-cols-2 gap-3">
             <Button 
               variant="outline" 
-              className="h-auto flex-col gap-2 py-6"
+              className="h-auto flex-col gap-2 py-5 transition-all duration-200 hover:shadow-md"
               onClick={() => setCurrentModule('front-office')}
             >
-              <BedDouble className="h-6 w-6" />
-              <span className="text-sm">New Booking</span>
+              <BedDouble className="h-6 w-6 text-primary" />
+              <span className="text-sm font-medium">New Booking</span>
             </Button>
             <Button 
               variant="outline" 
-              className="h-auto flex-col gap-2 py-6"
+              className="h-auto flex-col gap-2 py-5 transition-all duration-200 hover:shadow-md"
               onClick={() => setCurrentModule('front-office')}
             >
-              <Users className="h-6 w-6" />
-              <span className="text-sm">Check In</span>
+              <Users className="h-6 w-6 text-accent" />
+              <span className="text-sm font-medium">Check In</span>
             </Button>
             <Button 
               variant="outline" 
-              className="h-auto flex-col gap-2 py-6"
+              className="h-auto flex-col gap-2 py-5 transition-all duration-200 hover:shadow-md"
               onClick={() => setCurrentModule('housekeeping')}
             >
-              <ClipboardList className="h-6 w-6" />
-              <span className="text-sm">Assign Task</span>
+              <ClipboardList className="h-6 w-6 text-success" />
+              <span className="text-sm font-medium">Assign Task</span>
             </Button>
             <Button 
               variant="outline" 
-              className="h-auto flex-col gap-2 py-6"
+              className="h-auto flex-col gap-2 py-5 transition-all duration-200 hover:shadow-md"
               onClick={() => setCurrentModule('fnb')}
             >
-              <UtensilsCrossed className="h-6 w-6" />
-              <span className="text-sm">New Order</span>
+              <UtensilsCrossed className="h-6 w-6 text-warning" />
+              <span className="text-sm font-medium">New Order</span>
             </Button>
           </div>
         </Card>
@@ -366,14 +373,14 @@ function App() {
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <aside className={`
-        fixed inset-y-0 left-0 z-50 w-72 bg-sidebar-background border-r border-sidebar-border
+        fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border
         transform transition-transform duration-300 ease-in-out
         lg:translate-x-0 lg:static
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="flex flex-col h-full">
-          <div className="h-20 px-6 flex items-center justify-between border-b border-sidebar-border">
-            <img src={w3PMSLogo} alt="W3 PMS" className="h-10" />
+          <div className="h-16 px-4 flex items-center justify-between border-b border-border">
+            <img src={w3PMSLogo} alt="W3 PMS" className="h-8" />
             <Button
               variant="ghost"
               size="icon"
@@ -384,7 +391,7 @@ function App() {
             </Button>
           </div>
 
-          <nav className="flex-1 overflow-y-auto px-4 py-6">
+          <nav className="flex-1 overflow-y-auto p-3">
             <div className="space-y-1">
               {navigationItems.map((item) => {
                 const Icon = item.icon
@@ -397,25 +404,24 @@ function App() {
                       setSidebarOpen(false)
                     }}
                     className={`
-                      w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+                      w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150
                       ${isActive 
                         ? 'bg-primary text-primary-foreground shadow-sm' 
-                        : 'text-sidebar-foreground hover:bg-sidebar-accent'
+                        : 'text-foreground hover:bg-muted'
                       }
                     `}
                   >
-                    <Icon className="h-5 w-5 shrink-0" />
+                    <Icon className="h-4 w-4 shrink-0" />
                     <span className="truncate">{item.label}</span>
-                    {isActive && <ChevronRight className="h-4 w-4 ml-auto shrink-0" />}
                   </button>
                 )
               })}
             </div>
           </nav>
 
-          <div className="h-20 px-4 flex items-center gap-3 border-t border-sidebar-border">
-            <Avatar className="h-10 w-10">
-              <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+          <div className="h-16 px-3 flex items-center gap-3 border-t border-border">
+            <Avatar className="h-9 w-9">
+              <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
                 {currentUser.firstName?.[0]}{currentUser.lastName?.[0]}
               </AvatarFallback>
             </Avatar>
@@ -435,7 +441,7 @@ function App() {
       )}
 
       <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-20 border-b border-border bg-card px-6 flex items-center gap-4 shrink-0">
+        <header className="h-16 border-b border-border bg-card px-4 flex items-center gap-4 shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -450,25 +456,19 @@ function App() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search anything..."
-                className="pl-10 bg-muted/50 border-0 focus-visible:ring-1"
+                placeholder="Search..."
+                className="pl-9 h-9 bg-muted/50 border-0 focus-visible:ring-1"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-2 right-2 h-2 w-2 bg-destructive rounded-full" />
-            </Button>
-            
-            <Button variant="ghost" size="icon">
-              <Calendar className="h-5 w-5" />
-            </Button>
-          </div>
+          <Button variant="ghost" size="icon" className="relative">
+            <Bell className="h-5 w-5" />
+            <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-destructive rounded-full" />
+          </Button>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-8">
+        <div className="flex-1 overflow-y-auto p-6">
           {currentModule === 'dashboard' && renderDashboard()}
           {currentModule === 'front-office' && (
             <Suspense fallback={<LoadingState />}>
