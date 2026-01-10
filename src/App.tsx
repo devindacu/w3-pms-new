@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Toaster } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -21,7 +21,7 @@ import {
   Wrench,
   BarChart3,
   Receipt,
-  Settings,
+  Settings as SettingsIcon,
   Menu,
   Search,
   Bell,
@@ -29,15 +29,94 @@ import {
   Calendar,
   ChevronRight
 } from 'lucide-react'
-import type { SystemUser } from '@/lib/types'
-import { sampleSystemUsers } from '@/lib/sampleData'
+import type { 
+  SystemUser,
+  Guest,
+  GuestProfile,
+  Reservation,
+  Room,
+  Folio,
+  InventoryItem,
+  HousekeepingTask,
+  MenuItem,
+  Order,
+  Supplier,
+  Employee,
+  MaintenanceRequest,
+  ExtraService,
+  ExtraServiceCategory,
+  FolioExtraService,
+  GuestComplaint,
+  GuestFeedback,
+  MarketingCampaign,
+  MarketingTemplate,
+  UpsellOffer,
+  UpsellTransaction,
+  LoyaltyTransaction
+} from '@/lib/types'
+import { 
+  sampleSystemUsers,
+  sampleGuests,
+  sampleReservations,
+  sampleRooms,
+  sampleFolios,
+  sampleInventory,
+  sampleHousekeepingTasks,
+  sampleMenuItems,
+  sampleOrders,
+  sampleSuppliers,
+  sampleEmployees,
+  sampleMaintenanceRequests
+} from '@/lib/sampleData'
+import { ModuleLoadingSkeleton } from '@/components/ModuleLoadingSkeleton'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'settings'
+const FrontOffice = lazy(() => import('@/components/FrontOffice').then(m => ({ default: m.FrontOffice })))
+const Housekeeping = lazy(() => import('@/components/Housekeeping').then(m => ({ default: m.Housekeeping })))
+const FnBPOS = lazy(() => import('@/components/FnBPOS').then(m => ({ default: m.FnBPOS })))
+const KitchenManagement = lazy(() => import('@/components/KitchenManagement').then(m => ({ default: m.KitchenManagement })))
+const CRM = lazy(() => import('@/components/CRM').then(m => ({ default: m.CRM })))
+const ExtraServicesManagement = lazy(() => import('@/components/ExtraServicesManagement').then(m => ({ default: m.ExtraServicesManagement })))
+const RevenueManagement = lazy(() => import('@/components/RevenueManagement').then(m => ({ default: m.RevenueManagement })))
+const ChannelManager = lazy(() => import('@/components/ChannelManager').then(m => ({ default: m.ChannelManager })))
+const InventoryManagement = lazy(() => import('@/components/InventoryManagement').then(m => ({ default: m.InventoryManagement })))
+const Procurement = lazy(() => import('@/components/Procurement').then(m => ({ default: m.Procurement })))
+const SupplierManagement = lazy(() => import('@/components/SupplierManagement').then(m => ({ default: m.SupplierManagement })))
+const Finance = lazy(() => import('@/components/Finance').then(m => ({ default: m.Finance })))
+const HRManagement = lazy(() => import('@/components/HRManagement').then(m => ({ default: m.HRManagement })))
+const Analytics = lazy(() => import('@/components/Analytics').then(m => ({ default: m.Analytics })))
+const ConstructionManagement = lazy(() => import('@/components/ConstructionManagement').then(m => ({ default: m.ConstructionManagement })))
+const UserManagement = lazy(() => import('@/components/UserManagement').then(m => ({ default: m.UserManagement })))
+const Settings = lazy(() => import('@/components/Settings').then(m => ({ default: m.Settings })))
+
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'kitchen' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'settings'
 
 function App() {
-  const [systemUsers] = useKV<SystemUser[]>('w3-hotel-system-users', [])
+  const [systemUsers] = useKV<SystemUser[]>('w3-hotel-system-users', sampleSystemUsers)
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  
+  const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', sampleGuests)
+  const [guestProfiles, setGuestProfiles] = useKV<GuestProfile[]>('w3-hotel-guest-profiles', [])
+  const [reservations, setReservations] = useKV<Reservation[]>('w3-hotel-reservations', sampleReservations)
+  const [rooms, setRooms] = useKV<Room[]>('w3-hotel-rooms', sampleRooms)
+  const [folios, setFolios] = useKV<Folio[]>('w3-hotel-folios', sampleFolios)
+  const [inventory, setInventory] = useKV<InventoryItem[]>('w3-hotel-inventory', sampleInventory)
+  const [housekeepingTasks, setHousekeepingTasks] = useKV<HousekeepingTask[]>('w3-hotel-housekeeping-tasks', sampleHousekeepingTasks)
+  const [menuItems, setMenuItems] = useKV<MenuItem[]>('w3-hotel-menu-items', sampleMenuItems)
+  const [orders, setOrders] = useKV<Order[]>('w3-hotel-orders', sampleOrders)
+  const [suppliers, setSuppliers] = useKV<Supplier[]>('w3-hotel-suppliers', sampleSuppliers)
+  const [employees, setEmployees] = useKV<Employee[]>('w3-hotel-employees', sampleEmployees)
+  const [maintenanceRequests, setMaintenanceRequests] = useKV<MaintenanceRequest[]>('w3-hotel-maintenance', sampleMaintenanceRequests)
+  const [extraServices, setExtraServices] = useKV<ExtraService[]>('w3-hotel-extra-services', [])
+  const [serviceCategories, setServiceCategories] = useKV<ExtraServiceCategory[]>('w3-hotel-service-categories', [])
+  const [folioExtraServices, setFolioExtraServices] = useKV<FolioExtraService[]>('w3-hotel-folio-extra-services', [])
+  const [complaints, setComplaints] = useKV<GuestComplaint[]>('w3-hotel-complaints', [])
+  const [feedback, setFeedback] = useKV<GuestFeedback[]>('w3-hotel-feedback', [])
+  const [campaigns, setCampaigns] = useKV<MarketingCampaign[]>('w3-hotel-campaigns', [])
+  const [templates, setTemplates] = useKV<MarketingTemplate[]>('w3-hotel-templates', [])
+  const [upsellOffers, setUpsellOffers] = useKV<UpsellOffer[]>('w3-hotel-upsell-offers', [])
+  const [upsellTransactions, setUpsellTransactions] = useKV<UpsellTransaction[]>('w3-hotel-upsell-transactions', [])
+  const [loyaltyTransactions, setLoyaltyTransactions] = useKV<LoyaltyTransaction[]>('w3-hotel-loyalty-transactions', [])
   
   const currentUser = (systemUsers || [])[0] || sampleSystemUsers[0]
 
@@ -82,7 +161,7 @@ function App() {
         { id: 'analytics', label: 'Analytics', icon: BarChart3 },
         { id: 'construction', label: 'Maintenance', icon: Wrench },
         { id: 'user-management', label: 'Users', icon: UserCog },
-        { id: 'settings', label: 'Settings', icon: Settings },
+        { id: 'settings', label: 'Settings', icon: SettingsIcon },
       ]
     }
   ]
@@ -249,7 +328,7 @@ function App() {
       <Card className="p-12 text-center">
         <div className="max-w-md mx-auto space-y-4">
           <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto">
-            <Settings className="h-8 w-8 text-muted-foreground" />
+            <SettingsIcon className="h-8 w-8 text-muted-foreground" />
           </div>
           <h3 className="text-xl font-semibold">Coming Soon</h3>
           <p className="text-muted-foreground">
@@ -305,22 +384,115 @@ function App() {
 
         <div className="flex-1 overflow-y-auto p-6 lg:p-8">
           {currentModule === 'dashboard' && renderDashboard()}
-          {currentModule === 'front-office' && renderComingSoon('Front Office')}
-          {currentModule === 'housekeeping' && renderComingSoon('Housekeeping')}
-          {currentModule === 'fnb' && renderComingSoon('F&B / POS')}
+          {currentModule === 'front-office' && (
+            <Suspense fallback={<ModuleLoadingSkeleton />}>
+              <FrontOffice
+                guests={guests || []}
+                setGuests={setGuests}
+                guestProfiles={guestProfiles || []}
+                setGuestProfiles={setGuestProfiles}
+                reservations={reservations || []}
+                setReservations={setReservations}
+                rooms={rooms || []}
+                setRooms={setRooms}
+                folios={folios || []}
+                setFolios={setFolios}
+                extraServices={extraServices || []}
+                serviceCategories={serviceCategories || []}
+                folioExtraServices={folioExtraServices || []}
+                setFolioExtraServices={setFolioExtraServices}
+                currentUser={currentUser}
+              />
+            </Suspense>
+          )}
+          {currentModule === 'housekeeping' && (
+            <Suspense fallback={<ModuleLoadingSkeleton />}>
+              <Housekeeping
+                tasks={housekeepingTasks || []}
+                setTasks={setHousekeepingTasks}
+                rooms={rooms || []}
+                setRooms={setRooms}
+                employees={employees || []}
+              />
+            </Suspense>
+          )}
+          {currentModule === 'fnb' && (
+            <Suspense fallback={<ModuleLoadingSkeleton />}>
+              <FnBPOS
+                menuItems={menuItems || []}
+                setMenuItems={setMenuItems}
+                orders={orders || []}
+                setOrders={setOrders}
+                guests={guests || []}
+                rooms={rooms || []}
+              />
+            </Suspense>
+          )}
           {currentModule === 'kitchen' && renderComingSoon('Kitchen')}
-          {currentModule === 'crm' && renderComingSoon('Guest Relations')}
-          {currentModule === 'extra-services' && renderComingSoon('Extra Services')}
+          {currentModule === 'crm' && (
+            <Suspense fallback={<ModuleLoadingSkeleton />}>
+              <CRM
+                guestProfiles={guestProfiles || []}
+                setGuestProfiles={setGuestProfiles}
+                complaints={complaints || []}
+                setComplaints={setComplaints}
+                feedback={feedback || []}
+                setFeedback={setFeedback}
+                campaigns={campaigns || []}
+                setCampaigns={setCampaigns}
+                templates={templates || []}
+                setTemplates={setTemplates}
+                upsellOffers={upsellOffers || []}
+                setUpsellOffers={setUpsellOffers}
+                upsellTransactions={upsellTransactions || []}
+                setUpsellTransactions={setUpsellTransactions}
+                loyaltyTransactions={loyaltyTransactions || []}
+                setLoyaltyTransactions={setLoyaltyTransactions}
+                reservations={reservations}
+                rooms={rooms}
+                orders={orders}
+                folioExtraServices={folioExtraServices}
+              />
+            </Suspense>
+          )}
+          {currentModule === 'extra-services' && (
+            <Suspense fallback={<ModuleLoadingSkeleton />}>
+              <ExtraServicesManagement
+                services={extraServices || []}
+                setServices={setExtraServices}
+                categories={serviceCategories || []}
+                setCategories={setServiceCategories}
+                currentUser={currentUser}
+              />
+            </Suspense>
+          )}
           {currentModule === 'room-revenue' && renderComingSoon('Room & Revenue')}
           {currentModule === 'channel-manager' && renderComingSoon('Channel Manager')}
           {currentModule === 'inventory' && renderComingSoon('Inventory')}
           {currentModule === 'procurement' && renderComingSoon('Procurement')}
-          {currentModule === 'suppliers' && renderComingSoon('Suppliers')}
+          {currentModule === 'suppliers' && (
+            <Suspense fallback={<ModuleLoadingSkeleton />}>
+              <SupplierManagement
+                suppliers={suppliers || []}
+                setSuppliers={setSuppliers}
+              />
+            </Suspense>
+          )}
           {currentModule === 'finance' && renderComingSoon('Finance')}
           {currentModule === 'hr' && renderComingSoon('HR & Staff')}
           {currentModule === 'analytics' && renderComingSoon('Analytics')}
           {currentModule === 'construction' && renderComingSoon('Maintenance')}
-          {currentModule === 'user-management' && renderComingSoon('User Management')}
+          {currentModule === 'user-management' && (
+            <Suspense fallback={<ModuleLoadingSkeleton />}>
+              <UserManagement
+                users={systemUsers || []}
+                setUsers={() => {}}
+                currentUser={currentUser}
+                activityLogs={[]}
+                setActivityLogs={() => {}}
+              />
+            </Suspense>
+          )}
           {currentModule === 'settings' && renderComingSoon('Settings')}
         </div>
       </main>
