@@ -1,5 +1,6 @@
 import { useState, lazy, Suspense } from 'react'
 import { useKV } from '@github/spark/hooks'
+import { useAutoBackup } from '@/hooks/use-auto-backup'
 import { Toaster } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -98,6 +99,8 @@ const Settings = lazy(() => import('@/components/Settings').then(m => ({ default
 type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'kitchen' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'settings'
 
 function App() {
+  useAutoBackup({ debounceMs: 10000 })
+  
   const [systemUsers] = useKV<SystemUser[]>('w3-hotel-system-users', sampleSystemUsers)
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
