@@ -572,14 +572,14 @@ function App() {
 
     return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
         <div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1.5">Unified view of all hotel operations</p>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight leading-tight">Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-2">Unified view of all hotel operations</p>
         </div>
         <div className="flex items-center gap-3">
           {!hasData && (
-            <Button onClick={loadSampleData} size="sm" className="rounded-lg shadow-sm">
+            <Button onClick={loadSampleData} size="sm" className="rounded-xl shadow-sm h-10 px-5">
               <Database size={16} className="mr-2" />
               Load Sample Data
             </Button>
@@ -596,10 +596,10 @@ function App() {
       </div>
 
       {!hasData ? (
-        <Card className="relative overflow-hidden border border-dashed">
-          <div className="p-12 md:p-20 text-center">
-            <div className="max-w-lg mx-auto space-y-6">
-              <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+        <Card className="relative overflow-hidden border border-dashed rounded-2xl">
+          <div className="p-16 md:p-24 text-center">
+            <div className="max-w-lg mx-auto space-y-7">
+              <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto shadow-sm">
                 <Gauge size={40} className="text-primary" weight="duotone" />
               </div>
               <div className="space-y-3">
@@ -611,7 +611,7 @@ function App() {
               <Button 
                 onClick={loadSampleData} 
                 size="lg" 
-                className="rounded-lg shadow-sm"
+                className="rounded-xl shadow-sm h-12 px-8"
               >
                 <Database size={20} className="mr-2" />
                 Load Sample Data
@@ -704,7 +704,7 @@ function App() {
 
   const NavItem = ({ item, onClick }: { item: typeof navItems[number], onClick?: () => void }) => {
     if ('type' in item && item.type === 'divider') {
-      return <div className="h-px bg-border/40 my-1.5 mx-4" />
+      return <div className="h-px bg-border/30 my-2.5 mx-4" />
     }
     
     const Icon = 'icon' in item ? item.icon : Gauge
@@ -725,21 +725,21 @@ function App() {
         }}
         onMouseEnter={handleMouseEnter}
         className={`
-          flex items-center gap-3 w-full text-left px-3 py-2 mx-2 my-0.5 rounded-lg text-sm font-medium transition-all relative
+          flex items-center gap-3 w-full text-left px-4 py-2.5 mx-3 my-0.5 rounded-lg text-sm font-medium transition-all duration-200 relative
           ${isActive 
-            ? 'bg-primary text-primary-foreground shadow-sm' 
-            : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+            ? 'bg-primary text-primary-foreground shadow-md font-semibold' 
+            : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:translate-x-0.5'
           }
-          ${sidebarCollapsed ? 'justify-center px-2' : ''}
+          ${sidebarCollapsed ? 'justify-center px-2 mx-2' : ''}
         `}
         title={'label' in item ? item.label : ''}
       >
         {isPredicted && !isActive && !sidebarCollapsed && (
-          <span className="absolute right-2 top-1/2 -translate-y-1/2">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2">
             <Sparkle size={12} className="text-primary animate-pulse" weight="fill" />
           </span>
         )}
-        <Icon size={18} weight={isActive ? 'fill' : 'regular'} className="shrink-0" />
+        <Icon size={19} weight={isActive ? 'fill' : 'regular'} className="shrink-0" />
         {!sidebarCollapsed && 'label' in item && (
           <span className="truncate">{item.label}</span>
         )}
@@ -749,37 +749,37 @@ function App() {
 
   const SidebarContent = ({ onItemClick }: { onItemClick?: () => void }) => (
     <div className="flex flex-col h-full bg-sidebar">
-      <div className={`h-14 border-b border-sidebar-border flex items-center ${sidebarCollapsed ? 'justify-center px-4' : 'px-6'}`}>
+      <div className={`h-16 border-b border-sidebar-border flex items-center justify-center ${sidebarCollapsed ? 'px-3' : 'px-6'}`}>
         {sidebarCollapsed ? (
-          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Gauge size={20} className="text-primary" weight="fill" />
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shadow-sm">
+            <Gauge size={22} className="text-primary" weight="fill" />
           </div>
         ) : (
           <img 
             src={w3PMSLogo}
             alt="W3 Hotel PMS" 
-            className="h-8 w-auto object-contain"
+            className="h-9 w-auto object-contain"
           />
         )}
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-2 scrollbar-thin">
+      <nav className="flex-1 overflow-y-auto py-3 scrollbar-thin">
         {navItems.map((item) => (
           <NavItem key={item.id} item={item} onClick={onItemClick} />
         ))}
       </nav>
 
-      <div className={`h-16 border-t border-sidebar-border flex items-center ${sidebarCollapsed ? 'justify-center px-3' : 'px-4'}`}>
+      <div className={`h-18 border-t border-sidebar-border flex items-center ${sidebarCollapsed ? 'justify-center px-3 py-4' : 'px-5 py-4'}`}>
         <div className={`flex items-center ${sidebarCollapsed ? '' : 'gap-3 w-full'}`}>
-          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            <span className="text-xs font-bold text-primary">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 shadow-sm">
+            <span className="text-sm font-bold text-primary">
               {currentUser.firstName?.[0]}{currentUser.lastName?.[0]}
             </span>
           </div>
           {!sidebarCollapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate text-sidebar-foreground">{currentUser.firstName} {currentUser.lastName}</p>
-              <p className="text-xs text-muted-foreground truncate capitalize">{currentUser.role.replace('-', ' ')}</p>
+              <p className="text-sm font-semibold truncate text-sidebar-foreground leading-tight">{currentUser.firstName} {currentUser.lastName}</p>
+              <p className="text-xs text-muted-foreground truncate capitalize mt-0.5">{currentUser.role.replace('-', ' ')}</p>
             </div>
           )}
         </div>
@@ -813,12 +813,12 @@ function App() {
         `}
       >
         <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
-          <div className="h-14 px-4 lg:px-8 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 flex-1 max-w-2xl">
+          <div className="h-16 px-5 lg:px-8 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4 flex-1 max-w-2xl">
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="lg:hidden rounded-lg hover:bg-sidebar-accent transition-all"
+                className="lg:hidden rounded-xl hover:bg-sidebar-accent transition-all h-10 w-10"
                 onClick={() => setSidebarOpen(true)}
               >
                 <List size={20} />
@@ -827,7 +827,7 @@ function App() {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="hidden lg:flex rounded-lg hover:bg-sidebar-accent transition-all"
+                className="hidden lg:flex rounded-xl hover:bg-sidebar-accent transition-all h-10 w-10"
                 onClick={() => setSidebarCollapsed((current) => !current)}
                 title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               >
@@ -843,7 +843,7 @@ function App() {
               />
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <div className="hidden sm:flex items-center gap-2">
                 <ColorMoodSelector />
                 <ThemeToggle />
@@ -865,8 +865,8 @@ function App() {
           </div>
         </header>
             
-        <div className="sm:hidden px-4 py-2.5 border-b border-border/40 bg-background/95 backdrop-blur-sm">
-          <div className="flex items-center justify-center gap-2">
+        <div className="sm:hidden px-5 py-3 border-b border-border/40 bg-background/95 backdrop-blur-sm">
+          <div className="flex items-center justify-center gap-2.5">
             <MobileOfflineTools />
             <ColorMoodSelector />
             <ThemeToggle />
@@ -874,7 +874,7 @@ function App() {
         </div>
         
         <OfflineModeBanner />
-        <div className="flex-1 p-4 lg:p-8 overflow-x-hidden max-w-[1920px] mx-auto w-full">
+        <div className="flex-1 px-5 py-6 lg:px-10 lg:py-8 overflow-x-hidden max-w-[1920px] mx-auto w-full">
           {currentModule === 'dashboard' && renderDashboard()}
           {currentModule === 'quick-ops' && (
             <OfflineOperationsPanel
@@ -1455,21 +1455,21 @@ function App() {
         </div>
         
         <footer className="border-t border-border/30 mt-auto bg-background/80 backdrop-blur-sm">
-          <div className="px-4 lg:px-8 py-4">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-xs text-muted-foreground">
+          <div className="px-5 lg:px-10 py-5">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 text-xs text-muted-foreground">
               <span className="font-medium">© {new Date().getFullYear()} {branding?.hotelName || 'W3 Hotel'}</span>
-              <span className="hidden sm:inline text-border">•</span>
+              <span className="hidden sm:inline text-border/60">•</span>
               <a 
                 href="https://www.w3media.lk/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:text-foreground transition-colors duration-300 group"
+                className="flex items-center gap-2.5 hover:text-foreground transition-colors duration-300 group"
               >
                 <span className="font-medium">Powered by</span>
                 <img 
                   src={w3MediaLogo}
                   alt="W3 Media" 
-                  className="h-3.5 opacity-60 group-hover:opacity-100 transition-opacity duration-300"
+                  className="h-4 opacity-60 group-hover:opacity-100 transition-opacity duration-300"
                 />
               </a>
             </div>
