@@ -8,35 +8,33 @@ import { resolve } from 'path'
 
 const projectRoot = process.env.PROJECT_ROOT || import.meta.dirname
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react({
       jsxRuntime: 'automatic',
     }),
     tailwindcss(),
-    // DO NOT REMOVE
     createIconImportProxy() as PluginOption,
     sparkPlugin() as PluginOption,
   ],
   resolve: {
     alias: {
       '@': resolve(projectRoot, 'src'),
-      'react': resolve(projectRoot, 'node_modules/react'),
-      'react-dom': resolve(projectRoot, 'node_modules/react-dom')
     },
-    dedupe: ['react', 'react-dom']
   },
   optimizeDeps: {
     include: [
       'react', 
       'react-dom', 
       'react/jsx-runtime',
-      'react/jsx-dev-runtime'
     ],
-    exclude: []
   },
   esbuild: {
     logOverride: { 'this-is-undefined-in-esm': 'silent' }
+  },
+  server: {
+    fs: {
+      strict: false
+    }
   }
 });
