@@ -575,7 +575,7 @@ function App() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1.5">Unified view of all hotel operations</p>
+          <p className="text-sm text-muted-foreground mt-2">Unified view of all hotel operations</p>
         </div>
         <div className="flex items-center gap-3">
           {!hasData && (
@@ -598,7 +598,7 @@ function App() {
       {!hasData ? (
         <Card className="relative overflow-hidden border border-dashed">
           <div className="p-12 md:p-20 text-center">
-            <div className="max-w-lg mx-auto space-y-6">
+            <div className="max-w-lg mx-auto" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-gap)' }}>
               <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
                 <Gauge size={40} className="text-primary" weight="duotone" />
               </div>
@@ -621,12 +621,12 @@ function App() {
         </Card>
       ) : (
         <>
-          <div className={`grid gap-6 ${
+          <div className={`grid ${
             layout?.columns === 1 ? 'grid-cols-1' : 
             layout?.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 
             layout?.columns === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 
             'grid-cols-1 lg:grid-cols-2'
-          }`}>
+          }`} style={{ gap: 'var(--spacing-gap)' }}>
             {layout?.widgets
               .filter(w => w.isVisible)
               .sort((a, b) => a.position - b.position)
@@ -749,7 +749,7 @@ function App() {
 
   const SidebarContent = ({ onItemClick }: { onItemClick?: () => void }) => (
     <div className="flex flex-col h-full bg-sidebar">
-      <div className={`h-14 border-b border-sidebar-border flex items-center ${sidebarCollapsed ? 'justify-center px-4' : 'px-6'}`}>
+      <div className={`border-b border-sidebar-border flex items-center ${sidebarCollapsed ? 'justify-center px-4' : 'px-6'}`} style={{ height: 'var(--header-height)' }}>
         {sidebarCollapsed ? (
           <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
             <Gauge size={20} className="text-primary" weight="fill" />
@@ -763,13 +763,13 @@ function App() {
         )}
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-2 scrollbar-thin">
+      <nav className="flex-1 overflow-y-auto py-3 scrollbar-thin">
         {navItems.map((item) => (
           <NavItem key={item.id} item={item} onClick={onItemClick} />
         ))}
       </nav>
 
-      <div className={`h-16 border-t border-sidebar-border flex items-center ${sidebarCollapsed ? 'justify-center px-3' : 'px-4'}`}>
+      <div className={`border-t border-sidebar-border flex items-center ${sidebarCollapsed ? 'justify-center px-3' : 'px-4'}`} style={{ height: '4rem' }}>
         <div className={`flex items-center ${sidebarCollapsed ? '' : 'gap-3 w-full'}`}>
           <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             <span className="text-xs font-bold text-primary">
@@ -796,6 +796,9 @@ function App() {
           transition-all duration-300 ease-in-out
           ${sidebarCollapsed ? 'w-16' : 'w-72'}
         `}
+        style={{
+          width: sidebarCollapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)'
+        }}
       >
         <SidebarContent />
       </aside>
@@ -809,11 +812,13 @@ function App() {
       <main 
         className={`
           flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out
-          ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-72'}
         `}
+        style={{
+          marginLeft: sidebarCollapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)'
+        }}
       >
         <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
-          <div className="h-14 px-4 lg:px-8 flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-4 px-4 lg:px-8" style={{ height: 'var(--header-height)' }}>
             <div className="flex items-center gap-3 flex-1 max-w-2xl">
               <Button 
                 variant="ghost" 
@@ -864,7 +869,7 @@ function App() {
             </div>
           </div>
         </header>
-            
+        
         <div className="sm:hidden px-4 py-2.5 border-b border-border/40 bg-background/95 backdrop-blur-sm">
           <div className="flex items-center justify-center gap-2">
             <MobileOfflineTools />
@@ -874,7 +879,7 @@ function App() {
         </div>
         
         <OfflineModeBanner />
-        <div className="flex-1 p-4 lg:p-8 overflow-x-hidden max-w-[1920px] mx-auto w-full">
+        <div className="flex-1 overflow-x-hidden max-w-[1920px] mx-auto w-full" style={{ padding: 'var(--spacing-page-y) var(--spacing-page-x)' }}>
           {currentModule === 'dashboard' && renderDashboard()}
           {currentModule === 'quick-ops' && (
             <OfflineOperationsPanel
@@ -1455,24 +1460,22 @@ function App() {
         </div>
         
         <footer className="border-t border-border/30 mt-auto bg-background/80 backdrop-blur-sm">
-          <div className="px-4 lg:px-8 py-4">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-xs text-muted-foreground">
-              <span className="font-medium">© {new Date().getFullYear()} {branding?.hotelName || 'W3 Hotel'}</span>
-              <span className="hidden sm:inline text-border">•</span>
-              <a 
-                href="https://www.w3media.lk/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:text-foreground transition-colors duration-300 group"
-              >
-                <span className="font-medium">Powered by</span>
-                <img 
-                  src={w3MediaLogo}
-                  alt="W3 Media" 
-                  className="h-3.5 opacity-60 group-hover:opacity-100 transition-opacity duration-300"
-                />
-              </a>
-            </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-xs text-muted-foreground" style={{ padding: 'var(--spacing-card) var(--spacing-page-x)' }}>
+            <span className="font-medium">© {new Date().getFullYear()} {branding?.hotelName || 'W3 Hotel'}</span>
+            <span className="hidden sm:inline text-border">•</span>
+            <a 
+              href="https://www.w3media.lk/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 hover:text-foreground transition-colors duration-300 group"
+            >
+              <span className="font-medium">Powered by</span>
+              <img 
+                src={w3MediaLogo}
+                alt="W3 Media" 
+                className="h-3.5 opacity-60 group-hover:opacity-100 transition-opacity duration-300"
+              />
+            </a>
           </div>
         </footer>
       </main>
