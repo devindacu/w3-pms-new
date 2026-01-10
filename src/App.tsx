@@ -2,6 +2,7 @@ import React, { useState, useEffect, lazy, Suspense, useCallback, useMemo } from
 import { useKV } from '@github/spark/hooks'
 import { Toaster, toast } from 'sonner'
 import { useTheme } from '@/hooks/use-theme'
+import { useModulePreloader } from '@/hooks/use-module-preloader'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -10,6 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import w3MediaLogo from '@/assets/images/W3Media-Web-Green.png'
 import w3PMSLogo from '@/assets/images/W3-PMS.png'
 import { TableSkeleton } from '@/components/LoadingSkeleton'
+import { ModuleLoadingSkeleton, ModuleLoadingFallback } from '@/components/ModuleLoadingSkeleton'
+import { ModuleSuspenseErrorBoundary } from '@/components/ModuleSuspenseErrorBoundary'
 import { ErrorBoundary, ModuleErrorBoundary } from '@/components/ErrorBoundary'
 import {
   Gauge,
@@ -300,6 +303,7 @@ function App() {
 
   useTheme()
   const { isOnline } = useOfflineStatus()
+  const { preloadOnHover } = useModulePreloader()
 
   const refreshNotifications = useCallback(() => {
     const newNotifications = generateAllAlerts(
@@ -694,12 +698,19 @@ function App() {
     const Icon = 'icon' in item ? item.icon : Gauge
     const isActive = currentModule === item.id
     
+    const handleMouseEnter = () => {
+      if ('id' in item && item.id !== 'dashboard' && item.id !== 'quick-ops') {
+        preloadOnHover(item.id as any)
+      }
+    }
+    
     return (
       <button
         onClick={() => {
           setCurrentModule(item.id as Module)
           onClick?.()
         }}
+        onMouseEnter={handleMouseEnter}
         className={`
           flex items-center gap-3 w-full text-left px-3 py-2 mx-2 my-0.5 rounded-lg text-sm font-medium transition-all
           ${isActive 
@@ -860,9 +871,10 @@ function App() {
             />
           )}
           {currentModule === 'front-office' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
-              <ModuleErrorBoundary>
-                <FrontOffice
+            <ModuleSuspenseErrorBoundary moduleName="Front Office">
+              <Suspense fallback={<ModuleLoadingFallback moduleName="Front Office" />}>
+                <ModuleErrorBoundary>
+                  <FrontOffice
                   guests={guests || []}
                   setGuests={setGuests}
                   guestProfiles={guestProfiles || []}
@@ -881,9 +893,10 @@ function App() {
                 />
               </ModuleErrorBoundary>
             </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'room-revenue' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
+            <Suspense fallback={<ModuleLoadingFallback moduleName="Room & Revenue Management" />}>
               <ModuleErrorBoundary>
                 <RoomRevenueManagement
                   rooms={rooms || []}
@@ -906,7 +919,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'housekeeping' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
+            <Suspense fallback={<ModuleLoadingFallback moduleName="Housekeeping" />}>
               <ModuleErrorBoundary>
                 <Housekeeping
                   rooms={rooms || []}
@@ -919,7 +932,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'fnb' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
+            <Suspense fallback={<ModuleLoadingFallback moduleName="F&B / POS" />}>
               <ModuleErrorBoundary>
                 <FnBPOS
                   menuItems={menuItems || []}
@@ -933,7 +946,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'inventory' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
+            <Suspense fallback={<ModuleLoadingFallback moduleName="Inventory Management" />}>
               <ModuleErrorBoundary>
                 <InventoryManagement
                   foodItems={foodItems || []}
@@ -954,7 +967,7 @@ function App() {
           )}
 
           {currentModule === 'suppliers' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
+            <Suspense fallback={<ModuleLoadingFallback moduleName="Supplier Management" />}>
               <ModuleErrorBoundary>
                 <SupplierManagement
                   suppliers={suppliers || []}
@@ -964,7 +977,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'procurement' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
+            <Suspense fallback={<ModuleLoadingFallback moduleName="Procurement" />}>
               <ModuleErrorBoundary>
                 <Procurement
                   requisitions={requisitions || []}
@@ -987,7 +1000,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'kitchen' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
+            <Suspense fallback={<ModuleLoadingFallback moduleName="Kitchen Operations" />}>
               <ModuleErrorBoundary>
                 <KitchenOperations
                   recipes={recipes || []}
@@ -1015,7 +1028,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'finance' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
+            <Suspense fallback={<ModuleLoadingFallback moduleName="Finance" />}>
               <ModuleErrorBoundary>
                 <Finance
                   invoices={invoices || []}
@@ -1048,7 +1061,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'hr' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
+            <Suspense fallback={<ModuleLoadingFallback moduleName="HR & Staff Management" />}>
               <ModuleErrorBoundary>
                 <HRManagement
                   employees={employees || []}
@@ -1068,7 +1081,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'user-management' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
+            <Suspense fallback={<ModuleLoadingFallback moduleName="User Management" />}>
               <ModuleErrorBoundary>
                 <UserManagement
                   users={systemUsers || []}
@@ -1081,7 +1094,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'construction' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
+            <Suspense fallback={<ModuleLoadingFallback moduleName="Maintenance & Construction" />}>
               <ModuleErrorBoundary>
                 <ConstructionManagement
                   materials={constructionMaterials || []}
@@ -1096,7 +1109,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'analytics' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
+            <Suspense fallback={<ModuleLoadingFallback moduleName="Analytics" />}>
               <ModuleErrorBoundary>
                 <Analytics
                   orders={orders || []}
@@ -1112,7 +1125,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'forecasting' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
+            <Suspense fallback={<ModuleLoadingFallback moduleName="AI Forecasting" />}>
               <ModuleErrorBoundary>
                 <ForecastingAnalytics
                   foodItems={foodItems || []}
@@ -1130,7 +1143,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'crm' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
+            <Suspense fallback={<ModuleLoadingFallback moduleName="Guest Relations & CRM" />}>
               <ModuleErrorBoundary>
                 <CRM
                   guestProfiles={guestProfiles || []}
@@ -1158,7 +1171,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'channel-manager' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
+            <Suspense fallback={<ModuleLoadingFallback moduleName="Channel Manager" />}>
               <ModuleErrorBoundary>
                 <ChannelManager
                   connections={otaConnections || []}
@@ -1185,7 +1198,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'extra-services' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
+            <Suspense fallback={<ModuleLoadingFallback moduleName="Extra Services" />}>
               <ModuleErrorBoundary>
                 <ExtraServicesManagement
                   services={extraServices || []}
@@ -1198,7 +1211,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'invoice-center' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
+            <Suspense fallback={<ModuleLoadingFallback moduleName="Invoice Center" />}>
               <ModuleErrorBoundary>
                 <div className="space-y-6">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -1368,7 +1381,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'settings' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
+            <Suspense fallback={<ModuleLoadingFallback moduleName="Settings" />}>
               <ModuleErrorBoundary>
                 <Settings
                   branding={branding || null}
@@ -1388,7 +1401,7 @@ function App() {
             </Suspense>
           )}
           {currentModule === 'revenue-comparison' && (
-            <Suspense fallback={<TableSkeleton rows={10} />}>
+            <Suspense fallback={<ModuleLoadingFallback moduleName="Revenue Comparison" />}>
               <ModuleErrorBoundary>
                 <RevenueComparison
                   guestInvoices={guestInvoices || []}
