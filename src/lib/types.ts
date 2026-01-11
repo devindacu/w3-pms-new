@@ -4108,6 +4108,7 @@ export type DashboardWidgetType =
   | 'kitchen-operations'
   | 'crm-summary'
   | 'channel-performance'
+  | 'period-comparison'
 
 export type WidgetSize = 'small' | 'medium' | 'large' | 'full'
 

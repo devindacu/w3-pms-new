@@ -26,7 +26,8 @@ export const ALL_WIDGETS: DashboardWidgetType[] = [
   'financial-summary',
   'kitchen-operations',
   'crm-summary',
-  'channel-performance'
+  'channel-performance',
+  'period-comparison'
 ]
 
 const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
@@ -73,7 +74,8 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
         'low-stock': 'large',
         'arrivals-departures': 'medium',
         'guest-feedback': 'medium',
-        'kitchen-operations': 'medium'
+        'kitchen-operations': 'medium',
+        'period-comparison': 'large'
       }
     }
   },
@@ -119,7 +121,8 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
         'low-stock': 'large',
         'revenue-chart': 'large',
         'occupancy-chart': 'large',
-        'kitchen-operations': 'medium'
+        'kitchen-operations': 'medium',
+        'period-comparison': 'large'
       }
     }
   },
@@ -161,7 +164,8 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
         'department-performance': 'large',
         'financial-summary': 'medium',
         'kitchen-operations': 'medium',
-        'channel-performance': 'large'
+        'channel-performance': 'large',
+        'period-comparison': 'large'
       }
     }
   },
@@ -202,7 +206,8 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
         'kitchen-operations': 'medium',
         'crm-summary': 'medium',
         'guest-feedback': 'medium',
-        'channel-performance': 'large'
+        'channel-performance': 'large',
+        'period-comparison': 'large'
       }
     }
   },
@@ -243,7 +248,8 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
         'financial-summary': 'medium',
         'crm-summary': 'medium',
         'guest-feedback': 'medium',
-        'channel-performance': 'large'
+        'channel-performance': 'large',
+        'period-comparison': 'large'
       }
     }
   },
@@ -283,7 +289,8 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
         'pending-approvals': 'medium',
         'financial-summary': 'medium',
         'kitchen-operations': 'medium',
-        'channel-performance': 'large'
+        'channel-performance': 'large',
+        'period-comparison': 'large'
       }
     }
   },
@@ -324,7 +331,8 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
         'crm-summary': 'medium',
         'guest-feedback': 'medium',
         'arrivals-departures': 'medium',
-        'channel-performance': 'large'
+        'channel-performance': 'large',
+        'period-comparison': 'large'
       }
     }
   },
@@ -366,7 +374,8 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
         'kitchen-operations': 'medium',
         'crm-summary': 'medium',
         'guest-feedback': 'medium',
-        'arrivals-departures': 'medium'
+        'arrivals-departures': 'medium',
+        'period-comparison': 'large'
       }
     }
   },
@@ -407,7 +416,8 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
         'crm-summary': 'medium',
         'guest-feedback': 'medium',
         'arrivals-departures': 'medium',
-        'channel-performance': 'large'
+        'channel-performance': 'large',
+        'period-comparison': 'large'
       }
     }
   },
@@ -449,7 +459,8 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
         'crm-summary': 'medium',
         'guest-feedback': 'medium',
         'arrivals-departures': 'medium',
-        'channel-performance': 'large'
+        'channel-performance': 'large',
+        'period-comparison': 'large'
       }
     }
   },
@@ -491,7 +502,8 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
         'crm-summary': 'medium',
         'guest-feedback': 'medium',
         'arrivals-departures': 'medium',
-        'channel-performance': 'large'
+        'channel-performance': 'large',
+        'period-comparison': 'large'
       }
     }
   },
@@ -533,7 +545,8 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
         'crm-summary': 'medium',
         'guest-feedback': 'medium',
         'arrivals-departures': 'medium',
-        'channel-performance': 'large'
+        'channel-performance': 'large',
+        'period-comparison': 'large'
       }
     }
   },
@@ -575,7 +588,8 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
         'kitchen-operations': 'medium',
         'crm-summary': 'medium',
         'guest-feedback': 'medium',
-        'arrivals-departures': 'medium'
+        'arrivals-departures': 'medium',
+        'period-comparison': 'large'
       }
     }
   },
@@ -615,7 +629,8 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
         'crm-summary': 'medium',
         'guest-feedback': 'medium',
         'arrivals-departures': 'medium',
-        'channel-performance': 'large'
+        'channel-performance': 'large',
+        'period-comparison': 'large'
       }
     }
   }
