@@ -1,12 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import App from './App'
 
 export function AppWrapper() {
   const [isReady, setIsReady] = useState(false)
+  const mountedRef = useRef(false)
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsReady(true), 100)
-    return () => clearTimeout(timer)
+    if (mountedRef.current) return
+    mountedRef.current = true
+
+    requestAnimationFrame(() => {
+      setIsReady(true)
+    })
   }, [])
 
   if (!isReady) {

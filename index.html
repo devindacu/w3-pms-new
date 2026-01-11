@@ -13,25 +13,60 @@
     <script>
         window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__ = window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__ || {};
         
+        const ignoredErrors = [
+            'ResizeObserver loop',
+            'setTimeout handler took',
+            'listener LEAK detected',
+            'Failed to fetch dynamically imported module',
+            'chrome-extension://',
+            'quillbot-content.js'
+        ];
+        
+        const originalConsoleError = console.error;
+        console.error = function(...args) {
+            const message = args.join(' ');
+            if (ignoredErrors.some(err => message.includes(err))) {
+                return;
+            }
+            originalConsoleError.apply(console, args);
+        };
+        
+        const originalConsoleWarn = console.warn;
+        console.warn = function(...args) {
+            const message = args.join(' ');
+            if (ignoredErrors.some(err => message.includes(err))) {
+                return;
+            }
+            originalConsoleWarn.apply(console, args);
+        };
+        
         window.addEventListener('error', function(e) {
-            console.error('Global error caught:', e.error);
+            const message = e.error?.message || e.message || '';
+            if (ignoredErrors.some(err => message.includes(err))) {
+                e.preventDefault();
+                return;
+            }
+            
             if (e.error && e.error.message) {
                 if (e.error.message.includes('useState') || 
                     e.error.message.includes('useRef') || 
                     e.error.message.includes('useEffect') ||
                     e.error.message.includes('Cannot read properties of null')) {
-                    console.error('React initialization error detected. This may be caused by module loading issues.');
                     const root = document.getElementById('root');
                     if (root && !root.hasChildNodes()) {
                         root.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem;background:#fafafa;"><div style="max-width:28rem;text-align:center;"><h1 style="color:#dc2626;font-size:1.25rem;font-weight:600;margin-bottom:1rem;">Module Loading Error</h1><p style="color:#6b7280;margin-bottom:1rem;">The application failed to load properly. This may be due to a browser cache issue.</p><button onclick="localStorage.clear();sessionStorage.clear();location.reload()" style="padding:0.5rem 1rem;background:#3b82f6;color:white;border:none;border-radius:0.375rem;cursor:pointer;">Clear Cache & Reload</button></div></div>';
                     }
                 }
             }
-        });
+        }, true);
         
         window.addEventListener('unhandledrejection', function(e) {
-            console.error('Unhandled promise rejection:', e.reason);
-        });
+            const message = e.reason?.message || e.reason || '';
+            if (ignoredErrors.some(err => String(message).includes(err))) {
+                e.preventDefault();
+                return;
+            }
+        }, true);
     </script>
 </head>
 
