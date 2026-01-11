@@ -53,8 +53,16 @@
         
         window.addEventListener('error', function(e) {
             const message = e.error?.message || e.message || '';
+            
             if (ignoredErrors.some(err => message.includes(err))) {
                 e.preventDefault();
+                return;
+            }
+            
+            if (message.includes('Failed to fetch dynamically imported module') || 
+                message.includes('Failed to load module script')) {
+                e.preventDefault();
+                console.log('Module loading error detected - React Error Boundary will handle it');
                 return;
             }
             
@@ -75,6 +83,13 @@
             const message = e.reason?.message || e.reason || '';
             if (ignoredErrors.some(err => String(message).includes(err))) {
                 e.preventDefault();
+                return;
+            }
+            
+            if (String(message).includes('Failed to fetch dynamically imported module') || 
+                String(message).includes('Failed to load module script')) {
+                e.preventDefault();
+                console.log('Module loading promise rejection - React Error Boundary will handle it');
                 return;
             }
         }, true);

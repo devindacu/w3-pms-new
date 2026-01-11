@@ -34,6 +34,7 @@ import {
   RefreshCw
 } from 'lucide-react'
 import { ModuleLoadingSkeleton } from '@/components/ModuleLoadingSkeleton'
+import { ModuleSuspenseErrorBoundary } from '@/components/ModuleSuspenseErrorBoundary'
 import type { 
   SystemUser,
   Guest,
@@ -60,26 +61,38 @@ import type {
   LoyaltyTransaction
 } from '@/lib/types'
 
-const AdvancedAnalyticsWidgets = lazy(() => import('@/components/AdvancedAnalyticsWidgets').then(m => ({ default: m.AdvancedAnalyticsWidgets })))
-const PerformanceMetrics = lazy(() => import('@/components/PerformanceMetrics').then(m => ({ default: m.PerformanceMetrics })))
-const RealtimeActivityFeed = lazy(() => import('@/components/RealtimeActivityFeed').then(m => ({ default: m.RealtimeActivityFeed })))
-const FrontOffice = lazy(() => import('@/components/FrontOffice').then(m => ({ default: m.FrontOffice })))
-const Housekeeping = lazy(() => import('@/components/Housekeeping').then(m => ({ default: m.Housekeeping })))
-const FnBPOS = lazy(() => import('@/components/FnBPOS').then(m => ({ default: m.FnBPOS })))
-const KitchenManagement = lazy(() => import('@/components/KitchenManagement').then(m => ({ default: m.KitchenManagement })))
-const CRM = lazy(() => import('@/components/CRM').then(m => ({ default: m.CRM })))
-const ExtraServicesManagement = lazy(() => import('@/components/ExtraServicesManagement').then(m => ({ default: m.ExtraServicesManagement })))
-const RevenueManagement = lazy(() => import('@/components/RevenueManagement').then(m => ({ default: m.RevenueManagement })))
-const ChannelManager = lazy(() => import('@/components/ChannelManager').then(m => ({ default: m.ChannelManager })))
-const InventoryManagement = lazy(() => import('@/components/InventoryManagement').then(m => ({ default: m.InventoryManagement })))
-const Procurement = lazy(() => import('@/components/Procurement').then(m => ({ default: m.Procurement })))
-const SupplierManagement = lazy(() => import('@/components/SupplierManagement').then(m => ({ default: m.SupplierManagement })))
-const Finance = lazy(() => import('@/components/Finance').then(m => ({ default: m.Finance })))
-const HRManagement = lazy(() => import('@/components/HRManagement').then(m => ({ default: m.HRManagement })))
-const Analytics = lazy(() => import('@/components/Analytics').then(m => ({ default: m.Analytics })))
-const ConstructionManagement = lazy(() => import('@/components/ConstructionManagement').then(m => ({ default: m.ConstructionManagement })))
-const UserManagement = lazy(() => import('@/components/UserManagement').then(m => ({ default: m.UserManagement })))
-const Settings = lazy(() => import('@/components/Settings').then(m => ({ default: m.Settings })))
+const retryImport = async <T,>(importFn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await importFn()
+    } catch (error) {
+      if (i === retries - 1) throw error
+      await new Promise(resolve => setTimeout(resolve, delay * (i + 1)))
+    }
+  }
+  throw new Error('Failed to load module after retries')
+}
+
+const AdvancedAnalyticsWidgets = lazy(() => retryImport(() => import('@/components/AdvancedAnalyticsWidgets').then(m => ({ default: m.AdvancedAnalyticsWidgets }))))
+const PerformanceMetrics = lazy(() => retryImport(() => import('@/components/PerformanceMetrics').then(m => ({ default: m.PerformanceMetrics }))))
+const RealtimeActivityFeed = lazy(() => retryImport(() => import('@/components/RealtimeActivityFeed').then(m => ({ default: m.RealtimeActivityFeed }))))
+const FrontOffice = lazy(() => retryImport(() => import('@/components/FrontOffice').then(m => ({ default: m.FrontOffice }))))
+const Housekeeping = lazy(() => retryImport(() => import('@/components/Housekeeping').then(m => ({ default: m.Housekeeping }))))
+const FnBPOS = lazy(() => retryImport(() => import('@/components/FnBPOS').then(m => ({ default: m.FnBPOS }))))
+const KitchenManagement = lazy(() => retryImport(() => import('@/components/KitchenManagement').then(m => ({ default: m.KitchenManagement }))))
+const CRM = lazy(() => retryImport(() => import('@/components/CRM').then(m => ({ default: m.CRM }))))
+const ExtraServicesManagement = lazy(() => retryImport(() => import('@/components/ExtraServicesManagement').then(m => ({ default: m.ExtraServicesManagement }))))
+const RevenueManagement = lazy(() => retryImport(() => import('@/components/RevenueManagement').then(m => ({ default: m.RevenueManagement }))))
+const ChannelManager = lazy(() => retryImport(() => import('@/components/ChannelManager').then(m => ({ default: m.ChannelManager }))))
+const InventoryManagement = lazy(() => retryImport(() => import('@/components/InventoryManagement').then(m => ({ default: m.InventoryManagement }))))
+const Procurement = lazy(() => retryImport(() => import('@/components/Procurement').then(m => ({ default: m.Procurement }))))
+const SupplierManagement = lazy(() => retryImport(() => import('@/components/SupplierManagement').then(m => ({ default: m.SupplierManagement }))))
+const Finance = lazy(() => retryImport(() => import('@/components/Finance').then(m => ({ default: m.Finance }))))
+const HRManagement = lazy(() => retryImport(() => import('@/components/HRManagement').then(m => ({ default: m.HRManagement }))))
+const Analytics = lazy(() => retryImport(() => import('@/components/Analytics').then(m => ({ default: m.Analytics }))))
+const ConstructionManagement = lazy(() => retryImport(() => import('@/components/ConstructionManagement').then(m => ({ default: m.ConstructionManagement }))))
+const UserManagement = lazy(() => retryImport(() => import('@/components/UserManagement').then(m => ({ default: m.UserManagement }))))
+const Settings = lazy(() => retryImport(() => import('@/components/Settings').then(m => ({ default: m.Settings }))))
 import { 
   sampleSystemUsers,
   sampleGuests,
@@ -313,29 +326,33 @@ function App() {
       </div>
 
       <Suspense fallback={<ModuleLoadingSkeleton />}>
-        <AdvancedAnalyticsWidgets 
-          data={{
-            reservations: reservations || [],
-            rooms: rooms || [],
-            orders: orders || [],
-            folios: folios || [],
-            guests: guests || []
-          }}
-          onNavigate={(module) => setCurrentModule(module as Module)}
-        />
+        <ModuleSuspenseErrorBoundary moduleName="Advanced Analytics Widgets">
+          <AdvancedAnalyticsWidgets 
+            data={{
+              reservations: reservations || [],
+              rooms: rooms || [],
+              orders: orders || [],
+              folios: folios || [],
+              guests: guests || []
+            }}
+            onNavigate={(module) => setCurrentModule(module as Module)}
+          />
+        </ModuleSuspenseErrorBoundary>
       </Suspense>
 
       <Suspense fallback={<ModuleLoadingSkeleton />}>
-        <PerformanceMetrics 
-          data={{
-            rooms: rooms || [],
-            reservations: reservations || [],
-            folios: folios || [],
-            orders: orders || [],
-            housekeepingTasks: housekeepingTasks || [],
-            maintenanceRequests: maintenanceRequests || []
-          }}
-        />
+        <ModuleSuspenseErrorBoundary moduleName="Performance Metrics">
+          <PerformanceMetrics 
+            data={{
+              rooms: rooms || [],
+              reservations: reservations || [],
+              folios: folios || [],
+              orders: orders || [],
+              housekeepingTasks: housekeepingTasks || [],
+              maintenanceRequests: maintenanceRequests || []
+            }}
+          />
+        </ModuleSuspenseErrorBoundary>
       </Suspense>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -376,18 +393,20 @@ function App() {
 
         <div>
           <Suspense fallback={<ModuleLoadingSkeleton />}>
-            <RealtimeActivityFeed 
-              data={{
-                reservations: reservations || [],
-                guests: guests || [],
-                folios: folios || [],
-                orders: orders || [],
-                housekeepingTasks: housekeepingTasks || [],
-                maintenanceRequests: maintenanceRequests || [],
-                inventory: inventory || []
-              }}
-              limit={15}
-            />
+            <ModuleSuspenseErrorBoundary moduleName="Activity Feed">
+              <RealtimeActivityFeed 
+                data={{
+                  reservations: reservations || [],
+                  guests: guests || [],
+                  folios: folios || [],
+                  orders: orders || [],
+                  housekeepingTasks: housekeepingTasks || [],
+                  maintenanceRequests: maintenanceRequests || [],
+                  inventory: inventory || []
+                }}
+                limit={15}
+              />
+            </ModuleSuspenseErrorBoundary>
           </Suspense>
         </div>
       </div>
@@ -548,288 +567,322 @@ function App() {
         <div className="flex-1 overflow-y-auto p-6">
           {currentModule === 'dashboard' && renderDashboard()}
           {currentModule === 'front-office' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
-              <FrontOffice
-                guests={guests || []}
-                setGuests={setGuests}
-                guestProfiles={guestProfiles || []}
-                setGuestProfiles={setGuestProfiles}
-                reservations={reservations || []}
-                setReservations={setReservations}
-                rooms={rooms || []}
-                setRooms={setRooms}
-                folios={folios || []}
-                setFolios={setFolios}
-                extraServices={extraServices || []}
-                serviceCategories={serviceCategories || []}
-                folioExtraServices={folioExtraServices || []}
-                setFolioExtraServices={setFolioExtraServices}
-                currentUser={currentUser}
-              />
-            </Suspense>
+            <ModuleSuspenseErrorBoundary moduleName="Front Office">
+              <Suspense fallback={<ModuleLoadingSkeleton />}>
+                <FrontOffice
+                  guests={guests || []}
+                  setGuests={setGuests}
+                  guestProfiles={guestProfiles || []}
+                  setGuestProfiles={setGuestProfiles}
+                  reservations={reservations || []}
+                  setReservations={setReservations}
+                  rooms={rooms || []}
+                  setRooms={setRooms}
+                  folios={folios || []}
+                  setFolios={setFolios}
+                  extraServices={extraServices || []}
+                  serviceCategories={serviceCategories || []}
+                  folioExtraServices={folioExtraServices || []}
+                  setFolioExtraServices={setFolioExtraServices}
+                  currentUser={currentUser}
+                />
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'housekeeping' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
-              <Housekeeping
-                tasks={housekeepingTasks || []}
-                setTasks={setHousekeepingTasks}
-                rooms={rooms || []}
-                setRooms={setRooms}
-                employees={employees || []}
-              />
-            </Suspense>
+            <ModuleSuspenseErrorBoundary moduleName="Housekeeping">
+              <Suspense fallback={<ModuleLoadingSkeleton />}>
+                <Housekeeping
+                  tasks={housekeepingTasks || []}
+                  setTasks={setHousekeepingTasks}
+                  rooms={rooms || []}
+                  setRooms={setRooms}
+                  employees={employees || []}
+                />
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'fnb' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
-              <FnBPOS
-                menuItems={menuItems || []}
-                setMenuItems={setMenuItems}
-                orders={orders || []}
-                setOrders={setOrders}
-                guests={guests || []}
-                rooms={rooms || []}
-              />
-            </Suspense>
+            <ModuleSuspenseErrorBoundary moduleName="F&B / POS">
+              <Suspense fallback={<ModuleLoadingSkeleton />}>
+                <FnBPOS
+                  menuItems={menuItems || []}
+                  setMenuItems={setMenuItems}
+                  orders={orders || []}
+                  setOrders={setOrders}
+                  guests={guests || []}
+                  rooms={rooms || []}
+                />
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'kitchen' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
-              <KitchenManagement
-                stations={kitchenStations || []}
-                setStations={setKitchenStations}
-                staff={kitchenStaff || []}
-                setStaff={setKitchenStaff}
-                schedules={productionSchedules || []}
-                setSchedules={setProductionSchedules}
-                inventoryIssues={kitchenInventoryIssues || []}
-                setInventoryIssues={setKitchenInventoryIssues}
-                wasteTracking={wasteTracking || []}
-                setWasteTracking={setWasteTracking}
-                employees={employees || []}
-                foodItems={[]}
-              />
-            </Suspense>
+            <ModuleSuspenseErrorBoundary moduleName="Kitchen Management">
+              <Suspense fallback={<ModuleLoadingSkeleton />}>
+                <KitchenManagement
+                  stations={kitchenStations || []}
+                  setStations={setKitchenStations}
+                  staff={kitchenStaff || []}
+                  setStaff={setKitchenStaff}
+                  schedules={productionSchedules || []}
+                  setSchedules={setProductionSchedules}
+                  inventoryIssues={kitchenInventoryIssues || []}
+                  setInventoryIssues={setKitchenInventoryIssues}
+                  wasteTracking={wasteTracking || []}
+                  setWasteTracking={setWasteTracking}
+                  employees={employees || []}
+                  foodItems={[]}
+                />
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'crm' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
-              <CRM
-                guestProfiles={guestProfiles || []}
-                setGuestProfiles={setGuestProfiles}
-                complaints={complaints || []}
-                setComplaints={setComplaints}
-                feedback={feedback || []}
-                setFeedback={setFeedback}
-                campaigns={campaigns || []}
-                setCampaigns={setCampaigns}
-                templates={templates || []}
-                setTemplates={setTemplates}
-                upsellOffers={upsellOffers || []}
-                setUpsellOffers={setUpsellOffers}
-                upsellTransactions={upsellTransactions || []}
-                setUpsellTransactions={setUpsellTransactions}
-                loyaltyTransactions={loyaltyTransactions || []}
-                setLoyaltyTransactions={setLoyaltyTransactions}
-                reservations={reservations}
-                rooms={rooms}
-                orders={orders}
-                folioExtraServices={folioExtraServices}
-              />
-            </Suspense>
+            <ModuleSuspenseErrorBoundary moduleName="Guest Relations">
+              <Suspense fallback={<ModuleLoadingSkeleton />}>
+                <CRM
+                  guestProfiles={guestProfiles || []}
+                  setGuestProfiles={setGuestProfiles}
+                  complaints={complaints || []}
+                  setComplaints={setComplaints}
+                  feedback={feedback || []}
+                  setFeedback={setFeedback}
+                  campaigns={campaigns || []}
+                  setCampaigns={setCampaigns}
+                  templates={templates || []}
+                  setTemplates={setTemplates}
+                  upsellOffers={upsellOffers || []}
+                  setUpsellOffers={setUpsellOffers}
+                  upsellTransactions={upsellTransactions || []}
+                  setUpsellTransactions={setUpsellTransactions}
+                  loyaltyTransactions={loyaltyTransactions || []}
+                  setLoyaltyTransactions={setLoyaltyTransactions}
+                  reservations={reservations}
+                  rooms={rooms}
+                  orders={orders}
+                  folioExtraServices={folioExtraServices}
+                />
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'extra-services' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
-              <ExtraServicesManagement
-                services={extraServices || []}
-                setServices={setExtraServices}
-                categories={serviceCategories || []}
-                setCategories={setServiceCategories}
-                currentUser={currentUser}
-              />
-            </Suspense>
+            <ModuleSuspenseErrorBoundary moduleName="Extra Services">
+              <Suspense fallback={<ModuleLoadingSkeleton />}>
+                <ExtraServicesManagement
+                  services={extraServices || []}
+                  setServices={setExtraServices}
+                  categories={serviceCategories || []}
+                  setCategories={setServiceCategories}
+                  currentUser={currentUser}
+                />
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'room-revenue' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
-              <RevenueManagement
-                roomTypes={roomTypeConfigs || []}
-                setRoomTypes={setRoomTypeConfigs}
-                ratePlans={ratePlans || []}
-                setRatePlans={setRatePlans}
-                seasons={seasons || []}
-                setSeasons={setSeasons}
-                eventDays={eventDays || []}
-                setEventDays={setEventDays}
-                corporateAccounts={corporateAccounts || []}
-                setCorporateAccounts={setCorporateAccounts}
-                rateCalendar={rateCalendar || []}
-                setRateCalendar={setRateCalendar}
-                currentUser={currentUser}
-              />
-            </Suspense>
+            <ModuleSuspenseErrorBoundary moduleName="Room & Revenue Management">
+              <Suspense fallback={<ModuleLoadingSkeleton />}>
+                <RevenueManagement
+                  roomTypes={roomTypeConfigs || []}
+                  setRoomTypes={setRoomTypeConfigs}
+                  ratePlans={ratePlans || []}
+                  setRatePlans={setRatePlans}
+                  seasons={seasons || []}
+                  setSeasons={setSeasons}
+                  eventDays={eventDays || []}
+                  setEventDays={setEventDays}
+                  corporateAccounts={corporateAccounts || []}
+                  setCorporateAccounts={setCorporateAccounts}
+                  rateCalendar={rateCalendar || []}
+                  setRateCalendar={setRateCalendar}
+                  currentUser={currentUser}
+                />
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'channel-manager' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
-              <ChannelManager
-                connections={otaConnections || []}
-                setConnections={setOtaConnections}
-                ratePlans={ratePlans || []}
-                setRatePlans={setRatePlans}
-                inventory={channelInventory || []}
-                setInventory={setChannelInventory}
-                rates={channelRates || []}
-                setRates={setChannelRates}
-                reservations={channelReservations || []}
-                setReservations={setChannelReservations}
-                syncLogs={syncLogs || []}
-                setSyncLogs={setSyncLogs}
-                performance={channelPerformance || []}
-                reviews={channelReviews || []}
-                setReviews={setChannelReviews}
-                bulkOperations={bulkOperations || []}
-                setBulkOperations={setBulkOperations}
-                rooms={rooms || []}
-                currentUser={currentUser}
-              />
-            </Suspense>
+            <ModuleSuspenseErrorBoundary moduleName="Channel Manager">
+              <Suspense fallback={<ModuleLoadingSkeleton />}>
+                <ChannelManager
+                  connections={otaConnections || []}
+                  setConnections={setOtaConnections}
+                  ratePlans={ratePlans || []}
+                  setRatePlans={setRatePlans}
+                  inventory={channelInventory || []}
+                  setInventory={setChannelInventory}
+                  rates={channelRates || []}
+                  setRates={setChannelRates}
+                  reservations={channelReservations || []}
+                  setReservations={setChannelReservations}
+                  syncLogs={syncLogs || []}
+                  setSyncLogs={setSyncLogs}
+                  performance={channelPerformance || []}
+                  reviews={channelReviews || []}
+                  setReviews={setChannelReviews}
+                  bulkOperations={bulkOperations || []}
+                  setBulkOperations={setBulkOperations}
+                  rooms={rooms || []}
+                  currentUser={currentUser}
+                />
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'inventory' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
-              <InventoryManagement
-                foodItems={foodItems || []}
-                setFoodItems={setFoodItems}
-                amenities={amenities || []}
-                setAmenities={setAmenities}
-                amenityUsageLogs={amenityUsageLogs || []}
-                setAmenityUsageLogs={setAmenityUsageLogs}
-                amenityAutoOrders={amenityAutoOrders || []}
-                setAmenityAutoOrders={setAmenityAutoOrders}
-                constructionMaterials={constructionMaterials || []}
-                generalProducts={generalProducts || []}
-                setGeneralProducts={setGeneralProducts}
-                suppliers={suppliers || []}
-              />
-            </Suspense>
+            <ModuleSuspenseErrorBoundary moduleName="Inventory Management">
+              <Suspense fallback={<ModuleLoadingSkeleton />}>
+                <InventoryManagement
+                  foodItems={foodItems || []}
+                  setFoodItems={setFoodItems}
+                  amenities={amenities || []}
+                  setAmenities={setAmenities}
+                  amenityUsageLogs={amenityUsageLogs || []}
+                  setAmenityUsageLogs={setAmenityUsageLogs}
+                  amenityAutoOrders={amenityAutoOrders || []}
+                  setAmenityAutoOrders={setAmenityAutoOrders}
+                  constructionMaterials={constructionMaterials || []}
+                  generalProducts={generalProducts || []}
+                  setGeneralProducts={setGeneralProducts}
+                  suppliers={suppliers || []}
+                />
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'procurement' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
-              <Procurement
-                requisitions={requisitions || []}
-                setRequisitions={setRequisitions}
-                suppliers={suppliers || []}
-                foodItems={foodItems || []}
-                amenities={amenities || []}
-                constructionMaterials={constructionMaterials || []}
-                generalProducts={generalProducts || []}
-                purchaseOrders={purchaseOrders || []}
-                setPurchaseOrders={setPurchaseOrders}
-                grns={grns || []}
-                setGRNs={setGrns}
-                inventory={inventory || []}
-                currentUser={currentUser}
-                invoices={procurementInvoices || []}
-                setInvoices={setProcurementInvoices}
-              />
-            </Suspense>
+            <ModuleSuspenseErrorBoundary moduleName="Procurement">
+              <Suspense fallback={<ModuleLoadingSkeleton />}>
+                <Procurement
+                  requisitions={requisitions || []}
+                  setRequisitions={setRequisitions}
+                  suppliers={suppliers || []}
+                  foodItems={foodItems || []}
+                  amenities={amenities || []}
+                  constructionMaterials={constructionMaterials || []}
+                  generalProducts={generalProducts || []}
+                  purchaseOrders={purchaseOrders || []}
+                  setPurchaseOrders={setPurchaseOrders}
+                  grns={grns || []}
+                  setGRNs={setGrns}
+                  inventory={inventory || []}
+                  currentUser={currentUser}
+                  invoices={procurementInvoices || []}
+                  setInvoices={setProcurementInvoices}
+                />
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'suppliers' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
-              <SupplierManagement
-                suppliers={suppliers || []}
-                setSuppliers={setSuppliers}
-              />
-            </Suspense>
+            <ModuleSuspenseErrorBoundary moduleName="Supplier Management">
+              <Suspense fallback={<ModuleLoadingSkeleton />}>
+                <SupplierManagement
+                  suppliers={suppliers || []}
+                  setSuppliers={setSuppliers}
+                />
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'finance' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
-              <Finance
-                invoices={invoices || []}
-                setInvoices={setInvoices}
-                payments={payments || []}
-                setPayments={setPayments}
-                expenses={expenses || []}
-                setExpenses={setExpenses}
-                accounts={accounts || []}
-                budgets={budgets || []}
-                setBudgets={setBudgets}
-                journalEntries={journalEntries || []}
-                setJournalEntries={setJournalEntries}
-                chartOfAccounts={chartOfAccounts || []}
-                setChartOfAccounts={setChartOfAccounts}
-                currentUser={currentUser}
-              />
-            </Suspense>
+            <ModuleSuspenseErrorBoundary moduleName="Finance">
+              <Suspense fallback={<ModuleLoadingSkeleton />}>
+                <Finance
+                  invoices={invoices || []}
+                  setInvoices={setInvoices}
+                  payments={payments || []}
+                  setPayments={setPayments}
+                  expenses={expenses || []}
+                  setExpenses={setExpenses}
+                  accounts={accounts || []}
+                  budgets={budgets || []}
+                  setBudgets={setBudgets}
+                  journalEntries={journalEntries || []}
+                  setJournalEntries={setJournalEntries}
+                  chartOfAccounts={chartOfAccounts || []}
+                  setChartOfAccounts={setChartOfAccounts}
+                  currentUser={currentUser}
+                />
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'hr' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
-              <HRManagement
-                employees={employees || []}
-                setEmployees={setEmployees}
-                attendance={attendance || []}
-                setAttendance={setAttendance}
-                leaveRequests={leaveRequests || []}
-                setLeaveRequests={setLeaveRequests}
-                shifts={shifts || []}
-                setShifts={setShifts}
-                dutyRosters={dutyRosters || []}
-                setDutyRosters={setDutyRosters}
-                performanceReviews={performanceReviews || []}
-                setPerformanceReviews={setPerformanceReviews}
-              />
-            </Suspense>
+            <ModuleSuspenseErrorBoundary moduleName="HR & Staff Management">
+              <Suspense fallback={<ModuleLoadingSkeleton />}>
+                <HRManagement
+                  employees={employees || []}
+                  setEmployees={setEmployees}
+                  attendance={attendance || []}
+                  setAttendance={setAttendance}
+                  leaveRequests={leaveRequests || []}
+                  setLeaveRequests={setLeaveRequests}
+                  shifts={shifts || []}
+                  setShifts={setShifts}
+                  dutyRosters={dutyRosters || []}
+                  setDutyRosters={setDutyRosters}
+                  performanceReviews={performanceReviews || []}
+                  setPerformanceReviews={setPerformanceReviews}
+                />
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'analytics' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
-              <Analytics
-                orders={orders || []}
-                foodItems={foodItems || []}
-                suppliers={suppliers || []}
-                grns={grns || []}
-                recipes={recipes || []}
-                menus={menus || []}
-                consumptionLogs={consumptionLogs || []}
-                purchaseOrders={purchaseOrders || []}
-              />
-            </Suspense>
+            <ModuleSuspenseErrorBoundary moduleName="Analytics">
+              <Suspense fallback={<ModuleLoadingSkeleton />}>
+                <Analytics
+                  orders={orders || []}
+                  foodItems={foodItems || []}
+                  suppliers={suppliers || []}
+                  grns={grns || []}
+                  recipes={recipes || []}
+                  menus={menus || []}
+                  consumptionLogs={consumptionLogs || []}
+                  purchaseOrders={purchaseOrders || []}
+                />
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'construction' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
-              <ConstructionManagement
-                materials={constructionMaterials || []}
-                setMaterials={setConstructionMaterials}
-                projects={constructionProjects || []}
-                setProjects={setConstructionProjects}
-                suppliers={suppliers || []}
-                contractors={contractors || []}
-                setContractors={setContractors}
-              />
-            </Suspense>
+            <ModuleSuspenseErrorBoundary moduleName="Maintenance & Construction">
+              <Suspense fallback={<ModuleLoadingSkeleton />}>
+                <ConstructionManagement
+                  materials={constructionMaterials || []}
+                  setMaterials={setConstructionMaterials}
+                  projects={constructionProjects || []}
+                  setProjects={setConstructionProjects}
+                  suppliers={suppliers || []}
+                  contractors={contractors || []}
+                  setContractors={setContractors}
+                />
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'user-management' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
-              <UserManagement
-                users={systemUsers || []}
-                setUsers={() => {}}
-                currentUser={currentUser}
-                activityLogs={[]}
-                setActivityLogs={() => {}}
-              />
-            </Suspense>
+            <ModuleSuspenseErrorBoundary moduleName="User Management">
+              <Suspense fallback={<ModuleLoadingSkeleton />}>
+                <UserManagement
+                  users={systemUsers || []}
+                  setUsers={() => {}}
+                  currentUser={currentUser}
+                  activityLogs={[]}
+                  setActivityLogs={() => {}}
+                />
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
           {currentModule === 'settings' && (
-            <Suspense fallback={<ModuleLoadingSkeleton />}>
-              <Settings
-                branding={branding}
-                setBranding={setBranding}
-                taxes={taxes || []}
-                setTaxes={setTaxes}
-                serviceCharge={serviceCharge}
-                setServiceCharge={setServiceCharge}
-                emailTemplates={emailTemplates || []}
-                setEmailTemplates={setEmailTemplates}
-                emailAnalytics={emailAnalytics || []}
-                campaignAnalytics={campaignAnalytics || []}
-                emailRecords={emailRecords || []}
-                currentUser={currentUser}
-              />
-            </Suspense>
+            <ModuleSuspenseErrorBoundary moduleName="Settings">
+              <Suspense fallback={<ModuleLoadingSkeleton />}>
+                <Settings
+                  branding={branding}
+                  setBranding={setBranding}
+                  taxes={taxes || []}
+                  setTaxes={setTaxes}
+                  serviceCharge={serviceCharge}
+                  setServiceCharge={setServiceCharge}
+                  emailTemplates={emailTemplates || []}
+                  setEmailTemplates={setEmailTemplates}
+                  emailAnalytics={emailAnalytics || []}
+                  campaignAnalytics={campaignAnalytics || []}
+                  emailRecords={emailRecords || []}
+                  currentUser={currentUser}
+                />
+              </Suspense>
+            </ModuleSuspenseErrorBoundary>
           )}
         </div>
       </main>
