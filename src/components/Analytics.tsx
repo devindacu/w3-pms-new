@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -34,6 +34,7 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts'
+import { AnalyticsDateFilter, type DateRange } from '@/components/AnalyticsDateFilter'
 import type {
   Room,
   Reservation,
@@ -90,8 +91,47 @@ interface AnalyticsProps {
 
 const CHART_COLORS = ['#8B5CF6', '#06B6D4', '#10B981', '#F59E0B', '#EF4444']
 
+const isWithinDateRange = (timestamp: number, range: DateRange): boolean => {
+  const date = new Date(timestamp)
+  date.setHours(0, 0, 0, 0)
+  const from = new Date(range.from)
+  from.setHours(0, 0, 0, 0)
+  const to = new Date(range.to)
+  to.setHours(23, 59, 59, 999)
+  return date >= from && date <= to
+}
+
 export function Analytics(props: AnalyticsProps) {
   const [activeTab, setActiveTab] = useState('overview')
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+    to: new Date()
+  })
+
+  const filteredData = useMemo(() => {
+    return {
+      reservations: props.reservations.filter(r => isWithinDateRange(r.checkInDate, dateRange)),
+      guestInvoices: props.guestInvoices.filter(inv => isWithinDateRange(inv.invoiceDate, dateRange)),
+      payments: props.payments.filter(p => isWithinDateRange(p.processedAt, dateRange)),
+      orders: props.orders.filter(o => isWithinDateRange(o.createdAt, dateRange)),
+      expenses: props.expenses.filter(e => isWithinDateRange(e.expenseDate, dateRange)),
+      housekeepingTasks: props.housekeepingTasks.filter(t => isWithinDateRange(t.createdAt, dateRange)),
+      complaints: props.complaints.filter(c => isWithinDateRange(c.reportedAt, dateRange)),
+      guestFeedback: props.guestFeedback.filter(f => isWithinDateRange(f.submittedAt, dateRange)),
+      channelReservations: props.channelReservations.filter(r => isWithinDateRange(r.checkInDate, dateRange))
+    }
+  }, [props, dateRange])
+
+  const handleDateRangeChange = (newRange: DateRange) => {
+    setDateRange(newRange)
+  }
+
+  const handleReset = () => {
+    setDateRange({
+      from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      to: new Date()
+    })
+  }
 
   const getOccupancyData = () => {
     const occupiedRooms = props.rooms.filter(r => r.status.includes('occupied')).length
@@ -109,11 +149,11 @@ export function Analytics(props: AnalyticsProps) {
   }
 
   const getRevenueData = () => {
-    const totalRevenue = props.guestInvoices.reduce((sum, inv) => sum + inv.grandTotal, 0)
-    const paidRevenue = props.payments.reduce((sum, p) => sum + p.amount, 0)
-    const pendingRevenue = props.guestInvoices.reduce((sum, inv) => sum + inv.amountDue, 0)
+    const totalRevenue = filteredData.guestInvoices.reduce((sum, inv) => sum + inv.grandTotal, 0)
+    const paidRevenue = filteredData.payments.reduce((sum, p) => sum + p.amount, 0)
+    const pendingRevenue = filteredData.guestInvoices.reduce((sum, inv) => sum + inv.amountDue, 0)
     const roomRevenue = totalRevenue * 0.6
-    const fnbRevenue = props.orders.reduce((sum, o) => sum + o.total, 0)
+    const fnbRevenue = filteredData.orders.reduce((sum, o) => sum + o.total, 0)
     
     return {
       totalRevenue,
@@ -127,10 +167,10 @@ export function Analytics(props: AnalyticsProps) {
 
   const getGuestData = () => {
     const totalGuests = props.guests.length
-    const activeReservations = props.reservations.filter(r => r.status === 'checked-in').length
-    const upcomingReservations = props.reservations.filter(r => r.status === 'confirmed').length
-    const avgStayDuration = props.reservations.length > 0
-      ? props.reservations.reduce((sum, r) => sum + Math.ceil((r.checkOutDate - r.checkInDate) / (1000 * 60 * 60 * 24)), 0) / props.reservations.length
+    const activeReservations = filteredData.reservations.filter(r => r.status === 'checked-in').length
+    const upcomingReservations = filteredData.reservations.filter(r => r.status === 'confirmed').length
+    const avgStayDuration = filteredData.reservations.length > 0
+      ? filteredData.reservations.reduce((sum, r) => sum + Math.ceil((r.checkOutDate - r.checkInDate) / (1000 * 60 * 60 * 24)), 0) / filteredData.reservations.length
       : 0
 
     return {
@@ -138,22 +178,22 @@ export function Analytics(props: AnalyticsProps) {
       activeReservations,
       upcomingReservations,
       avgStayDuration,
-      complaints: props.complaints.length,
-      feedback: props.guestFeedback.length,
-      satisfaction: props.guestFeedback.length > 0
-        ? props.guestFeedback.reduce((sum, f) => {
+      complaints: filteredData.complaints.length,
+      feedback: filteredData.guestFeedback.length,
+      satisfaction: filteredData.guestFeedback.length > 0
+        ? filteredData.guestFeedback.reduce((sum, f) => {
             const rating = f.ratings?.roomCleanliness
             return sum + (typeof rating === 'number' ? rating : 0)
-          }, 0) / props.guestFeedback.length
+          }, 0) / filteredData.guestFeedback.length
         : 0
     }
   }
 
   const getHousekeepingData = () => {
-    const totalTasks = props.housekeepingTasks.length
-    const completedTasks = props.housekeepingTasks.filter(t => t.status === 'completed').length
-    const pendingTasks = props.housekeepingTasks.filter(t => t.status === 'pending').length
-    const inProgressTasks = props.housekeepingTasks.filter(t => t.status === 'in-progress').length
+    const totalTasks = filteredData.housekeepingTasks.length
+    const completedTasks = filteredData.housekeepingTasks.filter(t => t.status === 'completed').length
+    const pendingTasks = filteredData.housekeepingTasks.filter(t => t.status === 'pending').length
+    const inProgressTasks = filteredData.housekeepingTasks.filter(t => t.status === 'in-progress').length
 
     return {
       totalTasks,
@@ -165,9 +205,9 @@ export function Analytics(props: AnalyticsProps) {
   }
 
   const getFnBData = () => {
-    const totalOrders = props.orders.length
-    const completedOrders = props.orders.filter(o => o.status === 'served').length
-    const totalRevenue = props.orders.reduce((sum, o) => sum + o.total, 0)
+    const totalOrders = filteredData.orders.length
+    const completedOrders = filteredData.orders.filter(o => o.status === 'served').length
+    const totalRevenue = filteredData.orders.reduce((sum, o) => sum + o.total, 0)
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
 
     return {
@@ -194,11 +234,11 @@ export function Analytics(props: AnalyticsProps) {
   }
 
   const getFinanceData = () => {
-    const totalInvoices = props.guestInvoices.length
-    const totalPayments = props.payments.length
-    const totalExpenses = props.expenses.length
-    const revenue = props.payments.reduce((sum, p) => sum + p.amount, 0)
-    const expenseAmount = props.expenses.reduce((sum, e) => sum + e.amount, 0)
+    const totalInvoices = filteredData.guestInvoices.length
+    const totalPayments = filteredData.payments.length
+    const totalExpenses = filteredData.expenses.length
+    const revenue = filteredData.payments.reduce((sum, p) => sum + p.amount, 0)
+    const expenseAmount = filteredData.expenses.reduce((sum, e) => sum + e.amount, 0)
     const netProfit = revenue - expenseAmount
 
     return {
@@ -249,7 +289,7 @@ export function Analytics(props: AnalyticsProps) {
   const monthlyRevenueData = (() => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     return months.map((month, index) => {
-      const monthRevenue = props.guestInvoices
+      const monthRevenue = filteredData.guestInvoices
         .filter(inv => new Date(inv.invoiceDate).getMonth() === index)
         .reduce((sum, inv) => sum + inv.grandTotal, 0)
       return { month, revenue: monthRevenue }
@@ -258,10 +298,19 @@ export function Analytics(props: AnalyticsProps) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold">Analytics Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Comprehensive analytics across all hotel operations</p>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold">Analytics Dashboard</h1>
+          <p className="text-muted-foreground mt-1">Comprehensive analytics across all hotel operations</p>
+        </div>
       </div>
+
+      <AnalyticsDateFilter
+        dateRange={dateRange}
+        onDateRangeChange={handleDateRangeChange}
+        onReset={handleReset}
+        className="bg-card p-4 rounded-lg border"
+      />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9">
