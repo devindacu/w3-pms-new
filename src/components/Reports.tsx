@@ -44,10 +44,13 @@ import type {
 } from '@/lib/types'
 import type { CustomReport } from '@/lib/reportBuilderTypes'
 import type { ReportSchedule, ScheduleExecutionLog } from '@/lib/reportScheduleTypes'
+import type { ReportTemplate } from '@/lib/reportTemplateTypes'
 import { formatCurrency, formatDate } from '@/lib/helpers'
 import { CustomReportBuilder } from './CustomReportBuilder'
 import { ReportScheduleDialog } from './ReportScheduleDialog'
 import { ScheduleManagement } from './ScheduleManagement'
+import { ReportTemplatePreview } from './ReportTemplatePreview'
+import { defaultReportTemplates } from '@/lib/defaultReportTemplates'
 
 interface ReportsProps {
   rooms: Room[]
@@ -64,16 +67,6 @@ interface ReportsProps {
 }
 
 type ReportCategory = 'financial' | 'operational' | 'guest' | 'inventory' | 'hr'
-
-interface ReportTemplate {
-  id: string
-  name: string
-  description: string
-  category: ReportCategory
-  icon: React.ReactNode
-  frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom'
-  formats: ('pdf' | 'excel' | 'csv')[]
-}
 
 export function Reports({
   rooms,
@@ -92,6 +85,7 @@ export function Reports({
   const [customReports, setCustomReports] = useKV<CustomReport[]>('w3-hotel-custom-reports', [])
   const [reportSchedules, setReportSchedules] = useKV<ReportSchedule[]>('w3-hotel-report-schedules', [])
   const [executionLogs, setExecutionLogs] = useKV<ScheduleExecutionLog[]>('w3-hotel-schedule-logs', [])
+  const [savedTemplates, setSavedTemplates] = useKV<ReportTemplate[]>('w3-hotel-report-templates', [])
   const [reportBuilderOpen, setReportBuilderOpen] = useState(false)
   const [editingReport, setEditingReport] = useState<CustomReport | undefined>(undefined)
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
@@ -102,162 +96,11 @@ export function Reports({
     formats: ('pdf' | 'excel' | 'csv')[]
   } | null>(null)
   const [editingSchedule, setEditingSchedule] = useState<ReportSchedule | undefined>(undefined)
+  const [previewTemplate, setPreviewTemplate] = useState<ReportTemplate | null>(null)
 
-  const reportTemplates: ReportTemplate[] = [
-    {
-      id: 'daily-sales',
-      name: 'Daily Sales Report',
-      description: 'Comprehensive daily sales summary including room revenue, F&B, and extra services',
-      category: 'financial',
-      icon: <CurrencyDollar size={24} />,
-      frequency: 'daily',
-      formats: ['pdf', 'excel']
-    },
-    {
-      id: 'revenue-analysis',
-      name: 'Revenue Analysis Report',
-      description: 'Detailed breakdown of all revenue streams with trends and comparisons',
-      category: 'financial',
-      icon: <TrendUp size={24} />,
-      frequency: 'monthly',
-      formats: ['pdf', 'excel']
-    },
-    {
-      id: 'profit-loss',
-      name: 'Profit & Loss Statement',
-      description: 'Complete P&L statement with income, expenses, and net profit',
-      category: 'financial',
-      icon: <Receipt size={24} />,
-      frequency: 'monthly',
-      formats: ['pdf', 'excel']
-    },
-    {
-      id: 'ar-aging',
-      name: 'Accounts Receivable Aging',
-      description: 'Outstanding payments categorized by age',
-      category: 'financial',
-      icon: <FileText size={24} />,
-      frequency: 'monthly',
-      formats: ['pdf', 'excel', 'csv']
-    },
-    {
-      id: 'ap-aging',
-      name: 'Accounts Payable Aging',
-      description: 'Outstanding supplier payments categorized by age',
-      category: 'financial',
-      icon: <FileText size={24} />,
-      frequency: 'monthly',
-      formats: ['pdf', 'excel', 'csv']
-    },
-    {
-      id: 'occupancy-report',
-      name: 'Occupancy Report',
-      description: 'Room occupancy statistics with trends and forecasts',
-      category: 'operational',
-      icon: <Bed size={24} />,
-      frequency: 'daily',
-      formats: ['pdf', 'excel']
-    },
-    {
-      id: 'housekeeping-performance',
-      name: 'Housekeeping Performance',
-      description: 'Task completion rates, room cleaning times, and efficiency metrics',
-      category: 'operational',
-      icon: <Broom size={24} />,
-      frequency: 'weekly',
-      formats: ['pdf', 'excel']
-    },
-    {
-      id: 'fnb-performance',
-      name: 'F&B Performance Report',
-      description: 'Restaurant and bar sales, popular items, and waste analysis',
-      category: 'operational',
-      icon: <ForkKnife size={24} />,
-      frequency: 'monthly',
-      formats: ['pdf', 'excel']
-    },
-    {
-      id: 'guest-satisfaction',
-      name: 'Guest Satisfaction Report',
-      description: 'Feedback analysis, ratings, and complaint resolution metrics',
-      category: 'guest',
-      icon: <Users size={24} />,
-      frequency: 'monthly',
-      formats: ['pdf', 'excel']
-    },
-    {
-      id: 'guest-demographics',
-      name: 'Guest Demographics Report',
-      description: 'Guest profile analysis including nationality, age groups, and booking patterns',
-      category: 'guest',
-      icon: <ChartBar size={24} />,
-      frequency: 'quarterly',
-      formats: ['pdf', 'excel']
-    },
-    {
-      id: 'loyalty-program',
-      name: 'Loyalty Program Report',
-      description: 'Member activity, points redemption, and program ROI',
-      category: 'guest',
-      icon: <Users size={24} />,
-      frequency: 'monthly',
-      formats: ['pdf', 'excel']
-    },
-    {
-      id: 'inventory-status',
-      name: 'Inventory Status Report',
-      description: 'Current stock levels, reorder requirements, and valuation',
-      category: 'inventory',
-      icon: <Package size={24} />,
-      frequency: 'weekly',
-      formats: ['pdf', 'excel', 'csv']
-    },
-    {
-      id: 'inventory-movement',
-      name: 'Inventory Movement Report',
-      description: 'Stock in/out, consumption patterns, and turnover analysis',
-      category: 'inventory',
-      icon: <Package size={24} />,
-      frequency: 'monthly',
-      formats: ['pdf', 'excel']
-    },
-    {
-      id: 'waste-analysis',
-      name: 'Waste Analysis Report',
-      description: 'Food and material waste tracking with cost implications',
-      category: 'inventory',
-      icon: <ClipboardText size={24} />,
-      frequency: 'monthly',
-      formats: ['pdf', 'excel']
-    },
-    {
-      id: 'attendance-summary',
-      name: 'Attendance Summary',
-      description: 'Employee attendance, absences, and overtime hours',
-      category: 'hr',
-      icon: <Users size={24} />,
-      frequency: 'monthly',
-      formats: ['pdf', 'excel', 'csv']
-    },
-    {
-      id: 'payroll-report',
-      name: 'Payroll Report',
-      description: 'Salary breakdown, deductions, and total labor costs',
-      category: 'hr',
-      icon: <CurrencyDollar size={24} />,
-      frequency: 'monthly',
-      formats: ['pdf', 'excel']
-    },
-    {
-      id: 'performance-review',
-      name: 'Performance Review Report',
-      description: 'Employee performance ratings and review summaries',
-      category: 'hr',
-      icon: <ClipboardText size={24} />,
-      frequency: 'quarterly',
-      formats: ['pdf', 'excel']
-    }
-  ]
+  const allTemplates = [...defaultReportTemplates, ...(savedTemplates || [])]
+
+  const reportTemplates: ReportTemplate[] = allTemplates
 
   const filteredReports = selectedCategory === 'all' 
     ? reportTemplates 
@@ -277,7 +120,41 @@ export function Reports({
   }
 
   const handlePreviewReport = (reportId: string) => {
-    toast.info(`Previewing ${reportId}`)
+    const template = reportTemplates.find(r => r.id === reportId)
+    if (template) {
+      setPreviewTemplate(template)
+    } else {
+      toast.error('Report template not found')
+    }
+  }
+
+  const handleSaveTemplate = (template: ReportTemplate) => {
+    setSavedTemplates((prev) => {
+      const existing = (prev || []).find(t => t.id === template.id)
+      if (existing) {
+        return (prev || []).map(t => t.id === template.id ? template : t)
+      }
+      return [...(prev || []), template]
+    })
+    setPreviewTemplate(null)
+    toast.success('Template saved successfully')
+  }
+
+  const getReportIcon = (category: string) => {
+    switch (category) {
+      case 'financial':
+        return <CurrencyDollar size={24} />
+      case 'operational':
+        return <Bed size={24} />
+      case 'guest':
+        return <Users size={24} />
+      case 'inventory':
+        return <Package size={24} />
+      case 'hr':
+        return <Users size={24} />
+      default:
+        return <FileText size={24} />
+    }
   }
 
   const handleOpenReportBuilder = (report?: CustomReport) => {
@@ -324,9 +201,9 @@ export function Reports({
     if (report) {
       setSchedulingReport({
         id: schedule.reportId,
-        name: schedule.reportType === 'template' ? (report as ReportTemplate).name : (report as CustomReport).name,
+        name: schedule.reportType === 'template' ? report.name : (report as CustomReport).name,
         type: schedule.reportType,
-        formats: schedule.reportType === 'template' ? (report as ReportTemplate).formats : ['pdf', 'excel', 'csv']
+        formats: ['pdf', 'excel', 'csv']
       })
       setEditingSchedule(schedule)
       setScheduleDialogOpen(true)
@@ -454,7 +331,7 @@ export function Reports({
                 <Card key={report.id} className="p-5 hover:shadow-lg transition-shadow">
                   <div className="flex items-start gap-4">
                     <div className="p-3 bg-primary/10 rounded-lg text-primary">
-                      {report.icon}
+                      {getReportIcon(report.category)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-base mb-1">{report.name}</h3>
@@ -463,11 +340,16 @@ export function Reports({
                       </p>
                       <div className="flex items-center gap-2 mb-3">
                         <Badge variant="outline" className="text-xs">
-                          {report.frequency}
+                          {report.layout}
                         </Badge>
                         <Badge variant="secondary" className="text-xs capitalize">
                           {report.category}
                         </Badge>
+                        {report.isCustomizable && (
+                          <Badge variant="outline" className="text-xs">
+                            Customizable
+                          </Badge>
+                        )}
                       </div>
                       <Separator className="mb-3" />
                       <div className="flex items-center gap-2">
@@ -483,31 +365,27 @@ export function Reports({
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleOpenScheduleDialog(report.id, report.name, 'template', report.formats)}
+                          onClick={() => handleOpenScheduleDialog(report.id, report.name, 'template', ['pdf', 'excel', 'csv'])}
                         >
                           <Clock size={16} />
                         </Button>
                         <div className="flex gap-1">
-                          {report.formats.includes('pdf') && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleGenerateReport(report.id, 'pdf')}
-                              title="Download PDF"
-                            >
-                              <FilePdf size={18} className="text-red-500" />
-                            </Button>
-                          )}
-                          {report.formats.includes('excel') && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleGenerateReport(report.id, 'excel')}
-                              title="Download Excel"
-                            >
-                              <FileXls size={18} className="text-green-500" />
-                            </Button>
-                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleGenerateReport(report.id, 'pdf')}
+                            title="Download PDF"
+                          >
+                            <FilePdf size={18} className="text-red-500" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleGenerateReport(report.id, 'excel')}
+                            title="Download Excel"
+                          >
+                            <FileXls size={18} className="text-green-500" />
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -677,6 +555,15 @@ export function Reports({
           availableFormats={schedulingReport.formats}
           onSave={handleSaveSchedule}
           currentUser={currentUser}
+        />
+      )}
+
+      {previewTemplate && (
+        <ReportTemplatePreview
+          template={previewTemplate}
+          onClose={() => setPreviewTemplate(null)}
+          onSave={handleSaveTemplate}
+          isEditable={previewTemplate.isCustomizable}
         />
       )}
     </div>
