@@ -2,12 +2,11 @@ import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Moon, Sun } from '@phosphor-icons/react'
 import { useTheme } from '@/hooks/use-theme'
-import { motion, AnimatePresence } from 'framer-motion'
 
 export function ThemeToggle() {
   const [isDark, setIsDark] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
-  const { applyDarkMode, loadSavedTheme } = useTheme()
+  const { applyDarkMode } = useTheme()
   const buttonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
@@ -32,7 +31,7 @@ export function ThemeToggle() {
     
     const rect = buttonRef.current.getBoundingClientRect()
     overlay.style.top = `${rect.top + rect.height / 2}px`
-    overlay.style.left = `${rect.left + rect.width / 2}px`
+    overlay.style.right = `${window.innerWidth - rect.right + rect.width / 2}px`
     
     document.body.appendChild(overlay)
     
@@ -50,13 +49,12 @@ export function ThemeToggle() {
     setTimeout(() => {
       const newDarkMode = !isDark
       setIsDark(newDarkMode)
-      applyDarkMode(newDarkMode, true)
+      applyDarkMode(newDarkMode)
       localStorage.setItem('theme-dark-mode', String(newDarkMode))
       
       setTimeout(() => {
-        loadSavedTheme()
         setIsAnimating(false)
-      }, 100)
+      }, 400)
     }, 100)
   }
 
@@ -67,32 +65,24 @@ export function ThemeToggle() {
       size="icon"
       onClick={toggleDarkMode}
       disabled={isAnimating}
-      className="relative w-10 h-10 rounded-xl bg-muted/50 hover:bg-muted border border-border/50 overflow-hidden"
+      className="shine-effect relative group"
       title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
     >
-      <AnimatePresence mode="wait" initial={false}>
+      <div className="relative">
         {isDark ? (
-          <motion.div
-            key="sun"
-            initial={{ y: -20, opacity: 0, rotate: -90 }}
-            animate={{ y: 0, opacity: 1, rotate: 0 }}
-            exit={{ y: 20, opacity: 0, rotate: 90 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-          >
-            <Sun size={20} className="text-amber-400" weight="fill" />
-          </motion.div>
+          <Sun 
+            size={20} 
+            className="text-primary transition-all duration-500 group-hover:rotate-180 group-hover:scale-110" 
+            weight="duotone" 
+          />
         ) : (
-          <motion.div
-            key="moon"
-            initial={{ y: -20, opacity: 0, rotate: 90 }}
-            animate={{ y: 0, opacity: 1, rotate: 0 }}
-            exit={{ y: 20, opacity: 0, rotate: -90 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-          >
-            <Moon size={20} className="text-primary" weight="fill" />
-          </motion.div>
+          <Moon 
+            size={20} 
+            className="text-primary transition-all duration-500 group-hover:-rotate-12 group-hover:scale-110" 
+            weight="duotone" 
+          />
         )}
-      </AnimatePresence>
+      </div>
     </Button>
   )
 }

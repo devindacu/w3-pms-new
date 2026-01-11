@@ -9,9 +9,6 @@ import { EmailTemplateManagement } from '@/components/EmailTemplateSettings'
 import { EmailTemplateAnalyticsComponent } from '@/components/EmailTemplateAnalytics'
 import { DialogSettings } from '@/components/DialogSettings'
 import { TestEmailTemplate } from '@/components/TestEmailTemplate'
-import { NavigationInsights } from '@/components/NavigationInsights'
-import { VersionControl } from '@/components/VersionControl'
-import { IntegrationTestRunner } from '@/tests/integration/test-runner'
 import type { 
   HotelBranding, 
   TaxConfiguration, 
@@ -29,10 +26,7 @@ import {
   User,
   EnvelopeSimple,
   ChartBar,
-  FrameCorners,
-  Sparkle,
-  Database,
-  TestTube
+  FrameCorners
 } from '@phosphor-icons/react'
 
 interface SettingsProps {
@@ -48,12 +42,6 @@ interface SettingsProps {
   campaignAnalytics: EmailCampaignAnalytics[]
   emailRecords: EmailSentRecord[]
   currentUser: SystemUser
-  navigationInsights?: {
-    mostVisited: Array<{ module: string; count: number }>
-    commonPatterns: any[]
-    timeBasedPreferences: Record<string, string[]>
-  }
-  onClearNavigationHistory?: () => void
 }
 
 export function Settings({
@@ -68,9 +56,7 @@ export function Settings({
   emailAnalytics,
   campaignAnalytics,
   emailRecords,
-  currentUser,
-  navigationInsights,
-  onClearNavigationHistory
+  currentUser
 }: SettingsProps) {
   const [activeTab, setActiveTab] = useState('branding')
 
@@ -82,7 +68,7 @@ export function Settings({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-10 gap-1">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 gap-1">
           <TabsTrigger value="branding" className="gap-2">
             <Palette size={18} />
             <span className="hidden sm:inline">Branding</span>
@@ -106,18 +92,6 @@ export function Settings({
           <TabsTrigger value="email-analytics" className="gap-2">
             <ChartBar size={18} />
             <span className="hidden sm:inline">Analytics</span>
-          </TabsTrigger>
-          <TabsTrigger value="navigation" className="gap-2">
-            <Sparkle size={18} />
-            <span className="hidden sm:inline">Navigation AI</span>
-          </TabsTrigger>
-          <TabsTrigger value="version-control" className="gap-2">
-            <Database size={18} />
-            <span className="hidden sm:inline">Backups</span>
-          </TabsTrigger>
-          <TabsTrigger value="testing" className="gap-2">
-            <TestTube size={18} />
-            <span className="hidden sm:inline">Testing</span>
           </TabsTrigger>
           <TabsTrigger value="preferences" className="gap-2">
             <User size={18} />
@@ -185,33 +159,6 @@ export function Settings({
             campaignAnalytics={campaignAnalytics}
             emailRecords={emailRecords}
           />
-        </TabsContent>
-
-        <TabsContent value="navigation" className="mt-6">
-          {navigationInsights && onClearNavigationHistory ? (
-            <NavigationInsights
-              mostVisited={navigationInsights.mostVisited}
-              commonPatterns={navigationInsights.commonPatterns}
-              timeBasedPreferences={navigationInsights.timeBasedPreferences}
-              onClearHistory={onClearNavigationHistory}
-            />
-          ) : (
-            <Card className="p-8 text-center">
-              <Sparkle size={48} className="mx-auto mb-4 text-muted-foreground opacity-50" />
-              <h3 className="text-lg font-semibold mb-2">Navigation Insights Unavailable</h3>
-              <p className="text-sm text-muted-foreground">
-                Navigation pattern data is not available at this time.
-              </p>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="version-control" className="mt-6">
-          <VersionControl />
-        </TabsContent>
-
-        <TabsContent value="testing" className="mt-6">
-          <IntegrationTestRunner />
         </TabsContent>
 
         <TabsContent value="preferences" className="mt-6">

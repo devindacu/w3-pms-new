@@ -1,3 +1,5 @@
+"use client"
+
 import { ComponentProps } from "react"
 import { Command as CommandPrimitive } from "cmdk"
 import SearchIcon from "lucide-react/dist/esm/icons/search"

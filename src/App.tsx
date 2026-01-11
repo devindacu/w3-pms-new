@@ -1,914 +1,1407 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
-import { Toaster } from 'sonner'
+import { Toaster, toast } from 'sonner'
+import { useTheme } from '@/hooks/use-theme'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Input } from '@/components/ui/input'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import w3MediaLogo from '@/assets/images/W3Media-Web-Green.png'
 import w3PMSLogo from '@/assets/images/W3-PMS.png'
 import {
-  LayoutDashboard,
-  Building2,
-  Users,
-  Sparkles,
-  BedDouble,
-  ClipboardList,
-  UtensilsCrossed,
+  Gauge,
+  Bed,
+  Broom,
+  ForkKnife,
   Package,
   ShoppingCart,
-  DollarSign,
-  UserCog,
+  CurrencyDollar,
+  Users,
   Wrench,
-  BarChart3,
-  Settings as SettingsIcon,
-  Search,
+  ChartBar,
+  Plus,
+  Database,
+  ArrowUp,
+  ArrowDown,
+  Warning,
+  Carrot,
+  Basket,
+  Hammer,
+  Buildings,
+  ClipboardText,
+  UserGear,
+  Receipt,
+  ChefHat,
+  Sparkle,
   Bell,
-  Menu,
-  X,
-  TrendingUp,
-  TrendingDown,
-  ArrowUpRight,
-  ArrowDownRight,
-  ChevronRight,
-  RefreshCw,
-  Bug
-} from 'lucide-react'
-import { ModuleLoadingSkeleton } from '@/components/ModuleLoadingSkeleton'
-import { ModuleSuspenseErrorBoundary } from '@/components/ModuleSuspenseErrorBoundary'
-import { ConsoleMonitor } from '@/components/ConsoleMonitor'
-import type { 
-  SystemUser,
-  Guest,
+  List,
+  FileText
+} from '@phosphor-icons/react'
+import { 
+  type Room, 
+  type Guest, 
+  type Reservation,
+  type Folio,
+  type InventoryItem,
+  type HousekeepingTask,
+  type MenuItem,
+  type Order,
+  type Supplier,
+  type Employee,
+  type MaintenanceRequest,
+  type FoodItem,
+  type Amenity,
+  type AmenityUsageLog,
+  type AmenityAutoOrder,
+  type ConstructionMaterial,
+  type ConstructionProject,
+  type Contractor,
+  type GeneralProduct,
+  type SystemUser,
+  type ActivityLog,
+  type Attendance,
+  type LeaveRequest,
+  type Shift,
+  type DutyRoster,
+  type PerformanceReview,
+  type Requisition,
+  type PurchaseOrder,
+  type GoodsReceivedNote,
+  type Invoice,
+  type Recipe,
+  type Menu,
+  type KitchenConsumptionLog,
+  type KitchenStation,
+  type KitchenStaff,
+  type ProductionSchedule,
+  type KitchenInventoryIssue,
+  type WasteTracking,
+  type Notification,
+  type DemandForecast,
+  type ExtraService,
+  type ExtraServiceCategory,
+  type FolioExtraService
+} from '@/lib/types'
+import { 
+  formatCurrency, 
+  formatPercent,
+  calculateDashboardMetrics,
+  getRoomStatusColor,
+  getStockStatus,
+  generateNumber,
+  getUrgentFoodItems,
+  getExpiringFoodItems,
+  getUrgentAmenities,
+  calculateHistoricalComparison
+} from '@/lib/helpers'
+import { PercentageChangeIndicator } from '@/components/PercentageChangeIndicator'
+import {
+  sampleGuests,
+  sampleRooms,
+  sampleReservations,
+  sampleFolios,
+  sampleInventory,
+  sampleMenuItems,
+  sampleHousekeepingTasks,
+  sampleOrders,
+  sampleSuppliers,
+  sampleEmployees,
+  sampleMaintenanceRequests,
+  sampleFoodItems,
+  sampleAmenities,
+  sampleAmenityUsageLogs,
+  sampleAmenityAutoOrders,
+  sampleConstructionMaterials,
+  sampleConstructionProjects,
+  sampleContractors,
+  sampleGeneralProducts,
+  sampleSystemUsers,
+  sampleActivityLogs,
+  sampleAttendance,
+  sampleLeaveRequests,
+  sampleShifts,
+  sampleDutyRosters,
+  samplePerformanceReviews,
+  sampleRequisitions,
+  samplePurchaseOrders,
+  sampleGRNs,
+  samplePayments,
+  sampleExpenses,
+  sampleAccounts,
+  sampleBudgets,
+  sampleCostCenters,
+  sampleProfitCenters,
+  sampleCostCenterReports,
+  sampleProfitCenterReports
+} from '@/lib/sampleData'
+import { sampleGuestInvoices } from '@/lib/guestInvoiceSampleData'
+import { sampleOTAConnections, sampleChannelPerformance } from '@/lib/channelManagerSampleData'
+import { sampleEmailTemplates } from '@/lib/emailTemplateSampleData'
+import { sampleEmailTemplateAnalytics, sampleCampaignAnalytics, sampleEmailSentRecords } from '@/lib/emailAnalyticsSampleData'
+import { ConstructionManagement } from '@/components/ConstructionManagement'
+import { SupplierManagement } from '@/components/SupplierManagement'
+import { InventoryManagement } from '@/components/InventoryManagement'
+import { UserManagement } from '@/components/UserManagement'
+import { HRManagement } from '@/components/HRManagement'
+import { FrontOffice } from '@/components/FrontOffice'
+import { Housekeeping } from '@/components/Housekeeping'
+import { Procurement } from '@/components/Procurement'
+import { FnBPOS } from '@/components/FnBPOS'
+import { KitchenOperations } from '@/components/KitchenOperations'
+import { ForecastingAnalytics } from '@/components/ForecastingAnalytics'
+import { NotificationPanel } from '@/components/NotificationPanel'
+import { DashboardAlerts } from '@/components/DashboardAlerts'
+import { generateAllAlerts } from '@/lib/notificationHelpers'
+import { generateEmailFromNotifications, mockSendEmail } from '@/lib/emailHelpers'
+import { CRM } from '@/components/CRM'
+import { GlobalSearch } from '@/components/GlobalSearch'
+import { ChannelManager } from '@/components/ChannelManager'
+import { RoomRevenueManagement } from '@/components/RoomRevenueManagement'
+import { ExtraServicesManagement } from '@/components/ExtraServicesManagement'
+import { Analytics } from '@/components/Analytics'
+import { Settings } from '@/components/Settings'
+import { Finance } from '@/components/Finance'
+import { InvoiceManagement } from '@/components/InvoiceManagement'
+import { PaymentTracking } from '@/components/PaymentTracking'
+import { DashboardWidgetManager } from '@/components/DashboardWidgetManager'
+import { WidgetRenderer } from '@/components/DashboardWidgets'
+import { getDefaultWidgetsForRole, getWidgetSize } from '@/lib/widgetConfig'
+import { ThemeToggle } from '@/components/ThemeToggle'
+import { ColorMoodSelector } from '@/components/ColorMoodSelector'
+import type {
+  DashboardLayout,
+  DashboardWidget,
   GuestProfile,
-  Reservation,
-  Room,
-  Folio,
-  InventoryItem,
-  HousekeepingTask,
-  MenuItem,
-  Order,
-  Supplier,
-  Employee,
-  MaintenanceRequest,
-  ExtraService,
-  ExtraServiceCategory,
-  FolioExtraService,
   GuestComplaint,
   GuestFeedback,
   MarketingCampaign,
   MarketingTemplate,
   UpsellOffer,
   UpsellTransaction,
-  LoyaltyTransaction
+  LoyaltyTransaction,
+  OTAConnection,
+  RatePlan,
+  ChannelInventory,
+  ChannelRate,
+  ChannelReservation,
+  SyncLog,
+  ChannelPerformance,
+  ChannelReview,
+  BulkUpdateOperation,
+  RoomTypeConfig,
+  RatePlanConfig,
+  Season,
+  EventDay,
+  CorporateAccount,
+  RateCalendar,
+  OccupancyPricing,
+  GuestInvoice,
+  HotelBranding,
+  TaxConfiguration,
+  ServiceChargeConfiguration,
+  EmailTemplateAnalytics,
+  EmailSentRecord,
+  EmailCampaignAnalytics
 } from '@/lib/types'
 
-const retryImport = async <T,>(importFn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> => {
-  for (let i = 0; i < retries; i++) {
-    try {
-      return await importFn()
-    } catch (error) {
-      if (i === retries - 1) throw error
-      await new Promise(resolve => setTimeout(resolve, delay * (i + 1)))
-    }
-  }
-  throw new Error('Failed to load module after retries')
-}
-
-const AdvancedAnalyticsWidgets = lazy(() => retryImport(() => import('@/components/AdvancedAnalyticsWidgets').then(m => ({ default: m.AdvancedAnalyticsWidgets }))))
-const PerformanceMetrics = lazy(() => retryImport(() => import('@/components/PerformanceMetrics').then(m => ({ default: m.PerformanceMetrics }))))
-const RealtimeActivityFeed = lazy(() => retryImport(() => import('@/components/RealtimeActivityFeed').then(m => ({ default: m.RealtimeActivityFeed }))))
-const FrontOffice = lazy(() => retryImport(() => import('@/components/FrontOffice').then(m => ({ default: m.FrontOffice }))))
-const Housekeeping = lazy(() => retryImport(() => import('@/components/Housekeeping').then(m => ({ default: m.Housekeeping }))))
-const FnBPOS = lazy(() => retryImport(() => import('@/components/FnBPOS').then(m => ({ default: m.FnBPOS }))))
-const KitchenManagement = lazy(() => retryImport(() => import('@/components/KitchenManagement').then(m => ({ default: m.KitchenManagement }))))
-const CRM = lazy(() => retryImport(() => import('@/components/CRM').then(m => ({ default: m.CRM }))))
-const ExtraServicesManagement = lazy(() => retryImport(() => import('@/components/ExtraServicesManagement').then(m => ({ default: m.ExtraServicesManagement }))))
-const RevenueManagement = lazy(() => retryImport(() => import('@/components/RevenueManagement').then(m => ({ default: m.RevenueManagement }))))
-const ChannelManager = lazy(() => retryImport(() => import('@/components/ChannelManager').then(m => ({ default: m.ChannelManager }))))
-const InventoryManagement = lazy(() => retryImport(() => import('@/components/InventoryManagement').then(m => ({ default: m.InventoryManagement }))))
-const Procurement = lazy(() => retryImport(() => import('@/components/Procurement').then(m => ({ default: m.Procurement }))))
-const SupplierManagement = lazy(() => retryImport(() => import('@/components/SupplierManagement').then(m => ({ default: m.SupplierManagement }))))
-const Finance = lazy(() => retryImport(() => import('@/components/Finance').then(m => ({ default: m.Finance }))))
-const HRManagement = lazy(() => retryImport(() => import('@/components/HRManagement').then(m => ({ default: m.HRManagement }))))
-const Analytics = lazy(() => retryImport(() => import('@/components/Analytics').then(m => ({ default: m.Analytics }))))
-const ConstructionManagement = lazy(() => retryImport(() => import('@/components/ConstructionManagement').then(m => ({ default: m.ConstructionManagement }))))
-const UserManagement = lazy(() => retryImport(() => import('@/components/UserManagement').then(m => ({ default: m.UserManagement }))))
-const Settings = lazy(() => retryImport(() => import('@/components/Settings').then(m => ({ default: m.Settings }))))
-import { 
-  sampleSystemUsers,
-  sampleGuests,
-  sampleReservations,
-  sampleRooms,
-  sampleFolios,
-  sampleInventory,
-  sampleHousekeepingTasks,
-  sampleMenuItems,
-  sampleOrders,
-  sampleSuppliers,
-  sampleEmployees,
-  sampleMaintenanceRequests
-} from '@/lib/sampleData'
-import {
-  sampleRoomTypeConfigs,
-  sampleRatePlans,
-  sampleSeasons,
-  sampleEventDays,
-  sampleCorporateAccounts
-} from '@/lib/revenueManagementSampleData'
-import '@/lib/diagnostics'
-
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'kitchen' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'settings'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings'
 
 function App() {
-  const [systemUsers] = useKV<SystemUser[]>('w3-hotel-system-users', sampleSystemUsers)
-  const [currentModule, setCurrentModule] = useState<Module>('dashboard')
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [isInitialized, setIsInitialized] = useState(false)
-  
-  const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', sampleGuests)
+  const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
+  const [rooms, setRooms] = useKV<Room[]>('w3-hotel-rooms', [])
+  const [reservations, setReservations] = useKV<Reservation[]>('w3-hotel-reservations', [])
+  const [folios, setFolios] = useKV<Folio[]>('w3-hotel-folios', [])
+  const [inventory, setInventory] = useKV<InventoryItem[]>('w3-hotel-inventory', [])
+  const [menuItems, setMenuItems] = useKV<MenuItem[]>('w3-hotel-menu', [])
+  const [housekeepingTasks, setHousekeepingTasks] = useKV<HousekeepingTask[]>('w3-hotel-housekeeping', [])
+  const [orders, setOrders] = useKV<Order[]>('w3-hotel-orders', [])
+  const [suppliers, setSuppliers] = useKV<Supplier[]>('w3-hotel-suppliers', [])
+  const [employees, setEmployees] = useKV<Employee[]>('w3-hotel-employees', [])
+  const [maintenanceRequests, setMaintenanceRequests] = useKV<MaintenanceRequest[]>('w3-hotel-maintenance', [])
+  const [foodItems, setFoodItems] = useKV<FoodItem[]>('w3-hotel-food-items', [])
+  const [amenities, setAmenities] = useKV<Amenity[]>('w3-hotel-amenities', [])
+  const [amenityUsageLogs, setAmenityUsageLogs] = useKV<AmenityUsageLog[]>('w3-hotel-amenity-usage', [])
+  const [amenityAutoOrders, setAmenityAutoOrders] = useKV<AmenityAutoOrder[]>('w3-hotel-amenity-auto-orders', [])
+  const [constructionMaterials, setConstructionMaterials] = useKV<ConstructionMaterial[]>('w3-hotel-construction-materials', [])
+  const [constructionProjects, setConstructionProjects] = useKV<ConstructionProject[]>('w3-hotel-construction-projects', [])
+  const [contractors, setContractors] = useKV<Contractor[]>('w3-hotel-contractors', [])
+  const [generalProducts, setGeneralProducts] = useKV<GeneralProduct[]>('w3-hotel-general-products', [])
+  const [systemUsers, setSystemUsers] = useKV<SystemUser[]>('w3-hotel-system-users', [])
+  const [activityLogs, setActivityLogs] = useKV<ActivityLog[]>('w3-hotel-activity-logs', [])
+  const [attendance, setAttendance] = useKV<Attendance[]>('w3-hotel-attendance', [])
+  const [leaveRequests, setLeaveRequests] = useKV<LeaveRequest[]>('w3-hotel-leave-requests', [])
+  const [shifts, setShifts] = useKV<Shift[]>('w3-hotel-shifts', [])
+  const [dutyRosters, setDutyRosters] = useKV<DutyRoster[]>('w3-hotel-duty-rosters', [])
+  const [performanceReviews, setPerformanceReviews] = useKV<PerformanceReview[]>('w3-hotel-performance-reviews', [])
+  const [requisitions, setRequisitions] = useKV<Requisition[]>('w3-hotel-requisitions', [])
+  const [purchaseOrders, setPurchaseOrders] = useKV<PurchaseOrder[]>('w3-hotel-purchase-orders', [])
+  const [grns, setGRNs] = useKV<GoodsReceivedNote[]>('w3-hotel-grns', [])
+  const [invoices, setInvoices] = useKV<Invoice[]>('w3-hotel-invoices', [])
+  const [recipes, setRecipes] = useKV<Recipe[]>('w3-hotel-recipes', [])
+  const [menus, setMenus] = useKV<Menu[]>('w3-hotel-menus', [])
+  const [consumptionLogs, setConsumptionLogs] = useKV<KitchenConsumptionLog[]>('w3-hotel-consumption-logs', [])
+  const [kitchenStations, setKitchenStations] = useKV<KitchenStation[]>('w3-hotel-kitchen-stations', [])
+  const [kitchenStaff, setKitchenStaff] = useKV<KitchenStaff[]>('w3-hotel-kitchen-staff', [])
+  const [productionSchedules, setProductionSchedules] = useKV<ProductionSchedule[]>('w3-hotel-production-schedules', [])
+  const [inventoryIssues, setInventoryIssues] = useKV<KitchenInventoryIssue[]>('w3-hotel-inventory-issues', [])
+  const [wasteTracking, setWasteTracking] = useKV<WasteTracking[]>('w3-hotel-waste-tracking', [])
+  const [notifications, setNotifications] = useKV<Notification[]>('w3-hotel-notifications', [])
+  const [forecasts, setForecasts] = useKV<DemandForecast[]>('w3-hotel-forecasts', [])
   const [guestProfiles, setGuestProfiles] = useKV<GuestProfile[]>('w3-hotel-guest-profiles', [])
-  const [reservations, setReservations] = useKV<Reservation[]>('w3-hotel-reservations', sampleReservations)
-  const [rooms, setRooms] = useKV<Room[]>('w3-hotel-rooms', sampleRooms)
-  const [folios, setFolios] = useKV<Folio[]>('w3-hotel-folios', sampleFolios)
-  const [inventory, setInventory] = useKV<InventoryItem[]>('w3-hotel-inventory', sampleInventory)
-  const [housekeepingTasks, setHousekeepingTasks] = useKV<HousekeepingTask[]>('w3-hotel-housekeeping-tasks', sampleHousekeepingTasks)
-  const [menuItems, setMenuItems] = useKV<MenuItem[]>('w3-hotel-menu-items', sampleMenuItems)
-  const [orders, setOrders] = useKV<Order[]>('w3-hotel-orders', sampleOrders)
-  const [suppliers, setSuppliers] = useKV<Supplier[]>('w3-hotel-suppliers', sampleSuppliers)
-  const [employees, setEmployees] = useKV<Employee[]>('w3-hotel-employees', sampleEmployees)
-  const [maintenanceRequests, setMaintenanceRequests] = useKV<MaintenanceRequest[]>('w3-hotel-maintenance', sampleMaintenanceRequests)
-  const [extraServices, setExtraServices] = useKV<ExtraService[]>('w3-hotel-extra-services', [])
-  const [serviceCategories, setServiceCategories] = useKV<ExtraServiceCategory[]>('w3-hotel-service-categories', [])
-  const [folioExtraServices, setFolioExtraServices] = useKV<FolioExtraService[]>('w3-hotel-folio-extra-services', [])
   const [complaints, setComplaints] = useKV<GuestComplaint[]>('w3-hotel-complaints', [])
-  const [feedback, setFeedback] = useKV<GuestFeedback[]>('w3-hotel-feedback', [])
-  const [campaigns, setCampaigns] = useKV<MarketingCampaign[]>('w3-hotel-campaigns', [])
-  const [templates, setTemplates] = useKV<MarketingTemplate[]>('w3-hotel-templates', [])
+  const [guestFeedback, setGuestFeedback] = useKV<GuestFeedback[]>('w3-hotel-guest-feedback', [])
+  const [marketingCampaigns, setMarketingCampaigns] = useKV<MarketingCampaign[]>('w3-hotel-marketing-campaigns', [])
+  const [marketingTemplates, setMarketingTemplates] = useKV<MarketingTemplate[]>('w3-hotel-marketing-templates', [])
   const [upsellOffers, setUpsellOffers] = useKV<UpsellOffer[]>('w3-hotel-upsell-offers', [])
   const [upsellTransactions, setUpsellTransactions] = useKV<UpsellTransaction[]>('w3-hotel-upsell-transactions', [])
   const [loyaltyTransactions, setLoyaltyTransactions] = useKV<LoyaltyTransaction[]>('w3-hotel-loyalty-transactions', [])
+  const [otaConnections, setOTAConnections] = useKV<OTAConnection[]>('w3-hotel-ota-connections', [])
+  const [ratePlans, setRatePlans] = useKV<RatePlan[]>('w3-hotel-rate-plans', [])
+  const [channelInventory, setChannelInventory] = useKV<ChannelInventory[]>('w3-hotel-channel-inventory', [])
+  const [channelRates, setChannelRates] = useKV<ChannelRate[]>('w3-hotel-channel-rates', [])
+  const [channelReservations, setChannelReservations] = useKV<ChannelReservation[]>('w3-hotel-channel-reservations', [])
+  const [syncLogs, setSyncLogs] = useKV<SyncLog[]>('w3-hotel-sync-logs', [])
+  const [channelPerformance, setChannelPerformance] = useKV<ChannelPerformance[]>('w3-hotel-channel-performance', [])
+  const [channelReviews, setChannelReviews] = useKV<ChannelReview[]>('w3-hotel-channel-reviews', [])
+  const [bulkOperations, setBulkOperations] = useKV<BulkUpdateOperation[]>('w3-hotel-bulk-operations', [])
+  const [extraServices, setExtraServices] = useKV<ExtraService[]>('w3-hotel-extra-services', [])
+  const [serviceCategories, setServiceCategories] = useKV<ExtraServiceCategory[]>('w3-hotel-service-categories', [])
+  const [folioExtraServices, setFolioExtraServices] = useKV<FolioExtraService[]>('w3-hotel-folio-extra-services', [])
   
-  const [kitchenStations, setKitchenStations] = useKV<any[]>('w3-hotel-kitchen-stations', [])
-  const [kitchenStaff, setKitchenStaff] = useKV<any[]>('w3-hotel-kitchen-staff', [])
-  const [productionSchedules, setProductionSchedules] = useKV<any[]>('w3-hotel-production-schedules', [])
-  const [kitchenInventoryIssues, setKitchenInventoryIssues] = useKV<any[]>('w3-hotel-kitchen-inventory-issues', [])
-  const [wasteTracking, setWasteTracking] = useKV<any[]>('w3-hotel-waste-tracking', [])
+  const [roomTypeConfigs, setRoomTypeConfigs] = useKV<RoomTypeConfig[]>('w3-hotel-room-type-configs', [])
+  const [ratePlanConfigs, setRatePlanConfigs] = useKV<RatePlanConfig[]>('w3-hotel-rate-plan-configs', [])
+  const [seasons, setSeasons] = useKV<Season[]>('w3-hotel-seasons', [])
+  const [eventDays, setEventDays] = useKV<EventDay[]>('w3-hotel-event-days', [])
+  const [corporateAccounts, setCorporateAccounts] = useKV<CorporateAccount[]>('w3-hotel-corporate-accounts', [])
+  const [rateCalendar, setRateCalendar] = useKV<RateCalendar[]>('w3-hotel-rate-calendar', [])
+  const [occupancyPricing, setOccupancyPricing] = useKV<OccupancyPricing[]>('w3-hotel-occupancy-pricing', [])
+  const [guestInvoices, setGuestInvoices] = useKV<GuestInvoice[]>('w3-hotel-guest-invoices', [])
+  const [branding, setBranding] = useKV<HotelBranding | null>('w3-hotel-branding', null)
+  const [taxes, setTaxes] = useKV<TaxConfiguration[]>('w3-hotel-taxes', [])
+  const [serviceCharge, setServiceCharge] = useKV<ServiceChargeConfiguration | null>('w3-hotel-service-charge', null)
+  const [emailTemplates, setEmailTemplates] = useKV<import('@/lib/invoiceEmailTemplates').EmailTemplate[]>('w3-hotel-email-templates', [])
+  const [emailAnalytics, setEmailAnalytics] = useKV<EmailTemplateAnalytics[]>('w3-hotel-email-analytics', [])
+  const [campaignAnalytics, setCampaignAnalytics] = useKV<EmailCampaignAnalytics[]>('w3-hotel-campaign-analytics', [])
+  const [emailRecords, setEmailRecords] = useKV<EmailSentRecord[]>('w3-hotel-email-records', [])
   
-  const [roomTypeConfigs, setRoomTypeConfigs] = useKV<any[]>('w3-hotel-room-type-configs', sampleRoomTypeConfigs)
-  const [ratePlans, setRatePlans] = useKV<any[]>('w3-hotel-rate-plans', sampleRatePlans)
-  const [seasons, setSeasons] = useKV<any[]>('w3-hotel-seasons', sampleSeasons)
-  const [eventDays, setEventDays] = useKV<any[]>('w3-hotel-event-days', sampleEventDays)
-  const [corporateAccounts, setCorporateAccounts] = useKV<any[]>('w3-hotel-corporate-accounts', sampleCorporateAccounts)
-  const [rateCalendar, setRateCalendar] = useKV<any[]>('w3-hotel-rate-calendar', [])
+  const [payments, setPayments] = useKV<import('@/lib/types').Payment[]>('w3-hotel-payments', [])
+  const [expenses, setExpenses] = useKV<import('@/lib/types').Expense[]>('w3-hotel-expenses', [])
+  const [accounts, setAccounts] = useKV<import('@/lib/types').Account[]>('w3-hotel-accounts', [])
+  const [budgets, setBudgets] = useKV<import('@/lib/types').Budget[]>('w3-hotel-budgets', [])
+  const [journalEntries, setJournalEntries] = useKV<import('@/lib/types').JournalEntry[]>('w3-hotel-journal-entries', [])
+  const [chartOfAccounts, setChartOfAccounts] = useKV<import('@/lib/types').ChartOfAccount[]>('w3-hotel-chart-of-accounts', [])
+  const [glEntries, setGLEntries] = useKV<import('@/lib/types').GLEntry[]>('w3-hotel-gl-entries', [])
+  const [bankReconciliations, setBankReconciliations] = useKV<import('@/lib/types').BankReconciliation[]>('w3-hotel-bank-reconciliations', [])
+  const [costCenters, setCostCenters] = useKV<import('@/lib/types').CostCenter[]>('w3-hotel-cost-centers', [])
+  const [profitCenters, setProfitCenters] = useKV<import('@/lib/types').ProfitCenter[]>('w3-hotel-profit-centers', [])
+  const [costCenterReports, setCostCenterReports] = useKV<import('@/lib/types').CostCenterReport[]>('w3-hotel-cost-center-reports', [])
+  const [profitCenterReports, setProfitCenterReports] = useKV<import('@/lib/types').ProfitCenterReport[]>('w3-hotel-profit-center-reports', [])
+  const [dashboardLayout, setDashboardLayout] = useKV<DashboardLayout | null>('w3-hotel-dashboard-layout', null)
   
-  const [invoices, setInvoices] = useKV<any[]>('w3-hotel-finance-invoices', [])
-  const [payments, setPayments] = useKV<any[]>('w3-hotel-finance-payments', [])
-  const [expenses, setExpenses] = useKV<any[]>('w3-hotel-finance-expenses', [])
-  const [accounts, setAccounts] = useKV<any[]>('w3-hotel-finance-accounts', [])
-  const [budgets, setBudgets] = useKV<any[]>('w3-hotel-finance-budgets', [])
-  const [journalEntries, setJournalEntries] = useKV<any[]>('w3-hotel-journal-entries', [])
-  const [chartOfAccounts, setChartOfAccounts] = useKV<any[]>('w3-hotel-chart-of-accounts', [])
-  
-  const [grns, setGrns] = useKV<any[]>('w3-hotel-grns', [])
-  const [recipes, setRecipes] = useKV<any[]>('w3-hotel-recipes', [])
-  const [menus, setMenus] = useKV<any[]>('w3-hotel-menus', [])
-  const [consumptionLogs, setConsumptionLogs] = useKV<any[]>('w3-hotel-consumption-logs', [])
-  const [purchaseOrders, setPurchaseOrders] = useKV<any[]>('w3-hotel-purchase-orders', [])
-  
-  const [branding, setBranding] = useKV<any>('w3-hotel-branding', null)
-  const [taxes, setTaxes] = useKV<any[]>('w3-hotel-taxes', [])
-  const [serviceCharge, setServiceCharge] = useKV<any>('w3-hotel-service-charge', null)
-  const [emailTemplates, setEmailTemplates] = useKV<any[]>('w3-hotel-email-templates', [])
-  const [emailAnalytics, setEmailAnalytics] = useKV<any[]>('w3-hotel-email-analytics', [])
-  const [campaignAnalytics, setCampaignAnalytics] = useKV<any[]>('w3-hotel-campaign-analytics', [])
-  const [emailRecords, setEmailRecords] = useKV<any[]>('w3-hotel-email-records', [])
-  
-  const [attendance, setAttendance] = useKV<any[]>('w3-hotel-attendance', [])
-  const [leaveRequests, setLeaveRequests] = useKV<any[]>('w3-hotel-leave-requests', [])
-  const [shifts, setShifts] = useKV<any[]>('w3-hotel-shifts', [])
-  const [dutyRosters, setDutyRosters] = useKV<any[]>('w3-hotel-duty-rosters', [])
-  const [performanceReviews, setPerformanceReviews] = useKV<any[]>('w3-hotel-performance-reviews', [])
-  
-  const [otaConnections, setOtaConnections] = useKV<any[]>('w3-hotel-ota-connections', [])
-  const [channelInventory, setChannelInventory] = useKV<any[]>('w3-hotel-channel-inventory', [])
-  const [channelRates, setChannelRates] = useKV<any[]>('w3-hotel-channel-rates', [])
-  const [channelReservations, setChannelReservations] = useKV<any[]>('w3-hotel-channel-reservations', [])
-  const [syncLogs, setSyncLogs] = useKV<any[]>('w3-hotel-sync-logs', [])
-  const [channelPerformance, setChannelPerformance] = useKV<any[]>('w3-hotel-channel-performance', [])
-  const [channelReviews, setChannelReviews] = useKV<any[]>('w3-hotel-channel-reviews', [])
-  const [bulkOperations, setBulkOperations] = useKV<any[]>('w3-hotel-bulk-operations', [])
-  
-  const [amenityUsageLogs, setAmenityUsageLogs] = useKV<any[]>('w3-hotel-amenity-usage-logs', [])
-  const [amenityAutoOrders, setAmenityAutoOrders] = useKV<any[]>('w3-hotel-amenity-auto-orders', [])
-  
-  const [requisitions, setRequisitions] = useKV<any[]>('w3-hotel-requisitions', [])
-  const [procurementInvoices, setProcurementInvoices] = useKV<any[]>('w3-hotel-procurement-invoices', [])
-  
-  const [foodItems, setFoodItems] = useKV<any[]>('w3-hotel-food-items', [])
-  const [amenities, setAmenities] = useKV<any[]>('w3-hotel-amenities', [])
-  const [constructionMaterials, setConstructionMaterials] = useKV<any[]>('w3-hotel-construction-materials', [])
-  const [generalProducts, setGeneralProducts] = useKV<any[]>('w3-hotel-general-products', [])
-  
-  const [constructionProjects, setConstructionProjects] = useKV<any[]>('w3-hotel-construction-projects', [])
-  const [contractors, setContractors] = useKV<any[]>('w3-hotel-contractors', [])
+  const [currentModule, setCurrentModule] = useState<Module>('dashboard')
+  const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
+
+  useTheme()
 
   useEffect(() => {
-    requestAnimationFrame(() => {
-      setIsInitialized(true)
-    })
-  }, [])
+    const refreshNotifications = () => {
+      const newNotifications = generateAllAlerts(
+        foodItems || [],
+        amenities || [],
+        constructionMaterials || [],
+        generalProducts || [],
+        requisitions || [],
+        purchaseOrders || [],
+        invoices || [],
+        housekeepingTasks || [],
+        rooms || [],
+        reservations || [],
+        orders || [],
+        leaveRequests || [],
+        constructionProjects || [],
+        forecasts || []
+      )
 
+      setNotifications((currentNotifs) => {
+        const existingIds = new Set((currentNotifs || []).map(n => 
+          `${n.type}-${n.resourceId || 'global'}-${n.title}`
+        ))
+        
+        const filtered = newNotifications.filter(n => {
+          const key = `${n.type}-${n.resourceId || 'global'}-${n.title}`
+          return !existingIds.has(key)
+        })
+
+        const active = (currentNotifs || []).filter(n => 
+          n.status !== 'archived' && n.status !== 'dismissed' &&
+          (!n.expiresAt || n.expiresAt > Date.now())
+        )
+
+        return [...active, ...filtered]
+      })
+    }
+
+    const interval = setInterval(refreshNotifications, 60000)
+    refreshNotifications()
+
+    return () => clearInterval(interval)
+  }, [
+    foodItems,
+    amenities,
+    constructionMaterials,
+    generalProducts,
+    requisitions,
+    purchaseOrders,
+    invoices,
+    housekeepingTasks,
+    rooms,
+    reservations,
+    orders,
+    leaveRequests,
+    constructionProjects,
+    forecasts
+  ])
+  
   const currentUser = (systemUsers || [])[0] || sampleSystemUsers[0]
 
-  const handleClearCacheAndReload = () => {
-    if (confirm('This will clear all browser cache and reload the application. Continue?')) {
-      localStorage.clear()
-      sessionStorage.clear()
-      
-      if ('caches' in window) {
-        caches.keys().then(names => {
-          names.forEach(name => {
-            caches.delete(name)
-          })
-        })
-      }
-      
-      window.location.reload()
-    }
+  const handleMarkAsRead = (id: string) => {
+    setNotifications((notifs) =>
+      (notifs || []).map(n => n.id === id ? { ...n, status: 'read' as const, readAt: Date.now() } : n)
+    )
   }
 
-  const handleRunDiagnostics = () => {
-    if (typeof window.checkModules === 'function') {
-      window.checkModules()
+  const handleMarkAllAsRead = () => {
+    setNotifications((notifs) =>
+      (notifs || []).map(n => n.status === 'unread' ? { ...n, status: 'read' as const, readAt: Date.now() } : n)
+    )
+    toast.success('All notifications marked as read')
+  }
+
+  const handleDismiss = (id: string) => {
+    setNotifications((notifs) =>
+      (notifs || []).map(n => n.id === id ? { ...n, status: 'dismissed' as const, dismissedAt: Date.now() } : n)
+    )
+  }
+
+  const handleArchive = (id: string) => {
+    setNotifications((notifs) =>
+      (notifs || []).map(n => n.id === id ? { ...n, status: 'archived' as const, archivedAt: Date.now() } : n)
+    )
+    toast.success('Notification archived')
+  }
+
+  const handleClearAll = () => {
+    setNotifications((notifs) =>
+      (notifs || []).map(n => ({ ...n, status: 'archived' as const, archivedAt: Date.now() }))
+    )
+    toast.success('All notifications cleared')
+  }
+
+  const handleSendEmailNotifications = async () => {
+    const unreadCritical = (notifications || []).filter(
+      n => n.status === 'unread' && (n.priority === 'critical' || n.priority === 'high')
+    )
+
+    if (unreadCritical.length === 0) {
+      toast.info('No critical notifications to send')
+      return
+    }
+
+    const email = generateEmailFromNotifications(
+      unreadCritical,
+      currentUser.email,
+      `${currentUser.firstName} ${currentUser.lastName}`
+    )
+
+    const success = await mockSendEmail(email)
+    if (success) {
+      toast.success(`Email notification sent to ${currentUser.email}`)
     } else {
-      console.log('Diagnostics not available. Please reload the page.')
+      toast.error('Failed to send email notification')
     }
   }
 
-  const navigationItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'front-office', label: 'Front Office', icon: BedDouble },
-    { id: 'housekeeping', label: 'Housekeeping', icon: ClipboardList },
-    { id: 'fnb', label: 'F&B / POS', icon: UtensilsCrossed },
-    { id: 'kitchen', label: 'Kitchen', icon: UtensilsCrossed },
-    { id: 'crm', label: 'Guest Relations', icon: Users },
-    { id: 'extra-services', label: 'Extra Services', icon: Sparkles },
-    { id: 'room-revenue', label: 'Room & Revenue', icon: Building2 },
-    { id: 'channel-manager', label: 'Channel Manager', icon: TrendingUp },
-    { id: 'inventory', label: 'Inventory', icon: Package },
-    { id: 'procurement', label: 'Procurement', icon: ShoppingCart },
-    { id: 'suppliers', label: 'Suppliers', icon: Building2 },
-    { id: 'finance', label: 'Finance', icon: DollarSign },
-    { id: 'hr', label: 'HR & Staff', icon: Users },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'construction', label: 'Maintenance', icon: Wrench },
-    { id: 'user-management', label: 'Users', icon: UserCog },
-    { id: 'settings', label: 'Settings', icon: SettingsIcon },
-  ]
+  const handleNavigateFromSearch = (module: Module, data?: any) => {
+    setCurrentModule(module)
+  }
 
-  const stats = [
-    { 
-      label: 'Total Revenue', 
-      value: '$124,592', 
-      change: 12.5, 
-      trend: 'up' as const,
-      icon: DollarSign,
-      color: 'text-success bg-success/10'
-    },
-    { 
-      label: 'Occupancy Rate', 
-      value: '87%', 
-      change: 5.2, 
-      trend: 'up' as const,
-      icon: BedDouble,
-      color: 'text-primary bg-primary/10'
-    },
-    { 
-      label: 'Active Guests', 
-      value: '142', 
-      change: -2.4, 
-      trend: 'down' as const,
-      icon: Users,
-      color: 'text-accent bg-accent/10'
-    },
-    { 
-      label: 'Pending Tasks', 
-      value: '23', 
-      change: 8.1, 
-      trend: 'up' as const,
-      icon: ClipboardList,
-      color: 'text-warning bg-warning/10'
-    },
-  ]
+  const loadSampleData = () => {
+    setGuests(sampleGuests)
+    setRooms(sampleRooms)
+    setReservations(sampleReservations)
+    setFolios(sampleFolios)
+    setInventory(sampleInventory)
+    setMenuItems(sampleMenuItems)
+    setHousekeepingTasks(sampleHousekeepingTasks)
+    setOrders(sampleOrders)
+    setSuppliers(sampleSuppliers)
+    setEmployees(sampleEmployees)
+    setMaintenanceRequests(sampleMaintenanceRequests)
+    setFoodItems(sampleFoodItems)
+    setAmenities(sampleAmenities)
+    setAmenityUsageLogs(sampleAmenityUsageLogs)
+    setAmenityAutoOrders(sampleAmenityAutoOrders)
+    setConstructionMaterials(sampleConstructionMaterials)
+    setConstructionProjects(sampleConstructionProjects)
+    setContractors(sampleContractors)
+    setGeneralProducts(sampleGeneralProducts)
+    setSystemUsers(sampleSystemUsers)
+    setActivityLogs(sampleActivityLogs)
+    setAttendance(sampleAttendance)
+    setLeaveRequests(sampleLeaveRequests)
+    setShifts(sampleShifts)
+    setDutyRosters(sampleDutyRosters)
+    setPerformanceReviews(samplePerformanceReviews)
+    setRequisitions(sampleRequisitions)
+    setPurchaseOrders(samplePurchaseOrders)
+    setGRNs(sampleGRNs)
+    setOTAConnections(sampleOTAConnections)
+    setChannelPerformance(sampleChannelPerformance)
+    setGuestInvoices(sampleGuestInvoices)
+    setEmailTemplates(sampleEmailTemplates)
+    setEmailAnalytics(sampleEmailTemplateAnalytics)
+    setCampaignAnalytics(sampleCampaignAnalytics)
+    setEmailRecords(sampleEmailSentRecords)
+    setPayments(samplePayments)
+    setExpenses(sampleExpenses)
+    setAccounts(sampleAccounts)
+    setBudgets(sampleBudgets)
+    setCostCenters(sampleCostCenters)
+    setProfitCenters(sampleProfitCenters)
+    setCostCenterReports(sampleCostCenterReports)
+    setProfitCenterReports(sampleProfitCenterReports)
+    toast.success('Sample data loaded successfully')
+  }
 
-  const renderDashboard = () => (
-    <div className="space-y-6">
-      <div>
-        <h1>Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Welcome back, {currentUser.firstName}</p>
-      </div>
+  const metrics = calculateDashboardMetrics(
+    rooms || [],
+    reservations || [],
+    housekeepingTasks || [],
+    orders || [],
+    inventory || [],
+    maintenanceRequests || []
+  )
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon
-          const TrendIcon = stat.trend === 'up' ? TrendingUp : TrendingDown
-          return (
-            <Card key={stat.label} className="p-6 transition-all duration-200 hover:shadow-lg">
-              <div className="flex items-start justify-between mb-3">
-                <div className={`p-2.5 rounded-lg ${stat.color}`}>
-                  <Icon className="h-5 w-5" />
-                </div>
-                <Badge 
-                  variant={stat.trend === 'up' ? 'default' : 'secondary'} 
-                  className="gap-1 font-medium"
-                >
-                  <TrendIcon className="h-3 w-3" />
-                  {Math.abs(stat.change)}%
-                </Badge>
-              </div>
-              <div className="space-y-0.5">
-                <h3 className="text-2xl font-bold">{stat.value}</h3>
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
-              </div>
-            </Card>
-          )
-        })}
-      </div>
+  const historicalComparison = calculateHistoricalComparison(orders || [])
 
-      <Suspense fallback={<ModuleLoadingSkeleton />}>
-        <ModuleSuspenseErrorBoundary moduleName="Advanced Analytics Widgets">
-          <AdvancedAnalyticsWidgets 
-            data={{
-              reservations: reservations || [],
-              rooms: rooms || [],
-              orders: orders || [],
-              folios: folios || [],
-              guests: guests || []
-            }}
-            onNavigate={(module) => setCurrentModule(module as Module)}
-          />
-        </ModuleSuspenseErrorBoundary>
-      </Suspense>
+  const hasData = (rooms || []).length > 0
 
-      <Suspense fallback={<ModuleLoadingSkeleton />}>
-        <ModuleSuspenseErrorBoundary moduleName="Performance Metrics">
-          <PerformanceMetrics 
-            data={{
-              rooms: rooms || [],
-              reservations: reservations || [],
-              folios: folios || [],
-              orders: orders || [],
-              housekeepingTasks: housekeepingTasks || [],
-              maintenanceRequests: maintenanceRequests || []
-            }}
-          />
-        </ModuleSuspenseErrorBoundary>
-      </Suspense>
+  const initializeDefaultLayout = () => {
+    if (!dashboardLayout) {
+      const defaultWidgets = getDefaultWidgetsForRole(currentUser.role)
+      const widgets: DashboardWidget[] = defaultWidgets.map((type, index) => ({
+        id: `widget-${Date.now()}-${index}`,
+        type,
+        title: type.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+        size: getWidgetSize(currentUser.role, type),
+        position: index,
+        isVisible: true,
+        refreshInterval: 60000,
+      }))
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-semibold">Recent Reservations</h3>
-              <Button variant="ghost" size="sm" onClick={() => setCurrentModule('front-office')}>
-                View All
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-            </div>
-            <div className="space-y-3">
-              {(reservations || []).slice(0, 5).map((reservation) => {
-                const guest = guests?.find(g => g.id === reservation.guestId)
-                const room = rooms?.find(r => r.id === reservation.roomId)
-                const guestName = guest ? `${guest.firstName} ${guest.lastName}` : 'Guest'
-                return (
-                  <div key={reservation.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                        {guestName.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{guestName}</p>
-                      <p className="text-xs text-muted-foreground">{room ? `Room ${room.roomNumber}` : 'Room pending'}</p>
-                    </div>
-                    <Badge variant={reservation.status === 'confirmed' ? 'default' : 'secondary'} className="text-xs">
-                      {reservation.status}
-                    </Badge>
-                  </div>
-                )
-              })}
-            </div>
-          </Card>
-        </div>
+      const layout: DashboardLayout = {
+        id: `layout-${Date.now()}`,
+        userId: currentUser.id,
+        userRole: currentUser.role,
+        name: `${currentUser.role} Dashboard`,
+        isDefault: true,
+        isShared: false,
+        widgets,
+        columns: 2,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        createdBy: currentUser.id
+      }
 
+      setDashboardLayout(layout)
+      return layout
+    }
+    return dashboardLayout
+  }
+
+  const handleLayoutChange = (newLayout: DashboardLayout) => {
+    setDashboardLayout(newLayout)
+  }
+
+  const renderDashboard = () => {
+    const layout = initializeDefaultLayout()
+    
+    const widgetData = {
+      urgentAmenities: getUrgentAmenities(amenities || []).length,
+      lowStockAmenities: (amenities || []).filter(a => a.currentStock <= a.reorderLevel).length,
+      totalAmenities: (amenities || []).length,
+      urgentFood: getUrgentFoodItems(foodItems || []).length,
+      expiringFood: getExpiringFoodItems(foodItems || [], 7).length,
+      totalFood: (foodItems || []).length,
+      activeProjects: (constructionProjects || []).filter(p => p.status === 'in-progress').length,
+      totalMaterials: (constructionMaterials || []).length,
+      lowStockMaterials: (constructionMaterials || []).filter(m => m.currentStock <= m.reorderLevel).length,
+      rooms: rooms || [],
+      lowStockItems: (inventory || []).filter(item => item.currentStock <= item.reorderLevel && item.currentStock > 0),
+      pendingRequisitions: (requisitions || []).filter(r => r.status === 'pending-approval').length,
+      pendingPOs: (purchaseOrders || []).filter(po => po.status === 'draft').length,
+      pendingInvoices: (invoices || []).filter(inv => inv.status === 'pending-validation').length,
+      departments: [
+        { name: 'Front Office', performance: 85 },
+        { name: 'Housekeeping', performance: 92 },
+        { name: 'F&B', performance: 78 },
+        { name: 'Engineering', performance: 88 },
+        { name: 'Finance', performance: 95 }
+      ],
+      reservations: reservations || [],
+      guests: guests || [],
+      guestProfiles: guestProfiles || [],
+      guestFeedback: guestFeedback || [],
+      activeRecipes: (recipes || []).filter(r => r.isActive).length,
+      consumptionLogs: (consumptionLogs || []).length,
+      wasteTracking: (wasteTracking || []).length
+    }
+
+    return (
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <Suspense fallback={<ModuleLoadingSkeleton />}>
-            <ModuleSuspenseErrorBoundary moduleName="Activity Feed">
-              <RealtimeActivityFeed 
-                data={{
-                  reservations: reservations || [],
-                  guests: guests || [],
-                  folios: folios || [],
-                  orders: orders || [],
-                  housekeepingTasks: housekeepingTasks || [],
-                  maintenanceRequests: maintenanceRequests || [],
-                  inventory: inventory || []
-                }}
-                limit={15}
-              />
-            </ModuleSuspenseErrorBoundary>
-          </Suspense>
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-foreground">Hotel Dashboard</h1>
+          <p className="text-muted-foreground mt-1 text-sm md:text-base">Unified view of all hotel operations</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {!hasData && (
+            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto">
+              <Database size={20} className="mr-2" />
+              Load Sample Data
+            </Button>
+          )}
+          {hasData && layout && (
+            <DashboardWidgetManager
+              userId={currentUser.id}
+              userRole={currentUser.role}
+              currentLayout={layout}
+              onLayoutChange={handleLayoutChange}
+            />
+          )}
         </div>
       </div>
 
-      <Card className="p-6">
-        <h3 className="font-semibold mb-6">Quick Actions</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Button 
-              variant="outline" 
-              className="h-auto flex-col gap-2 py-5 transition-all duration-200 hover:shadow-md"
-              onClick={() => setCurrentModule('front-office')}
-            >
-              <BedDouble className="h-6 w-6 text-primary" />
-              <span className="text-sm font-medium">New Booking</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-auto flex-col gap-2 py-5 transition-all duration-200 hover:shadow-md"
-              onClick={() => setCurrentModule('front-office')}
-            >
-              <Users className="h-6 w-6 text-accent" />
-              <span className="text-sm font-medium">Check In</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-auto flex-col gap-2 py-5 transition-all duration-200 hover:shadow-md"
-              onClick={() => setCurrentModule('housekeeping')}
-            >
-              <ClipboardList className="h-6 w-6 text-success" />
-              <span className="text-sm font-medium">Assign Task</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-auto flex-col gap-2 py-5 transition-all duration-200 hover:shadow-md"
-              onClick={() => setCurrentModule('fnb')}
-            >
-              <UtensilsCrossed className="h-6 w-6 text-warning" />
-              <span className="text-sm font-medium">New Order</span>
+      {!hasData ? (
+        <Card className="p-8 md:p-12 lg:p-16 text-center">
+          <div className="max-w-md mx-auto">
+            <Gauge size={48} className="mx-auto text-primary mb-4 md:w-16 md:h-16" />
+            <h3 className="text-xl md:text-2xl font-semibold mb-2">Welcome to W3 Hotel PMS</h3>
+            <p className="text-muted-foreground mb-6 text-sm md:text-base">
+              Your comprehensive hotel management solution integrating all operations in one platform
+            </p>
+            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto">
+              <Database size={20} className="mr-2" />
+              Load Sample Data to Get Started
             </Button>
           </div>
         </Card>
+      ) : (
+        <>
+          <DashboardAlerts
+            notifications={notifications || []}
+            onDismiss={handleDismiss}
+            onViewAll={() => setNotificationPanelOpen(true)}
+          />
+          
+          <div className={`grid gap-6 ${layout?.columns === 1 ? 'grid-cols-1' : layout?.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : layout?.columns === 4 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-2'}`}>
+            {layout?.widgets
+              .filter(w => w.isVisible)
+              .sort((a, b) => a.position - b.position)
+              .map(widget => (
+                <div key={widget.id} className="transition-all duration-200 hover:scale-[1.02]">
+                  <WidgetRenderer
+                    widget={widget}
+                    metrics={metrics}
+                    data={widgetData}
+                    onNavigate={(module) => setCurrentModule(module as Module)}
+                  />
+                </div>
+              ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+  }
+
+  const renderComingSoon = (title: string, icon: React.ReactNode) => (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-4xl font-semibold">{title}</h1>
+        <p className="text-muted-foreground mt-1">This module is under development</p>
+      </div>
+      <Card className="p-16 text-center">
+        <div className="max-w-md mx-auto">
+          <div className="text-muted-foreground mb-4 flex justify-center">{icon}</div>
+          <h3 className="text-2xl font-semibold mb-2">Coming Soon</h3>
+          <p className="text-muted-foreground mb-6">
+            We're building this module to provide comprehensive {title.toLowerCase()} management capabilities.
+          </p>
+          <Button onClick={() => setCurrentModule('dashboard')} variant="outline">
+            Back to Dashboard
+          </Button>
+        </div>
+      </Card>
     </div>
   )
 
-  if (!isInitialized) {
-    return null
-  }
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      <aside className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border
-        transform transition-transform duration-300 ease-in-out
-        lg:translate-x-0 lg:static
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
-        <div className="flex flex-col h-full">
-          <div className="h-16 px-4 flex items-center justify-between border-b border-border">
-            <img src={w3PMSLogo} alt="W3 PMS" className="h-8" />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
-
-          <nav className="flex-1 overflow-y-auto p-3">
-            <div className="space-y-1">
-              {navigationItems.map((item) => {
-                const Icon = item.icon
-                const isActive = currentModule === item.id
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setCurrentModule(item.id as Module)
-                      setSidebarOpen(false)
-                    }}
-                    className={`
-                      w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150
-                      ${isActive 
-                        ? 'bg-primary text-primary-foreground shadow-sm' 
-                        : 'text-foreground hover:bg-muted'
-                      }
-                    `}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span className="truncate">{item.label}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </nav>
-
-          <div className="h-16 px-3 flex items-center gap-3 border-t border-border">
-            <Avatar className="h-9 w-9">
-              <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                {currentUser.firstName?.[0]}{currentUser.lastName?.[0]}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate">{currentUser.firstName} {currentUser.lastName}</p>
-              <p className="text-xs text-muted-foreground truncate capitalize">{currentUser.role.replace('-', ' ')}</p>
-            </div>
-          </div>
+  const SidebarContent = () => (
+    <>
+      <div className="px-3 py-4 mb-4">
+        <div className="flex items-center gap-3">
+          <img 
+            src={w3PMSLogo}
+            alt="W3 Hotel PMS" 
+            className="h-12 w-auto object-contain"
+          />
         </div>
-      </aside>
+      </div>
 
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 border-b border-border bg-card px-4 flex items-center gap-4 shrink-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setSidebarOpen(true)}
+      <nav className="space-y-1" onClick={() => setSidebarOpen(false)}>
+        <Button
+            variant={currentModule === 'dashboard' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('dashboard')}
           >
-            <Menu className="h-5 w-5" />
+            <Gauge size={18} className="mr-2" />
+            Dashboard
           </Button>
 
-          <div className="flex-1 max-w-md">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="global-search"
-                name="global-search"
-                type="text"
-                placeholder="Search..."
-                className="pl-9 h-9 bg-muted/50 border-0 focus-visible:ring-1"
+          <Separator className="my-2" />
+
+          <div className="px-3 py-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Property Management</p>
+          </div>
+
+          <Button
+            variant={currentModule === 'front-office' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('front-office')}
+          >
+            <Bed size={18} className="mr-2" />
+            Front Office
+          </Button>
+
+          <Button
+            variant={currentModule === 'crm' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('crm')}
+          >
+            <Users size={18} className="mr-2" />
+            Guest Relations
+          </Button>
+
+          <Button
+            variant={currentModule === 'extra-services' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('extra-services')}
+          >
+            <Sparkle size={18} className="mr-2" />
+            Extra Services
+          </Button>
+
+          <Button
+            variant={currentModule === 'housekeeping' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('housekeeping')}
+          >
+            <Broom size={18} className="mr-2" />
+            Housekeeping
+          </Button>
+
+          <Button
+            variant={currentModule === 'fnb' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('fnb')}
+          >
+            <ForkKnife size={18} className="mr-2" />
+            F&B / POS
+          </Button>
+
+          <Separator className="my-2" />
+
+          <Button
+            variant={currentModule === 'room-revenue' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('room-revenue')}
+          >
+            <Buildings size={18} className="mr-2" />
+            Room & Revenue
+          </Button>
+
+          <Button
+            variant={currentModule === 'channel-manager' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('channel-manager')}
+          >
+            <Buildings size={18} className="mr-2" />
+            Channel Manager
+          </Button>
+
+          <Separator className="my-2" />
+
+          <Button
+            variant={currentModule === 'inventory' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('inventory')}
+          >
+            <Package size={18} className="mr-2" />
+            Inventory
+          </Button>
+
+          <Button
+            variant={currentModule === 'suppliers' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('suppliers')}
+          >
+            <Buildings size={18} className="mr-2" />
+            Suppliers
+          </Button>
+
+          <Button
+            variant={currentModule === 'procurement' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('procurement')}
+          >
+            <ShoppingCart size={18} className="mr-2" />
+            Procurement & Invoices
+          </Button>
+
+          <Separator className="my-2" />
+
+          <Button
+            variant={currentModule === 'kitchen' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('kitchen')}
+          >
+            <ChefHat size={18} className="mr-2" />
+            Kitchen Operations
+          </Button>
+
+          <Separator className="my-2" />
+
+          <Button
+            variant={currentModule === 'finance' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('finance')}
+          >
+            <CurrencyDollar size={18} className="mr-2" />
+            Finance
+          </Button>
+
+          <Button
+            variant={currentModule === 'hr' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('hr')}
+          >
+            <Users size={18} className="mr-2" />
+            HR & Staff
+          </Button>
+
+          <Button
+            variant={currentModule === 'user-management' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('user-management')}
+          >
+            <UserGear size={18} className="mr-2" />
+            User Management
+          </Button>
+
+          <Button
+            variant={currentModule === 'construction' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('construction')}
+          >
+            <Hammer size={18} className="mr-2" />
+            Maintenance & Constructions
+          </Button>
+
+          <Button
+            variant={currentModule === 'analytics' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('analytics')}
+          >
+            <ChartBar size={18} className="mr-2" />
+            Analytics
+          </Button>
+
+          <Button
+            variant={currentModule === 'forecasting' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('forecasting')}
+          >
+            <Sparkle size={18} className="mr-2" />
+            AI Forecasting
+          </Button>
+
+          <Separator className="my-2" />
+
+          <Button
+            variant={currentModule === 'invoice-center' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('invoice-center')}
+          >
+            <Receipt size={18} className="mr-2" />
+            Invoice Center
+          </Button>
+
+          <Button
+            variant={currentModule === 'settings' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('settings')}
+          >
+            <UserGear size={18} className="mr-2" />
+            Settings
+          </Button>
+        </nav>
+      </>
+  )
+
+  return (
+    <div className="flex min-h-screen bg-background">
+      <aside className="hidden lg:block w-64 border-r bg-card p-4 space-y-2 overflow-y-auto fixed left-0 top-0 bottom-0 z-40">
+        <SidebarContent />
+      </aside>
+
+      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+        <SheetContent side="left" className="w-64 p-4 overflow-y-auto">
+          <SidebarContent />
+        </SheetContent>
+
+        <main className="flex-1 flex flex-col lg:ml-64 min-h-screen">
+          <div className="sticky top-0 z-30 border-b bg-card px-4 py-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="lg:hidden">
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <List size={24} />
+                  </Button>
+                </SheetTrigger>
+              </div>
+              <div className="hidden sm:flex items-center gap-2 flex-1 max-w-md">
+                <GlobalSearch
+                  guests={guests || []}
+                  guestProfiles={guestProfiles || []}
+                  reservations={reservations || []}
+                  invoices={guestInvoices || []}
+                  onNavigate={handleNavigateFromSearch}
+                />
+              </div>
+            </div>
+            <img 
+              src={w3PMSLogo}
+              alt="W3 Hotel PMS" 
+              className="h-8 w-auto object-contain"
+            />
+            <div className="flex items-center gap-2">
+              <ColorMoodSelector />
+              <ThemeToggle />
+              <NotificationPanel
+                notifications={notifications || []}
+                onMarkAsRead={handleMarkAsRead}
+                onMarkAllAsRead={handleMarkAllAsRead}
+                onDismiss={handleDismiss}
+                onArchive={handleArchive}
+                onClearAll={handleClearAll}
               />
             </div>
           </div>
+          
+          <div className="sm:hidden px-4 py-2 border-b bg-card">
+            <GlobalSearch
+              guests={guests || []}
+              guestProfiles={guestProfiles || []}
+              reservations={reservations || []}
+              invoices={guestInvoices || []}
+              onNavigate={handleNavigateFromSearch}
+            />
+          </div>
 
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-destructive rounded-full" />
-          </Button>
-
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={handleRunDiagnostics}
-            title="Run module diagnostics"
-          >
-            <Bug className="h-5 w-5" />
-          </Button>
-
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={handleClearCacheAndReload}
-            title="Clear cache and reload"
-          >
-            <RefreshCw className="h-5 w-5" />
-          </Button>
-        </header>
-
-        <div className="flex-1 overflow-y-auto p-6">
-          {currentModule === 'dashboard' && renderDashboard()}
+        <div className="flex-1 p-4 md:p-6 lg:p-8">{currentModule === 'dashboard' && renderDashboard()}
           {currentModule === 'front-office' && (
-            <ModuleSuspenseErrorBoundary moduleName="Front Office">
-              <Suspense fallback={<ModuleLoadingSkeleton />}>
-                <FrontOffice
-                  guests={guests || []}
-                  setGuests={setGuests}
-                  guestProfiles={guestProfiles || []}
-                  setGuestProfiles={setGuestProfiles}
-                  reservations={reservations || []}
-                  setReservations={setReservations}
-                  rooms={rooms || []}
-                  setRooms={setRooms}
-                  folios={folios || []}
-                  setFolios={setFolios}
-                  extraServices={extraServices || []}
-                  serviceCategories={serviceCategories || []}
-                  folioExtraServices={folioExtraServices || []}
-                  setFolioExtraServices={setFolioExtraServices}
-                  currentUser={currentUser}
-                />
-              </Suspense>
-            </ModuleSuspenseErrorBoundary>
-          )}
-          {currentModule === 'housekeeping' && (
-            <ModuleSuspenseErrorBoundary moduleName="Housekeeping">
-              <Suspense fallback={<ModuleLoadingSkeleton />}>
-                <Housekeeping
-                  tasks={housekeepingTasks || []}
-                  setTasks={setHousekeepingTasks}
-                  rooms={rooms || []}
-                  setRooms={setRooms}
-                  employees={employees || []}
-                />
-              </Suspense>
-            </ModuleSuspenseErrorBoundary>
-          )}
-          {currentModule === 'fnb' && (
-            <ModuleSuspenseErrorBoundary moduleName="F&B / POS">
-              <Suspense fallback={<ModuleLoadingSkeleton />}>
-                <FnBPOS
-                  menuItems={menuItems || []}
-                  setMenuItems={setMenuItems}
-                  orders={orders || []}
-                  setOrders={setOrders}
-                  guests={guests || []}
-                  rooms={rooms || []}
-                />
-              </Suspense>
-            </ModuleSuspenseErrorBoundary>
-          )}
-          {currentModule === 'kitchen' && (
-            <ModuleSuspenseErrorBoundary moduleName="Kitchen Management">
-              <Suspense fallback={<ModuleLoadingSkeleton />}>
-                <KitchenManagement
-                  stations={kitchenStations || []}
-                  setStations={setKitchenStations}
-                  staff={kitchenStaff || []}
-                  setStaff={setKitchenStaff}
-                  schedules={productionSchedules || []}
-                  setSchedules={setProductionSchedules}
-                  inventoryIssues={kitchenInventoryIssues || []}
-                  setInventoryIssues={setKitchenInventoryIssues}
-                  wasteTracking={wasteTracking || []}
-                  setWasteTracking={setWasteTracking}
-                  employees={employees || []}
-                  foodItems={[]}
-                />
-              </Suspense>
-            </ModuleSuspenseErrorBoundary>
-          )}
-          {currentModule === 'crm' && (
-            <ModuleSuspenseErrorBoundary moduleName="Guest Relations">
-              <Suspense fallback={<ModuleLoadingSkeleton />}>
-                <CRM
-                  guestProfiles={guestProfiles || []}
-                  setGuestProfiles={setGuestProfiles}
-                  complaints={complaints || []}
-                  setComplaints={setComplaints}
-                  feedback={feedback || []}
-                  setFeedback={setFeedback}
-                  campaigns={campaigns || []}
-                  setCampaigns={setCampaigns}
-                  templates={templates || []}
-                  setTemplates={setTemplates}
-                  upsellOffers={upsellOffers || []}
-                  setUpsellOffers={setUpsellOffers}
-                  upsellTransactions={upsellTransactions || []}
-                  setUpsellTransactions={setUpsellTransactions}
-                  loyaltyTransactions={loyaltyTransactions || []}
-                  setLoyaltyTransactions={setLoyaltyTransactions}
-                  reservations={reservations}
-                  rooms={rooms}
-                  orders={orders}
-                  folioExtraServices={folioExtraServices}
-                />
-              </Suspense>
-            </ModuleSuspenseErrorBoundary>
-          )}
-          {currentModule === 'extra-services' && (
-            <ModuleSuspenseErrorBoundary moduleName="Extra Services">
-              <Suspense fallback={<ModuleLoadingSkeleton />}>
-                <ExtraServicesManagement
-                  services={extraServices || []}
-                  setServices={setExtraServices}
-                  categories={serviceCategories || []}
-                  setCategories={setServiceCategories}
-                  currentUser={currentUser}
-                />
-              </Suspense>
-            </ModuleSuspenseErrorBoundary>
+            <FrontOffice
+              guests={guests || []}
+              setGuests={setGuests}
+              guestProfiles={guestProfiles || []}
+              setGuestProfiles={setGuestProfiles}
+              reservations={reservations || []}
+              setReservations={setReservations}
+              rooms={rooms || []}
+              setRooms={setRooms}
+              folios={folios || []}
+              setFolios={setFolios}
+              extraServices={extraServices || []}
+              serviceCategories={serviceCategories || []}
+              folioExtraServices={folioExtraServices || []}
+              setFolioExtraServices={setFolioExtraServices}
+              currentUser={currentUser}
+            />
           )}
           {currentModule === 'room-revenue' && (
-            <ModuleSuspenseErrorBoundary moduleName="Room & Revenue Management">
-              <Suspense fallback={<ModuleLoadingSkeleton />}>
-                <RevenueManagement
-                  roomTypes={roomTypeConfigs || []}
-                  setRoomTypes={setRoomTypeConfigs}
-                  ratePlans={ratePlans || []}
-                  setRatePlans={setRatePlans}
-                  seasons={seasons || []}
-                  setSeasons={setSeasons}
-                  eventDays={eventDays || []}
-                  setEventDays={setEventDays}
-                  corporateAccounts={corporateAccounts || []}
-                  setCorporateAccounts={setCorporateAccounts}
-                  rateCalendar={rateCalendar || []}
-                  setRateCalendar={setRateCalendar}
-                  currentUser={currentUser}
-                />
-              </Suspense>
-            </ModuleSuspenseErrorBoundary>
+            <RoomRevenueManagement
+              rooms={rooms || []}
+              setRooms={setRooms}
+              roomTypes={roomTypeConfigs || []}
+              setRoomTypes={setRoomTypeConfigs}
+              ratePlans={ratePlanConfigs || []}
+              setRatePlans={setRatePlanConfigs}
+              seasons={seasons || []}
+              setSeasons={setSeasons}
+              eventDays={eventDays || []}
+              setEventDays={setEventDays}
+              corporateAccounts={corporateAccounts || []}
+              setCorporateAccounts={setCorporateAccounts}
+              rateCalendar={rateCalendar || []}
+              setRateCalendar={setRateCalendar}
+              currentUser={currentUser}
+            />
           )}
-          {currentModule === 'channel-manager' && (
-            <ModuleSuspenseErrorBoundary moduleName="Channel Manager">
-              <Suspense fallback={<ModuleLoadingSkeleton />}>
-                <ChannelManager
-                  connections={otaConnections || []}
-                  setConnections={setOtaConnections}
-                  ratePlans={ratePlans || []}
-                  setRatePlans={setRatePlans}
-                  inventory={channelInventory || []}
-                  setInventory={setChannelInventory}
-                  rates={channelRates || []}
-                  setRates={setChannelRates}
-                  reservations={channelReservations || []}
-                  setReservations={setChannelReservations}
-                  syncLogs={syncLogs || []}
-                  setSyncLogs={setSyncLogs}
-                  performance={channelPerformance || []}
-                  reviews={channelReviews || []}
-                  setReviews={setChannelReviews}
-                  bulkOperations={bulkOperations || []}
-                  setBulkOperations={setBulkOperations}
-                  rooms={rooms || []}
-                  currentUser={currentUser}
-                />
-              </Suspense>
-            </ModuleSuspenseErrorBoundary>
+          {currentModule === 'housekeeping' && (
+            <Housekeeping
+              rooms={rooms || []}
+              setRooms={setRooms}
+              tasks={housekeepingTasks || []}
+              setTasks={setHousekeepingTasks}
+              employees={employees || []}
+            />
+          )}
+          {currentModule === 'fnb' && (
+            <FnBPOS
+              menuItems={menuItems || []}
+              setMenuItems={setMenuItems}
+              orders={orders || []}
+              setOrders={setOrders}
+              guests={guests || []}
+              rooms={rooms || []}
+            />
           )}
           {currentModule === 'inventory' && (
-            <ModuleSuspenseErrorBoundary moduleName="Inventory Management">
-              <Suspense fallback={<ModuleLoadingSkeleton />}>
-                <InventoryManagement
-                  foodItems={foodItems || []}
-                  setFoodItems={setFoodItems}
-                  amenities={amenities || []}
-                  setAmenities={setAmenities}
-                  amenityUsageLogs={amenityUsageLogs || []}
-                  setAmenityUsageLogs={setAmenityUsageLogs}
-                  amenityAutoOrders={amenityAutoOrders || []}
-                  setAmenityAutoOrders={setAmenityAutoOrders}
-                  constructionMaterials={constructionMaterials || []}
-                  generalProducts={generalProducts || []}
-                  setGeneralProducts={setGeneralProducts}
-                  suppliers={suppliers || []}
-                />
-              </Suspense>
-            </ModuleSuspenseErrorBoundary>
+            <InventoryManagement
+              foodItems={foodItems || []}
+              setFoodItems={setFoodItems}
+              amenities={amenities || []}
+              setAmenities={setAmenities}
+              amenityUsageLogs={amenityUsageLogs || []}
+              setAmenityUsageLogs={setAmenityUsageLogs}
+              amenityAutoOrders={amenityAutoOrders || []}
+              setAmenityAutoOrders={setAmenityAutoOrders}
+              constructionMaterials={constructionMaterials || []}
+              generalProducts={generalProducts || []}
+              setGeneralProducts={setGeneralProducts}
+              suppliers={suppliers || []}
+            />
+          )}
+
+          {currentModule === 'suppliers' && (
+            <SupplierManagement
+              suppliers={suppliers || []}
+              setSuppliers={setSuppliers}
+            />
           )}
           {currentModule === 'procurement' && (
-            <ModuleSuspenseErrorBoundary moduleName="Procurement">
-              <Suspense fallback={<ModuleLoadingSkeleton />}>
-                <Procurement
-                  requisitions={requisitions || []}
-                  setRequisitions={setRequisitions}
-                  suppliers={suppliers || []}
-                  foodItems={foodItems || []}
-                  amenities={amenities || []}
-                  constructionMaterials={constructionMaterials || []}
-                  generalProducts={generalProducts || []}
-                  purchaseOrders={purchaseOrders || []}
-                  setPurchaseOrders={setPurchaseOrders}
-                  grns={grns || []}
-                  setGRNs={setGrns}
-                  inventory={inventory || []}
-                  currentUser={currentUser}
-                  invoices={procurementInvoices || []}
-                  setInvoices={setProcurementInvoices}
-                />
-              </Suspense>
-            </ModuleSuspenseErrorBoundary>
+            <Procurement
+              requisitions={requisitions || []}
+              setRequisitions={setRequisitions}
+              purchaseOrders={purchaseOrders || []}
+              setPurchaseOrders={setPurchaseOrders}
+              grns={grns || []}
+              setGRNs={setGRNs}
+              suppliers={suppliers || []}
+              inventory={inventory || []}
+              foodItems={foodItems || []}
+              amenities={amenities || []}
+              constructionMaterials={constructionMaterials || []}
+              generalProducts={generalProducts || []}
+              currentUser={currentUser}
+              invoices={invoices || []}
+              setInvoices={setInvoices}
+            />
           )}
-          {currentModule === 'suppliers' && (
-            <ModuleSuspenseErrorBoundary moduleName="Supplier Management">
-              <Suspense fallback={<ModuleLoadingSkeleton />}>
-                <SupplierManagement
-                  suppliers={suppliers || []}
-                  setSuppliers={setSuppliers}
-                />
-              </Suspense>
-            </ModuleSuspenseErrorBoundary>
+          {currentModule === 'kitchen' && (
+            <KitchenOperations
+              recipes={recipes || []}
+              setRecipes={setRecipes}
+              menus={menus || []}
+              setMenus={setMenus}
+              consumptionLogs={consumptionLogs || []}
+              setConsumptionLogs={setConsumptionLogs}
+              stations={kitchenStations || []}
+              setStations={setKitchenStations}
+              kitchenStaff={kitchenStaff || []}
+              setKitchenStaff={setKitchenStaff}
+              productionSchedules={productionSchedules || []}
+              setProductionSchedules={setProductionSchedules}
+              inventoryIssues={inventoryIssues || []}
+              setInventoryIssues={setInventoryIssues}
+              wasteTracking={wasteTracking || []}
+              setWasteTracking={setWasteTracking}
+              foodItems={foodItems || []}
+              suppliers={suppliers || []}
+              orders={orders || []}
+              employees={employees || []}
+            />
           )}
           {currentModule === 'finance' && (
-            <ModuleSuspenseErrorBoundary moduleName="Finance">
-              <Suspense fallback={<ModuleLoadingSkeleton />}>
-                <Finance
-                  invoices={invoices || []}
-                  setInvoices={setInvoices}
-                  payments={payments || []}
-                  setPayments={setPayments}
-                  expenses={expenses || []}
-                  setExpenses={setExpenses}
-                  accounts={accounts || []}
-                  budgets={budgets || []}
-                  setBudgets={setBudgets}
-                  journalEntries={journalEntries || []}
-                  setJournalEntries={setJournalEntries}
-                  chartOfAccounts={chartOfAccounts || []}
-                  setChartOfAccounts={setChartOfAccounts}
-                  currentUser={currentUser}
-                />
-              </Suspense>
-            </ModuleSuspenseErrorBoundary>
+            <Finance
+              invoices={invoices || []}
+              setInvoices={setInvoices}
+              payments={payments || []}
+              setPayments={setPayments}
+              expenses={expenses || []}
+              setExpenses={setExpenses}
+              accounts={accounts || []}
+              budgets={budgets || []}
+              setBudgets={setBudgets}
+              journalEntries={journalEntries || []}
+              setJournalEntries={setJournalEntries}
+              chartOfAccounts={chartOfAccounts || []}
+              setChartOfAccounts={setChartOfAccounts}
+              glEntries={glEntries || []}
+              setGLEntries={setGLEntries}
+              bankReconciliations={bankReconciliations || []}
+              setBankReconciliations={setBankReconciliations}
+              guestInvoices={guestInvoices || []}
+              costCenters={costCenters || []}
+              setCostCenters={setCostCenters}
+              profitCenters={profitCenters || []}
+              setProfitCenters={setProfitCenters}
+              costCenterReports={costCenterReports || []}
+              profitCenterReports={profitCenterReports || []}
+              currentUser={currentUser}
+            />
           )}
           {currentModule === 'hr' && (
-            <ModuleSuspenseErrorBoundary moduleName="HR & Staff Management">
-              <Suspense fallback={<ModuleLoadingSkeleton />}>
-                <HRManagement
-                  employees={employees || []}
-                  setEmployees={setEmployees}
-                  attendance={attendance || []}
-                  setAttendance={setAttendance}
-                  leaveRequests={leaveRequests || []}
-                  setLeaveRequests={setLeaveRequests}
-                  shifts={shifts || []}
-                  setShifts={setShifts}
-                  dutyRosters={dutyRosters || []}
-                  setDutyRosters={setDutyRosters}
-                  performanceReviews={performanceReviews || []}
-                  setPerformanceReviews={setPerformanceReviews}
-                />
-              </Suspense>
-            </ModuleSuspenseErrorBoundary>
-          )}
-          {currentModule === 'analytics' && (
-            <ModuleSuspenseErrorBoundary moduleName="Analytics">
-              <Suspense fallback={<ModuleLoadingSkeleton />}>
-                <Analytics
-                  orders={orders || []}
-                  foodItems={foodItems || []}
-                  suppliers={suppliers || []}
-                  grns={grns || []}
-                  recipes={recipes || []}
-                  menus={menus || []}
-                  consumptionLogs={consumptionLogs || []}
-                  purchaseOrders={purchaseOrders || []}
-                />
-              </Suspense>
-            </ModuleSuspenseErrorBoundary>
-          )}
-          {currentModule === 'construction' && (
-            <ModuleSuspenseErrorBoundary moduleName="Maintenance & Construction">
-              <Suspense fallback={<ModuleLoadingSkeleton />}>
-                <ConstructionManagement
-                  materials={constructionMaterials || []}
-                  setMaterials={setConstructionMaterials}
-                  projects={constructionProjects || []}
-                  setProjects={setConstructionProjects}
-                  suppliers={suppliers || []}
-                  contractors={contractors || []}
-                  setContractors={setContractors}
-                />
-              </Suspense>
-            </ModuleSuspenseErrorBoundary>
+            <HRManagement
+              employees={employees || []}
+              setEmployees={setEmployees}
+              attendance={attendance || []}
+              setAttendance={setAttendance}
+              leaveRequests={leaveRequests || []}
+              setLeaveRequests={setLeaveRequests}
+              shifts={shifts || []}
+              setShifts={setShifts}
+              dutyRosters={dutyRosters || []}
+              setDutyRosters={setDutyRosters}
+              performanceReviews={performanceReviews || []}
+              setPerformanceReviews={setPerformanceReviews}
+            />
           )}
           {currentModule === 'user-management' && (
-            <ModuleSuspenseErrorBoundary moduleName="User Management">
-              <Suspense fallback={<ModuleLoadingSkeleton />}>
-                <UserManagement
-                  users={systemUsers || []}
-                  setUsers={() => {}}
-                  currentUser={currentUser}
-                  activityLogs={[]}
-                  setActivityLogs={() => {}}
-                />
-              </Suspense>
-            </ModuleSuspenseErrorBoundary>
+            <UserManagement
+              users={systemUsers || []}
+              setUsers={setSystemUsers}
+              currentUser={currentUser}
+              activityLogs={activityLogs || []}
+              setActivityLogs={setActivityLogs}
+            />
+          )}
+          {currentModule === 'construction' && (
+            <ConstructionManagement
+              materials={constructionMaterials || []}
+              setMaterials={setConstructionMaterials}
+              projects={constructionProjects || []}
+              setProjects={setConstructionProjects}
+              suppliers={suppliers || []}
+              contractors={contractors || []}
+              setContractors={setContractors}
+            />
+          )}
+          {currentModule === 'analytics' && (
+            <Analytics
+              orders={orders || []}
+              foodItems={foodItems || []}
+              suppliers={suppliers || []}
+              grns={grns || []}
+              recipes={recipes || []}
+              menus={menus || []}
+              consumptionLogs={consumptionLogs || []}
+              purchaseOrders={purchaseOrders || []}
+            />
+          )}
+          {currentModule === 'forecasting' && (
+            <ForecastingAnalytics
+              foodItems={foodItems || []}
+              amenities={amenities || []}
+              constructionMaterials={constructionMaterials || []}
+              generalProducts={generalProducts || []}
+              suppliers={suppliers || []}
+              rooms={rooms || []}
+              reservations={reservations || []}
+              consumptionLogs={consumptionLogs || []}
+              recipes={recipes || []}
+              menus={menus || []}
+            />
+          )}
+          {currentModule === 'crm' && (
+            <CRM
+              guestProfiles={guestProfiles || []}
+              setGuestProfiles={setGuestProfiles}
+              complaints={complaints || []}
+              setComplaints={setComplaints}
+              feedback={guestFeedback || []}
+              setFeedback={setGuestFeedback}
+              campaigns={marketingCampaigns || []}
+              setCampaigns={setMarketingCampaigns}
+              templates={marketingTemplates || []}
+              setTemplates={setMarketingTemplates}
+              upsellOffers={upsellOffers || []}
+              setUpsellOffers={setUpsellOffers}
+              upsellTransactions={upsellTransactions || []}
+              setUpsellTransactions={setUpsellTransactions}
+              loyaltyTransactions={loyaltyTransactions || []}
+              setLoyaltyTransactions={setLoyaltyTransactions}
+              reservations={reservations || []}
+              rooms={rooms || []}
+              orders={orders || []}
+              folioExtraServices={folioExtraServices || []}
+            />
+          )}
+          {currentModule === 'channel-manager' && (
+            <ChannelManager
+              connections={otaConnections || []}
+              setConnections={setOTAConnections}
+              ratePlans={ratePlans || []}
+              setRatePlans={setRatePlans}
+              inventory={channelInventory || []}
+              setInventory={setChannelInventory}
+              rates={channelRates || []}
+              setRates={setChannelRates}
+              reservations={channelReservations || []}
+              setReservations={setChannelReservations}
+              syncLogs={syncLogs || []}
+              setSyncLogs={setSyncLogs}
+              performance={channelPerformance || []}
+              reviews={channelReviews || []}
+              setReviews={setChannelReviews}
+              bulkOperations={bulkOperations || []}
+              setBulkOperations={setBulkOperations}
+              rooms={rooms || []}
+              currentUser={currentUser}
+            />
+          )}
+          {currentModule === 'extra-services' && (
+            <ExtraServicesManagement
+              services={extraServices || []}
+              setServices={setExtraServices}
+              categories={serviceCategories || []}
+              setCategories={setServiceCategories}
+              currentUser={currentUser}
+            />
+          )}
+          {currentModule === 'invoice-center' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl font-semibold">Invoice Center</h1>
+                  <p className="text-muted-foreground mt-1">
+                    Centralized hub for all invoice management - guest invoices, supplier invoices, and payments
+                  </p>
+                </div>
+              </div>
+
+              <Tabs defaultValue="guest" className="space-y-6">
+                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+                  <TabsTrigger value="guest">
+                    <Receipt size={18} className="mr-2" />
+                    Guest Invoices
+                  </TabsTrigger>
+                  <TabsTrigger value="payments">
+                    <CurrencyDollar size={18} className="mr-2" />
+                    Payments
+                  </TabsTrigger>
+                  <TabsTrigger value="supplier">
+                    <FileText size={18} className="mr-2" />
+                    Supplier Invoices
+                  </TabsTrigger>
+                  <TabsTrigger value="analytics">
+                    <ChartBar size={18} className="mr-2" />
+                    Analytics
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="guest">
+                  <InvoiceManagement
+                    invoices={guestInvoices || []}
+                    setInvoices={setGuestInvoices}
+                    branding={branding || null}
+                    currentUser={currentUser}
+                  />
+                </TabsContent>
+
+                <TabsContent value="payments">
+                  <PaymentTracking
+                    payments={payments || []}
+                    invoices={guestInvoices || []}
+                    onUpdatePayment={(payment) => {
+                      setPayments((prev) => 
+                        (prev || []).map(p => p.id === payment.id ? payment : p)
+                      )
+                    }}
+                    onUpdateInvoice={(invoice) => {
+                      setGuestInvoices((prev) => 
+                        (prev || []).map(inv => inv.id === invoice.id ? invoice : inv)
+                      )
+                    }}
+                    currentUser={currentUser}
+                  />
+                </TabsContent>
+
+                <TabsContent value="supplier">
+                  <Card className="p-6">
+                    <div className="text-center py-12">
+                      <FileText size={64} className="mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-xl font-semibold mb-2">Supplier Invoice Management</h3>
+                      <p className="text-muted-foreground mb-6">
+                        Manage supplier invoices, approvals, and three-way matching
+                      </p>
+                      <Button onClick={() => setCurrentModule('procurement')}>
+                        Go to Procurement & Invoices
+                      </Button>
+                    </div>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="analytics">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <Card className="p-6 border-l-4 border-l-primary">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm font-medium text-muted-foreground">Guest Invoices</h3>
+                        <Receipt size={20} className="text-primary" />
+                      </div>
+                      <p className="text-3xl font-semibold">{(guestInvoices || []).length}</p>
+                      <div className="mt-3 space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Total Amount:</span>
+                          <span className="font-medium">{formatCurrency((guestInvoices || []).reduce((sum, inv) => sum + inv.grandTotal, 0))}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Amount Due:</span>
+                          <span className="font-medium text-destructive">{formatCurrency((guestInvoices || []).reduce((sum, inv) => sum + inv.amountDue, 0))}</span>
+                        </div>
+                      </div>
+                    </Card>
+
+                    <Card className="p-6 border-l-4 border-l-accent">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm font-medium text-muted-foreground">Supplier Invoices</h3>
+                        <FileText size={20} className="text-accent" />
+                      </div>
+                      <p className="text-3xl font-semibold">{(invoices || []).length}</p>
+                      <div className="mt-3 space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Total Count:</span>
+                          <span className="font-medium">{(invoices || []).length}</span>
+                        </div>
+                      </div>
+                    </Card>
+
+                    <Card className="p-6 border-l-4 border-l-success">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm font-medium text-muted-foreground">Payments</h3>
+                        <CurrencyDollar size={20} className="text-success" />
+                      </div>
+                      <p className="text-3xl font-semibold">{(payments || []).length}</p>
+                      <div className="mt-3 space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Total:</span>
+                          <span className="font-medium">{formatCurrency((payments || []).reduce((sum, p) => sum + p.amount, 0))}</span>
+                        </div>
+                      </div>
+                    </Card>
+
+                    <Card className="p-6 border-l-4 border-l-secondary">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm font-medium text-muted-foreground">Quick Actions</h3>
+                        <ClipboardText size={20} className="text-secondary" />
+                      </div>
+                      <div className="space-y-2 mt-4">
+                        <Button variant="outline" className="w-full justify-start" size="sm">
+                          <Receipt size={16} className="mr-2" />
+                          New Invoice
+                        </Button>
+                        <Button variant="outline" className="w-full justify-start" size="sm" onClick={() => setCurrentModule('finance')}>
+                          <CurrencyDollar size={16} className="mr-2" />
+                          Record Payment
+                        </Button>
+                      </div>
+                    </Card>
+                  </div>
+
+                  <Card className="p-6 mt-6">
+                    <h3 className="text-lg font-semibold mb-4">Recent Guest Invoices</h3>
+                    <div className="space-y-3">
+                      {(guestInvoices || []).slice(0, 5).map((invoice) => (
+                        <div key={invoice.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                          <div>
+                            <p className="font-medium">{invoice.invoiceNumber}</p>
+                            <p className="text-sm text-muted-foreground">{invoice.guestName}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold">{formatCurrency(invoice.grandTotal)}</p>
+                            <Badge className={
+                              invoice.status === 'final' ? 'bg-green-100 text-green-800' :
+                              invoice.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                              'bg-blue-100 text-blue-800'
+                            }>
+                              {invoice.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </div>
           )}
           {currentModule === 'settings' && (
-            <ModuleSuspenseErrorBoundary moduleName="Settings">
-              <Suspense fallback={<ModuleLoadingSkeleton />}>
-                <Settings
-                  branding={branding}
-                  setBranding={setBranding}
-                  taxes={taxes || []}
-                  setTaxes={setTaxes}
-                  serviceCharge={serviceCharge}
-                  setServiceCharge={setServiceCharge}
-                  emailTemplates={emailTemplates || []}
-                  setEmailTemplates={setEmailTemplates}
-                  emailAnalytics={emailAnalytics || []}
-                  campaignAnalytics={campaignAnalytics || []}
-                  emailRecords={emailRecords || []}
-                  currentUser={currentUser}
-                />
-              </Suspense>
-            </ModuleSuspenseErrorBoundary>
+            <Settings
+              branding={branding || null}
+              setBranding={setBranding}
+              taxes={taxes || []}
+              setTaxes={setTaxes}
+              serviceCharge={serviceCharge || null}
+              setServiceCharge={setServiceCharge}
+              emailTemplates={emailTemplates || []}
+              setEmailTemplates={setEmailTemplates}
+              emailAnalytics={emailAnalytics || []}
+              campaignAnalytics={campaignAnalytics || []}
+              emailRecords={emailRecords || []}
+              currentUser={currentUser}
+            />
           )}
         </div>
-      </main>
+        
+        <footer className="border-t border-border overflow-hidden mt-auto bg-card">
+          <div className="px-4 py-4 md:px-6 lg:px-8 md:py-5">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
+              <p className="text-sm font-medium text-foreground/80">
+                © {new Date().getFullYear()} {branding?.hotelName || 'W3 Hotel'} - Design & Developed by
+              </p>
+              <a 
+                href="https://www.w3media.lk/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              >
+                <img 
+                  src={w3MediaLogo}
+                  alt="W3 Media PVT LTD" 
+                  className="h-6 md:h-7"
+                />
+              </a>
+            </div>
+          </div>
+        </footer>
+        </main>
+      </Sheet>
 
-      <ConsoleMonitor />
-      <Toaster position="top-right" richColors closeButton />
+      <Toaster position="top-right" richColors />
     </div>
   )
 }

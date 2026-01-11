@@ -4,140 +4,17 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self'; frame-src 'self';" />
-    <title>W3 Hotel PMS - Hotel Management System</title>
+    <title>W3 Hotel PMS - Next-Gen Management System</title>
     <link rel="icon" type="image/png" href="/src/assets/images/Favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans&family=IBM+Plex+Serif&family=Fira+Code&display=swap">
     <link href="/src/main.css" rel="stylesheet" />
-    <script>
-        window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__ = window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__ || {};
-        
-        const ignoredWarnings = [
-            'ResizeObserver loop',
-            'chrome-extension://',
-            'quillbot-content.js',
-            'iframe which has both allow-scripts and allow-same-origin',
-            'Violation',
-            'listener LEAK detected',
-            'setTimeout handler took'
-        ];
-        
-        const ignoredNetworkErrors = [
-            'Tunnel service error',
-            'Access-Control-Allow-Origin',
-            'CORS policy'
-        ];
-        
-        const originalConsoleWarn = console.warn;
-        console.warn = function(...args) {
-            const message = args.join(' ');
-            if (ignoredWarnings.some(err => message.includes(err))) {
-                return;
-            }
-            originalConsoleWarn.apply(console, args);
-        };
-        
-        const originalConsoleError = console.error;
-        console.error = function(...args) {
-            const message = args.join(' ');
-            
-            if (ignoredWarnings.some(err => message.includes(err))) {
-                return;
-            }
-            
-            if (ignoredNetworkErrors.some(err => message.includes(err))) {
-                console.info('Network error (ignored):', message);
-                return;
-            }
-            
-            originalConsoleError.apply(console, args);
-        };
-        
-        let moduleLoadErrors = [];
-        
-        window.addEventListener('error', function(e) {
-            const message = e.error?.message || e.message || '';
-            
-            if (ignoredWarnings.some(err => message.includes(err))) {
-                e.preventDefault();
-                return;
-            }
-            
-            if (ignoredNetworkErrors.some(err => message.includes(err))) {
-                e.preventDefault();
-                return;
-            }
-            
-            if (message.includes('Failed to fetch dynamically imported module') || 
-                message.includes('Failed to load module script') ||
-                message.includes('MIME type')) {
-                
-                const moduleMatch = e.filename?.match(/\/assets\/([^-]+)/);
-                const moduleName = moduleMatch ? moduleMatch[1] : 'Unknown';
-                
-                if (!moduleLoadErrors.includes(moduleName)) {
-                    moduleLoadErrors.push(moduleName);
-                    console.error(`[MODULE LOAD ERROR] ${moduleName}:`, e.filename || message);
-                }
-                
-                e.preventDefault();
-                return;
-            }
-            
-            if (e.error && e.error.message) {
-                if (e.error.message.includes('useState') || 
-                    e.error.message.includes('useRef') || 
-                    e.error.message.includes('useEffect') ||
-                    e.error.message.includes('Cannot read properties of null')) {
-                    const root = document.getElementById('root');
-                    if (root && !root.hasChildNodes()) {
-                        root.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem;background:#fafafa;"><div style="max-width:28rem;text-align:center;"><h1 style="color:#dc2626;font-size:1.25rem;font-weight:600;margin-bottom:1rem;">Application Error</h1><p style="color:#6b7280;margin-bottom:1rem;">The application encountered a critical error. Please clear cache and reload.</p><button onclick="localStorage.clear();sessionStorage.clear();location.reload()" style="padding:0.5rem 1rem;background:#3b82f6;color:white;border:none;border-radius:0.375rem;cursor:pointer;">Clear Cache & Reload</button></div></div>';
-                    }
-                }
-            }
-        }, true);
-        
-        window.addEventListener('unhandledrejection', function(e) {
-            const message = e.reason?.message || e.reason || '';
-            
-            if (ignoredWarnings.some(err => String(message).includes(err))) {
-                e.preventDefault();
-                return;
-            }
-            
-            if (ignoredNetworkErrors.some(err => String(message).includes(err))) {
-                e.preventDefault();
-                return;
-            }
-            
-            if (String(message).includes('Failed to fetch dynamically imported module') || 
-                String(message).includes('Failed to load module script') ||
-                String(message).includes('MIME type')) {
-                console.error('[MODULE LOAD REJECTION]:', String(message));
-                e.preventDefault();
-                return;
-            }
-        }, true);
-        
-        window.getModuleLoadErrors = function() {
-            return moduleLoadErrors;
-        };
-    </script>
 </head>
 
 <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <noscript>
-        <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem;background:#fafafa;">
-            <div style="max-width:28rem;text-align:center;">
-                <h1 style="color:#dc2626;font-size:1.25rem;font-weight:600;margin-bottom:1rem;">JavaScript Required</h1>
-                <p style="color:#6b7280;">W3 Hotel PMS requires JavaScript to be enabled. Please enable JavaScript in your browser settings.</p>
-            </div>
-        </div>
-    </noscript>
 </body>
 
 </html>

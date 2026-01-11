@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 
 export interface ThemeColors {
   primary: string
@@ -6,48 +6,38 @@ export interface ThemeColors {
   accent: string
 }
 
-export type ColorMood = 'indigo' | 'violet' | 'emerald' | 'rose' | 'amber' | 'cyan' | 'slate' | 'crimson'
+export type ColorMood = 'blue' | 'purple' | 'green' | 'orange' | 'rose' | 'cyan'
 
 export const colorMoods: Record<ColorMood, ThemeColors> = {
-  indigo: {
-    primary: 'oklch(0.55 0.24 265)',
-    secondary: 'oklch(0.50 0.20 280)',
-    accent: 'oklch(0.62 0.20 180)',
+  blue: {
+    primary: 'oklch(0.65 0.22 265)',
+    secondary: 'oklch(0.55 0.16 220)',
+    accent: 'oklch(0.68 0.24 35)',
   },
-  violet: {
-    primary: 'oklch(0.60 0.28 300)',
-    secondary: 'oklch(0.55 0.24 290)',
-    accent: 'oklch(0.68 0.22 320)',
+  purple: {
+    primary: 'oklch(0.62 0.26 300)',
+    secondary: 'oklch(0.58 0.20 280)',
+    accent: 'oklch(0.68 0.28 320)',
   },
-  emerald: {
-    primary: 'oklch(0.55 0.22 160)',
-    secondary: 'oklch(0.50 0.20 150)',
-    accent: 'oklch(0.62 0.24 180)',
+  green: {
+    primary: 'oklch(0.58 0.20 150)',
+    secondary: 'oklch(0.62 0.18 130)',
+    accent: 'oklch(0.65 0.24 90)',
+  },
+  orange: {
+    primary: 'oklch(0.65 0.24 40)',
+    secondary: 'oklch(0.68 0.20 60)',
+    accent: 'oklch(0.70 0.26 25)',
   },
   rose: {
-    primary: 'oklch(0.60 0.24 10)',
-    secondary: 'oklch(0.55 0.22 350)',
-    accent: 'oklch(0.68 0.20 30)',
-  },
-  amber: {
-    primary: 'oklch(0.70 0.22 70)',
-    secondary: 'oklch(0.65 0.20 60)',
-    accent: 'oklch(0.62 0.24 45)',
+    primary: 'oklch(0.62 0.24 10)',
+    secondary: 'oklch(0.65 0.20 350)',
+    accent: 'oklch(0.68 0.26 340)',
   },
   cyan: {
     primary: 'oklch(0.60 0.22 200)',
-    secondary: 'oklch(0.55 0.20 210)',
-    accent: 'oklch(0.65 0.24 180)',
-  },
-  slate: {
-    primary: 'oklch(0.50 0.05 260)',
-    secondary: 'oklch(0.45 0.04 260)',
-    accent: 'oklch(0.60 0.20 200)',
-  },
-  crimson: {
-    primary: 'oklch(0.55 0.26 20)',
-    secondary: 'oklch(0.50 0.24 10)',
-    accent: 'oklch(0.65 0.22 35)',
+    secondary: 'oklch(0.65 0.18 220)',
+    accent: 'oklch(0.68 0.24 180)',
   },
 }
 
@@ -58,48 +48,46 @@ const applyTheme = (colors: ThemeColors) => {
   root.style.setProperty('--secondary', colors.secondary)
   root.style.setProperty('--accent', colors.accent)
   
-  const primaryGlow = colors.primary.replace(')', ' / 0.25)')
-  root.style.setProperty('--primary-glow', primaryGlow)
-  
-  const primaryHover = colors.primary.replace(/(\d+\.?\d*)\)$/, (match, num) => {
-    const newNum = Math.max(0.4, parseFloat(num) - 0.05)
-    return `${newNum})`
-  })
-  root.style.setProperty('--primary-hover', primaryHover)
+  const glowPrimary = colors.primary.replace(')', ' / 0.5)')
+  const glowAccent = colors.accent.replace(')', ' / 0.45)')
+  root.style.setProperty('--glow-primary', glowPrimary)
+  root.style.setProperty('--glow-accent', glowAccent)
   
   root.style.setProperty('--ring', colors.primary)
   root.style.setProperty('--sidebar-primary', colors.primary)
   root.style.setProperty('--sidebar-ring', colors.primary)
-  
-  root.style.setProperty('--chart-1', colors.primary)
-  root.style.setProperty('--chart-2', colors.accent)
-  root.style.setProperty('--chart-3', colors.secondary)
-  root.style.setProperty('--chart-4', 'oklch(0.72 0.20 70)')
-  root.style.setProperty('--chart-5', 'oklch(0.55 0.24 25)')
 }
 
 const applyDarkMode = (isDark: boolean, animated: boolean = true) => {
   const root = document.documentElement
-  const body = document.body
+  const html = document.querySelector('html')
   
-  if (!animated) {
-    body.style.transition = 'none'
-    root.style.transition = 'none'
+  if (animated) {
+    root.style.setProperty('view-transition-name', 'theme-transition')
   }
   
   if (isDark) {
     root.classList.add('dark')
-    body.classList.add('dark')
+    if (html) html.classList.add('dark')
   } else {
     root.classList.remove('dark')
-    body.classList.remove('dark')
+    if (html) html.classList.remove('dark')
   }
   
-  if (!animated) {
-    requestAnimationFrame(() => {
-      body.style.transition = ''
-      root.style.transition = ''
-    })
+  const savedTheme = localStorage.getItem('theme-colors')
+  if (savedTheme) {
+    try {
+      const colors: ThemeColors = JSON.parse(savedTheme)
+      applyTheme(colors)
+    } catch (error) {
+      console.error('Failed to reapply saved theme:', error)
+    }
+  }
+  
+  if (animated) {
+    setTimeout(() => {
+      root.style.removeProperty('view-transition-name')
+    }, 500)
   }
 }
 
@@ -107,50 +95,32 @@ const applyColorMood = (mood: ColorMood) => {
   const colors = colorMoods[mood]
   applyTheme(colors)
   localStorage.setItem('theme-color-mood', mood)
-  localStorage.removeItem('theme-custom-colors')
-}
-
-const applyCustomColors = (colors: ThemeColors) => {
-  applyTheme(colors)
-  localStorage.setItem('theme-custom-colors', JSON.stringify(colors))
-  localStorage.removeItem('theme-color-mood')
-}
-
-const loadSavedTheme = () => {
-  const savedCustomColors = localStorage.getItem('theme-custom-colors')
-  if (savedCustomColors) {
-    try {
-      const colors = JSON.parse(savedCustomColors) as ThemeColors
-      applyTheme(colors)
-      return true
-    } catch {
-      localStorage.removeItem('theme-custom-colors')
-    }
-  }
-  
-  const savedMood = localStorage.getItem('theme-color-mood') as ColorMood | null
-  if (savedMood && colorMoods[savedMood]) {
-    applyTheme(colorMoods[savedMood])
-    return true
-  }
-  
-  return false
+  localStorage.setItem('theme-colors', JSON.stringify(colors))
 }
 
 export function useTheme() {
   useEffect(() => {
-    loadSavedTheme()
+    const savedMood = localStorage.getItem('theme-color-mood') as ColorMood | null
+    if (savedMood && colorMoods[savedMood]) {
+      applyTheme(colorMoods[savedMood])
+    } else {
+      const savedTheme = localStorage.getItem('theme-colors')
+      if (savedTheme) {
+        try {
+          const colors: ThemeColors = JSON.parse(savedTheme)
+          applyTheme(colors)
+        } catch (error) {
+          console.error('Failed to load saved theme:', error)
+        }
+      }
+    }
 
     const savedDarkMode = localStorage.getItem('theme-dark-mode')
     if (savedDarkMode !== null) {
       const isDark = savedDarkMode === 'true'
       applyDarkMode(isDark, false)
-    } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      applyDarkMode(prefersDark, false)
-      localStorage.setItem('theme-dark-mode', String(prefersDark))
     }
   }, [])
 
-  return { applyTheme, applyDarkMode, applyColorMood, applyCustomColors, loadSavedTheme }
+  return { applyTheme, applyDarkMode, applyColorMood }
 }
