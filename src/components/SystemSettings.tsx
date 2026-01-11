@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Gear, FloppyDisk } from '@phosphor-icons/react'
+import { Gear, FloppyDisk, Trash, Warning } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import type { HotelBranding, SystemUser } from '@/lib/types'
 
@@ -124,6 +124,31 @@ export function SystemSettings({ branding, setBranding, currentUser }: SystemSet
     }
 
     toast.success('System settings saved successfully')
+  }
+
+  const handleClearCache = () => {
+    if (confirm('⚠️ WARNING: This will clear all browser cache and reload the application.\n\nAll unsaved data will be lost. Continue?')) {
+      localStorage.clear()
+      sessionStorage.clear()
+      
+      if ('caches' in window) {
+        caches.keys().then(names => {
+          names.forEach(name => {
+            caches.delete(name)
+          })
+        }).then(() => {
+          toast.success('Cache cleared successfully. Reloading...')
+          setTimeout(() => {
+            window.location.reload()
+          }, 500)
+        })
+      } else {
+        toast.success('Cache cleared successfully. Reloading...')
+        setTimeout(() => {
+          window.location.reload()
+        }, 500)
+      }
+    }
   }
 
   return (
@@ -262,6 +287,32 @@ export function SystemSettings({ branding, setBranding, currentUser }: SystemSet
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Cache Management</h3>
+            <div className="p-4 bg-warning/10 border border-warning/20 rounded-lg">
+              <div className="flex items-start gap-3 mb-4">
+                <Warning size={24} className="text-warning shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium text-warning-foreground">Clear Browser Cache</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    This will clear all cached data, local storage, and session storage. 
+                    The application will reload and all unsaved changes will be lost.
+                  </p>
+                </div>
+              </div>
+              <Button 
+                onClick={handleClearCache} 
+                variant="destructive" 
+                className="gap-2"
+              >
+                <Trash size={18} />
+                Clear Cache & Reload
+              </Button>
             </div>
           </div>
         </div>

@@ -30,7 +30,8 @@ import {
   TrendingDown,
   ArrowUpRight,
   ArrowDownRight,
-  ChevronRight
+  ChevronRight,
+  RefreshCw
 } from 'lucide-react'
 import type { 
   SystemUser,
@@ -207,6 +208,23 @@ function App() {
   const [contractors, setContractors] = useKV<any[]>('w3-hotel-contractors', [])
 
   const currentUser = (systemUsers || [])[0] || sampleSystemUsers[0]
+
+  const handleClearCacheAndReload = () => {
+    if (confirm('This will clear all browser cache and reload the application. Continue?')) {
+      localStorage.clear()
+      sessionStorage.clear()
+      
+      if ('caches' in window) {
+        caches.keys().then(names => {
+          names.forEach(name => {
+            caches.delete(name)
+          })
+        })
+      }
+      
+      window.location.reload()
+    }
+  }
 
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -507,6 +525,15 @@ function App() {
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />
             <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-destructive rounded-full" />
+          </Button>
+
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={handleClearCacheAndReload}
+            title="Clear cache and reload"
+          >
+            <RefreshCw className="h-5 w-5" />
           </Button>
         </header>
 
