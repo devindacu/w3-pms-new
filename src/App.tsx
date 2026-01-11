@@ -490,7 +490,7 @@ function App() {
 
   const initializeDefaultLayout = () => {
     if (!dashboardLayout) {
-      const defaultWidgets = getDefaultWidgetsForRole(currentUser.role)
+      const defaultWidgets = getDefaultWidgetsForRole(currentUser.role) || []
       const widgets: DashboardWidget[] = defaultWidgets.map((type, index) => ({
         id: `widget-${Date.now()}-${index}`,
         type,
@@ -607,7 +607,7 @@ function App() {
           />
           
           <div className={`grid gap-6 ${layout?.columns === 1 ? 'grid-cols-1' : layout?.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : layout?.columns === 4 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-2'}`}>
-            {layout?.widgets
+            {(layout?.widgets || [])
               .filter(w => w.isVisible)
               .sort((a, b) => a.position - b.position)
               .map(widget => (

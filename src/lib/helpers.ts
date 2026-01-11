@@ -116,7 +116,8 @@ export function checkBookingConflict(
     return { hasConflict: false, conflictingReservations: [] }
   }
 
-  const conflictingReservations = reservations.filter(reservation => {
+  const safeReservations = reservations || []
+  const conflictingReservations = safeReservations.filter(reservation => {
     if (excludeReservationId && reservation.id === excludeReservationId) {
       return false
     }
@@ -152,14 +153,17 @@ export function calculateOccupancyRate(occupied: number, total: number): number 
 }
 
 export function calculateFolioBalance(folio: Folio): number {
-  const totalCharges = folio.charges.reduce((sum, charge) => sum + (charge.amount * charge.quantity), 0)
-  const totalPayments = folio.payments
+  const charges = folio.charges || []
+  const payments = folio.payments || []
+  const totalCharges = charges.reduce((sum, charge) => sum + (charge.amount * charge.quantity), 0)
+  const totalPayments = payments
     .filter(p => p.status === 'paid')
     .reduce((sum, payment) => sum + payment.amount, 0)
   return totalCharges - totalPayments
 }
 
 export function calculateInventoryValue(items: InventoryItem[]): number {
+  if (!items || !Array.isArray(items)) return 0
   return items.reduce((sum, item) => sum + (item.currentStock * item.unitCost), 0)
 }
 
@@ -221,16 +225,19 @@ export function getDaysUntilExpiry(expiryDate: number | undefined): number | nul
 }
 
 export function filterRoomsByStatus(rooms: Room[], status?: RoomStatus): Room[] {
+  if (!rooms || !Array.isArray(rooms)) return []
   if (!status) return rooms
   return rooms.filter(r => r.status === status)
 }
 
 export function filterRoomsByType(rooms: Room[], type?: string): Room[] {
+  if (!rooms || !Array.isArray(rooms)) return []
   if (!type) return rooms
   return rooms.filter(r => r.roomType === type)
 }
 
 export function sortRoomsByNumber(rooms: Room[]): Room[] {
+  if (!rooms || !Array.isArray(rooms)) return []
   return [...rooms].sort((a, b) => {
     const numA = parseInt(a.roomNumber)
     const numB = parseInt(b.roomNumber)
@@ -244,7 +251,10 @@ export function getAvailableRooms(
   checkIn: number, 
   checkOut: number
 ): Room[] {
-  const occupiedRoomIds = reservations
+  const safeRooms = rooms || []
+  const safeReservations = reservations || []
+  
+  const occupiedRoomIds = safeReservations
     .filter(r => 
       r.status === 'confirmed' || r.status === 'checked-in'
     )
@@ -254,13 +264,14 @@ export function getAvailableRooms(
     .map(r => r.roomId)
     .filter((id): id is string => id !== undefined)
 
-  return rooms.filter(room => 
+  return safeRooms.filter(room => 
     !occupiedRoomIds.includes(room.id) && 
     (room.status === 'vacant-clean' || room.status === 'vacant-dirty')
   )
 }
 
 export function calculateHousekeepingWorkload(tasks: HousekeepingTask[], housekeeperId: string): number {
+  if (!tasks || !Array.isArray(tasks)) return 0
   return tasks.filter(t => 
     t.assignedTo === housekeeperId && 
     (t.status === 'pending' || t.status === 'in-progress')
@@ -283,6 +294,7 @@ export function formatGuestName(firstName: string, lastName: string): string {
 }
 
 export function searchGuests(guests: any[], searchTerm: string): any[] {
+  if (!guests || !Array.isArray(guests)) return []
   const term = searchTerm.toLowerCase()
   return guests.filter(g => 
     g.firstName.toLowerCase().includes(term) ||
@@ -293,6 +305,7 @@ export function searchGuests(guests: any[], searchTerm: string): any[] {
 }
 
 export function searchInventory(items: InventoryItem[], searchTerm: string): InventoryItem[] {
+  if (!items || !Array.isArray(items)) return []
   const term = searchTerm.toLowerCase()
   return items.filter(i => 
     i.name.toLowerCase().includes(term) ||
@@ -308,23 +321,30 @@ export function calculateDashboardMetrics(
   inventory: InventoryItem[],
   maintenanceRequests: MaintenanceRequest[]
 ): DashboardMetrics {
+  const safeRooms = rooms || []
+  const safeReservations = reservations || []
+  const safeTasks = housekeepingTasks || []
+  const safeOrders = orders || []
+  const safeInventory = inventory || []
+  const safeRequests = maintenanceRequests || []
+  
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const todayStart = today.getTime()
   const todayEnd = todayStart + 24 * 60 * 60 * 1000
 
-  const occupiedRooms = rooms.filter(r => r.status === 'occupied-clean' || r.status === 'occupied-dirty')
-  const availableRooms = rooms.filter(r => r.status === 'vacant-clean')
-  const maintenanceRooms = rooms.filter(r => r.status === 'maintenance' || r.status === 'out-of-order')
+  const occupiedRooms = safeRooms.filter(r => r.status === 'occupied-clean' || r.status === 'occupied-dirty')
+  const availableRooms = safeRooms.filter(r => r.status === 'vacant-clean')
+  const maintenanceRooms = safeRooms.filter(r => r.status === 'maintenance' || r.status === 'out-of-order')
   
-  const todayOrders = orders.filter(o => o.createdAt >= todayStart && o.createdAt < todayEnd)
+  const todayOrders = safeOrders.filter(o => o.createdAt >= todayStart && o.createdAt < todayEnd)
   const todayRevenue = todayOrders.reduce((sum, o) => sum + o.total, 0)
 
-  const lowStockItems = inventory.filter(i => i.currentStock <= i.reorderLevel && i.currentStock > 0)
-  const expiringItems = inventory.filter(i => isExpiringSoon(i.expiryDate, 7))
-  const inventoryValue = calculateInventoryValue(inventory)
+  const lowStockItems = safeInventory.filter(i => i.currentStock <= i.reorderLevel && i.currentStock > 0)
+  const expiringItems = safeInventory.filter(i => isExpiringSoon(i.expiryDate, 7))
+  const inventoryValue = calculateInventoryValue(safeInventory)
 
-  const openRequests = maintenanceRequests.filter(r => 
+  const openRequests = safeRequests.filter(r => 
     r.status === 'scheduled' || r.status === 'in-progress'
   )
   const urgentRequests = openRequests.filter(r => r.priority === 'urgent')
@@ -335,7 +355,7 @@ export function calculateDashboardMetrics(
       available: availableRooms.length,
       occupied: occupiedRooms.length,
       maintenance: maintenanceRooms.length,
-      rate: calculateOccupancyRate(occupiedRooms.length, rooms.length)
+      rate: calculateOccupancyRate(occupiedRooms.length, safeRooms.length)
     },
     revenue: {
       today: todayRevenue,
@@ -344,9 +364,9 @@ export function calculateDashboardMetrics(
       growth: 0
     },
     housekeeping: {
-      cleanRooms: rooms.filter(r => r.status === 'vacant-clean' || r.status === 'occupied-clean').length,
-      dirtyRooms: rooms.filter(r => r.status === 'vacant-dirty' || r.status === 'occupied-dirty').length,
-      pendingTasks: housekeepingTasks.filter(t => t.status === 'pending').length
+      cleanRooms: safeRooms.filter(r => r.status === 'vacant-clean' || r.status === 'occupied-clean').length,
+      dirtyRooms: safeRooms.filter(r => r.status === 'vacant-dirty' || r.status === 'occupied-dirty').length,
+      pendingTasks: safeTasks.filter(t => t.status === 'pending').length
     },
     fnb: {
       ordersToday: todayOrders.length,
@@ -367,6 +387,7 @@ export function calculateDashboardMetrics(
 }
 
 export function calculateHistoricalComparison(orders: Order[]) {
+  const safeOrders = orders || []
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const todayStart = today.getTime()
@@ -374,8 +395,8 @@ export function calculateHistoricalComparison(orders: Order[]) {
   const yesterdayEnd = todayStart
   const todayEnd = todayStart + 24 * 60 * 60 * 1000
 
-  const todayOrders = orders.filter(o => o.createdAt >= todayStart && o.createdAt < todayEnd)
-  const yesterdayOrders = orders.filter(o => o.createdAt >= yesterdayStart && o.createdAt < yesterdayEnd)
+  const todayOrders = safeOrders.filter(o => o.createdAt >= todayStart && o.createdAt < todayEnd)
+  const yesterdayOrders = safeOrders.filter(o => o.createdAt >= yesterdayStart && o.createdAt < yesterdayEnd)
 
   const todayRevenue = todayOrders.reduce((sum, o) => sum + o.total, 0)
   const yesterdayRevenue = yesterdayOrders.reduce((sum, o) => sum + o.total, 0)
@@ -456,10 +477,12 @@ export function getFoodStockStatus(item: FoodItem): { status: string; color: str
 }
 
 export function calculateFoodInventoryValue(items: FoodItem[]): number {
+  if (!items || !Array.isArray(items)) return 0
   return items.reduce((sum, item) => sum + (item.currentStock * item.unitCost), 0)
 }
 
 export function searchFoodItems(items: FoodItem[], searchTerm: string): FoodItem[] {
+  if (!items || !Array.isArray(items)) return []
   const term = searchTerm.toLowerCase()
   return items.filter(i => 
     i.name.toLowerCase().includes(term) ||
@@ -469,16 +492,19 @@ export function searchFoodItems(items: FoodItem[], searchTerm: string): FoodItem
 }
 
 export function filterFoodByCategory(items: FoodItem[], category?: FoodCategory): FoodItem[] {
+  if (!items || !Array.isArray(items)) return []
   if (!category) return items
   return items.filter(i => i.category === category)
 }
 
 export function filterFoodByFrequency(items: FoodItem[], frequency?: OrderFrequency): FoodItem[] {
+  if (!items || !Array.isArray(items)) return []
   if (!frequency) return items
   return items.filter(i => i.orderFrequency === frequency)
 }
 
 export function filterFoodByStatus(items: FoodItem[], status?: string): FoodItem[] {
+  if (!items || !Array.isArray(items)) return []
   if (!status) return items
   return items.filter(i => {
     const itemStatus = getFoodStockStatus(i)
@@ -487,16 +513,19 @@ export function filterFoodByStatus(items: FoodItem[], status?: string): FoodItem
 }
 
 export function getUrgentFoodItems(items: FoodItem[]): FoodItem[] {
+  if (!items || !Array.isArray(items)) return []
   return items.filter(i => getFoodStockStatus(i).urgent)
 }
 
 export function getExpiringFoodItems(items: FoodItem[], daysThreshold: number = 7): FoodItem[] {
+  if (!items || !Array.isArray(items)) return []
   return items.filter(i => 
     i.expiryDate && isExpiringSoon(i.expiryDate, daysThreshold) && !isExpired(i.expiryDate)
   )
 }
 
 export function getExpiredFoodItems(items: FoodItem[]): FoodItem[] {
+  if (!items || !Array.isArray(items)) return []
   return items.filter(i => i.expiryDate && isExpired(i.expiryDate))
 }
 
@@ -533,10 +562,12 @@ export function getAmenityStockStatus(amenity: { currentStock: number; reorderLe
 }
 
 export function calculateAmenityInventoryValue(items: { currentStock: number; unitCost: number }[]): number {
+  if (!items || !Array.isArray(items)) return 0
   return items.reduce((sum, item) => sum + (item.currentStock * item.unitCost), 0)
 }
 
 export function searchAmenities(items: any[], searchTerm: string): any[] {
+  if (!items || !Array.isArray(items)) return []
   const term = searchTerm.toLowerCase()
   return items.filter((i: any) => 
     i.name.toLowerCase().includes(term) ||
@@ -547,16 +578,19 @@ export function searchAmenities(items: any[], searchTerm: string): any[] {
 }
 
 export function filterAmenitiesByCategory(items: any[], category?: string): any[] {
+  if (!items || !Array.isArray(items)) return []
   if (!category) return items
   return items.filter((i: any) => i.category === category)
 }
 
 export function filterAmenitiesByDepartment(items: any[], department?: string): any[] {
+  if (!items || !Array.isArray(items)) return []
   if (!department) return items
   return items.filter((i: any) => i.department.includes(department))
 }
 
 export function filterAmenitiesByStatus(items: any[], status?: string): any[] {
+  if (!items || !Array.isArray(items)) return []
   if (!status) return items
   return items.filter((i: any) => {
     const itemStatus = getAmenityStockStatus(i)
@@ -565,6 +599,7 @@ export function filterAmenitiesByStatus(items: any[], status?: string): any[] {
 }
 
 export function getUrgentAmenities(items: any[]): any[] {
+  if (!items || !Array.isArray(items)) return []
   return items.filter((i: any) => getAmenityStockStatus(i).urgent)
 }
 
