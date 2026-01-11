@@ -40,7 +40,8 @@ import {
   Buildings,
   Percent,
   Users,
-  ChartLine
+  ChartLine,
+  Brain
 } from '@phosphor-icons/react'
 import type { Room, RoomStatus, RoomType, RoomTypeConfig, RatePlanConfig, Season, EventDay, CorporateAccount, RateCalendar, SystemUser, Reservation, GuestInvoice } from '@/lib/types'
 import { RoomDialog } from '@/components/RoomDialog'
@@ -53,6 +54,7 @@ import { SeasonDialog } from '@/components/SeasonDialog'
 import { EventDayDialog } from '@/components/EventDayDialog'
 import { CorporateAccountDialog } from '@/components/CorporateAccountDialog'
 import { RevenueBreakdownDialog } from '@/components/RevenueBreakdownDialog'
+import { AIPricingRecommendations } from '@/components/AIPricingRecommendations'
 import { formatCurrency } from '@/lib/helpers'
 
 interface RoomRevenueManagementProps {
@@ -455,10 +457,11 @@ export function RoomRevenueManagement({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="rooms">Rooms</TabsTrigger>
           <TabsTrigger value="room-types">Room Types</TabsTrigger>
           <TabsTrigger value="rate-plans">Rate Plans</TabsTrigger>
+          <TabsTrigger value="ai-pricing">AI Pricing</TabsTrigger>
           <TabsTrigger value="calendar">Rate Calendar</TabsTrigger>
           <TabsTrigger value="seasons">Seasons & Events</TabsTrigger>
           <TabsTrigger value="corporate">Corporate</TabsTrigger>
@@ -959,6 +962,23 @@ export function RoomRevenueManagement({
               </div>
             )}
           </Card>
+        </TabsContent>
+
+        <TabsContent value="ai-pricing">
+          <AIPricingRecommendations
+            roomTypes={roomTypes}
+            reservations={reservations || []}
+            invoices={invoices || []}
+            onApplyRecommendation={(roomTypeId, newRate) => {
+              setRoomTypes((current) => 
+                current.map(rt => 
+                  rt.id === roomTypeId 
+                    ? { ...rt, baseRate: newRate }
+                    : rt
+                )
+              )
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="calendar">
