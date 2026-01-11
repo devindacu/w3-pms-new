@@ -124,12 +124,17 @@ export function CustomReportBuilder({ onClose, existingReport, onSave }: CustomR
   }
 
   const handleAddFilter = () => {
+    if (selectedDimensions.length === 0) {
+      toast.error('Please add at least one dimension before adding filters')
+      return
+    }
+    
     const newFilter: ReportFilter = {
       id: `filter-${Date.now()}`,
-      field: '',
+      field: selectedDimensions[0].id,
       operator: 'equals',
       value: '',
-      dimensionId: selectedDimensions[0]?.id || ''
+      dimensionId: selectedDimensions[0].id
     }
     setFilters((prev) => [...prev, newFilter])
   }
