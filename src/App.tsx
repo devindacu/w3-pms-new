@@ -37,7 +37,8 @@ import {
   Sparkle,
   Bell,
   List,
-  FileText
+  FileText,
+  TrendUp
 } from '@phosphor-icons/react'
 import { DashboardFilters, type DashboardFilters as DashboardFiltersType } from '@/components/DashboardFilters'
 import { applyDashboardFilters, type FilteredDashboardData } from '@/lib/filterHelpers'
@@ -172,6 +173,7 @@ import { WidgetRenderer } from '@/components/DashboardWidgets'
 import { getDefaultWidgetsForRole, getWidgetSize } from '@/lib/widgetConfig'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { ColorMoodSelector } from '@/components/ColorMoodSelector'
+import { RevenueOccupancyTrends } from '@/components/RevenueOccupancyTrends'
 import type {
   DashboardLayout,
   DashboardWidget,
@@ -208,7 +210,7 @@ import type {
   EmailCampaignAnalytics
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -891,6 +893,15 @@ function App() {
           </Button>
 
           <Button
+            variant={currentModule === 'revenue-trends' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('revenue-trends')}
+          >
+            <TrendUp size={18} className="mr-2" />
+            Revenue & Occupancy
+          </Button>
+
+          <Button
             variant={currentModule === 'forecasting' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('forecasting')}
@@ -1181,6 +1192,14 @@ function App() {
               menus={menus || []}
               consumptionLogs={consumptionLogs || []}
               purchaseOrders={purchaseOrders || []}
+            />
+          )}
+          {currentModule === 'revenue-trends' && (
+            <RevenueOccupancyTrends
+              reservations={reservations || []}
+              orders={orders || []}
+              invoices={guestInvoices || []}
+              totalRooms={(rooms || []).length}
             />
           )}
           {currentModule === 'forecasting' && (
