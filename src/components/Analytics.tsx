@@ -1,33 +1,20 @@
-import { useState, useMemo } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { toast } from 'sonner'
 import {
   ChartBar,
-  FileText,
-  TrendUp,
-  TrendDown,
+  Bed,
+  Users,
   CurrencyDollar,
   Package,
   ChefHat,
+  Broom,
   Receipt,
-  CalendarBlank,
-  Download,
-  Printer,
-  FunnelSimple,
-  ArrowsClockwise,
-  X,
-  ArrowsLeftRight,
-  Plus,
-  Trash
+  TrendUp,
+  TrendDown,
+  Buildings
 } from '@phosphor-icons/react'
 import { formatCurrency, formatPercent } from '@/lib/helpers'
 import {
@@ -47,33 +34,11 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts'
-import {
-  generateOrderSummary,
-  generateSupplierPriceComparison,
-  generateDepartmentConsumption,
-  generateGRNVariance,
-  generateExpiryForecast,
-  generateCostPerDepartment,
-  generateFoodCostPercentage,
-  generatePurchaseTrends,
-  generateBudgetUtilization,
-  generateIngredientUsage,
-  generateDishProfitability,
-  generateMenuPerformance,
-  type OrderSummaryReport,
-  type SupplierPriceComparison,
-  type DepartmentConsumption,
-  type GRNVarianceReport,
-  type ExpiryForecast,
-  type CostPerDepartment,
-  type FoodCostReport,
-  type PurchaseTrend,
-  type BudgetUtilization,
-  type IngredientUsage,
-  type DishProfitability,
-  type MenuPerformance
-} from '@/lib/reportHelpers'
 import type {
+  Room,
+  Reservation,
+  Guest,
+  GuestProfile,
   Order,
   FoodItem,
   Supplier,
@@ -81,15 +46,26 @@ import type {
   Recipe,
   Menu,
   KitchenConsumptionLog,
-  PurchaseOrder
+  PurchaseOrder,
+  Employee,
+  HousekeepingTask,
+  GuestInvoice,
+  Payment,
+  Expense,
+  Folio,
+  InventoryItem,
+  GuestComplaint,
+  GuestFeedback,
+  ChannelReservation,
+  ChannelPerformance,
+  MaintenanceRequest
 } from '@/lib/types'
-import { AdvancedFilterDialog, type AdvancedFilter, type FilterField } from '@/components/AdvancedFilterDialog'
-import { PercentageChangeIndicator, PercentageChangeBadge } from '@/components/PercentageChangeIndicator'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Checkbox } from '@/components/ui/checkbox'
-import { exportToCSV, exportToPDF, exportToExcel, prepareTableDataForExport, type ExportData } from '@/lib/exportHelpers'
 
 interface AnalyticsProps {
+  rooms: Room[]
+  reservations: Reservation[]
+  guests: Guest[]
+  guestProfiles: GuestProfile[]
   orders: Order[]
   foodItems: FoodItem[]
   suppliers: Supplier[]
@@ -98,1533 +74,516 @@ interface AnalyticsProps {
   menus: Menu[]
   consumptionLogs: KitchenConsumptionLog[]
   purchaseOrders: PurchaseOrder[]
+  employees: Employee[]
+  housekeepingTasks: HousekeepingTask[]
+  guestInvoices: GuestInvoice[]
+  payments: Payment[]
+  expenses: Expense[]
+  folios: Folio[]
+  inventory: InventoryItem[]
+  complaints: GuestComplaint[]
+  guestFeedback: GuestFeedback[]
+  channelReservations: ChannelReservation[]
+  channelPerformance: ChannelPerformance[]
+  maintenanceRequests: MaintenanceRequest[]
 }
 
-type ReportPeriod = 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom'
-type ReportCategory = 'operational' | 'financial' | 'kitchen'
-type ExportFormat = 'csv' | 'pdf' | 'excel'
+const CHART_COLORS = ['#8B5CF6', '#06B6D4', '#10B981', '#F59E0B', '#EF4444']
 
-interface ExportDialogState {
-  open: boolean
-  reportType: string
-  data: ExportData | null
-}
+export function Analytics(props: AnalyticsProps) {
+  const [activeTab, setActiveTab] = useState('overview')
 
-interface ComparisonPeriod {
-  id: string
-  label: string
-  startDate: string
-  endDate: string
-  color: string
-}
+  const getOccupancyData = () => {
+    const occupiedRooms = props.rooms.filter(r => r.status.includes('occupied')).length
+    const totalRooms = props.rooms.length
+    const occupancyRate = totalRooms > 0 ? (occupiedRooms / totalRooms) * 100 : 0
 
-export function Analytics({
-  orders,
-  foodItems,
-  suppliers,
-  grns,
-  recipes,
-  menus,
-  consumptionLogs,
-  purchaseOrders
-}: AnalyticsProps) {
-  const [period, setPeriod] = useState<ReportPeriod>('monthly')
-  const [category, setCategory] = useState<ReportCategory>('operational')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
-  const [activeFilter, setActiveFilter] = useState<AdvancedFilter | null>(null)
-  const [savedFilters, setSavedFilters] = useKV<AdvancedFilter[]>('analytics-saved-filters', [])
-  const [comparisonMode, setComparisonMode] = useState(false)
-  const [comparisonPeriods, setComparisonPeriods] = useState<ComparisonPeriod[]>([])
-  const [exportDialog, setExportDialog] = useState<ExportDialogState>({ open: false, reportType: '', data: null })
-  const [includeCharts, setIncludeCharts] = useState(false)
-  
-  const comparisonColors = [
-    'var(--chart-1)',
-    'var(--chart-2)',
-    'var(--chart-3)',
-    'var(--chart-4)',
-    'var(--chart-5)',
-    'var(--primary)',
-    'var(--accent)',
-    'var(--success)'
+    return {
+      occupiedRooms,
+      totalRooms,
+      occupancyRate,
+      vacantClean: props.rooms.filter(r => r.status === 'vacant-clean').length,
+      vacantDirty: props.rooms.filter(r => r.status === 'vacant-dirty').length,
+      maintenance: props.rooms.filter(r => r.status === 'maintenance').length
+    }
+  }
+
+  const getRevenueData = () => {
+    const totalRevenue = props.guestInvoices.reduce((sum, inv) => sum + inv.grandTotal, 0)
+    const paidRevenue = props.payments.reduce((sum, p) => sum + p.amount, 0)
+    const pendingRevenue = props.guestInvoices.reduce((sum, inv) => sum + inv.amountDue, 0)
+    const roomRevenue = totalRevenue * 0.6
+    const fnbRevenue = props.orders.reduce((sum, o) => sum + o.total, 0)
+    
+    return {
+      totalRevenue,
+      paidRevenue,
+      pendingRevenue,
+      roomRevenue,
+      fnbRevenue,
+      otherRevenue: totalRevenue - roomRevenue - fnbRevenue
+    }
+  }
+
+  const getGuestData = () => {
+    const totalGuests = props.guests.length
+    const activeReservations = props.reservations.filter(r => r.status === 'checked-in').length
+    const upcomingReservations = props.reservations.filter(r => r.status === 'confirmed').length
+    const avgStayDuration = props.reservations.length > 0
+      ? props.reservations.reduce((sum, r) => sum + Math.ceil((r.checkOutDate - r.checkInDate) / (1000 * 60 * 60 * 24)), 0) / props.reservations.length
+      : 0
+
+    return {
+      totalGuests,
+      activeReservations,
+      upcomingReservations,
+      avgStayDuration,
+      complaints: props.complaints.length,
+      feedback: props.guestFeedback.length,
+      satisfaction: props.guestFeedback.length > 0
+        ? props.guestFeedback.reduce((sum, f) => {
+            const rating = f.ratings?.roomCleanliness
+            return sum + (typeof rating === 'number' ? rating : 0)
+          }, 0) / props.guestFeedback.length
+        : 0
+    }
+  }
+
+  const getHousekeepingData = () => {
+    const totalTasks = props.housekeepingTasks.length
+    const completedTasks = props.housekeepingTasks.filter(t => t.status === 'completed').length
+    const pendingTasks = props.housekeepingTasks.filter(t => t.status === 'pending').length
+    const inProgressTasks = props.housekeepingTasks.filter(t => t.status === 'in-progress').length
+
+    return {
+      totalTasks,
+      completedTasks,
+      pendingTasks,
+      inProgressTasks,
+      completionRate: totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
+    }
+  }
+
+  const getFnBData = () => {
+    const totalOrders = props.orders.length
+    const completedOrders = props.orders.filter(o => o.status === 'served').length
+    const totalRevenue = props.orders.reduce((sum, o) => sum + o.total, 0)
+    const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
+
+    return {
+      totalOrders,
+      completedOrders,
+      totalRevenue,
+      avgOrderValue,
+      recipes: props.recipes.length
+    }
+  }
+
+  const getInventoryData = () => {
+    const totalItems = props.foodItems.length
+    const lowStockItems = props.foodItems.filter(f => f.currentStock <= f.reorderLevel).length
+    const outOfStockItems = props.foodItems.filter(f => f.currentStock === 0).length
+    const totalValue = props.foodItems.reduce((sum, f) => sum + (f.currentStock * f.unitCost), 0)
+
+    return {
+      totalItems,
+      lowStockItems,
+      outOfStockItems,
+      totalValue
+    }
+  }
+
+  const getFinanceData = () => {
+    const totalInvoices = props.guestInvoices.length
+    const totalPayments = props.payments.length
+    const totalExpenses = props.expenses.length
+    const revenue = props.payments.reduce((sum, p) => sum + p.amount, 0)
+    const expenseAmount = props.expenses.reduce((sum, e) => sum + e.amount, 0)
+    const netProfit = revenue - expenseAmount
+
+    return {
+      totalInvoices,
+      totalPayments,
+      totalExpenses,
+      revenue,
+      expenseAmount,
+      netProfit,
+      profitMargin: revenue > 0 ? (netProfit / revenue) * 100 : 0
+    }
+  }
+
+  const getStaffData = () => {
+    const totalEmployees = props.employees.length
+    const activeEmployees = props.employees.filter(e => e.status === 'active').length
+    const departments = Array.from(new Set(props.employees.map(e => e.department)))
+
+    return {
+      totalEmployees,
+      activeEmployees,
+      departments: departments.length
+    }
+  }
+
+  const occupancyData = getOccupancyData()
+  const revenueData = getRevenueData()
+  const guestData = getGuestData()
+  const housekeepingData = getHousekeepingData()
+  const fnbData = getFnBData()
+  const inventoryData = getInventoryData()
+  const financeData = getFinanceData()
+  const staffData = getStaffData()
+
+  const revenueChartData = [
+    { name: 'Room Revenue', value: revenueData.roomRevenue },
+    { name: 'F&B Revenue', value: revenueData.fnbRevenue },
+    { name: 'Other Revenue', value: revenueData.otherRevenue }
   ]
 
-  const handleAddComparisonPeriod = () => {
-    const newPeriod: ComparisonPeriod = {
-      id: `period-${Date.now()}`,
-      label: `Period ${comparisonPeriods.length + 1}`,
-      startDate: '',
-      endDate: '',
-      color: comparisonColors[comparisonPeriods.length % comparisonColors.length]
-    }
-    setComparisonPeriods((current) => [...current, newPeriod])
-    toast.success('Comparison period added')
-  }
+  const occupancyChartData = [
+    { name: 'Occupied', value: occupancyData.occupiedRooms },
+    { name: 'Vacant Clean', value: occupancyData.vacantClean },
+    { name: 'Vacant Dirty', value: occupancyData.vacantDirty },
+    { name: 'Maintenance', value: occupancyData.maintenance }
+  ]
 
-  const handleRemoveComparisonPeriod = (id: string) => {
-    setComparisonPeriods((current) => current.filter(p => p.id !== id))
-    toast.success('Comparison period removed')
-  }
-
-  const handleUpdateComparisonPeriod = (id: string, field: keyof ComparisonPeriod, value: string) => {
-    setComparisonPeriods((current) =>
-      current.map(p => p.id === id ? { ...p, [field]: value } : p)
-    )
-  }
-
-  const toggleComparisonMode = () => {
-    setComparisonMode(!comparisonMode)
-    if (!comparisonMode && comparisonPeriods.length === 0) {
-      handleAddComparisonPeriod()
-      handleAddComparisonPeriod()
-    }
-  }
-
-  const filterFields: FilterField[] = useMemo(() => {
-    const supplierOptions = suppliers.map(s => ({ value: s.id, label: s.name }))
-    const categoryOptions = Array.from(new Set(foodItems.map(f => f.category))).map(c => ({ value: c, label: c }))
-    const statusOptions = [
-      { value: 'pending', label: 'Pending' },
-      { value: 'approved', label: 'Approved' },
-      { value: 'received', label: 'Received' },
-      { value: 'completed', label: 'Completed' },
-      { value: 'cancelled', label: 'Cancelled' }
-    ]
-
-    return [
-      { id: 'orderDate', label: 'Order Date', type: 'date' },
-      { id: 'orderAmount', label: 'Order Amount', type: 'currency' },
-      { id: 'supplier', label: 'Supplier', type: 'select', options: supplierOptions },
-      { id: 'category', label: 'Category', type: 'multiselect', options: categoryOptions },
-      { id: 'status', label: 'Status', type: 'select', options: statusOptions },
-      { id: 'itemName', label: 'Item Name', type: 'text' },
-      { id: 'quantity', label: 'Quantity', type: 'number' },
-      { id: 'unitPrice', label: 'Unit Price', type: 'currency' },
-      { id: 'totalCost', label: 'Total Cost', type: 'currency' },
-      { id: 'poNumber', label: 'PO Number', type: 'text' },
-      { id: 'grnNumber', label: 'GRN Number', type: 'text' },
-      { id: 'expiryDate', label: 'Expiry Date', type: 'date' },
-      { id: 'stockLevel', label: 'Stock Level', type: 'number' },
-      { id: 'variance', label: 'Variance %', type: 'number' }
-    ]
-  }, [suppliers, foodItems])
-
-  const handleApplyFilter = (filter: AdvancedFilter) => {
-    setActiveFilter(filter)
-    toast.success(`Filter "${filter.name}" applied`)
-  }
-
-  const handleSaveFilter = (filter: AdvancedFilter) => {
-    setSavedFilters((current) => [...(current || []), filter])
-    toast.success(`Filter "${filter.name}" saved`)
-  }
-
-  const handleDeleteFilter = (filterId: string) => {
-    setSavedFilters((current) => (current || []).filter(f => f.id !== filterId))
-    toast.success('Filter deleted')
-  }
-
-  const handleClearFilter = () => {
-    setActiveFilter(null)
-    toast.success('Filter cleared')
-  }
-
-  const handleOpenExportDialog = (reportType: string, data: ExportData) => {
-    setExportDialog({ open: true, reportType, data })
-  }
-
-  const handleExportFormat = async (format: ExportFormat) => {
-    if (!exportDialog.data) return
-
-    try {
-      switch (format) {
-        case 'csv':
-          exportToCSV(exportDialog.data)
-          toast.success('Report exported as CSV successfully')
-          break
-        case 'pdf':
-          await exportToPDF(exportDialog.data, includeCharts)
-          toast.success('Report exported as PDF successfully')
-          break
-        case 'excel':
-          exportToExcel(exportDialog.data)
-          toast.success('Report exported as Excel successfully')
-          break
-      }
-      setExportDialog({ open: false, reportType: '', data: null })
-      setIncludeCharts(false)
-    } catch (error) {
-      toast.error(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    }
-  }
-
-  const handleExport = (format: 'csv' | 'pdf' | 'excel') => {
-    toast.success(`Exporting report as ${format.toUpperCase()}`)
-  }
-
-  const handlePrint = () => {
-    window.print()
-  }
-
-  const renderOperationalReports = () => {
-    const orderSummary = generateOrderSummary(orders, period)
-    const supplierComparison = generateSupplierPriceComparison(foodItems, suppliers, purchaseOrders)
-    const deptConsumption = generateDepartmentConsumption(consumptionLogs, foodItems)
-    const grnVariance = generateGRNVariance(grns, purchaseOrders)
-    const expiryForecast = generateExpiryForecast(foodItems)
-
-    const exportOrderSummary = () => {
-      const data = prepareTableDataForExport(
-        ['Date', 'Orders', 'Revenue', 'Avg Value'],
-        orderSummary.breakdown.map(item => [
-          item.period,
-          item.orderCount,
-          `LKR ${item.revenue.toLocaleString()}`,
-          `LKR ${item.averageValue.toLocaleString()}`
-        ]),
-        'Order Summary Report',
-        `${period.charAt(0).toUpperCase() + period.slice(1)} overview of orders`,
-        [
-          { label: 'Total Orders', value: orderSummary.totalOrders },
-          { label: 'Total Revenue', value: `LKR ${orderSummary.totalRevenue.toLocaleString()}` },
-          { label: 'Average Order Value', value: `LKR ${orderSummary.averageOrderValue.toLocaleString()}` },
-          { label: 'Items Sold', value: orderSummary.totalItemsSold }
-        ]
-      )
-      handleOpenExportDialog('Order Summary', data)
-    }
-
-    const getPreviousPeriodData = () => {
-      const now = Date.now()
-      const currentPeriod = orderSummary.breakdown
-      
-      if (currentPeriod.length < 2) return null
-      
-      const lastPeriod = currentPeriod[currentPeriod.length - 1]
-      const previousPeriod = currentPeriod[currentPeriod.length - 2]
-      
-      return {
-        current: {
-          orders: lastPeriod?.orderCount || 0,
-          revenue: lastPeriod?.revenue || 0,
-          avgValue: lastPeriod?.averageValue || 0
-        },
-        previous: {
-          orders: previousPeriod?.orderCount || 0,
-          revenue: previousPeriod?.revenue || 0,
-          avgValue: previousPeriod?.averageValue || 0
-        }
-      }
-    }
-
-    const periodComparison = getPreviousPeriodData()
-
-    const getComparisonData = () => {
-      if (!comparisonMode || comparisonPeriods.length === 0) return null
-      
-      return comparisonPeriods
-        .filter(p => p.startDate && p.endDate)
-        .map(period => ({
-          period,
-          data: generateOrderSummary(orders, 'custom').breakdown
-        }))
-    }
-
-    const comparisonData = getComparisonData()
-
-    return (
-      <div className="space-y-6">
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">Order Summary Report</h3>
-              <p className="text-sm text-muted-foreground">
-                {comparisonMode && comparisonData && comparisonData.length > 0
-                  ? `Comparing ${comparisonData.length} time periods`
-                  : `${period.charAt(0).toUpperCase() + period.slice(1)} overview of orders`}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={exportOrderSummary}>
-                <Download size={16} className="mr-2" />
-                Export
-              </Button>
-              <Button size="sm" variant="outline" onClick={handlePrint}>
-                <Printer size={16} className="mr-2" />
-                Print
-              </Button>
-            </div>
-          </div>
-
-          {!comparisonMode ? (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <Card className="p-4 bg-muted/50">
-                  <div className="text-sm text-muted-foreground mb-1">Total Orders</div>
-                  <div className="flex items-baseline justify-between">
-                    <div className="text-2xl font-semibold">{orderSummary.totalOrders}</div>
-                    {periodComparison && (
-                      <PercentageChangeIndicator
-                        current={periodComparison.current.orders}
-                        previous={periodComparison.previous.orders}
-                        size="sm"
-                      />
-                    )}
-                  </div>
-                </Card>
-                <Card className="p-4 bg-muted/50">
-                  <div className="text-sm text-muted-foreground mb-1">Total Revenue</div>
-                  <div className="flex items-baseline justify-between">
-                    <div className="text-2xl font-semibold">{formatCurrency(orderSummary.totalRevenue)}</div>
-                    {periodComparison && (
-                      <PercentageChangeIndicator
-                        current={periodComparison.current.revenue}
-                        previous={periodComparison.previous.revenue}
-                        size="sm"
-                      />
-                    )}
-                  </div>
-                </Card>
-                <Card className="p-4 bg-muted/50">
-                  <div className="text-sm text-muted-foreground mb-1">Avg Order Value</div>
-                  <div className="flex items-baseline justify-between">
-                    <div className="text-2xl font-semibold">{formatCurrency(orderSummary.averageOrderValue)}</div>
-                    {periodComparison && (
-                      <PercentageChangeIndicator
-                        current={periodComparison.current.avgValue}
-                        previous={periodComparison.previous.avgValue}
-                        size="sm"
-                      />
-                    )}
-                  </div>
-                </Card>
-                <Card className="p-4 bg-muted/50">
-                  <div className="text-sm text-muted-foreground mb-1">Items Sold</div>
-                  <div className="text-2xl font-semibold">{orderSummary.totalItemsSold}</div>
-                </Card>
-              </div>
-
-              <div className="mb-6">
-                <h4 className="text-sm font-medium mb-4">Order Trends Over Time</h4>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={orderSummary.breakdown}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                    <XAxis dataKey="period" stroke="var(--muted-foreground)" />
-                    <YAxis stroke="var(--muted-foreground)" />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'var(--card)', 
-                        border: '1px solid var(--border)',
-                        borderRadius: '6px'
-                      }}
-                      formatter={(value: any) => typeof value === 'number' ? formatCurrency(value) : value}
-                    />
-                    <Legend />
-                    <Area 
-                      type="monotone" 
-                      dataKey="revenue" 
-                      stroke="var(--primary)" 
-                      fill="var(--primary)" 
-                      fillOpacity={0.3}
-                      name="Revenue"
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="orderCount" 
-                      stroke="var(--accent)" 
-                      fill="var(--accent)" 
-                      fillOpacity={0.3}
-                      name="Orders"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </>
-          ) : comparisonData && comparisonData.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                {comparisonData.map((comp) => (
-                  <Card key={comp.period.id} className="p-4" style={{ borderLeft: `4px solid ${comp.period.color}` }}>
-                    <div className="text-sm font-medium mb-3" style={{ color: comp.period.color }}>
-                      {comp.period.label}
-                    </div>
-                    <div className="space-y-2 text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Orders:</span>
-                        <span className="font-medium">
-                          {comp.data.reduce((sum, d) => sum + (d.orderCount || 0), 0)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Revenue:</span>
-                        <span className="font-medium">
-                          {formatCurrency(comp.data.reduce((sum, d) => sum + (d.revenue || 0), 0))}
-                        </span>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-
-              <div className="mb-6">
-                <h4 className="text-sm font-medium mb-4">Revenue Comparison Across Periods</h4>
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={orderSummary.breakdown}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                    <XAxis dataKey="period" stroke="var(--muted-foreground)" />
-                    <YAxis stroke="var(--muted-foreground)" />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'var(--card)', 
-                        border: '1px solid var(--border)',
-                        borderRadius: '6px'
-                      }}
-                      formatter={(value: any) => formatCurrency(value)}
-                    />
-                    <Legend />
-                    {comparisonData.map((comp, idx) => (
-                      <Bar
-                        key={comp.period.id}
-                        dataKey={`revenue_${idx}`}
-                        fill={comp.period.color}
-                        name={comp.period.label}
-                        radius={[8, 8, 0, 0]}
-                      />
-                    ))}
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className="mb-6">
-                <h4 className="text-sm font-medium mb-4">Order Count Comparison</h4>
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={orderSummary.breakdown}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                    <XAxis dataKey="period" stroke="var(--muted-foreground)" />
-                    <YAxis stroke="var(--muted-foreground)" />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'var(--card)', 
-                        border: '1px solid var(--border)',
-                        borderRadius: '6px'
-                      }}
-                    />
-                    <Legend />
-                    {comparisonData.map((comp) => (
-                      <Line
-                        key={comp.period.id}
-                        type="monotone"
-                        dataKey={`orders_${comp.period.id}`}
-                        stroke={comp.period.color}
-                        strokeWidth={3}
-                        dot={{ fill: comp.period.color, r: 5 }}
-                        name={comp.period.label}
-                      />
-                    ))}
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </>
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <ArrowsLeftRight size={48} className="mx-auto mb-4 opacity-50" />
-              <p>Configure comparison periods to view data</p>
-            </div>
-          )}
-
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Orders</TableHead>
-                <TableHead className="text-right">Revenue</TableHead>
-                <TableHead className="text-right">Avg Value</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orderSummary.breakdown.map((item) => (
-                <TableRow key={item.period}>
-                  <TableCell>{item.period}</TableCell>
-                  <TableCell className="text-right font-medium">{item.orderCount}</TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(item.revenue)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(item.averageValue)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">Supplier Price Comparison</h3>
-              <p className="text-sm text-muted-foreground">Compare prices across suppliers for common items</p>
-            </div>
-          </div>
-
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Item</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Supplier</TableHead>
-                <TableHead className="text-right">Price</TableHead>
-                <TableHead className="text-right">Unit</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {supplierComparison.map((item) => (
-                <TableRow key={item.itemId}>
-                  <TableCell className="font-medium">{item.itemName}</TableCell>
-                  <TableCell>{item.category}</TableCell>
-                  <TableCell>{item.supplierName}</TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(item.price)}</TableCell>
-                  <TableCell className="text-right">{item.unit}</TableCell>
-                  <TableCell>
-                    {item.isBestPrice ? (
-                      <Badge variant="default">Best Price</Badge>
-                    ) : (
-                      <span className="text-muted-foreground">
-                        +{formatPercent(item.priceVariance / 100)}
-                      </span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">Department Consumption Report</h3>
-              <p className="text-sm text-muted-foreground">Track ingredient usage by department</p>
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <h4 className="text-sm font-medium mb-4">Cost Distribution by Department</h4>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={deptConsumption}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="department" stroke="var(--muted-foreground)" />
-                <YAxis stroke="var(--muted-foreground)" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'var(--card)', 
-                    border: '1px solid var(--border)',
-                    borderRadius: '6px'
-                  }}
-                  formatter={(value: any) => typeof value === 'number' ? formatCurrency(value) : value}
-                />
-                <Legend />
-                <Bar dataKey="estimatedCost" fill="var(--primary)" name="Cost (LKR)" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Department</TableHead>
-                <TableHead className="text-right">Items Used</TableHead>
-                <TableHead className="text-right">Total Quantity</TableHead>
-                <TableHead className="text-right">Estimated Cost</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {deptConsumption.map((dept) => (
-                <TableRow key={dept.department}>
-                  <TableCell className="font-medium">{dept.department}</TableCell>
-                  <TableCell className="text-right">{dept.itemsUsed}</TableCell>
-                  <TableCell className="text-right">{dept.totalQuantity.toFixed(2)}</TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(dept.estimatedCost)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">GRN Variance Report</h3>
-              <p className="text-sm text-muted-foreground">Compare ordered vs received quantities</p>
-            </div>
-          </div>
-
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>GRN #</TableHead>
-                <TableHead>PO #</TableHead>
-                <TableHead>Supplier</TableHead>
-                <TableHead className="text-right">Ordered Qty</TableHead>
-                <TableHead className="text-right">Received Qty</TableHead>
-                <TableHead className="text-right">Variance</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {grnVariance.map((grn) => (
-                <TableRow key={grn.grnId}>
-                  <TableCell className="font-medium">{grn.grnNumber}</TableCell>
-                  <TableCell>{grn.poNumber}</TableCell>
-                  <TableCell>{grn.supplierName}</TableCell>
-                  <TableCell className="text-right">{grn.orderedQty.toFixed(2)}</TableCell>
-                  <TableCell className="text-right">{grn.receivedQty.toFixed(2)}</TableCell>
-                  <TableCell className="text-right">
-                    <span className={grn.variance < 0 ? 'text-destructive' : grn.variance > 0 ? 'text-success' : ''}>
-                      {grn.variance > 0 ? '+' : ''}{grn.variance.toFixed(2)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {grn.variancePercentage > 5 ? (
-                      <Badge variant="destructive">High Variance</Badge>
-                    ) : grn.variancePercentage > 0 ? (
-                      <Badge variant="outline">Minor Variance</Badge>
-                    ) : (
-                      <Badge variant="default">Match</Badge>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">Expiry Forecast Report</h3>
-              <p className="text-sm text-muted-foreground">Items expiring in the next 30 days</p>
-            </div>
-          </div>
-
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Item</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Batch #</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead>Expiry Date</TableHead>
-                <TableHead>Days Left</TableHead>
-                <TableHead>Urgency</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {expiryForecast.map((item, idx) => (
-                <TableRow key={`${item.itemId}-${idx}`}>
-                  <TableCell className="font-medium">{item.itemName}</TableCell>
-                  <TableCell>{item.category}</TableCell>
-                  <TableCell>{item.batchNumber || 'N/A'}</TableCell>
-                  <TableCell>{item.currentStock} {item.unit}</TableCell>
-                  <TableCell>{new Date(item.expiryDate).toLocaleDateString()}</TableCell>
-                  <TableCell className="text-right">{item.daysUntilExpiry}</TableCell>
-                  <TableCell>
-                    {item.urgency === 'critical' ? (
-                      <Badge variant="destructive">Critical</Badge>
-                    ) : item.urgency === 'high' ? (
-                      <Badge className="bg-orange-500">High</Badge>
-                    ) : (
-                      <Badge variant="outline">Medium</Badge>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-      </div>
-    )
-  }
-
-  const renderFinancialReports = () => {
-    const costPerDept = generateCostPerDepartment(consumptionLogs, foodItems)
-    const foodCostPct = generateFoodCostPercentage(orders, consumptionLogs, foodItems)
-    const purchaseTrends = generatePurchaseTrends(purchaseOrders, period)
-    const budgetUtil = generateBudgetUtilization(purchaseOrders, consumptionLogs, foodItems)
-
-    const exportCostPerDept = () => {
-      const data = prepareTableDataForExport(
-        ['Department', 'Items', 'Quantity', 'Total Cost', '% of Total'],
-        costPerDept.map(dept => [
-          dept.department,
-          dept.itemCount,
-          dept.totalQuantity.toFixed(2),
-          `LKR ${dept.totalCost.toLocaleString()}`,
-          `${dept.percentageOfTotal.toFixed(1)}%`
-        ]),
-        'Cost Per Department Report',
-        'Breakdown of costs by department',
-        [
-          { label: 'Total Cost', value: `LKR ${costPerDept.reduce((sum, d) => sum + d.totalCost, 0).toLocaleString()}` },
-          { label: 'Departments', value: costPerDept.length },
-          { label: 'Highest Cost', value: costPerDept.length > 0 ? costPerDept[0].department : 'N/A' }
-        ]
-      )
-      handleOpenExportDialog('Cost Per Department', data)
-    }
-
-    return (
-      <div className="space-y-6">
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">Cost Per Department</h3>
-              <p className="text-sm text-muted-foreground">Breakdown of costs by department</p>
-            </div>
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={exportCostPerDept}>
-                <Download size={16} className="mr-2" />
-                Export
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Card className="p-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground mb-1">Total Cost</div>
-              <div className="text-2xl font-semibold">
-                {formatCurrency(costPerDept.reduce((sum, d) => sum + d.totalCost, 0))}
-              </div>
-            </Card>
-            <Card className="p-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground mb-1">Departments</div>
-              <div className="text-2xl font-semibold">{costPerDept.length}</div>
-            </Card>
-            <Card className="p-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground mb-1">Highest Cost</div>
-              <div className="text-lg font-semibold">
-                {costPerDept.length > 0 ? costPerDept[0].department : 'N/A'}
-              </div>
-            </Card>
-          </div>
-
-          <div className="mb-6">
-            <h4 className="text-sm font-medium mb-4">Cost Distribution by Department</h4>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={costPerDept}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ department, percentageOfTotal }) => `${department}: ${percentageOfTotal.toFixed(1)}%`}
-                  outerRadius={100}
-                  fill="var(--primary)"
-                  dataKey="totalCost"
-                  nameKey="department"
-                >
-                  {costPerDept.map((entry, index) => {
-                    const colors = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)']
-                    return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-                  })}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'var(--card)', 
-                    border: '1px solid var(--border)',
-                    borderRadius: '6px'
-                  }}
-                  formatter={(value: any) => formatCurrency(value)}
-                />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Department</TableHead>
-                <TableHead className="text-right">Items</TableHead>
-                <TableHead className="text-right">Quantity</TableHead>
-                <TableHead className="text-right">Total Cost</TableHead>
-                <TableHead className="text-right">% of Total</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {costPerDept.map((dept) => (
-                <TableRow key={dept.department}>
-                  <TableCell className="font-medium">{dept.department}</TableCell>
-                  <TableCell className="text-right">{dept.itemCount}</TableCell>
-                  <TableCell className="text-right">{dept.totalQuantity.toFixed(2)}</TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(dept.totalCost)}</TableCell>
-                  <TableCell className="text-right">{formatPercent(dept.percentageOfTotal / 100)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">Food Cost Percentage</h3>
-              <p className="text-sm text-muted-foreground">Analysis of food cost vs revenue</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card className="p-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground mb-1">Total Revenue</div>
-              <div className="text-2xl font-semibold">{formatCurrency(foodCostPct.totalRevenue)}</div>
-            </Card>
-            <Card className="p-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground mb-1">Total Cost</div>
-              <div className="text-2xl font-semibold">{formatCurrency(foodCostPct.totalCost)}</div>
-            </Card>
-            <Card className="p-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground mb-1">Food Cost %</div>
-              <div className="text-2xl font-semibold">{formatPercent(foodCostPct.foodCostPercentage / 100)}</div>
-            </Card>
-            <Card className="p-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground mb-1">Gross Profit</div>
-              <div className="text-2xl font-semibold">{formatCurrency(foodCostPct.grossProfit)}</div>
-            </Card>
-          </div>
-
-          <div className="mb-6">
-            <h4 className="text-sm font-medium mb-4">Food Cost Analysis by Category</h4>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={foodCostPct.breakdown}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="category" stroke="var(--muted-foreground)" />
-                <YAxis stroke="var(--muted-foreground)" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'var(--card)', 
-                    border: '1px solid var(--border)',
-                    borderRadius: '6px'
-                  }}
-                  formatter={(value: any) => typeof value === 'number' ? formatCurrency(value) : value}
-                />
-                <Legend />
-                <Bar dataKey="revenue" fill="var(--success)" name="Revenue" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="cost" fill="var(--destructive)" name="Cost" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="space-y-3">
-            {foodCostPct.breakdown.map((item) => (
-              <div key={item.category} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                <div>
-                  <div className="font-medium">{item.category}</div>
-                  <div className="text-sm text-muted-foreground">
-                    Revenue: {formatCurrency(item.revenue)} | Cost: {formatCurrency(item.cost)}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-lg font-semibold">{formatPercent(item.costPercentage / 100)}</div>
-                  <div className="text-sm text-muted-foreground">Food Cost %</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">Purchase Cost Trends</h3>
-              <p className="text-sm text-muted-foreground">
-                {comparisonMode && comparisonPeriods.length > 0
-                  ? 'Comparing purchase patterns across periods'
-                  : 'Track purchasing patterns over time'}
-              </p>
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <h4 className="text-sm font-medium mb-4">Purchase Order Trends</h4>
-            <ResponsiveContainer width="100%" height={350}>
-              <LineChart data={purchaseTrends}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="period" stroke="var(--muted-foreground)" />
-                <YAxis stroke="var(--muted-foreground)" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'var(--card)', 
-                    border: '1px solid var(--border)',
-                    borderRadius: '6px'
-                  }}
-                  formatter={(value: any) => typeof value === 'number' ? formatCurrency(value) : value}
-                />
-                <Legend />
-                {!comparisonMode ? (
-                  <>
-                    <Line 
-                      type="monotone" 
-                      dataKey="totalAmount" 
-                      stroke="var(--chart-1)" 
-                      strokeWidth={3}
-                      dot={{ fill: 'var(--chart-1)', r: 4 }}
-                      name="Total Amount"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="averagePoValue" 
-                      stroke="var(--chart-2)" 
-                      strokeWidth={3}
-                      dot={{ fill: 'var(--chart-2)', r: 4 }}
-                      name="Avg PO Value"
-                    />
-                  </>
-                ) : (
-                  comparisonPeriods
-                    .filter(p => p.startDate && p.endDate)
-                    .map((period) => (
-                      <Line
-                        key={period.id}
-                        type="monotone"
-                        dataKey={`amount_${period.id}`}
-                        stroke={period.color}
-                        strokeWidth={3}
-                        dot={{ fill: period.color, r: 5 }}
-                        name={period.label}
-                      />
-                    ))
-                )}
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {comparisonMode && comparisonPeriods.filter(p => p.startDate && p.endDate).length > 0 && (
-            <div className="mb-6">
-              <h4 className="text-sm font-medium mb-4">PO Count Comparison</h4>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={purchaseTrends}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="period" stroke="var(--muted-foreground)" />
-                  <YAxis stroke="var(--muted-foreground)" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'var(--card)', 
-                      border: '1px solid var(--border)',
-                      borderRadius: '6px'
-                    }}
-                  />
-                  <Legend />
-                  {comparisonPeriods
-                    .filter(p => p.startDate && p.endDate)
-                    .map((period) => (
-                      <Bar
-                        key={period.id}
-                        dataKey={`count_${period.id}`}
-                        fill={period.color}
-                        name={period.label}
-                        radius={[8, 8, 0, 0]}
-                      />
-                    ))}
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Period</TableHead>
-                <TableHead className="text-right">Purchase Orders</TableHead>
-                <TableHead className="text-right">Total Amount</TableHead>
-                <TableHead className="text-right">Avg PO Value</TableHead>
-                <TableHead className="text-right">Trend</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {purchaseTrends.map((trend, idx) => (
-                <TableRow key={trend.period}>
-                  <TableCell className="font-medium">{trend.period}</TableCell>
-                  <TableCell className="text-right">{trend.poCount}</TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(trend.totalAmount)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(trend.averagePoValue)}</TableCell>
-                  <TableCell className="text-right">
-                    {trend.trendDirection === 'up' ? (
-                      <span className="flex items-center justify-end text-destructive">
-                        <TrendUp size={16} className="mr-1" />
-                        {formatPercent(trend.trendPercentage / 100)}
-                      </span>
-                    ) : trend.trendDirection === 'down' ? (
-                      <span className="flex items-center justify-end text-success">
-                        <TrendDown size={16} className="mr-1" />
-                        {formatPercent(trend.trendPercentage / 100)}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">Stable</span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">Budget Utilization</h3>
-              <p className="text-sm text-muted-foreground">Track budget vs actual spending</p>
-            </div>
-          </div>
-
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Category</TableHead>
-                <TableHead className="text-right">Budget</TableHead>
-                <TableHead className="text-right">Spent</TableHead>
-                <TableHead className="text-right">Remaining</TableHead>
-                <TableHead className="text-right">% Used</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {budgetUtil.map((item) => (
-                <TableRow key={item.category}>
-                  <TableCell className="font-medium">{item.category}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(item.budgetAllocated)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(item.actualSpent)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(item.remaining)}</TableCell>
-                  <TableCell className="text-right font-medium">{formatPercent(item.utilizationPercentage / 100)}</TableCell>
-                  <TableCell>
-                    {item.status === 'over-budget' ? (
-                      <Badge variant="destructive">Over Budget</Badge>
-                    ) : item.status === 'near-limit' ? (
-                      <Badge className="bg-orange-500">Near Limit</Badge>
-                    ) : (
-                      <Badge variant="default">On Track</Badge>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-      </div>
-    )
-  }
-
-  const renderKitchenReports = () => {
-    const ingredientUsage = generateIngredientUsage(consumptionLogs, foodItems, recipes)
-    const dishProfit = generateDishProfitability(recipes, orders, foodItems)
-    const menuPerf = generateMenuPerformance(menus, orders, recipes)
-
-    const exportIngredientUsage = () => {
-      const data = prepareTableDataForExport(
-        ['Ingredient', 'Category', 'Times Used', 'Total Quantity', 'Unit', 'Estimated Cost'],
-        ingredientUsage.map(item => [
-          item.ingredientName,
-          item.category,
-          item.usageCount,
-          item.totalQuantity.toFixed(2),
-          item.unit,
-          `LKR ${item.estimatedCost.toLocaleString()}`
-        ]),
-        'Ingredient Usage Summary',
-        'Most used ingredients in recipes'
-      )
-      handleOpenExportDialog('Ingredient Usage', data)
-    }
-
-    return (
-      <div className="space-y-6">
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">Ingredient Usage Summary</h3>
-              <p className="text-sm text-muted-foreground">Most used ingredients in recipes</p>
-            </div>
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={exportIngredientUsage}>
-                <Download size={16} className="mr-2" />
-                Export
-              </Button>
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <h4 className="text-sm font-medium mb-4">Top Ingredients by Usage</h4>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={ingredientUsage.slice(0, 10)}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="ingredientName" stroke="var(--muted-foreground)" angle={-45} textAnchor="end" height={100} />
-                <YAxis stroke="var(--muted-foreground)" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'var(--card)', 
-                    border: '1px solid var(--border)',
-                    borderRadius: '6px'
-                  }}
-                  formatter={(value: any, name: string) => {
-                    if (name === 'estimatedCost') return formatCurrency(value)
-                    return value
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="usageCount" fill="var(--chart-3)" name="Times Used" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="estimatedCost" fill="var(--chart-1)" name="Estimated Cost" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Ingredient</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead className="text-right">Times Used</TableHead>
-                <TableHead className="text-right">Total Quantity</TableHead>
-                <TableHead className="text-right">Unit</TableHead>
-                <TableHead className="text-right">Estimated Cost</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {ingredientUsage.map((item) => (
-                <TableRow key={item.ingredientId}>
-                  <TableCell className="font-medium">{item.ingredientName}</TableCell>
-                  <TableCell>{item.category}</TableCell>
-                  <TableCell className="text-right">{item.usageCount}</TableCell>
-                  <TableCell className="text-right">{item.totalQuantity.toFixed(2)}</TableCell>
-                  <TableCell className="text-right">{item.unit}</TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(item.estimatedCost)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">Dish Profitability & Food Cost Breakdown</h3>
-              <p className="text-sm text-muted-foreground">
-                {comparisonMode && comparisonPeriods.filter(p => p.startDate && p.endDate).length > 0
-                  ? 'Compare dish profitability across periods'
-                  : 'Analyze profit margins for each dish'}
-              </p>
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <h4 className="text-sm font-medium mb-4">
-              {comparisonMode ? 'Gross Profit Comparison Across Periods' : 'Dish Profitability Comparison'}
-            </h4>
-            <ResponsiveContainer width="100%" height={comparisonMode ? 400 : 300}>
-              <BarChart data={dishProfit.slice(0, 10)}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="dishName" stroke="var(--muted-foreground)" angle={-45} textAnchor="end" height={100} />
-                <YAxis stroke="var(--muted-foreground)" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'var(--card)', 
-                    border: '1px solid var(--border)',
-                    borderRadius: '6px'
-                  }}
-                  formatter={(value: any) => typeof value === 'number' ? formatCurrency(value) : value}
-                />
-                <Legend />
-                {!comparisonMode ? (
-                  <>
-                    <Bar dataKey="sellingPrice" fill="var(--chart-1)" name="Selling Price" radius={[8, 8, 0, 0]} />
-                    <Bar dataKey="foodCost" fill="var(--chart-2)" name="Food Cost" radius={[8, 8, 0, 0]} />
-                    <Bar dataKey="grossProfit" fill="var(--success)" name="Gross Profit" radius={[8, 8, 0, 0]} />
-                  </>
-                ) : (
-                  comparisonPeriods
-                    .filter(p => p.startDate && p.endDate)
-                    .map((period) => (
-                      <Bar
-                        key={period.id}
-                        dataKey={`profit_${period.id}`}
-                        fill={period.color}
-                        name={`${period.label} Profit`}
-                        radius={[8, 8, 0, 0]}
-                      />
-                    ))
-                )}
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Dish</TableHead>
-                <TableHead className="text-right">Selling Price</TableHead>
-                <TableHead className="text-right">Food Cost</TableHead>
-                <TableHead className="text-right">Cost %</TableHead>
-                <TableHead className="text-right">Gross Profit</TableHead>
-                <TableHead className="text-right">Margin %</TableHead>
-                <TableHead className="text-right">Times Sold</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {dishProfit.map((dish) => (
-                <TableRow key={dish.dishId}>
-                  <TableCell className="font-medium">{dish.dishName}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(dish.sellingPrice)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(dish.foodCost)}</TableCell>
-                  <TableCell className="text-right">{formatPercent(dish.costPercentage / 100)}</TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(dish.grossProfit)}</TableCell>
-                  <TableCell className="text-right">
-                    <span className={dish.profitMargin > 60 ? 'text-success' : dish.profitMargin < 40 ? 'text-destructive' : ''}>
-                      {formatPercent(dish.profitMargin / 100)}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">{dish.timesSold}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">Menu Performance Analysis</h3>
-              <p className="text-sm text-muted-foreground">Track menu popularity and revenue contribution</p>
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <h4 className="text-sm font-medium mb-4">Menu Revenue Performance</h4>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={menuPerf}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="menuName" stroke="var(--muted-foreground)" />
-                <YAxis stroke="var(--muted-foreground)" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'var(--card)', 
-                    border: '1px solid var(--border)',
-                    borderRadius: '6px'
-                  }}
-                  formatter={(value: any, name: string) => {
-                    if (name === 'totalRevenue' || name === 'averageOrderValue') return formatCurrency(value)
-                    return value
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="totalOrders" fill="var(--chart-4)" name="Total Orders" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="totalRevenue" fill="var(--success)" name="Total Revenue" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Menu</TableHead>
-                <TableHead className="text-right">Items</TableHead>
-                <TableHead className="text-right">Orders</TableHead>
-                <TableHead className="text-right">Revenue</TableHead>
-                <TableHead className="text-right">Avg Order</TableHead>
-                <TableHead>Performance</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {menuPerf.map((menu) => (
-                <TableRow key={menu.menuId}>
-                  <TableCell className="font-medium">{menu.menuName}</TableCell>
-                  <TableCell className="text-right">{menu.itemCount}</TableCell>
-                  <TableCell className="text-right">{menu.totalOrders}</TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(menu.totalRevenue)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(menu.averageOrderValue)}</TableCell>
-                  <TableCell>
-                    {menu.performance === 'excellent' ? (
-                      <Badge variant="default">Excellent</Badge>
-                    ) : menu.performance === 'good' ? (
-                      <Badge variant="outline">Good</Badge>
-                    ) : (
-                      <Badge variant="destructive">Needs Review</Badge>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-      </div>
-    )
-  }
+  const monthlyRevenueData = (() => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    return months.map((month, index) => {
+      const monthRevenue = props.guestInvoices
+        .filter(inv => new Date(inv.invoiceDate).getMonth() === index)
+        .reduce((sum, inv) => sum + inv.grandTotal, 0)
+      return { month, revenue: monthRevenue }
+    })
+  })()
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-semibold">Analytics & Reports</h1>
-          <p className="text-muted-foreground mt-1">Comprehensive operational and financial insights</p>
-        </div>
-        <Button>
-          <ArrowsClockwise size={20} className="mr-2" />
-          Refresh Data
-        </Button>
+      <div>
+        <h1 className="text-3xl font-semibold">Analytics Dashboard</h1>
+        <p className="text-muted-foreground mt-1">Comprehensive analytics across all hotel operations</p>
       </div>
 
-      <Dialog open={exportDialog.open} onOpenChange={(open) => !open && setExportDialog({ open: false, reportType: '', data: null })}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Export Report</DialogTitle>
-            <DialogDescription>
-              Choose export format for {exportDialog.reportType}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Select Export Format:</p>
-              <div className="grid grid-cols-3 gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => handleExportFormat('csv')}
-                  className="h-20 flex flex-col gap-2"
-                >
-                  <FileText size={24} />
-                  <span className="text-xs">CSV</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleExportFormat('pdf')}
-                  className="h-20 flex flex-col gap-2"
-                >
-                  <Receipt size={24} />
-                  <span className="text-xs">PDF</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleExportFormat('excel')}
-                  className="h-20 flex flex-col gap-2"
-                >
-                  <FileText size={24} />
-                  <span className="text-xs">Excel</span>
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2 p-3 bg-muted rounded-md">
-              <Checkbox
-                id="include-charts"
-                checked={includeCharts}
-                onCheckedChange={(checked) => setIncludeCharts(checked as boolean)}
-              />
-              <label
-                htmlFor="include-charts"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Include charts in PDF export
-              </label>
-            </div>
-
-            <div className="text-xs text-muted-foreground space-y-1">
-              <p>• CSV: Best for data analysis in spreadsheet software</p>
-              <p>• PDF: Professional format for presentations and printing</p>
-              <p>• Excel: Formatted spreadsheet with styling</p>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setExportDialog({ open: false, reportType: '', data: null })}
-            >
-              Cancel
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Card className="p-6">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="flex-1 min-w-[200px]">
-            <Label htmlFor="period-select">Report Period</Label>
-            <Select value={period} onValueChange={(v) => setPeriod(v as ReportPeriod)}>
-              <SelectTrigger id="period-select">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="daily">Daily</SelectItem>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="yearly">Yearly</SelectItem>
-                <SelectItem value="custom">Custom Range</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {period === 'custom' && (
-            <>
-              <div className="flex-1 min-w-[200px]">
-                <Label htmlFor="start-date">Start Date</Label>
-                <Input
-                  id="start-date"
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
-              </div>
-              <div className="flex-1 min-w-[200px]">
-                <Label htmlFor="end-date">End Date</Label>
-                <Input
-                  id="end-date"
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
-              </div>
-            </>
-          )}
-
-          <AdvancedFilterDialog
-            fields={filterFields}
-            onApplyFilter={handleApplyFilter}
-            savedFilters={savedFilters || []}
-            onSaveFilter={handleSaveFilter}
-            onDeleteFilter={handleDeleteFilter}
-          />
-
-          {activeFilter && (
-            <Button variant="outline" onClick={handleClearFilter}>
-              <X size={18} className="mr-2" />
-              Clear Filter
-            </Button>
-          )}
-        </div>
-
-        {activeFilter && (
-          <div className="mt-4 p-3 bg-muted rounded-md">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FunnelSimple size={18} />
-                <span className="font-medium">Active Filter: {activeFilter.name}</span>
-                <Badge variant="outline">
-                  {activeFilter.groups.reduce((sum, g) => sum + g.rules.length, 0)} rules
-                </Badge>
-              </div>
-              <Button variant="ghost" size="sm" onClick={handleClearFilter}>
-                <X size={16} />
-              </Button>
-            </div>
-          </div>
-        )}
-      </Card>
-
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <ArrowsLeftRight size={20} className="text-primary" />
-            <h3 className="text-lg font-semibold">Comparison Mode</h3>
-            <Badge variant={comparisonMode ? "default" : "outline"}>
-              {comparisonMode ? 'Active' : 'Inactive'}
-            </Badge>
-          </div>
-          <Button onClick={toggleComparisonMode} variant={comparisonMode ? 'default' : 'outline'}>
-            <ArrowsLeftRight size={18} className="mr-2" />
-            {comparisonMode ? 'Disable' : 'Enable'} Comparison
-          </Button>
-        </div>
-
-        {comparisonMode && (
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Compare data across multiple time periods side-by-side in charts and tables.
-            </p>
-            
-            <div className="space-y-3">
-              {comparisonPeriods.map((period, index) => (
-                <div key={period.id} className="flex items-end gap-3 p-4 bg-muted/50 rounded-lg">
-                  <div className="w-2 h-full rounded-full" style={{ backgroundColor: period.color }} />
-                  <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div>
-                      <Label htmlFor={`period-label-${period.id}`}>Period Name</Label>
-                      <Input
-                        id={`period-label-${period.id}`}
-                        value={period.label}
-                        onChange={(e) => handleUpdateComparisonPeriod(period.id, 'label', e.target.value)}
-                        placeholder={`Period ${index + 1}`}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor={`period-start-${period.id}`}>Start Date</Label>
-                      <Input
-                        id={`period-start-${period.id}`}
-                        type="date"
-                        value={period.startDate}
-                        onChange={(e) => handleUpdateComparisonPeriod(period.id, 'startDate', e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor={`period-end-${period.id}`}>End Date</Label>
-                      <Input
-                        id={`period-end-${period.id}`}
-                        type="date"
-                        value={period.endDate}
-                        onChange={(e) => handleUpdateComparisonPeriod(period.id, 'endDate', e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleRemoveComparisonPeriod(period.id)}
-                    disabled={comparisonPeriods.length <= 2}
-                  >
-                    <Trash size={18} />
-                  </Button>
-                </div>
-              ))}
-            </div>
-
-            <Button
-              variant="outline"
-              onClick={handleAddComparisonPeriod}
-              disabled={comparisonPeriods.length >= 8}
-              className="w-full"
-            >
-              <Plus size={18} className="mr-2" />
-              Add Comparison Period
-            </Button>
-
-            {comparisonPeriods.length >= 8 && (
-              <p className="text-sm text-muted-foreground text-center">
-                Maximum of 8 comparison periods reached
-              </p>
-            )}
-          </div>
-        )}
-      </Card>
-
-      <Tabs value={category} onValueChange={(v) => setCategory(v as ReportCategory)}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="operational">
-            <Package size={18} className="mr-2" />
-            Operational Reports
-          </TabsTrigger>
-          <TabsTrigger value="financial">
-            <CurrencyDollar size={18} className="mr-2" />
-            Financial Reports
-          </TabsTrigger>
-          <TabsTrigger value="kitchen">
-            <ChefHat size={18} className="mr-2" />
-            Kitchen & Menu Reports
-          </TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="rooms">Rooms</TabsTrigger>
+          <TabsTrigger value="revenue">Revenue</TabsTrigger>
+          <TabsTrigger value="guests">Guests</TabsTrigger>
+          <TabsTrigger value="housekeeping">Housekeeping</TabsTrigger>
+          <TabsTrigger value="fnb">F&B</TabsTrigger>
+          <TabsTrigger value="inventory">Inventory</TabsTrigger>
+          <TabsTrigger value="finance">Finance</TabsTrigger>
+          <TabsTrigger value="staff">Staff</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="operational" className="mt-6">
-          {renderOperationalReports()}
+        <TabsContent value="overview" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="p-6 border-l-4 border-l-primary">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Occupancy Rate</h3>
+                <Bed size={20} className="text-primary" />
+              </div>
+              <p className="text-3xl font-semibold">{occupancyData.occupancyRate.toFixed(1)}%</p>
+              <p className="text-sm text-muted-foreground mt-1">{occupancyData.occupiedRooms} / {occupancyData.totalRooms} rooms</p>
+            </Card>
+
+            <Card className="p-6 border-l-4 border-l-accent">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Total Revenue</h3>
+                <CurrencyDollar size={20} className="text-accent" />
+              </div>
+              <p className="text-3xl font-semibold">{formatCurrency(revenueData.totalRevenue)}</p>
+              <p className="text-sm text-muted-foreground mt-1">Pending: {formatCurrency(revenueData.pendingRevenue)}</p>
+            </Card>
+
+            <Card className="p-6 border-l-4 border-l-success">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Active Guests</h3>
+                <Users size={20} className="text-success" />
+              </div>
+              <p className="text-3xl font-semibold">{guestData.activeReservations}</p>
+              <p className="text-sm text-muted-foreground mt-1">Upcoming: {guestData.upcomingReservations}</p>
+            </Card>
+
+            <Card className="p-6 border-l-4 border-l-secondary">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Net Profit</h3>
+                <TrendUp size={20} className="text-secondary" />
+              </div>
+              <p className="text-3xl font-semibold">{formatCurrency(financeData.netProfit)}</p>
+              <p className="text-sm text-muted-foreground mt-1">Margin: {financeData.profitMargin.toFixed(1)}%</p>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Revenue Breakdown</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={revenueChartData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    label
+                  >
+                    {revenueChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Room Status Distribution</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={occupancyChartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#8B5CF6" />
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+          </div>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Monthly Revenue Trend</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={monthlyRevenueData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                <Area type="monotone" dataKey="revenue" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.6} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </Card>
         </TabsContent>
 
-        <TabsContent value="financial" className="mt-6">
-          {renderFinancialReports()}
+        <TabsContent value="rooms" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Rooms</h3>
+              <p className="text-3xl font-semibold">{occupancyData.totalRooms}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Occupied Rooms</h3>
+              <p className="text-3xl font-semibold text-primary">{occupancyData.occupiedRooms}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Occupancy Rate</h3>
+              <p className="text-3xl font-semibold text-accent">{occupancyData.occupancyRate.toFixed(1)}%</p>
+            </Card>
+          </div>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Room Status Breakdown</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <p className="text-sm text-muted-foreground">Vacant Clean</p>
+                <p className="text-2xl font-semibold mt-1">{occupancyData.vacantClean}</p>
+              </div>
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <p className="text-sm text-muted-foreground">Vacant Dirty</p>
+                <p className="text-2xl font-semibold mt-1">{occupancyData.vacantDirty}</p>
+              </div>
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <p className="text-sm text-muted-foreground">Under Maintenance</p>
+                <p className="text-2xl font-semibold mt-1">{occupancyData.maintenance}</p>
+              </div>
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <p className="text-sm text-muted-foreground">Available</p>
+                <p className="text-2xl font-semibold mt-1">{occupancyData.vacantClean}</p>
+              </div>
+            </div>
+          </Card>
         </TabsContent>
 
-        <TabsContent value="kitchen" className="mt-6">
-          {renderKitchenReports()}
+        <TabsContent value="revenue" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="p-6 border-l-4 border-l-primary">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Revenue</h3>
+              <p className="text-3xl font-semibold">{formatCurrency(revenueData.totalRevenue)}</p>
+            </Card>
+            <Card className="p-6 border-l-4 border-l-success">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Paid Revenue</h3>
+              <p className="text-3xl font-semibold text-success">{formatCurrency(revenueData.paidRevenue)}</p>
+            </Card>
+            <Card className="p-6 border-l-4 border-l-destructive">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Pending Revenue</h3>
+              <p className="text-3xl font-semibold text-destructive">{formatCurrency(revenueData.pendingRevenue)}</p>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Room Revenue</h3>
+              <p className="text-2xl font-semibold">{formatCurrency(revenueData.roomRevenue)}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">F&B Revenue</h3>
+              <p className="text-2xl font-semibold">{formatCurrency(revenueData.fnbRevenue)}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Other Revenue</h3>
+              <p className="text-2xl font-semibold">{formatCurrency(revenueData.otherRevenue)}</p>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="guests" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Guests</h3>
+              <p className="text-3xl font-semibold">{guestData.totalGuests}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Active Check-ins</h3>
+              <p className="text-3xl font-semibold text-primary">{guestData.activeReservations}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Avg Stay Duration</h3>
+              <p className="text-3xl font-semibold">{guestData.avgStayDuration.toFixed(1)} days</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Satisfaction</h3>
+              <p className="text-3xl font-semibold text-accent">{guestData.satisfaction.toFixed(1)}/5</p>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Complaints</h3>
+              <p className="text-2xl font-semibold text-destructive">{guestData.complaints}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Feedback Received</h3>
+              <p className="text-2xl font-semibold text-success">{guestData.feedback}</p>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="housekeeping" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Tasks</h3>
+              <p className="text-3xl font-semibold">{housekeepingData.totalTasks}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Completed</h3>
+              <p className="text-3xl font-semibold text-success">{housekeepingData.completedTasks}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">In Progress</h3>
+              <p className="text-3xl font-semibold text-primary">{housekeepingData.inProgressTasks}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Completion Rate</h3>
+              <p className="text-3xl font-semibold text-accent">{housekeepingData.completionRate.toFixed(1)}%</p>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="fnb" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Orders</h3>
+              <p className="text-3xl font-semibold">{fnbData.totalOrders}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Revenue</h3>
+              <p className="text-3xl font-semibold">{formatCurrency(fnbData.totalRevenue)}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Avg Order Value</h3>
+              <p className="text-3xl font-semibold">{formatCurrency(fnbData.avgOrderValue)}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Recipes</h3>
+              <p className="text-3xl font-semibold">{fnbData.recipes}</p>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="inventory" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Items</h3>
+              <p className="text-3xl font-semibold">{inventoryData.totalItems}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Low Stock</h3>
+              <p className="text-3xl font-semibold text-destructive">{inventoryData.lowStockItems}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Out of Stock</h3>
+              <p className="text-3xl font-semibold text-destructive">{inventoryData.outOfStockItems}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Value</h3>
+              <p className="text-3xl font-semibold">{formatCurrency(inventoryData.totalValue)}</p>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="finance" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card className="p-6 border-l-4 border-l-primary">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Revenue</h3>
+              <p className="text-3xl font-semibold">{formatCurrency(financeData.revenue)}</p>
+            </Card>
+            <Card className="p-6 border-l-4 border-l-destructive">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Expenses</h3>
+              <p className="text-3xl font-semibold text-destructive">{formatCurrency(financeData.expenseAmount)}</p>
+            </Card>
+            <Card className="p-6 border-l-4 border-l-success">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Net Profit</h3>
+              <p className="text-3xl font-semibold text-success">{formatCurrency(financeData.netProfit)}</p>
+            </Card>
+            <Card className="p-6 border-l-4 border-l-accent">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Profit Margin</h3>
+              <p className="text-3xl font-semibold">{financeData.profitMargin.toFixed(1)}%</p>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Invoices</h3>
+              <p className="text-2xl font-semibold">{financeData.totalInvoices}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Payments</h3>
+              <p className="text-2xl font-semibold">{financeData.totalPayments}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Expenses</h3>
+              <p className="text-2xl font-semibold">{financeData.totalExpenses}</p>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="staff" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Employees</h3>
+              <p className="text-3xl font-semibold">{staffData.totalEmployees}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Active Employees</h3>
+              <p className="text-3xl font-semibold text-success">{staffData.activeEmployees}</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Departments</h3>
+              <p className="text-3xl font-semibold">{staffData.departments}</p>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

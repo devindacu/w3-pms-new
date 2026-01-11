@@ -1186,6 +1186,10 @@ function App() {
           )}
           {currentModule === 'analytics' && (
             <Analytics
+              rooms={rooms || []}
+              reservations={reservations || []}
+              guests={guests || []}
+              guestProfiles={guestProfiles || []}
               orders={orders || []}
               foodItems={foodItems || []}
               suppliers={suppliers || []}
@@ -1194,6 +1198,18 @@ function App() {
               menus={menus || []}
               consumptionLogs={consumptionLogs || []}
               purchaseOrders={purchaseOrders || []}
+              employees={employees || []}
+              housekeepingTasks={housekeepingTasks || []}
+              guestInvoices={guestInvoices || []}
+              payments={payments || []}
+              expenses={expenses || []}
+              folios={folios || []}
+              inventory={inventory || []}
+              complaints={complaints || []}
+              guestFeedback={guestFeedback || []}
+              channelReservations={channelReservations || []}
+              channelPerformance={channelPerformance || []}
+              maintenanceRequests={maintenanceRequests || []}
             />
           )}
           {currentModule === 'revenue-trends' && (
