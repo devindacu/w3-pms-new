@@ -29,6 +29,15 @@ export default defineConfig({
       'react/jsx-runtime',
     ],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+    sourcemap: false,
+  },
   esbuild: {
     logOverride: { 'this-is-undefined-in-esm': 'silent' }
   },

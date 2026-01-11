@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from 'react'
+import { useState } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Toaster } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -61,6 +61,23 @@ import type {
 import { AdvancedAnalyticsWidgets } from '@/components/AdvancedAnalyticsWidgets'
 import { PerformanceMetrics } from '@/components/PerformanceMetrics'
 import { RealtimeActivityFeed } from '@/components/RealtimeActivityFeed'
+import { FrontOffice } from '@/components/FrontOffice'
+import { Housekeeping } from '@/components/Housekeeping'
+import { FnBPOS } from '@/components/FnBPOS'
+import { KitchenManagement } from '@/components/KitchenManagement'
+import { CRM } from '@/components/CRM'
+import { ExtraServicesManagement } from '@/components/ExtraServicesManagement'
+import { RevenueManagement } from '@/components/RevenueManagement'
+import { ChannelManager } from '@/components/ChannelManager'
+import { InventoryManagement } from '@/components/InventoryManagement'
+import { Procurement } from '@/components/Procurement'
+import { SupplierManagement } from '@/components/SupplierManagement'
+import { Finance } from '@/components/Finance'
+import { HRManagement } from '@/components/HRManagement'
+import { Analytics } from '@/components/Analytics'
+import { ConstructionManagement } from '@/components/ConstructionManagement'
+import { UserManagement } from '@/components/UserManagement'
+import { Settings } from '@/components/Settings'
 import { 
   sampleSystemUsers,
   sampleGuests,
@@ -82,36 +99,6 @@ import {
   sampleEventDays,
   sampleCorporateAccounts
 } from '@/lib/revenueManagementSampleData'
-
-const FrontOffice = lazy(() => import('@/components/FrontOffice').then(m => ({ default: m.FrontOffice })))
-const Housekeeping = lazy(() => import('@/components/Housekeeping').then(m => ({ default: m.Housekeeping })))
-const FnBPOS = lazy(() => import('@/components/FnBPOS').then(m => ({ default: m.FnBPOS })))
-const KitchenManagement = lazy(() => import('@/components/KitchenManagement').then(m => ({ default: m.KitchenManagement })))
-const CRM = lazy(() => import('@/components/CRM').then(m => ({ default: m.CRM })))
-const ExtraServicesManagement = lazy(() => import('@/components/ExtraServicesManagement').then(m => ({ default: m.ExtraServicesManagement })))
-const RevenueManagement = lazy(() => import('@/components/RevenueManagement').then(m => ({ default: m.RevenueManagement })))
-const ChannelManager = lazy(() => import('@/components/ChannelManager').then(m => ({ default: m.ChannelManager })))
-const InventoryManagement = lazy(() => import('@/components/InventoryManagement').then(m => ({ default: m.InventoryManagement })))
-const Procurement = lazy(() => import('@/components/Procurement').then(m => ({ default: m.Procurement })))
-const SupplierManagement = lazy(() => import('@/components/SupplierManagement').then(m => ({ default: m.SupplierManagement })))
-const Finance = lazy(() => import('@/components/Finance').then(m => ({ default: m.Finance })))
-const HRManagement = lazy(() => import('@/components/HRManagement').then(m => ({ default: m.HRManagement })))
-const Analytics = lazy(() => import('@/components/Analytics').then(m => ({ default: m.Analytics })))
-const ConstructionManagement = lazy(() => import('@/components/ConstructionManagement').then(m => ({ default: m.ConstructionManagement })))
-const UserManagement = lazy(() => import('@/components/UserManagement').then(m => ({ default: m.UserManagement })))
-const Settings = lazy(() => import('@/components/Settings').then(m => ({ default: m.Settings })))
-
-const LoadingState = () => (
-  <div className="flex items-center justify-center h-full min-h-[500px]">
-    <div className="flex flex-col items-center gap-4">
-      <div className="relative w-16 h-16">
-        <div className="absolute inset-0 border-4 border-primary/20 rounded-full" />
-        <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-      <p className="text-sm font-medium text-muted-foreground">Loading module...</p>
-    </div>
-  </div>
-)
 
 type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'kitchen' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'settings'
 
@@ -540,288 +527,254 @@ function App() {
         <div className="flex-1 overflow-y-auto p-6">
           {currentModule === 'dashboard' && renderDashboard()}
           {currentModule === 'front-office' && (
-            <Suspense fallback={<LoadingState />}>
-              <FrontOffice
-                guests={guests || []}
-                setGuests={setGuests}
-                guestProfiles={guestProfiles || []}
-                setGuestProfiles={setGuestProfiles}
-                reservations={reservations || []}
-                setReservations={setReservations}
-                rooms={rooms || []}
-                setRooms={setRooms}
-                folios={folios || []}
-                setFolios={setFolios}
-                extraServices={extraServices || []}
-                serviceCategories={serviceCategories || []}
-                folioExtraServices={folioExtraServices || []}
-                setFolioExtraServices={setFolioExtraServices}
-                currentUser={currentUser}
-              />
-            </Suspense>
+            <FrontOffice
+              guests={guests || []}
+              setGuests={setGuests}
+              guestProfiles={guestProfiles || []}
+              setGuestProfiles={setGuestProfiles}
+              reservations={reservations || []}
+              setReservations={setReservations}
+              rooms={rooms || []}
+              setRooms={setRooms}
+              folios={folios || []}
+              setFolios={setFolios}
+              extraServices={extraServices || []}
+              serviceCategories={serviceCategories || []}
+              folioExtraServices={folioExtraServices || []}
+              setFolioExtraServices={setFolioExtraServices}
+              currentUser={currentUser}
+            />
           )}
           {currentModule === 'housekeeping' && (
-            <Suspense fallback={<LoadingState />}>
-              <Housekeeping
-                tasks={housekeepingTasks || []}
-                setTasks={setHousekeepingTasks}
-                rooms={rooms || []}
-                setRooms={setRooms}
-                employees={employees || []}
-              />
-            </Suspense>
+            <Housekeeping
+              tasks={housekeepingTasks || []}
+              setTasks={setHousekeepingTasks}
+              rooms={rooms || []}
+              setRooms={setRooms}
+              employees={employees || []}
+            />
           )}
           {currentModule === 'fnb' && (
-            <Suspense fallback={<LoadingState />}>
-              <FnBPOS
-                menuItems={menuItems || []}
-                setMenuItems={setMenuItems}
-                orders={orders || []}
-                setOrders={setOrders}
-                guests={guests || []}
-                rooms={rooms || []}
-              />
-            </Suspense>
+            <FnBPOS
+              menuItems={menuItems || []}
+              setMenuItems={setMenuItems}
+              orders={orders || []}
+              setOrders={setOrders}
+              guests={guests || []}
+              rooms={rooms || []}
+            />
           )}
           {currentModule === 'kitchen' && (
-            <Suspense fallback={<LoadingState />}>
-              <KitchenManagement
-                stations={kitchenStations || []}
-                setStations={setKitchenStations}
-                staff={kitchenStaff || []}
-                setStaff={setKitchenStaff}
-                schedules={productionSchedules || []}
-                setSchedules={setProductionSchedules}
-                inventoryIssues={kitchenInventoryIssues || []}
-                setInventoryIssues={setKitchenInventoryIssues}
-                wasteTracking={wasteTracking || []}
-                setWasteTracking={setWasteTracking}
-                employees={employees || []}
-                foodItems={[]}
-              />
-            </Suspense>
+            <KitchenManagement
+              stations={kitchenStations || []}
+              setStations={setKitchenStations}
+              staff={kitchenStaff || []}
+              setStaff={setKitchenStaff}
+              schedules={productionSchedules || []}
+              setSchedules={setProductionSchedules}
+              inventoryIssues={kitchenInventoryIssues || []}
+              setInventoryIssues={setKitchenInventoryIssues}
+              wasteTracking={wasteTracking || []}
+              setWasteTracking={setWasteTracking}
+              employees={employees || []}
+              foodItems={[]}
+            />
           )}
           {currentModule === 'crm' && (
-            <Suspense fallback={<LoadingState />}>
-              <CRM
-                guestProfiles={guestProfiles || []}
-                setGuestProfiles={setGuestProfiles}
-                complaints={complaints || []}
-                setComplaints={setComplaints}
-                feedback={feedback || []}
-                setFeedback={setFeedback}
-                campaigns={campaigns || []}
-                setCampaigns={setCampaigns}
-                templates={templates || []}
-                setTemplates={setTemplates}
-                upsellOffers={upsellOffers || []}
-                setUpsellOffers={setUpsellOffers}
-                upsellTransactions={upsellTransactions || []}
-                setUpsellTransactions={setUpsellTransactions}
-                loyaltyTransactions={loyaltyTransactions || []}
-                setLoyaltyTransactions={setLoyaltyTransactions}
-                reservations={reservations}
-                rooms={rooms}
-                orders={orders}
-                folioExtraServices={folioExtraServices}
-              />
-            </Suspense>
+            <CRM
+              guestProfiles={guestProfiles || []}
+              setGuestProfiles={setGuestProfiles}
+              complaints={complaints || []}
+              setComplaints={setComplaints}
+              feedback={feedback || []}
+              setFeedback={setFeedback}
+              campaigns={campaigns || []}
+              setCampaigns={setCampaigns}
+              templates={templates || []}
+              setTemplates={setTemplates}
+              upsellOffers={upsellOffers || []}
+              setUpsellOffers={setUpsellOffers}
+              upsellTransactions={upsellTransactions || []}
+              setUpsellTransactions={setUpsellTransactions}
+              loyaltyTransactions={loyaltyTransactions || []}
+              setLoyaltyTransactions={setLoyaltyTransactions}
+              reservations={reservations}
+              rooms={rooms}
+              orders={orders}
+              folioExtraServices={folioExtraServices}
+            />
           )}
           {currentModule === 'extra-services' && (
-            <Suspense fallback={<LoadingState />}>
-              <ExtraServicesManagement
-                services={extraServices || []}
-                setServices={setExtraServices}
-                categories={serviceCategories || []}
-                setCategories={setServiceCategories}
-                currentUser={currentUser}
-              />
-            </Suspense>
+            <ExtraServicesManagement
+              services={extraServices || []}
+              setServices={setExtraServices}
+              categories={serviceCategories || []}
+              setCategories={setServiceCategories}
+              currentUser={currentUser}
+            />
           )}
           {currentModule === 'room-revenue' && (
-            <Suspense fallback={<LoadingState />}>
-              <RevenueManagement
-                roomTypes={roomTypeConfigs || []}
-                setRoomTypes={setRoomTypeConfigs}
-                ratePlans={ratePlans || []}
-                setRatePlans={setRatePlans}
-                seasons={seasons || []}
-                setSeasons={setSeasons}
-                eventDays={eventDays || []}
-                setEventDays={setEventDays}
-                corporateAccounts={corporateAccounts || []}
-                setCorporateAccounts={setCorporateAccounts}
-                rateCalendar={rateCalendar || []}
-                setRateCalendar={setRateCalendar}
-                currentUser={currentUser}
-              />
-            </Suspense>
+            <RevenueManagement
+              roomTypes={roomTypeConfigs || []}
+              setRoomTypes={setRoomTypeConfigs}
+              ratePlans={ratePlans || []}
+              setRatePlans={setRatePlans}
+              seasons={seasons || []}
+              setSeasons={setSeasons}
+              eventDays={eventDays || []}
+              setEventDays={setEventDays}
+              corporateAccounts={corporateAccounts || []}
+              setCorporateAccounts={setCorporateAccounts}
+              rateCalendar={rateCalendar || []}
+              setRateCalendar={setRateCalendar}
+              currentUser={currentUser}
+            />
           )}
           {currentModule === 'channel-manager' && (
-            <Suspense fallback={<LoadingState />}>
-              <ChannelManager
-                connections={otaConnections || []}
-                setConnections={setOtaConnections}
-                ratePlans={ratePlans || []}
-                setRatePlans={setRatePlans}
-                inventory={channelInventory || []}
-                setInventory={setChannelInventory}
-                rates={channelRates || []}
-                setRates={setChannelRates}
-                reservations={channelReservations || []}
-                setReservations={setChannelReservations}
-                syncLogs={syncLogs || []}
-                setSyncLogs={setSyncLogs}
-                performance={channelPerformance || []}
-                reviews={channelReviews || []}
-                setReviews={setChannelReviews}
-                bulkOperations={bulkOperations || []}
-                setBulkOperations={setBulkOperations}
-                rooms={rooms || []}
-                currentUser={currentUser}
-              />
-            </Suspense>
+            <ChannelManager
+              connections={otaConnections || []}
+              setConnections={setOtaConnections}
+              ratePlans={ratePlans || []}
+              setRatePlans={setRatePlans}
+              inventory={channelInventory || []}
+              setInventory={setChannelInventory}
+              rates={channelRates || []}
+              setRates={setChannelRates}
+              reservations={channelReservations || []}
+              setReservations={setChannelReservations}
+              syncLogs={syncLogs || []}
+              setSyncLogs={setSyncLogs}
+              performance={channelPerformance || []}
+              reviews={channelReviews || []}
+              setReviews={setChannelReviews}
+              bulkOperations={bulkOperations || []}
+              setBulkOperations={setBulkOperations}
+              rooms={rooms || []}
+              currentUser={currentUser}
+            />
           )}
           {currentModule === 'inventory' && (
-            <Suspense fallback={<LoadingState />}>
-              <InventoryManagement
-                foodItems={foodItems || []}
-                setFoodItems={setFoodItems}
-                amenities={amenities || []}
-                setAmenities={setAmenities}
-                amenityUsageLogs={amenityUsageLogs || []}
-                setAmenityUsageLogs={setAmenityUsageLogs}
-                amenityAutoOrders={amenityAutoOrders || []}
-                setAmenityAutoOrders={setAmenityAutoOrders}
-                constructionMaterials={constructionMaterials || []}
-                generalProducts={generalProducts || []}
-                setGeneralProducts={setGeneralProducts}
-                suppliers={suppliers || []}
-              />
-            </Suspense>
+            <InventoryManagement
+              foodItems={foodItems || []}
+              setFoodItems={setFoodItems}
+              amenities={amenities || []}
+              setAmenities={setAmenities}
+              amenityUsageLogs={amenityUsageLogs || []}
+              setAmenityUsageLogs={setAmenityUsageLogs}
+              amenityAutoOrders={amenityAutoOrders || []}
+              setAmenityAutoOrders={setAmenityAutoOrders}
+              constructionMaterials={constructionMaterials || []}
+              generalProducts={generalProducts || []}
+              setGeneralProducts={setGeneralProducts}
+              suppliers={suppliers || []}
+            />
           )}
           {currentModule === 'procurement' && (
-            <Suspense fallback={<LoadingState />}>
-              <Procurement
-                requisitions={requisitions || []}
-                setRequisitions={setRequisitions}
-                suppliers={suppliers || []}
-                foodItems={foodItems || []}
-                amenities={amenities || []}
-                constructionMaterials={constructionMaterials || []}
-                generalProducts={generalProducts || []}
-                purchaseOrders={purchaseOrders || []}
-                setPurchaseOrders={setPurchaseOrders}
-                grns={grns || []}
-                setGRNs={setGrns}
-                inventory={inventory || []}
-                currentUser={currentUser}
-                invoices={procurementInvoices || []}
-                setInvoices={setProcurementInvoices}
-              />
-            </Suspense>
+            <Procurement
+              requisitions={requisitions || []}
+              setRequisitions={setRequisitions}
+              suppliers={suppliers || []}
+              foodItems={foodItems || []}
+              amenities={amenities || []}
+              constructionMaterials={constructionMaterials || []}
+              generalProducts={generalProducts || []}
+              purchaseOrders={purchaseOrders || []}
+              setPurchaseOrders={setPurchaseOrders}
+              grns={grns || []}
+              setGRNs={setGrns}
+              inventory={inventory || []}
+              currentUser={currentUser}
+              invoices={procurementInvoices || []}
+              setInvoices={setProcurementInvoices}
+            />
           )}
           {currentModule === 'suppliers' && (
-            <Suspense fallback={<LoadingState />}>
-              <SupplierManagement
-                suppliers={suppliers || []}
-                setSuppliers={setSuppliers}
-              />
-            </Suspense>
+            <SupplierManagement
+              suppliers={suppliers || []}
+              setSuppliers={setSuppliers}
+            />
           )}
           {currentModule === 'finance' && (
-            <Suspense fallback={<LoadingState />}>
-              <Finance
-                invoices={invoices || []}
-                setInvoices={setInvoices}
-                payments={payments || []}
-                setPayments={setPayments}
-                expenses={expenses || []}
-                setExpenses={setExpenses}
-                accounts={accounts || []}
-                budgets={budgets || []}
-                setBudgets={setBudgets}
-                journalEntries={journalEntries || []}
-                setJournalEntries={setJournalEntries}
-                chartOfAccounts={chartOfAccounts || []}
-                setChartOfAccounts={setChartOfAccounts}
-                currentUser={currentUser}
-              />
-            </Suspense>
+            <Finance
+              invoices={invoices || []}
+              setInvoices={setInvoices}
+              payments={payments || []}
+              setPayments={setPayments}
+              expenses={expenses || []}
+              setExpenses={setExpenses}
+              accounts={accounts || []}
+              budgets={budgets || []}
+              setBudgets={setBudgets}
+              journalEntries={journalEntries || []}
+              setJournalEntries={setJournalEntries}
+              chartOfAccounts={chartOfAccounts || []}
+              setChartOfAccounts={setChartOfAccounts}
+              currentUser={currentUser}
+            />
           )}
           {currentModule === 'hr' && (
-            <Suspense fallback={<LoadingState />}>
-              <HRManagement
-                employees={employees || []}
-                setEmployees={setEmployees}
-                attendance={attendance || []}
-                setAttendance={setAttendance}
-                leaveRequests={leaveRequests || []}
-                setLeaveRequests={setLeaveRequests}
-                shifts={shifts || []}
-                setShifts={setShifts}
-                dutyRosters={dutyRosters || []}
-                setDutyRosters={setDutyRosters}
-                performanceReviews={performanceReviews || []}
-                setPerformanceReviews={setPerformanceReviews}
-              />
-            </Suspense>
+            <HRManagement
+              employees={employees || []}
+              setEmployees={setEmployees}
+              attendance={attendance || []}
+              setAttendance={setAttendance}
+              leaveRequests={leaveRequests || []}
+              setLeaveRequests={setLeaveRequests}
+              shifts={shifts || []}
+              setShifts={setShifts}
+              dutyRosters={dutyRosters || []}
+              setDutyRosters={setDutyRosters}
+              performanceReviews={performanceReviews || []}
+              setPerformanceReviews={setPerformanceReviews}
+            />
           )}
           {currentModule === 'analytics' && (
-            <Suspense fallback={<LoadingState />}>
-              <Analytics
-                orders={orders || []}
-                foodItems={foodItems || []}
-                suppliers={suppliers || []}
-                grns={grns || []}
-                recipes={recipes || []}
-                menus={menus || []}
-                consumptionLogs={consumptionLogs || []}
-                purchaseOrders={purchaseOrders || []}
-              />
-            </Suspense>
+            <Analytics
+              orders={orders || []}
+              foodItems={foodItems || []}
+              suppliers={suppliers || []}
+              grns={grns || []}
+              recipes={recipes || []}
+              menus={menus || []}
+              consumptionLogs={consumptionLogs || []}
+              purchaseOrders={purchaseOrders || []}
+            />
           )}
           {currentModule === 'construction' && (
-            <Suspense fallback={<LoadingState />}>
-              <ConstructionManagement
-                materials={constructionMaterials || []}
-                setMaterials={setConstructionMaterials}
-                projects={constructionProjects || []}
-                setProjects={setConstructionProjects}
-                suppliers={suppliers || []}
-                contractors={contractors || []}
-                setContractors={setContractors}
-              />
-            </Suspense>
+            <ConstructionManagement
+              materials={constructionMaterials || []}
+              setMaterials={setConstructionMaterials}
+              projects={constructionProjects || []}
+              setProjects={setConstructionProjects}
+              suppliers={suppliers || []}
+              contractors={contractors || []}
+              setContractors={setContractors}
+            />
           )}
           {currentModule === 'user-management' && (
-            <Suspense fallback={<LoadingState />}>
-              <UserManagement
-                users={systemUsers || []}
-                setUsers={() => {}}
-                currentUser={currentUser}
-                activityLogs={[]}
-                setActivityLogs={() => {}}
-              />
-            </Suspense>
+            <UserManagement
+              users={systemUsers || []}
+              setUsers={() => {}}
+              currentUser={currentUser}
+              activityLogs={[]}
+              setActivityLogs={() => {}}
+            />
           )}
           {currentModule === 'settings' && (
-            <Suspense fallback={<LoadingState />}>
-              <Settings
-                branding={branding}
-                setBranding={setBranding}
-                taxes={taxes || []}
-                setTaxes={setTaxes}
-                serviceCharge={serviceCharge}
-                setServiceCharge={setServiceCharge}
-                emailTemplates={emailTemplates || []}
-                setEmailTemplates={setEmailTemplates}
-                emailAnalytics={emailAnalytics || []}
-                campaignAnalytics={campaignAnalytics || []}
-                emailRecords={emailRecords || []}
-                currentUser={currentUser}
-              />
-            </Suspense>
+            <Settings
+              branding={branding}
+              setBranding={setBranding}
+              taxes={taxes || []}
+              setTaxes={setTaxes}
+              serviceCharge={serviceCharge}
+              setServiceCharge={setServiceCharge}
+              emailTemplates={emailTemplates || []}
+              setEmailTemplates={setEmailTemplates}
+              emailAnalytics={emailAnalytics || []}
+              campaignAnalytics={campaignAnalytics || []}
+              emailRecords={emailRecords || []}
+              currentUser={currentUser}
+            />
           )}
         </div>
       </main>

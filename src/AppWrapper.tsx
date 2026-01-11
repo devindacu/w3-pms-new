@@ -1,103 +1,13 @@
-import { Suspense, useEffect, useState } from 'react'
-import { ReactInitializer } from './ReactInitializer'
+import { useEffect, useState } from 'react'
 import App from './App'
 
 export function AppWrapper() {
   const [isReady, setIsReady] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    let mounted = true
-    
-    const checkSparkAvailability = async () => {
-      try {
-        if (typeof window === 'undefined') {
-          if (mounted) setError('Window object not available')
-          return
-        }
-
-        if (typeof window.spark === 'undefined') {
-          if (mounted) setError('Spark runtime not available')
-          return
-        }
-        
-        if (typeof window.spark.kv === 'undefined') {
-          if (mounted) setError('Spark KV store not available')
-          return
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 50))
-        
-        if (mounted) {
-          setIsReady(true)
-        }
-      } catch (err) {
-        if (mounted) {
-          setError(err instanceof Error ? err.message : 'Unknown error during initialization')
-        }
-      }
-    }
-
-    checkSparkAvailability()
-    
-    return () => {
-      mounted = false
-    }
+    const timer = setTimeout(() => setIsReady(true), 100)
+    return () => clearTimeout(timer)
   }, [])
-
-  if (error) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem',
-        background: '#fafafa'
-      }}>
-        <div style={{
-          maxWidth: '28rem',
-          textAlign: 'center'
-        }}>
-          <div style={{
-            color: '#dc2626',
-            fontSize: '1.125rem',
-            fontWeight: '600',
-            marginBottom: '1rem'
-          }}>
-            Initialization Error
-          </div>
-          <p style={{
-            color: '#6b7280',
-            marginBottom: '0.5rem'
-          }}>
-            {error}
-          </p>
-          <p style={{
-            color: '#9ca3af',
-            fontSize: '0.875rem'
-          }}>
-            Please refresh the page to try again.
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              marginTop: '1rem',
-              padding: '0.5rem 1rem',
-              background: '#3b82f6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '0.375rem',
-              cursor: 'pointer',
-              fontSize: '0.875rem'
-            }}
-          >
-            Reload Page
-          </button>
-        </div>
-      </div>
-    )
-  }
 
   if (!isReady) {
     return (
@@ -112,13 +22,13 @@ export function AppWrapper() {
           <div style={{
             width: '4rem',
             height: '4rem',
-            border: '4px solid rgba(59, 130, 246, 0.2)',
-            borderTopColor: '#3b82f6',
+            border: '4px solid rgba(79, 70, 229, 0.2)',
+            borderTopColor: '#4f46e5',
             borderRadius: '50%',
             animation: 'spin 1s linear infinite',
             margin: '0 auto 1rem'
           }} />
-          <p style={{ color: '#6b7280' }}>Initializing W3 Hotel PMS...</p>
+          <p style={{ color: '#6b7280' }}>Loading W3 Hotel PMS...</p>
           <style>{`
             @keyframes spin {
               to { transform: rotate(360deg); }
@@ -129,34 +39,7 @@ export function AppWrapper() {
     )
   }
 
-  return (
-    <ReactInitializer>
-      <Suspense fallback={
-        <div style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: '#fafafa'
-        }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{
-              width: '4rem',
-              height: '4rem',
-              border: '4px solid rgba(59, 130, 246, 0.2)',
-              borderTopColor: '#3b82f6',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite',
-              margin: '0 auto 1rem'
-            }} />
-            <p style={{ color: '#6b7280' }}>Loading W3 Hotel PMS...</p>
-          </div>
-        </div>
-      }>
-        <App />
-      </Suspense>
-    </ReactInitializer>
-  )
+  return <App />
 }
 
 export default AppWrapper
