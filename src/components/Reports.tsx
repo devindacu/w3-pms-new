@@ -51,6 +51,7 @@ import { CustomReportBuilder } from './CustomReportBuilder'
 import { ReportScheduleDialog } from './ReportScheduleDialog'
 import { ScheduleManagement } from './ScheduleManagement'
 import { ReportTemplatePreview } from './ReportTemplatePreview'
+import { TemplateMetricCustomizer } from './TemplateMetricCustomizer'
 import { defaultReportTemplates } from '@/lib/defaultReportTemplates'
 
 interface ReportsProps {
@@ -102,6 +103,7 @@ export function Reports({
   } | null>(null)
   const [editingSchedule, setEditingSchedule] = useState<ReportSchedule | undefined>(undefined)
   const [previewTemplate, setPreviewTemplate] = useState<ReportTemplate | null>(null)
+  const [customizingTemplate, setCustomizingTemplate] = useState<ReportTemplate | null>(null)
 
   const allTemplates = [...defaultReportTemplates, ...(savedTemplates || [])]
 
@@ -188,7 +190,17 @@ export function Reports({
       return [...(prev || []), template]
     })
     setPreviewTemplate(null)
+    setCustomizingTemplate(null)
     toast.success('Template saved successfully')
+  }
+
+  const handleOpenCustomizer = (templateId: string) => {
+    const template = reportTemplates.find(r => r.id === templateId)
+    if (template && template.isCustomizable) {
+      setCustomizingTemplate(template)
+    } else {
+      toast.error('This template is not customizable')
+    }
   }
 
   const getReportIcon = (category: string) => {
@@ -615,6 +627,17 @@ export function Reports({
                           <Eye size={16} className="mr-1" />
                           Preview
                         </Button>
+                        {report.isCustomizable && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleOpenCustomizer(report.id)}
+                            className="flex-1"
+                          >
+                            <Pencil size={16} className="mr-1" />
+                            Customize
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="outline"
@@ -818,6 +841,14 @@ export function Reports({
           onClose={() => setPreviewTemplate(null)}
           onSave={handleSaveTemplate}
           isEditable={previewTemplate.isCustomizable}
+        />
+      )}
+
+      {customizingTemplate && (
+        <TemplateMetricCustomizer
+          template={customizingTemplate}
+          onSave={handleSaveTemplate}
+          onCancel={() => setCustomizingTemplate(null)}
         />
       )}
     </div>
