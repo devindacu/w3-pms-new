@@ -599,26 +599,107 @@ export function Analytics(props: AnalyticsProps) {
             </Card>
           </div>
 
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Room Status Distribution</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={occupancyChartData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    label
+                  >
+                    {occupancyChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Room Type Analytics</h3>
+              <div className="space-y-3">
+                {Array.from(new Set(props.rooms.map(r => r.roomType))).map((type) => {
+                  const typeRooms = props.rooms.filter(r => r.roomType === type)
+                  const occupied = typeRooms.filter(r => r.status.includes('occupied')).length
+                  const total = typeRooms.length
+                  const rate = total > 0 ? (occupied / total) * 100 : 0
+                  
+                  return (
+                    <div key={type} className="p-4 bg-muted/50 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium capitalize">{type}</span>
+                        <Badge variant={rate > 80 ? "default" : rate > 50 ? "secondary" : "outline"}>
+                          {rate.toFixed(0)}%
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>{occupied} / {total} rooms</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </Card>
+          </div>
+
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Room Status Breakdown</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="p-4 bg-muted/50 rounded-lg">
                 <p className="text-sm text-muted-foreground">Vacant Clean</p>
-                <p className="text-2xl font-semibold mt-1">{occupancyData.vacantClean}</p>
+                <p className="text-2xl font-semibold mt-1 text-success">{occupancyData.vacantClean}</p>
               </div>
               <div className="p-4 bg-muted/50 rounded-lg">
                 <p className="text-sm text-muted-foreground">Vacant Dirty</p>
-                <p className="text-2xl font-semibold mt-1">{occupancyData.vacantDirty}</p>
+                <p className="text-2xl font-semibold mt-1 text-destructive">{occupancyData.vacantDirty}</p>
               </div>
               <div className="p-4 bg-muted/50 rounded-lg">
                 <p className="text-sm text-muted-foreground">Under Maintenance</p>
-                <p className="text-2xl font-semibold mt-1">{occupancyData.maintenance}</p>
+                <p className="text-2xl font-semibold mt-1 text-accent">{occupancyData.maintenance}</p>
               </div>
               <div className="p-4 bg-muted/50 rounded-lg">
                 <p className="text-sm text-muted-foreground">Available</p>
-                <p className="text-2xl font-semibold mt-1">{occupancyData.vacantClean}</p>
+                <p className="text-2xl font-semibold mt-1 text-primary">{occupancyData.vacantClean}</p>
               </div>
             </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Daily Occupancy Trend</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={(() => {
+                const last7Days = Array.from({ length: 7 }, (_, i) => {
+                  const date = new Date()
+                  date.setDate(date.getDate() - (6 - i))
+                  const dayReservations = filteredData.reservations.filter(r => {
+                    const checkIn = new Date(r.checkInDate)
+                    const checkOut = new Date(r.checkOutDate)
+                    return checkIn <= date && checkOut >= date && r.status === 'checked-in'
+                  })
+                  return {
+                    date: date.toLocaleDateString('en-US', { weekday: 'short' }),
+                    occupied: dayReservations.length,
+                    rate: occupancyData.totalRooms > 0 ? (dayReservations.length / occupancyData.totalRooms) * 100 : 0
+                  }
+                })
+                return last7Days
+              })()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip formatter={(value) => typeof value === 'number' ? value.toFixed(1) : value} />
+                <Legend />
+                <Area type="monotone" dataKey="occupied" name="Occupied Rooms" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.6} />
+              </AreaChart>
+            </ResponsiveContainer>
           </Card>
         </TabsContent>
 
@@ -676,6 +757,115 @@ export function Analytics(props: AnalyticsProps) {
               formatter={formatCurrency}
             />
           </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Revenue by Source</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={revenueChartData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    label={(entry) => `${entry.name}: ${formatCurrency(entry.value)}`}
+                  >
+                    {revenueChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Revenue Performance</h3>
+              <div className="space-y-4">
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Collection Rate</span>
+                    <Badge variant="default">
+                      {revenueData.totalRevenue > 0 ? formatPercent(revenueData.paidRevenue / revenueData.totalRevenue) : '0%'}
+                    </Badge>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div 
+                      className="bg-success h-2 rounded-full" 
+                      style={{ width: `${revenueData.totalRevenue > 0 ? (revenueData.paidRevenue / revenueData.totalRevenue) * 100 : 0}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Room Revenue Share</span>
+                    <Badge variant="secondary">
+                      {revenueData.totalRevenue > 0 ? formatPercent(revenueData.roomRevenue / revenueData.totalRevenue) : '0%'}
+                    </Badge>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div 
+                      className="bg-primary h-2 rounded-full" 
+                      style={{ width: `${revenueData.totalRevenue > 0 ? (revenueData.roomRevenue / revenueData.totalRevenue) * 100 : 0}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">F&B Revenue Share</span>
+                    <Badge variant="outline">
+                      {revenueData.totalRevenue > 0 ? formatPercent(revenueData.fnbRevenue / revenueData.totalRevenue) : '0%'}
+                    </Badge>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div 
+                      className="bg-accent h-2 rounded-full" 
+                      style={{ width: `${revenueData.totalRevenue > 0 ? (revenueData.fnbRevenue / revenueData.totalRevenue) * 100 : 0}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Daily Revenue Trend (Last 7 Days)</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={(() => {
+                const last7Days = Array.from({ length: 7 }, (_, i) => {
+                  const date = new Date()
+                  date.setDate(date.getDate() - (6 - i))
+                  const dayInvoices = filteredData.guestInvoices.filter(inv => {
+                    const invDate = new Date(inv.invoiceDate)
+                    return invDate.toDateString() === date.toDateString()
+                  })
+                  const dayPayments = filteredData.payments.filter(p => {
+                    const payDate = new Date(p.processedAt)
+                    return payDate.toDateString() === date.toDateString()
+                  })
+                  return {
+                    date: date.toLocaleDateString('en-US', { weekday: 'short' }),
+                    invoiced: dayInvoices.reduce((sum, inv) => sum + inv.grandTotal, 0),
+                    collected: dayPayments.reduce((sum, p) => sum + p.amount, 0)
+                  }
+                })
+                return last7Days
+              })()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                <Legend />
+                <Area type="monotone" dataKey="invoiced" name="Invoiced" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.6} />
+                <Area type="monotone" dataKey="collected" name="Collected" stroke="#10B981" fill="#10B981" fillOpacity={0.6} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </Card>
         </TabsContent>
 
         <TabsContent value="guests" className="space-y-6 mt-6">
@@ -728,6 +918,106 @@ export function Analytics(props: AnalyticsProps) {
               iconColor="text-success"
             />
           </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Reservation Status Breakdown</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Checked In', value: filteredData.reservations.filter(r => r.status === 'checked-in').length },
+                      { name: 'Confirmed', value: filteredData.reservations.filter(r => r.status === 'confirmed').length },
+                      { name: 'Checked Out', value: filteredData.reservations.filter(r => r.status === 'checked-out').length },
+                      { name: 'Cancelled', value: filteredData.reservations.filter(r => r.status === 'cancelled').length },
+                      { name: 'No Show', value: filteredData.reservations.filter(r => r.status === 'no-show').length }
+                    ].filter(item => item.value > 0)}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    label
+                  >
+                    {CHART_COLORS.map((color, index) => (
+                      <Cell key={`cell-${index}`} fill={color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Guest Metrics</h3>
+              <div className="space-y-4">
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Average Stay</p>
+                      <p className="text-2xl font-semibold mt-1">{guestData.avgStayDuration.toFixed(1)} days</p>
+                    </div>
+                    <Bed size={32} className="text-primary" />
+                  </div>
+                </div>
+
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total Reservations</p>
+                      <p className="text-2xl font-semibold mt-1">{filteredData.reservations.length}</p>
+                    </div>
+                    <Receipt size={32} className="text-accent" />
+                  </div>
+                </div>
+
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Guest Satisfaction</p>
+                      <p className="text-2xl font-semibold mt-1">{guestData.satisfaction.toFixed(1)}/5.0</p>
+                    </div>
+                    <TrendUp size={32} className="text-success" />
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Daily Arrivals & Departures (Last 7 Days)</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={(() => {
+                const last7Days = Array.from({ length: 7 }, (_, i) => {
+                  const date = new Date()
+                  date.setDate(date.getDate() - (6 - i))
+                  const arrivals = filteredData.reservations.filter(r => {
+                    const checkIn = new Date(r.checkInDate)
+                    return checkIn.toDateString() === date.toDateString()
+                  }).length
+                  const departures = filteredData.reservations.filter(r => {
+                    const checkOut = new Date(r.checkOutDate)
+                    return checkOut.toDateString() === date.toDateString()
+                  }).length
+                  return {
+                    date: date.toLocaleDateString('en-US', { weekday: 'short' }),
+                    arrivals,
+                    departures
+                  }
+                })
+                return last7Days
+              })()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="arrivals" name="Arrivals" fill="#8B5CF6" />
+                <Bar dataKey="departures" name="Departures" fill="#06B6D4" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
         </TabsContent>
 
         <TabsContent value="housekeeping" className="space-y-6 mt-6">
@@ -764,6 +1054,109 @@ export function Analytics(props: AnalyticsProps) {
               iconColor="text-accent"
             />
           </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Task Status Distribution</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Completed', value: housekeepingData.completedTasks },
+                      { name: 'In Progress', value: housekeepingData.inProgressTasks },
+                      { name: 'Pending', value: housekeepingData.pendingTasks }
+                    ].filter(item => item.value > 0)}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    label
+                  >
+                    {CHART_COLORS.map((color, index) => (
+                      <Cell key={`cell-${index}`} fill={color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Performance Metrics</h3>
+              <div className="space-y-4">
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Completion Rate</span>
+                    <Badge variant={housekeepingData.completionRate > 80 ? "default" : housekeepingData.completionRate > 60 ? "secondary" : "destructive"}>
+                      {housekeepingData.completionRate.toFixed(1)}%
+                    </Badge>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div 
+                      className="bg-success h-2 rounded-full" 
+                      style={{ width: `${housekeepingData.completionRate}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Avg Tasks per Day</p>
+                      <p className="text-2xl font-semibold mt-1">
+                        {(housekeepingData.totalTasks / 7).toFixed(1)}
+                      </p>
+                    </div>
+                    <ChartBar size={32} className="text-primary" />
+                  </div>
+                </div>
+
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Pending Tasks</p>
+                      <p className="text-2xl font-semibold mt-1 text-destructive">{housekeepingData.pendingTasks}</p>
+                    </div>
+                    <TrendDown size={32} className="text-destructive" />
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Daily Task Completion (Last 7 Days)</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={(() => {
+                const last7Days = Array.from({ length: 7 }, (_, i) => {
+                  const date = new Date()
+                  date.setDate(date.getDate() - (6 - i))
+                  const dayTasks = filteredData.housekeepingTasks.filter(t => {
+                    const taskDate = new Date(t.createdAt)
+                    return taskDate.toDateString() === date.toDateString()
+                  })
+                  return {
+                    date: date.toLocaleDateString('en-US', { weekday: 'short' }),
+                    completed: dayTasks.filter(t => t.status === 'completed').length,
+                    inProgress: dayTasks.filter(t => t.status === 'in-progress').length,
+                    pending: dayTasks.filter(t => t.status === 'pending').length
+                  }
+                })
+                return last7Days
+              })()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="completed" name="Completed" fill="#10B981" stackId="a" />
+                <Bar dataKey="inProgress" name="In Progress" fill="#8B5CF6" stackId="a" />
+                <Bar dataKey="pending" name="Pending" fill="#EF4444" stackId="a" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
         </TabsContent>
 
         <TabsContent value="fnb" className="space-y-6 mt-6">
@@ -793,6 +1186,109 @@ export function Analytics(props: AnalyticsProps) {
               <p className="text-3xl font-semibold">{fnbData.recipes}</p>
             </Card>
           </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Order Type Distribution</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Dine-in', value: filteredData.orders.filter(o => o.type === 'dine-in').length },
+                      { name: 'Room Service', value: filteredData.orders.filter(o => o.type === 'room-service').length },
+                      { name: 'Takeaway', value: filteredData.orders.filter(o => o.type === 'takeaway').length }
+                    ].filter(item => item.value > 0)}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    label
+                  >
+                    {CHART_COLORS.map((color, index) => (
+                      <Cell key={`cell-${index}`} fill={color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">F&B Performance Metrics</h3>
+              <div className="space-y-4">
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Order Completion Rate</p>
+                      <p className="text-2xl font-semibold mt-1">
+                        {fnbData.totalOrders > 0 ? formatPercent(fnbData.completedOrders / fnbData.totalOrders) : '0%'}
+                      </p>
+                    </div>
+                    <TrendUp size={32} className="text-success" />
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2 mt-2">
+                    <div 
+                      className="bg-success h-2 rounded-full" 
+                      style={{ width: `${fnbData.totalOrders > 0 ? (fnbData.completedOrders / fnbData.totalOrders) * 100 : 0}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Average Order Value</p>
+                      <p className="text-2xl font-semibold mt-1">{formatCurrency(fnbData.avgOrderValue)}</p>
+                    </div>
+                    <ChartBar size={32} className="text-primary" />
+                  </div>
+                </div>
+
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Active Menus</p>
+                      <p className="text-2xl font-semibold mt-1">{props.menus.length}</p>
+                    </div>
+                    <ChefHat size={32} className="text-accent" />
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Daily F&B Revenue (Last 7 Days)</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={(() => {
+                const last7Days = Array.from({ length: 7 }, (_, i) => {
+                  const date = new Date()
+                  date.setDate(date.getDate() - (6 - i))
+                  const dayOrders = filteredData.orders.filter(o => {
+                    const orderDate = new Date(o.createdAt)
+                    return orderDate.toDateString() === date.toDateString()
+                  })
+                  return {
+                    date: date.toLocaleDateString('en-US', { weekday: 'short' }),
+                    revenue: dayOrders.reduce((sum, o) => sum + o.total, 0),
+                    orders: dayOrders.length
+                  }
+                })
+                return last7Days
+              })()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis yAxisId="left" />
+                <YAxis yAxisId="right" orientation="right" />
+                <Tooltip formatter={(value, name) => name === 'revenue' ? formatCurrency(Number(value)) : value} />
+                <Legend />
+                <Area yAxisId="left" type="monotone" dataKey="revenue" name="Revenue" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.6} />
+                <Area yAxisId="right" type="monotone" dataKey="orders" name="Orders" stroke="#F59E0B" fill="#F59E0B" fillOpacity={0.3} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </Card>
         </TabsContent>
 
         <TabsContent value="inventory" className="space-y-6 mt-6">
@@ -801,19 +1297,128 @@ export function Analytics(props: AnalyticsProps) {
               <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Items</h3>
               <p className="text-3xl font-semibold">{inventoryData.totalItems}</p>
             </Card>
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Low Stock</h3>
+            <Card className="p-6 border-l-4 border-l-destructive">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Low Stock</h3>
+                <Package size={20} className="text-destructive" />
+              </div>
               <p className="text-3xl font-semibold text-destructive">{inventoryData.lowStockItems}</p>
             </Card>
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Out of Stock</h3>
+            <Card className="p-6 border-l-4 border-l-destructive">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Out of Stock</h3>
+                <TrendDown size={20} className="text-destructive" />
+              </div>
               <p className="text-3xl font-semibold text-destructive">{inventoryData.outOfStockItems}</p>
             </Card>
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Value</h3>
+            <Card className="p-6 border-l-4 border-l-primary">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Total Value</h3>
+                <CurrencyDollar size={20} className="text-primary" />
+              </div>
               <p className="text-3xl font-semibold">{formatCurrency(inventoryData.totalValue)}</p>
             </Card>
           </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Inventory Stock Status</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'In Stock', value: inventoryData.totalItems - inventoryData.lowStockItems - inventoryData.outOfStockItems },
+                      { name: 'Low Stock', value: inventoryData.lowStockItems },
+                      { name: 'Out of Stock', value: inventoryData.outOfStockItems }
+                    ].filter(item => item.value > 0)}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    label
+                  >
+                    {[CHART_COLORS[2], CHART_COLORS[3], CHART_COLORS[4]].map((color, index) => (
+                      <Cell key={`cell-${index}`} fill={color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Top Low Stock Items</h3>
+              <div className="space-y-3">
+                {props.foodItems
+                  .filter(item => item.currentStock <= item.reorderLevel)
+                  .slice(0, 5)
+                  .map(item => (
+                    <div key={item.id} className="p-3 bg-muted/50 rounded-lg">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-medium text-sm">{item.name}</span>
+                        <Badge variant="destructive">Low Stock</Badge>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>Current: {item.currentStock} {item.unit}</span>
+                        <span>Reorder: {item.reorderLevel} {item.unit}</span>
+                      </div>
+                      <div className="w-full bg-muted rounded-full h-1.5 mt-2">
+                        <div 
+                          className="bg-destructive h-1.5 rounded-full" 
+                          style={{ width: `${(item.currentStock / item.reorderLevel) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                {props.foodItems.filter(item => item.currentStock <= item.reorderLevel).length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Package size={48} className="mx-auto mb-2 opacity-50" />
+                    <p>All items are adequately stocked</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Inventory Categories</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-medium">Food Items</h4>
+                  <ChefHat size={20} className="text-primary" />
+                </div>
+                <p className="text-2xl font-semibold">{props.foodItems.length}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Value: {formatCurrency(props.foodItems.reduce((sum, item) => sum + (item.currentStock * item.unitCost), 0))}
+                </p>
+              </div>
+
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-medium">General Inventory</h4>
+                  <Package size={20} className="text-accent" />
+                </div>
+                <p className="text-2xl font-semibold">{props.inventory.length}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Low Stock: {props.inventory.filter(i => i.currentStock <= i.reorderLevel).length}
+                </p>
+              </div>
+
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-medium">Suppliers</h4>
+                  <Buildings size={20} className="text-secondary" />
+                </div>
+                <p className="text-2xl font-semibold">{props.suppliers.length}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Reliable: {props.suppliers.filter(s => s.rating && s.rating >= 4).length}
+                </p>
+              </div>
+            </div>
+          </Card>
         </TabsContent>
 
         <TabsContent value="finance" className="space-y-6 mt-6">
@@ -870,12 +1475,119 @@ export function Analytics(props: AnalyticsProps) {
               icon={<CurrencyDollar size={20} />}
             />
             <ComparisonCard
-              title="Total Expenses"
+              title="Expense Transactions"
               currentValue={financeData.totalExpenses}
               previousValue={prevFinanceData?.totalExpenses}
               icon={<Receipt size={20} />}
             />
           </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Revenue vs Expenses</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={[
+                  { category: 'Revenue', amount: financeData.revenue },
+                  { category: 'Expenses', amount: financeData.expenseAmount },
+                  { category: 'Net Profit', amount: financeData.netProfit }
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="category" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                  <Bar dataKey="amount" fill="#8B5CF6">
+                    {[
+                      <Cell key="revenue" fill={CHART_COLORS[0]} />,
+                      <Cell key="expenses" fill={CHART_COLORS[4]} />,
+                      <Cell key="profit" fill={CHART_COLORS[2]} />
+                    ]}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Financial Health</h3>
+              <div className="space-y-4">
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Profit Margin</span>
+                    <Badge variant={financeData.profitMargin > 20 ? "default" : financeData.profitMargin > 10 ? "secondary" : "destructive"}>
+                      {financeData.profitMargin.toFixed(1)}%
+                    </Badge>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full ${financeData.profitMargin > 20 ? 'bg-success' : financeData.profitMargin > 10 ? 'bg-primary' : 'bg-destructive'}`}
+                      style={{ width: `${Math.min(financeData.profitMargin * 2, 100)}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Expense Ratio</p>
+                      <p className="text-2xl font-semibold mt-1">
+                        {financeData.revenue > 0 ? formatPercent(financeData.expenseAmount / financeData.revenue) : '0%'}
+                      </p>
+                    </div>
+                    <TrendDown size={32} className="text-destructive" />
+                  </div>
+                </div>
+
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Collection Efficiency</p>
+                      <p className="text-2xl font-semibold mt-1">
+                        {financeData.totalInvoices > 0 ? formatPercent(financeData.totalPayments / financeData.totalInvoices) : '0%'}
+                      </p>
+                    </div>
+                    <TrendUp size={32} className="text-success" />
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Daily Financial Summary (Last 7 Days)</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <ComposedChart data={(() => {
+                const last7Days = Array.from({ length: 7 }, (_, i) => {
+                  const date = new Date()
+                  date.setDate(date.getDate() - (6 - i))
+                  const dayPayments = filteredData.payments.filter(p => {
+                    const payDate = new Date(p.processedAt)
+                    return payDate.toDateString() === date.toDateString()
+                  })
+                  const dayExpenses = filteredData.expenses.filter(e => {
+                    const expDate = new Date(e.expenseDate)
+                    return expDate.toDateString() === date.toDateString()
+                  })
+                  const revenue = dayPayments.reduce((sum, p) => sum + p.amount, 0)
+                  const expenses = dayExpenses.reduce((sum, e) => sum + e.amount, 0)
+                  return {
+                    date: date.toLocaleDateString('en-US', { weekday: 'short' }),
+                    revenue,
+                    expenses,
+                    profit: revenue - expenses
+                  }
+                })
+                return last7Days
+              })()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                <Legend />
+                <Bar dataKey="revenue" name="Revenue" fill="#10B981" />
+                <Bar dataKey="expenses" name="Expenses" fill="#EF4444" />
+                <Line type="monotone" dataKey="profit" name="Net Profit" stroke="#8B5CF6" strokeWidth={2} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </Card>
         </TabsContent>
 
         <TabsContent value="staff" className="space-y-6 mt-6">
