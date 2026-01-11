@@ -14,55 +14,75 @@
     <script>
         window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__ = window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__ || {};
         
-        const ignoredErrors = [
+        const ignoredWarnings = [
             'ResizeObserver loop',
-            'setTimeout handler took',
-            'listener LEAK detected',
-            'Failed to fetch dynamically imported module',
             'chrome-extension://',
             'quillbot-content.js',
             'iframe which has both allow-scripts and allow-same-origin',
             'Violation',
-            'listener LEAK',
-            'Access-Control-Allow-Origin',
-            'CORS policy',
-            'ERR_FAILED',
-            'ERR_BAD_REQUEST',
-            'Tunnel service error',
-            'MIME type',
-            'Failed to load module script'
+            'listener LEAK detected',
+            'setTimeout handler took'
         ];
         
-        const originalConsoleError = console.error;
-        console.error = function(...args) {
-            const message = args.join(' ');
-            if (ignoredErrors.some(err => message.includes(err))) {
-                return;
-            }
-            originalConsoleError.apply(console, args);
-        };
+        const ignoredNetworkErrors = [
+            'Tunnel service error',
+            'Access-Control-Allow-Origin',
+            'CORS policy'
+        ];
         
         const originalConsoleWarn = console.warn;
         console.warn = function(...args) {
             const message = args.join(' ');
-            if (ignoredErrors.some(err => message.includes(err))) {
+            if (ignoredWarnings.some(err => message.includes(err))) {
                 return;
             }
             originalConsoleWarn.apply(console, args);
         };
         
+        const originalConsoleError = console.error;
+        console.error = function(...args) {
+            const message = args.join(' ');
+            
+            if (ignoredWarnings.some(err => message.includes(err))) {
+                return;
+            }
+            
+            if (ignoredNetworkErrors.some(err => message.includes(err))) {
+                console.info('Network error (ignored):', message);
+                return;
+            }
+            
+            originalConsoleError.apply(console, args);
+        };
+        
+        let moduleLoadErrors = [];
+        
         window.addEventListener('error', function(e) {
             const message = e.error?.message || e.message || '';
             
-            if (ignoredErrors.some(err => message.includes(err))) {
+            if (ignoredWarnings.some(err => message.includes(err))) {
+                e.preventDefault();
+                return;
+            }
+            
+            if (ignoredNetworkErrors.some(err => message.includes(err))) {
                 e.preventDefault();
                 return;
             }
             
             if (message.includes('Failed to fetch dynamically imported module') || 
-                message.includes('Failed to load module script')) {
+                message.includes('Failed to load module script') ||
+                message.includes('MIME type')) {
+                
+                const moduleMatch = e.filename?.match(/\/assets\/([^-]+)/);
+                const moduleName = moduleMatch ? moduleMatch[1] : 'Unknown';
+                
+                if (!moduleLoadErrors.includes(moduleName)) {
+                    moduleLoadErrors.push(moduleName);
+                    console.error(`[MODULE LOAD ERROR] ${moduleName}:`, e.filename || message);
+                }
+                
                 e.preventDefault();
-                console.log('Module loading error detected - React Error Boundary will handle it');
                 return;
             }
             
@@ -73,7 +93,7 @@
                     e.error.message.includes('Cannot read properties of null')) {
                     const root = document.getElementById('root');
                     if (root && !root.hasChildNodes()) {
-                        root.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem;background:#fafafa;"><div style="max-width:28rem;text-align:center;"><h1 style="color:#dc2626;font-size:1.25rem;font-weight:600;margin-bottom:1rem;">Module Loading Error</h1><p style="color:#6b7280;margin-bottom:1rem;">The application failed to load properly. This may be due to a browser cache issue.</p><button onclick="localStorage.clear();sessionStorage.clear();location.reload()" style="padding:0.5rem 1rem;background:#3b82f6;color:white;border:none;border-radius:0.375rem;cursor:pointer;">Clear Cache & Reload</button></div></div>';
+                        root.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem;background:#fafafa;"><div style="max-width:28rem;text-align:center;"><h1 style="color:#dc2626;font-size:1.25rem;font-weight:600;margin-bottom:1rem;">Application Error</h1><p style="color:#6b7280;margin-bottom:1rem;">The application encountered a critical error. Please clear cache and reload.</p><button onclick="localStorage.clear();sessionStorage.clear();location.reload()" style="padding:0.5rem 1rem;background:#3b82f6;color:white;border:none;border-radius:0.375rem;cursor:pointer;">Clear Cache & Reload</button></div></div>';
                     }
                 }
             }
@@ -81,18 +101,29 @@
         
         window.addEventListener('unhandledrejection', function(e) {
             const message = e.reason?.message || e.reason || '';
-            if (ignoredErrors.some(err => String(message).includes(err))) {
+            
+            if (ignoredWarnings.some(err => String(message).includes(err))) {
+                e.preventDefault();
+                return;
+            }
+            
+            if (ignoredNetworkErrors.some(err => String(message).includes(err))) {
                 e.preventDefault();
                 return;
             }
             
             if (String(message).includes('Failed to fetch dynamically imported module') || 
-                String(message).includes('Failed to load module script')) {
+                String(message).includes('Failed to load module script') ||
+                String(message).includes('MIME type')) {
+                console.error('[MODULE LOAD REJECTION]:', String(message));
                 e.preventDefault();
-                console.log('Module loading promise rejection - React Error Boundary will handle it');
                 return;
             }
         }, true);
+        
+        window.getModuleLoadErrors = function() {
+            return moduleLoadErrors;
+        };
     </script>
 </head>
 

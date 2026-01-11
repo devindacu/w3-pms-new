@@ -31,10 +31,12 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   ChevronRight,
-  RefreshCw
+  RefreshCw,
+  Bug
 } from 'lucide-react'
 import { ModuleLoadingSkeleton } from '@/components/ModuleLoadingSkeleton'
 import { ModuleSuspenseErrorBoundary } from '@/components/ModuleSuspenseErrorBoundary'
+import { ConsoleMonitor } from '@/components/ConsoleMonitor'
 import type { 
   SystemUser,
   Guest,
@@ -114,6 +116,7 @@ import {
   sampleEventDays,
   sampleCorporateAccounts
 } from '@/lib/revenueManagementSampleData'
+import '@/lib/diagnostics'
 
 type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'kitchen' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'settings'
 
@@ -232,6 +235,14 @@ function App() {
       }
       
       window.location.reload()
+    }
+  }
+
+  const handleRunDiagnostics = () => {
+    if (typeof window.checkModules === 'function') {
+      window.checkModules()
+    } else {
+      console.log('Diagnostics not available. Please reload the page.')
     }
   }
 
@@ -552,6 +563,15 @@ function App() {
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />
             <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-destructive rounded-full" />
+          </Button>
+
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={handleRunDiagnostics}
+            title="Run module diagnostics"
+          >
+            <Bug className="h-5 w-5" />
           </Button>
 
           <Button 
@@ -887,6 +907,7 @@ function App() {
         </div>
       </main>
 
+      <ConsoleMonitor />
       <Toaster position="top-right" richColors closeButton />
     </div>
   )
