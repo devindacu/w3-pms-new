@@ -1,9 +1,12 @@
 import { useState } from 'react'
+import { useKV } from '@github/spark/hooks'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { toast } from 'sonner'
 import {
   FileText,
   Download,
@@ -21,7 +24,10 @@ import {
   ClipboardText,
   FilePdf,
   FileXls,
-  Eye
+  Eye,
+  Plus,
+  Pencil,
+  Trash
 } from '@phosphor-icons/react'
 import type {
   Room,
@@ -35,7 +41,9 @@ import type {
   Payment,
   Expense
 } from '@/lib/types'
+import type { CustomReport } from '@/lib/reportBuilderTypes'
 import { formatCurrency, formatDate } from '@/lib/helpers'
+import { CustomReportBuilder } from './CustomReportBuilder'
 
 interface ReportsProps {
   rooms: Room[]
@@ -75,6 +83,9 @@ export function Reports({
   expenses
 }: ReportsProps) {
   const [selectedCategory, setSelectedCategory] = useState<ReportCategory | 'all'>('all')
+  const [customReports, setCustomReports] = useKV<CustomReport[]>('w3-hotel-custom-reports', [])
+  const [reportBuilderOpen, setReportBuilderOpen] = useState(false)
+  const [editingReport, setEditingReport] = useState<CustomReport | undefined>(undefined)
 
   const reportTemplates: ReportTemplate[] = [
     {
@@ -253,6 +264,36 @@ export function Reports({
     console.log(`Previewing ${reportId}`)
   }
 
+  const handleOpenReportBuilder = (report?: CustomReport) => {
+    setEditingReport(report)
+    setReportBuilderOpen(true)
+  }
+
+  const handleSaveCustomReport = (report: CustomReport) => {
+    setCustomReports((prev) => {
+      const existing = (prev || []).find(r => r.id === report.id)
+      if (existing) {
+        return (prev || []).map(r => r.id === report.id ? report : r)
+      }
+      return [...(prev || []), report]
+    })
+    setReportBuilderOpen(false)
+    setEditingReport(undefined)
+    toast.success('Custom report saved')
+  }
+
+  const handleDeleteCustomReport = (reportId: string) => {
+    setCustomReports((prev) => (prev || []).filter(r => r.id !== reportId))
+    toast.success('Custom report deleted')
+  }
+
+  const handleRunCustomReport = (reportId: string) => {
+    const report = (customReports || []).find(r => r.id === reportId)
+    if (report) {
+      toast.info(`Running report: ${report.name}`)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -264,6 +305,10 @@ export function Reports({
           <Button variant="outline">
             <CalendarBlank size={20} className="mr-2" />
             Schedule Reports
+          </Button>
+          <Button onClick={() => handleOpenReportBuilder()}>
+            <Plus size={20} className="mr-2" />
+            Create Custom Report
           </Button>
         </div>
       </div>
@@ -292,6 +337,10 @@ export function Reports({
             <TabsTrigger value="templates">
               <FileText size={18} className="mr-2" />
               Report Templates
+            </TabsTrigger>
+            <TabsTrigger value="custom">
+              <ChartBar size={18} className="mr-2" />
+              Custom Reports ({(customReports || []).length})
             </TabsTrigger>
             <TabsTrigger value="scheduled">
               <CalendarBlank size={18} className="mr-2" />
@@ -365,6 +414,107 @@ export function Reports({
             </div>
           </TabsContent>
 
+          <TabsContent value="custom" className="space-y-4">
+            {(customReports || []).length === 0 ? (
+              <Card className="p-8 text-center">
+                <ChartBar size={48} className="mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold mb-2">No Custom Reports</h3>
+                <p className="text-muted-foreground mb-6">
+                  Create custom reports with specific metrics and visualizations tailored to your needs
+                </p>
+                <Button onClick={() => handleOpenReportBuilder()}>
+                  <Plus size={20} className="mr-2" />
+                  Create Your First Custom Report
+                </Button>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {(customReports || []).map(report => (
+                  <Card key={report.id} className="p-5 hover:shadow-lg transition-shadow">
+                    <div className="space-y-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-base mb-1">{report.name}</h3>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {report.description || 'Custom report'}
+                          </p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleOpenReportBuilder(report)}
+                          >
+                            <Pencil size={16} />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDeleteCustomReport(report.id)}
+                          >
+                            <Trash size={16} className="text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="p-3 bg-primary/5 rounded-lg">
+                          <p className="text-xs text-muted-foreground mb-1">Metrics</p>
+                          <p className="text-lg font-semibold">{report.metrics.length}</p>
+                        </div>
+                        <div className="p-3 bg-secondary/5 rounded-lg">
+                          <p className="text-xs text-muted-foreground mb-1">Charts</p>
+                          <p className="text-lg font-semibold">{report.visualizations.length}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        {report.metrics.slice(0, 3).map(metric => (
+                          <Badge key={metric.id} variant="outline" className="text-xs">
+                            {metric.name}
+                          </Badge>
+                        ))}
+                        {report.metrics.length > 3 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{report.metrics.length - 3} more
+                          </Badge>
+                        )}
+                      </div>
+
+                      <Separator />
+                      
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRunCustomReport(report.id)}
+                          className="flex-1"
+                        >
+                          <Eye size={16} className="mr-1" />
+                          Run Report
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          title="Download PDF"
+                        >
+                          <FilePdf size={18} className="text-red-500" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          title="Download Excel"
+                        >
+                          <FileXls size={18} className="text-green-500" />
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
           <TabsContent value="scheduled" className="space-y-4">
             <Card className="p-8 text-center">
               <CalendarBlank size={48} className="mx-auto text-muted-foreground mb-4" />
@@ -391,23 +541,20 @@ export function Reports({
         </Tabs>
       </Card>
 
-      <Card className="p-6 bg-muted/50">
-        <div className="flex items-start gap-4">
-          <div className="p-3 bg-primary/10 rounded-lg text-primary">
-            <FileText size={24} />
+      <Dialog open={reportBuilderOpen} onOpenChange={setReportBuilderOpen}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden">
+          <div className="p-6 overflow-y-auto max-h-[95vh]">
+            <CustomReportBuilder
+              existingReport={editingReport}
+              onSave={handleSaveCustomReport}
+              onClose={() => {
+                setReportBuilderOpen(false)
+                setEditingReport(undefined)
+              }}
+            />
           </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-lg mb-2">Custom Report Builder</h3>
-            <p className="text-muted-foreground mb-4">
-              Need a custom report? Use our report builder to create tailored reports with your specific metrics and data points.
-            </p>
-            <Button variant="outline">
-              <ChartBar size={20} className="mr-2" />
-              Open Report Builder
-            </Button>
-          </div>
-        </div>
-      </Card>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
