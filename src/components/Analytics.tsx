@@ -3,6 +3,8 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 import {
   ChartBar,
   Bed,
@@ -14,7 +16,8 @@ import {
   Receipt,
   TrendUp,
   TrendDown,
-  Buildings
+  Buildings,
+  ArrowsCounterClockwise
 } from '@phosphor-icons/react'
 import { formatCurrency, formatPercent } from '@/lib/helpers'
 import {
@@ -32,9 +35,11 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer
+  ResponsiveContainer,
+  ComposedChart
 } from 'recharts'
 import { AnalyticsDateFilter, type DateRange } from '@/components/AnalyticsDateFilter'
+import { PercentageChangeIndicator } from '@/components/PercentageChangeIndicator'
 import type {
   Room,
   Reservation,
@@ -101,12 +106,26 @@ const isWithinDateRange = (timestamp: number, range: DateRange): boolean => {
   return date >= from && date <= to
 }
 
+const getPreviousPeriodRange = (range: DateRange): DateRange => {
+  const periodLength = range.to.getTime() - range.from.getTime()
+  return {
+    from: new Date(range.from.getTime() - periodLength),
+    to: new Date(range.from.getTime() - 1)
+  }
+}
+
+const calculatePercentageChange = (current: number, previous: number): number => {
+  if (previous === 0) return current > 0 ? 100 : 0
+  return ((current - previous) / previous) * 100
+}
+
 export function Analytics(props: AnalyticsProps) {
   const [activeTab, setActiveTab] = useState('overview')
   const [dateRange, setDateRange] = useState<DateRange>({
     from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
     to: new Date()
   })
+  const [comparisonEnabled, setComparisonEnabled] = useState(false)
 
   const filteredData = useMemo(() => {
     return {
@@ -121,6 +140,23 @@ export function Analytics(props: AnalyticsProps) {
       channelReservations: props.channelReservations.filter(r => isWithinDateRange(r.checkInDate, dateRange))
     }
   }, [props, dateRange])
+
+  const previousPeriodRange = useMemo(() => getPreviousPeriodRange(dateRange), [dateRange])
+
+  const previousPeriodData = useMemo(() => {
+    if (!comparisonEnabled) return null
+    return {
+      reservations: props.reservations.filter(r => isWithinDateRange(r.checkInDate, previousPeriodRange)),
+      guestInvoices: props.guestInvoices.filter(inv => isWithinDateRange(inv.invoiceDate, previousPeriodRange)),
+      payments: props.payments.filter(p => isWithinDateRange(p.processedAt, previousPeriodRange)),
+      orders: props.orders.filter(o => isWithinDateRange(o.createdAt, previousPeriodRange)),
+      expenses: props.expenses.filter(e => isWithinDateRange(e.expenseDate, previousPeriodRange)),
+      housekeepingTasks: props.housekeepingTasks.filter(t => isWithinDateRange(t.createdAt, previousPeriodRange)),
+      complaints: props.complaints.filter(c => isWithinDateRange(c.reportedAt, previousPeriodRange)),
+      guestFeedback: props.guestFeedback.filter(f => isWithinDateRange(f.submittedAt, previousPeriodRange)),
+      channelReservations: props.channelReservations.filter(r => isWithinDateRange(r.checkInDate, previousPeriodRange))
+    }
+  }, [props, previousPeriodRange, comparisonEnabled])
 
   const handleDateRangeChange = (newRange: DateRange) => {
     setDateRange(newRange)
@@ -148,12 +184,12 @@ export function Analytics(props: AnalyticsProps) {
     }
   }
 
-  const getRevenueData = () => {
-    const totalRevenue = filteredData.guestInvoices.reduce((sum, inv) => sum + inv.grandTotal, 0)
-    const paidRevenue = filteredData.payments.reduce((sum, p) => sum + p.amount, 0)
-    const pendingRevenue = filteredData.guestInvoices.reduce((sum, inv) => sum + inv.amountDue, 0)
+  const getRevenueData = (data = filteredData) => {
+    const totalRevenue = data.guestInvoices.reduce((sum, inv) => sum + inv.grandTotal, 0)
+    const paidRevenue = data.payments.reduce((sum, p) => sum + p.amount, 0)
+    const pendingRevenue = data.guestInvoices.reduce((sum, inv) => sum + inv.amountDue, 0)
     const roomRevenue = totalRevenue * 0.6
-    const fnbRevenue = filteredData.orders.reduce((sum, o) => sum + o.total, 0)
+    const fnbRevenue = data.orders.reduce((sum, o) => sum + o.total, 0)
     
     return {
       totalRevenue,
@@ -165,12 +201,12 @@ export function Analytics(props: AnalyticsProps) {
     }
   }
 
-  const getGuestData = () => {
+  const getGuestData = (data = filteredData) => {
     const totalGuests = props.guests.length
-    const activeReservations = filteredData.reservations.filter(r => r.status === 'checked-in').length
-    const upcomingReservations = filteredData.reservations.filter(r => r.status === 'confirmed').length
-    const avgStayDuration = filteredData.reservations.length > 0
-      ? filteredData.reservations.reduce((sum, r) => sum + Math.ceil((r.checkOutDate - r.checkInDate) / (1000 * 60 * 60 * 24)), 0) / filteredData.reservations.length
+    const activeReservations = data.reservations.filter(r => r.status === 'checked-in').length
+    const upcomingReservations = data.reservations.filter(r => r.status === 'confirmed').length
+    const avgStayDuration = data.reservations.length > 0
+      ? data.reservations.reduce((sum, r) => sum + Math.ceil((r.checkOutDate - r.checkInDate) / (1000 * 60 * 60 * 24)), 0) / data.reservations.length
       : 0
 
     return {
@@ -178,22 +214,22 @@ export function Analytics(props: AnalyticsProps) {
       activeReservations,
       upcomingReservations,
       avgStayDuration,
-      complaints: filteredData.complaints.length,
-      feedback: filteredData.guestFeedback.length,
-      satisfaction: filteredData.guestFeedback.length > 0
-        ? filteredData.guestFeedback.reduce((sum, f) => {
+      complaints: data.complaints.length,
+      feedback: data.guestFeedback.length,
+      satisfaction: data.guestFeedback.length > 0
+        ? data.guestFeedback.reduce((sum, f) => {
             const rating = f.ratings?.roomCleanliness
             return sum + (typeof rating === 'number' ? rating : 0)
-          }, 0) / filteredData.guestFeedback.length
+          }, 0) / data.guestFeedback.length
         : 0
     }
   }
 
-  const getHousekeepingData = () => {
-    const totalTasks = filteredData.housekeepingTasks.length
-    const completedTasks = filteredData.housekeepingTasks.filter(t => t.status === 'completed').length
-    const pendingTasks = filteredData.housekeepingTasks.filter(t => t.status === 'pending').length
-    const inProgressTasks = filteredData.housekeepingTasks.filter(t => t.status === 'in-progress').length
+  const getHousekeepingData = (data = filteredData) => {
+    const totalTasks = data.housekeepingTasks.length
+    const completedTasks = data.housekeepingTasks.filter(t => t.status === 'completed').length
+    const pendingTasks = data.housekeepingTasks.filter(t => t.status === 'pending').length
+    const inProgressTasks = data.housekeepingTasks.filter(t => t.status === 'in-progress').length
 
     return {
       totalTasks,
@@ -204,10 +240,10 @@ export function Analytics(props: AnalyticsProps) {
     }
   }
 
-  const getFnBData = () => {
-    const totalOrders = filteredData.orders.length
-    const completedOrders = filteredData.orders.filter(o => o.status === 'served').length
-    const totalRevenue = filteredData.orders.reduce((sum, o) => sum + o.total, 0)
+  const getFnBData = (data = filteredData) => {
+    const totalOrders = data.orders.length
+    const completedOrders = data.orders.filter(o => o.status === 'served').length
+    const totalRevenue = data.orders.reduce((sum, o) => sum + o.total, 0)
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
 
     return {
@@ -233,12 +269,12 @@ export function Analytics(props: AnalyticsProps) {
     }
   }
 
-  const getFinanceData = () => {
-    const totalInvoices = filteredData.guestInvoices.length
-    const totalPayments = filteredData.payments.length
-    const totalExpenses = filteredData.expenses.length
-    const revenue = filteredData.payments.reduce((sum, p) => sum + p.amount, 0)
-    const expenseAmount = filteredData.expenses.reduce((sum, e) => sum + e.amount, 0)
+  const getFinanceData = (data = filteredData) => {
+    const totalInvoices = data.guestInvoices.length
+    const totalPayments = data.payments.length
+    const totalExpenses = data.expenses.length
+    const revenue = data.payments.reduce((sum, p) => sum + p.amount, 0)
+    const expenseAmount = data.expenses.reduce((sum, e) => sum + e.amount, 0)
     const netProfit = revenue - expenseAmount
 
     return {
@@ -273,6 +309,12 @@ export function Analytics(props: AnalyticsProps) {
   const financeData = getFinanceData()
   const staffData = getStaffData()
 
+  const prevRevenueData = previousPeriodData ? getRevenueData(previousPeriodData) : null
+  const prevGuestData = previousPeriodData ? getGuestData(previousPeriodData) : null
+  const prevHousekeepingData = previousPeriodData ? getHousekeepingData(previousPeriodData) : null
+  const prevFnBData = previousPeriodData ? getFnBData(previousPeriodData) : null
+  const prevFinanceData = previousPeriodData ? getFinanceData(previousPeriodData) : null
+
   const revenueChartData = [
     { name: 'Room Revenue', value: revenueData.roomRevenue },
     { name: 'F&B Revenue', value: revenueData.fnbRevenue },
@@ -292,9 +334,56 @@ export function Analytics(props: AnalyticsProps) {
       const monthRevenue = filteredData.guestInvoices
         .filter(inv => new Date(inv.invoiceDate).getMonth() === index)
         .reduce((sum, inv) => sum + inv.grandTotal, 0)
-      return { month, revenue: monthRevenue }
+      
+      const prevMonthRevenue = previousPeriodData 
+        ? previousPeriodData.guestInvoices
+          .filter(inv => new Date(inv.invoiceDate).getMonth() === index)
+          .reduce((sum, inv) => sum + inv.grandTotal, 0)
+        : 0
+
+      return { 
+        month, 
+        current: monthRevenue,
+        previous: prevMonthRevenue 
+      }
     })
   })()
+
+  const ComparisonCard = ({ 
+    title, 
+    currentValue, 
+    previousValue, 
+    icon, 
+    formatter = (v: number) => v.toString(),
+    borderColor = 'border-l-primary',
+    iconColor = 'text-primary'
+  }: {
+    title: string
+    currentValue: number
+    previousValue?: number
+    icon: React.ReactNode
+    formatter?: (value: number) => string
+    borderColor?: string
+    iconColor?: string
+  }) => {
+    return (
+      <Card className={`p-6 border-l-4 ${borderColor}`}>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
+          <div className={iconColor}>{icon}</div>
+        </div>
+        <p className="text-3xl font-semibold">{formatter(currentValue)}</p>
+        {comparisonEnabled && previousValue !== undefined && (
+          <div className="mt-2 flex items-center gap-2">
+            <PercentageChangeIndicator current={currentValue} previous={previousValue} size="sm" />
+            <span className="text-xs text-muted-foreground">
+              vs prev: {formatter(previousValue)}
+            </span>
+          </div>
+        )}
+      </Card>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -305,12 +394,45 @@ export function Analytics(props: AnalyticsProps) {
         </div>
       </div>
 
-      <AnalyticsDateFilter
-        dateRange={dateRange}
-        onDateRangeChange={handleDateRangeChange}
-        onReset={handleReset}
-        className="bg-card p-4 rounded-lg border"
-      />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card p-4 rounded-lg border">
+        <AnalyticsDateFilter
+          dateRange={dateRange}
+          onDateRangeChange={handleDateRangeChange}
+          onReset={handleReset}
+          className="flex-1"
+        />
+        
+        <div className="flex items-center gap-3 bg-muted/50 px-4 py-2 rounded-lg">
+          <ArrowsCounterClockwise size={20} className="text-primary" />
+          <div className="flex items-center gap-2">
+            <Switch
+              id="comparison-mode"
+              checked={comparisonEnabled}
+              onCheckedChange={setComparisonEnabled}
+            />
+            <Label htmlFor="comparison-mode" className="text-sm font-medium cursor-pointer">
+              Compare with Previous Period
+            </Label>
+          </div>
+        </div>
+      </div>
+
+      {comparisonEnabled && (
+        <Card className="p-4 bg-primary/5 border-primary/20">
+          <div className="flex items-start gap-3">
+            <ArrowsCounterClockwise size={24} className="text-primary mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-sm">Comparison Mode Enabled</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Current Period: {dateRange.from.toLocaleDateString()} - {dateRange.to.toLocaleDateString()}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Previous Period: {previousPeriodRange.from.toLocaleDateString()} - {previousPeriodRange.to.toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9">
@@ -336,32 +458,34 @@ export function Analytics(props: AnalyticsProps) {
               <p className="text-sm text-muted-foreground mt-1">{occupancyData.occupiedRooms} / {occupancyData.totalRooms} rooms</p>
             </Card>
 
-            <Card className="p-6 border-l-4 border-l-accent">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium text-muted-foreground">Total Revenue</h3>
-                <CurrencyDollar size={20} className="text-accent" />
-              </div>
-              <p className="text-3xl font-semibold">{formatCurrency(revenueData.totalRevenue)}</p>
-              <p className="text-sm text-muted-foreground mt-1">Pending: {formatCurrency(revenueData.pendingRevenue)}</p>
-            </Card>
+            <ComparisonCard
+              title="Total Revenue"
+              currentValue={revenueData.totalRevenue}
+              previousValue={prevRevenueData?.totalRevenue}
+              icon={<CurrencyDollar size={20} />}
+              formatter={formatCurrency}
+              borderColor="border-l-accent"
+              iconColor="text-accent"
+            />
 
-            <Card className="p-6 border-l-4 border-l-success">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium text-muted-foreground">Active Guests</h3>
-                <Users size={20} className="text-success" />
-              </div>
-              <p className="text-3xl font-semibold">{guestData.activeReservations}</p>
-              <p className="text-sm text-muted-foreground mt-1">Upcoming: {guestData.upcomingReservations}</p>
-            </Card>
+            <ComparisonCard
+              title="Active Guests"
+              currentValue={guestData.activeReservations}
+              previousValue={prevGuestData?.activeReservations}
+              icon={<Users size={20} />}
+              borderColor="border-l-success"
+              iconColor="text-success"
+            />
 
-            <Card className="p-6 border-l-4 border-l-secondary">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium text-muted-foreground">Net Profit</h3>
-                <TrendUp size={20} className="text-secondary" />
-              </div>
-              <p className="text-3xl font-semibold">{formatCurrency(financeData.netProfit)}</p>
-              <p className="text-sm text-muted-foreground mt-1">Margin: {financeData.profitMargin.toFixed(1)}%</p>
-            </Card>
+            <ComparisonCard
+              title="Net Profit"
+              currentValue={financeData.netProfit}
+              previousValue={prevFinanceData?.netProfit}
+              icon={<TrendUp size={20} />}
+              formatter={formatCurrency}
+              borderColor="border-l-secondary"
+              iconColor="text-secondary"
+            />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -403,15 +527,44 @@ export function Analytics(props: AnalyticsProps) {
           </div>
 
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Monthly Revenue Trend</h3>
+            <h3 className="text-lg font-semibold mb-4">
+              Monthly Revenue Trend
+              {comparisonEnabled && <span className="text-sm font-normal text-muted-foreground ml-2">(Current vs Previous Period)</span>}
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={monthlyRevenueData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                <Area type="monotone" dataKey="revenue" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.6} />
-              </AreaChart>
+              {comparisonEnabled ? (
+                <ComposedChart data={monthlyRevenueData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                  <Legend />
+                  <Area 
+                    type="monotone" 
+                    dataKey="previous" 
+                    name="Previous Period"
+                    stroke="#94a3b8" 
+                    fill="#94a3b8" 
+                    fillOpacity={0.3} 
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="current" 
+                    name="Current Period"
+                    stroke="#8B5CF6" 
+                    fill="#8B5CF6" 
+                    fillOpacity={0.6} 
+                  />
+                </ComposedChart>
+              ) : (
+                <AreaChart data={monthlyRevenueData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                  <Area type="monotone" dataKey="current" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.6} />
+                </AreaChart>
+              )}
             </ResponsiveContainer>
           </Card>
         </TabsContent>
@@ -457,33 +610,57 @@ export function Analytics(props: AnalyticsProps) {
 
         <TabsContent value="revenue" className="space-y-6 mt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="p-6 border-l-4 border-l-primary">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Revenue</h3>
-              <p className="text-3xl font-semibold">{formatCurrency(revenueData.totalRevenue)}</p>
-            </Card>
-            <Card className="p-6 border-l-4 border-l-success">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Paid Revenue</h3>
-              <p className="text-3xl font-semibold text-success">{formatCurrency(revenueData.paidRevenue)}</p>
-            </Card>
-            <Card className="p-6 border-l-4 border-l-destructive">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Pending Revenue</h3>
-              <p className="text-3xl font-semibold text-destructive">{formatCurrency(revenueData.pendingRevenue)}</p>
-            </Card>
+            <ComparisonCard
+              title="Total Revenue"
+              currentValue={revenueData.totalRevenue}
+              previousValue={prevRevenueData?.totalRevenue}
+              icon={<CurrencyDollar size={20} />}
+              formatter={formatCurrency}
+              borderColor="border-l-primary"
+              iconColor="text-primary"
+            />
+            <ComparisonCard
+              title="Paid Revenue"
+              currentValue={revenueData.paidRevenue}
+              previousValue={prevRevenueData?.paidRevenue}
+              icon={<Receipt size={20} />}
+              formatter={formatCurrency}
+              borderColor="border-l-success"
+              iconColor="text-success"
+            />
+            <ComparisonCard
+              title="Pending Revenue"
+              currentValue={revenueData.pendingRevenue}
+              previousValue={prevRevenueData?.pendingRevenue}
+              icon={<Receipt size={20} />}
+              formatter={formatCurrency}
+              borderColor="border-l-destructive"
+              iconColor="text-destructive"
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Room Revenue</h3>
-              <p className="text-2xl font-semibold">{formatCurrency(revenueData.roomRevenue)}</p>
-            </Card>
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">F&B Revenue</h3>
-              <p className="text-2xl font-semibold">{formatCurrency(revenueData.fnbRevenue)}</p>
-            </Card>
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Other Revenue</h3>
-              <p className="text-2xl font-semibold">{formatCurrency(revenueData.otherRevenue)}</p>
-            </Card>
+            <ComparisonCard
+              title="Room Revenue"
+              currentValue={revenueData.roomRevenue}
+              previousValue={prevRevenueData?.roomRevenue}
+              icon={<Bed size={20} />}
+              formatter={formatCurrency}
+            />
+            <ComparisonCard
+              title="F&B Revenue"
+              currentValue={revenueData.fnbRevenue}
+              previousValue={prevRevenueData?.fnbRevenue}
+              icon={<ChefHat size={20} />}
+              formatter={formatCurrency}
+            />
+            <ComparisonCard
+              title="Other Revenue"
+              currentValue={revenueData.otherRevenue}
+              previousValue={prevRevenueData?.otherRevenue}
+              icon={<Buildings size={20} />}
+              formatter={formatCurrency}
+            />
           </div>
         </TabsContent>
 
@@ -493,67 +670,110 @@ export function Analytics(props: AnalyticsProps) {
               <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Guests</h3>
               <p className="text-3xl font-semibold">{guestData.totalGuests}</p>
             </Card>
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Active Check-ins</h3>
-              <p className="text-3xl font-semibold text-primary">{guestData.activeReservations}</p>
-            </Card>
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Avg Stay Duration</h3>
-              <p className="text-3xl font-semibold">{guestData.avgStayDuration.toFixed(1)} days</p>
-            </Card>
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Satisfaction</h3>
-              <p className="text-3xl font-semibold text-accent">{guestData.satisfaction.toFixed(1)}/5</p>
-            </Card>
+            <ComparisonCard
+              title="Active Check-ins"
+              currentValue={guestData.activeReservations}
+              previousValue={prevGuestData?.activeReservations}
+              icon={<Users size={20} />}
+              borderColor="border-l-primary"
+              iconColor="text-primary"
+            />
+            <ComparisonCard
+              title="Avg Stay Duration"
+              currentValue={guestData.avgStayDuration}
+              previousValue={prevGuestData?.avgStayDuration}
+              icon={<Bed size={20} />}
+              formatter={(v) => `${v.toFixed(1)} days`}
+            />
+            <ComparisonCard
+              title="Satisfaction"
+              currentValue={guestData.satisfaction}
+              previousValue={prevGuestData?.satisfaction}
+              icon={<TrendUp size={20} />}
+              formatter={(v) => `${v.toFixed(1)}/5`}
+              borderColor="border-l-accent"
+              iconColor="text-accent"
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Complaints</h3>
-              <p className="text-2xl font-semibold text-destructive">{guestData.complaints}</p>
-            </Card>
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Feedback Received</h3>
-              <p className="text-2xl font-semibold text-success">{guestData.feedback}</p>
-            </Card>
+            <ComparisonCard
+              title="Complaints"
+              currentValue={guestData.complaints}
+              previousValue={prevGuestData?.complaints}
+              icon={<TrendDown size={20} />}
+              borderColor="border-l-destructive"
+              iconColor="text-destructive"
+            />
+            <ComparisonCard
+              title="Feedback Received"
+              currentValue={guestData.feedback}
+              previousValue={prevGuestData?.feedback}
+              icon={<Receipt size={20} />}
+              borderColor="border-l-success"
+              iconColor="text-success"
+            />
           </div>
         </TabsContent>
 
         <TabsContent value="housekeeping" className="space-y-6 mt-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Tasks</h3>
-              <p className="text-3xl font-semibold">{housekeepingData.totalTasks}</p>
-            </Card>
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Completed</h3>
-              <p className="text-3xl font-semibold text-success">{housekeepingData.completedTasks}</p>
-            </Card>
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">In Progress</h3>
-              <p className="text-3xl font-semibold text-primary">{housekeepingData.inProgressTasks}</p>
-            </Card>
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Completion Rate</h3>
-              <p className="text-3xl font-semibold text-accent">{housekeepingData.completionRate.toFixed(1)}%</p>
-            </Card>
+            <ComparisonCard
+              title="Total Tasks"
+              currentValue={housekeepingData.totalTasks}
+              previousValue={prevHousekeepingData?.totalTasks}
+              icon={<Broom size={20} />}
+            />
+            <ComparisonCard
+              title="Completed"
+              currentValue={housekeepingData.completedTasks}
+              previousValue={prevHousekeepingData?.completedTasks}
+              icon={<TrendUp size={20} />}
+              borderColor="border-l-success"
+              iconColor="text-success"
+            />
+            <ComparisonCard
+              title="In Progress"
+              currentValue={housekeepingData.inProgressTasks}
+              previousValue={prevHousekeepingData?.inProgressTasks}
+              icon={<ChartBar size={20} />}
+              borderColor="border-l-primary"
+              iconColor="text-primary"
+            />
+            <ComparisonCard
+              title="Completion Rate"
+              currentValue={housekeepingData.completionRate}
+              previousValue={prevHousekeepingData?.completionRate}
+              icon={<TrendUp size={20} />}
+              formatter={(v) => `${v.toFixed(1)}%`}
+              borderColor="border-l-accent"
+              iconColor="text-accent"
+            />
           </div>
         </TabsContent>
 
         <TabsContent value="fnb" className="space-y-6 mt-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Orders</h3>
-              <p className="text-3xl font-semibold">{fnbData.totalOrders}</p>
-            </Card>
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Revenue</h3>
-              <p className="text-3xl font-semibold">{formatCurrency(fnbData.totalRevenue)}</p>
-            </Card>
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Avg Order Value</h3>
-              <p className="text-3xl font-semibold">{formatCurrency(fnbData.avgOrderValue)}</p>
-            </Card>
+            <ComparisonCard
+              title="Total Orders"
+              currentValue={fnbData.totalOrders}
+              previousValue={prevFnBData?.totalOrders}
+              icon={<Receipt size={20} />}
+            />
+            <ComparisonCard
+              title="Total Revenue"
+              currentValue={fnbData.totalRevenue}
+              previousValue={prevFnBData?.totalRevenue}
+              icon={<CurrencyDollar size={20} />}
+              formatter={formatCurrency}
+            />
+            <ComparisonCard
+              title="Avg Order Value"
+              currentValue={fnbData.avgOrderValue}
+              previousValue={prevFnBData?.avgOrderValue}
+              icon={<ChartBar size={20} />}
+              formatter={formatCurrency}
+            />
             <Card className="p-6">
               <h3 className="text-sm font-medium text-muted-foreground mb-2">Recipes</h3>
               <p className="text-3xl font-semibold">{fnbData.recipes}</p>
@@ -584,37 +804,63 @@ export function Analytics(props: AnalyticsProps) {
 
         <TabsContent value="finance" className="space-y-6 mt-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="p-6 border-l-4 border-l-primary">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Revenue</h3>
-              <p className="text-3xl font-semibold">{formatCurrency(financeData.revenue)}</p>
-            </Card>
-            <Card className="p-6 border-l-4 border-l-destructive">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Expenses</h3>
-              <p className="text-3xl font-semibold text-destructive">{formatCurrency(financeData.expenseAmount)}</p>
-            </Card>
-            <Card className="p-6 border-l-4 border-l-success">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Net Profit</h3>
-              <p className="text-3xl font-semibold text-success">{formatCurrency(financeData.netProfit)}</p>
-            </Card>
-            <Card className="p-6 border-l-4 border-l-accent">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Profit Margin</h3>
-              <p className="text-3xl font-semibold">{financeData.profitMargin.toFixed(1)}%</p>
-            </Card>
+            <ComparisonCard
+              title="Total Revenue"
+              currentValue={financeData.revenue}
+              previousValue={prevFinanceData?.revenue}
+              icon={<CurrencyDollar size={20} />}
+              formatter={formatCurrency}
+              borderColor="border-l-primary"
+              iconColor="text-primary"
+            />
+            <ComparisonCard
+              title="Total Expenses"
+              currentValue={financeData.expenseAmount}
+              previousValue={prevFinanceData?.expenseAmount}
+              icon={<TrendDown size={20} />}
+              formatter={formatCurrency}
+              borderColor="border-l-destructive"
+              iconColor="text-destructive"
+            />
+            <ComparisonCard
+              title="Net Profit"
+              currentValue={financeData.netProfit}
+              previousValue={prevFinanceData?.netProfit}
+              icon={<TrendUp size={20} />}
+              formatter={formatCurrency}
+              borderColor="border-l-success"
+              iconColor="text-success"
+            />
+            <ComparisonCard
+              title="Profit Margin"
+              currentValue={financeData.profitMargin}
+              previousValue={prevFinanceData?.profitMargin}
+              icon={<ChartBar size={20} />}
+              formatter={(v) => `${v.toFixed(1)}%`}
+              borderColor="border-l-accent"
+              iconColor="text-accent"
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Invoices</h3>
-              <p className="text-2xl font-semibold">{financeData.totalInvoices}</p>
-            </Card>
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Payments</h3>
-              <p className="text-2xl font-semibold">{financeData.totalPayments}</p>
-            </Card>
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Expenses</h3>
-              <p className="text-2xl font-semibold">{financeData.totalExpenses}</p>
-            </Card>
+            <ComparisonCard
+              title="Total Invoices"
+              currentValue={financeData.totalInvoices}
+              previousValue={prevFinanceData?.totalInvoices}
+              icon={<Receipt size={20} />}
+            />
+            <ComparisonCard
+              title="Total Payments"
+              currentValue={financeData.totalPayments}
+              previousValue={prevFinanceData?.totalPayments}
+              icon={<CurrencyDollar size={20} />}
+            />
+            <ComparisonCard
+              title="Total Expenses"
+              currentValue={financeData.totalExpenses}
+              previousValue={prevFinanceData?.totalExpenses}
+              icon={<Receipt size={20} />}
+            />
           </div>
         </TabsContent>
 
