@@ -359,7 +359,7 @@ export function RevenueForecasting({
                   yAxisId="left"
                   stroke="var(--muted-foreground)"
                   tick={{ fontSize: 12 }}
-                  tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                  tickFormatter={(value) => `LKR ${(value / 1000).toFixed(0)}k`}
                 />
                 <YAxis 
                   yAxisId="right"
@@ -503,7 +503,7 @@ export function RevenueForecasting({
                 <YAxis 
                   stroke="var(--muted-foreground)"
                   tick={{ fontSize: 12 }}
-                  tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                  tickFormatter={(value) => `LKR ${(value / 1000).toFixed(0)}k`}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
