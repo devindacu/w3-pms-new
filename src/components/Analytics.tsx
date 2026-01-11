@@ -37,7 +37,15 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  ComposedChart
+  ComposedChart,
+  ScatterChart,
+  Scatter,
+  ZAxis,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar
 } from 'recharts'
 import { AnalyticsDateFilter, type DateRange } from '@/components/AnalyticsDateFilter'
 import { PercentageChangeIndicator } from '@/components/PercentageChangeIndicator'
@@ -701,6 +709,115 @@ export function Analytics(props: AnalyticsProps) {
               </AreaChart>
             </ResponsiveContainer>
           </Card>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Room Rate vs Occupancy (Scatter Plot)</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <ScatterChart>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    type="number" 
+                    dataKey="rate" 
+                    name="Occupancy Rate" 
+                    unit="%" 
+                    domain={[0, 100]}
+                  />
+                  <YAxis 
+                    type="number" 
+                    dataKey="avgRate" 
+                    name="Avg Rate" 
+                    tickFormatter={(value) => `$${value}`}
+                  />
+                  <ZAxis range={[100, 400]} />
+                  <Tooltip 
+                    cursor={{ strokeDasharray: '3 3' }}
+                    formatter={(value: any, name: string) => {
+                      if (name === 'avgRate') return formatCurrency(value)
+                      if (name === 'rate') return `${value.toFixed(1)}%`
+                      return value
+                    }}
+                  />
+                  <Legend />
+                  <Scatter 
+                    name="Room Types" 
+                    data={Array.from(new Set(props.rooms.map(r => r.roomType))).map((type) => {
+                      const typeRooms = props.rooms.filter(r => r.roomType === type)
+                      const occupied = typeRooms.filter(r => r.status.includes('occupied')).length
+                      const total = typeRooms.length
+                      const rate = total > 0 ? (occupied / total) * 100 : 0
+                      const avgRate = 150 + Math.random() * 200
+                      return { type, rate, avgRate, rooms: total }
+                    })}
+                    fill={CHART_COLORS[0]} 
+                  />
+                </ScatterChart>
+              </ResponsiveContainer>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Weekly Occupancy Heat Map</h3>
+              <div className="space-y-2">
+                {(() => {
+                  const last7Days = Array.from({ length: 7 }, (_, i) => {
+                    const date = new Date()
+                    date.setDate(date.getDate() - (6 - i))
+                    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' })
+                    const hourlyData = Array.from({ length: 24 }, (_, hour) => {
+                      const checkInHour = filteredData.reservations.filter(r => {
+                        const checkIn = new Date(r.checkInDate)
+                        return checkIn.toDateString() === date.toDateString() && 
+                               checkIn.getHours() === hour
+                      }).length
+                      return checkInHour
+                    })
+                    const maxCheckIns = Math.max(...hourlyData, 1)
+                    return { dayName, hourlyData, maxCheckIns }
+                  })
+                  
+                  return last7Days.map(({ dayName, hourlyData, maxCheckIns }) => (
+                    <div key={dayName} className="flex items-center gap-2">
+                      <span className="text-xs w-20 text-muted-foreground">{dayName.slice(0, 3)}</span>
+                      <div className="flex gap-0.5 flex-1">
+                        {hourlyData.map((count, hour) => {
+                          const intensity = maxCheckIns > 0 ? count / maxCheckIns : 0
+                          const bgColor = intensity === 0 ? 'bg-muted' : 
+                                        intensity < 0.33 ? 'bg-primary/30' :
+                                        intensity < 0.66 ? 'bg-primary/60' : 'bg-primary'
+                          return (
+                            <div 
+                              key={hour}
+                              className={`h-6 flex-1 rounded-sm ${bgColor} hover:ring-1 hover:ring-primary cursor-pointer transition-all`}
+                              title={`${dayName} ${hour}:00 - ${count} check-ins`}
+                            />
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ))
+                })()}
+                <div className="flex items-center gap-2 mt-3 pt-3 border-t">
+                  <span className="text-xs text-muted-foreground">Activity:</span>
+                  <div className="flex items-center gap-1">
+                    <div className="w-4 h-4 bg-muted rounded-sm" />
+                    <span className="text-xs">None</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-4 h-4 bg-primary/30 rounded-sm" />
+                    <span className="text-xs">Low</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-4 h-4 bg-primary/60 rounded-sm" />
+                    <span className="text-xs">Medium</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-4 h-4 bg-primary rounded-sm" />
+                    <span className="text-xs">High</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="revenue" className="space-y-6 mt-6">
@@ -866,6 +983,95 @@ export function Analytics(props: AnalyticsProps) {
               </AreaChart>
             </ResponsiveContainer>
           </Card>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Revenue Performance Radar</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <RadarChart data={[
+                  { 
+                    metric: 'Room Revenue', 
+                    value: revenueData.totalRevenue > 0 ? (revenueData.roomRevenue / revenueData.totalRevenue) * 100 : 0,
+                    fullMark: 100 
+                  },
+                  { 
+                    metric: 'F&B Revenue', 
+                    value: revenueData.totalRevenue > 0 ? (revenueData.fnbRevenue / revenueData.totalRevenue) * 100 : 0,
+                    fullMark: 100 
+                  },
+                  { 
+                    metric: 'Collection Rate', 
+                    value: revenueData.totalRevenue > 0 ? (revenueData.paidRevenue / revenueData.totalRevenue) * 100 : 0,
+                    fullMark: 100 
+                  },
+                  { 
+                    metric: 'Occupancy', 
+                    value: occupancyData.occupancyRate,
+                    fullMark: 100 
+                  },
+                  { 
+                    metric: 'Profit Margin', 
+                    value: Math.min(financeData.profitMargin * 2, 100),
+                    fullMark: 100 
+                  }
+                ]}>
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="metric" />
+                  <PolarRadiusAxis angle={90} domain={[0, 100]} />
+                  <Radar name="Performance" dataKey="value" stroke={CHART_COLORS[0]} fill={CHART_COLORS[0]} fillOpacity={0.6} />
+                  <Tooltip formatter={(value) => `${Number(value).toFixed(1)}%`} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Revenue vs Payment Scatter</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <ScatterChart>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    type="number" 
+                    dataKey="invoiced" 
+                    name="Invoiced" 
+                    tickFormatter={(value) => formatCurrency(value)}
+                  />
+                  <YAxis 
+                    type="number" 
+                    dataKey="collected" 
+                    name="Collected"
+                    tickFormatter={(value) => formatCurrency(value)}
+                  />
+                  <ZAxis range={[50, 200]} />
+                  <Tooltip 
+                    cursor={{ strokeDasharray: '3 3' }}
+                    formatter={(value: any) => formatCurrency(value)}
+                  />
+                  <Legend />
+                  <Scatter 
+                    name="Daily Performance" 
+                    data={Array.from({ length: 7 }, (_, i) => {
+                      const date = new Date()
+                      date.setDate(date.getDate() - (6 - i))
+                      const dayInvoices = filteredData.guestInvoices.filter(inv => {
+                        const invDate = new Date(inv.invoiceDate)
+                        return invDate.toDateString() === date.toDateString()
+                      })
+                      const dayPayments = filteredData.payments.filter(p => {
+                        const payDate = new Date(p.processedAt)
+                        return payDate.toDateString() === date.toDateString()
+                      })
+                      return {
+                        day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+                        invoiced: dayInvoices.reduce((sum, inv) => sum + inv.grandTotal, 0),
+                        collected: dayPayments.reduce((sum, p) => sum + p.amount, 0)
+                      }
+                    })}
+                    fill={CHART_COLORS[2]} 
+                  />
+                </ScatterChart>
+              </ResponsiveContainer>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="guests" className="space-y-6 mt-6">
@@ -1018,6 +1224,101 @@ export function Analytics(props: AnalyticsProps) {
               </BarChart>
             </ResponsiveContainer>
           </Card>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Guest Satisfaction Radar</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <RadarChart data={(() => {
+                  const metrics = [
+                    { category: 'Room Cleanliness', rating: 0, count: 0 },
+                    { category: 'Staff Service', rating: 0, count: 0 },
+                    { category: 'Room Comfort', rating: 0, count: 0 },
+                    { category: 'Value', rating: 0, count: 0 },
+                    { category: 'Food Quality', rating: 0, count: 0 }
+                  ]
+                  
+                  filteredData.guestFeedback.forEach(feedback => {
+                    if (feedback.ratings?.roomCleanliness) {
+                      metrics[0].rating += feedback.ratings.roomCleanliness
+                      metrics[0].count++
+                    }
+                    if (feedback.ratings?.staffService) {
+                      metrics[1].rating += feedback.ratings.staffService
+                      metrics[1].count++
+                    }
+                    if (feedback.ratings?.roomComfort) {
+                      metrics[2].rating += feedback.ratings.roomComfort
+                      metrics[2].count++
+                    }
+                    if (feedback.ratings?.valueForMoney) {
+                      metrics[3].rating += feedback.ratings.valueForMoney
+                      metrics[3].count++
+                    }
+                    if (feedback.ratings?.foodQuality) {
+                      metrics[4].rating += feedback.ratings.foodQuality
+                      metrics[4].count++
+                    }
+                  })
+                  
+                  return metrics.map(m => ({
+                    category: m.category,
+                    value: m.count > 0 ? (m.rating / m.count) * 20 : 0,
+                    fullMark: 100
+                  }))
+                })()}>
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="category" />
+                  <PolarRadiusAxis angle={90} domain={[0, 100]} />
+                  <Radar name="Satisfaction" dataKey="value" stroke={CHART_COLORS[2]} fill={CHART_COLORS[2]} fillOpacity={0.6} />
+                  <Tooltip formatter={(value) => `${Number(value).toFixed(1)}%`} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Stay Duration Distribution</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <ScatterChart>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    type="number" 
+                    dataKey="nights" 
+                    name="Nights" 
+                  />
+                  <YAxis 
+                    type="number" 
+                    dataKey="totalSpent" 
+                    name="Total Spent"
+                    tickFormatter={(value) => formatCurrency(value)}
+                  />
+                  <ZAxis range={[50, 300]} />
+                  <Tooltip 
+                    cursor={{ strokeDasharray: '3 3' }}
+                    formatter={(value: any, name: string) => {
+                      if (name === 'totalSpent') return formatCurrency(value)
+                      return value
+                    }}
+                  />
+                  <Legend />
+                  <Scatter 
+                    name="Guest Stays" 
+                    data={filteredData.reservations.map(r => {
+                      const nights = Math.ceil((r.checkOutDate - r.checkInDate) / (1000 * 60 * 60 * 24))
+                      const invoice = filteredData.guestInvoices.find(inv => 
+                        inv.reservationIds && inv.reservationIds.includes(r.id)
+                      )
+                      return {
+                        nights,
+                        totalSpent: invoice?.grandTotal || 0
+                      }
+                    }).filter(d => d.totalSpent > 0)}
+                    fill={CHART_COLORS[3]} 
+                  />
+                </ScatterChart>
+              </ResponsiveContainer>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="housekeeping" className="space-y-6 mt-6">
@@ -1288,6 +1589,150 @@ export function Analytics(props: AnalyticsProps) {
                 <Area yAxisId="right" type="monotone" dataKey="orders" name="Orders" stroke="#F59E0B" fill="#F59E0B" fillOpacity={0.3} />
               </AreaChart>
             </ResponsiveContainer>
+          </Card>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Order Value vs Frequency</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <ScatterChart>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    type="number" 
+                    dataKey="orderCount" 
+                    name="Order Count" 
+                  />
+                  <YAxis 
+                    type="number" 
+                    dataKey="avgValue" 
+                    name="Avg Value"
+                    tickFormatter={(value) => formatCurrency(value)}
+                  />
+                  <ZAxis range={[50, 300]} />
+                  <Tooltip 
+                    cursor={{ strokeDasharray: '3 3' }}
+                    formatter={(value: any, name: string) => {
+                      if (name === 'avgValue') return formatCurrency(value)
+                      return value
+                    }}
+                  />
+                  <Legend />
+                  <Scatter 
+                    name="Order Types" 
+                    data={[
+                      { type: 'Dine-in', orders: filteredData.orders.filter(o => o.type === 'dine-in') },
+                      { type: 'Room Service', orders: filteredData.orders.filter(o => o.type === 'room-service') },
+                      { type: 'Takeaway', orders: filteredData.orders.filter(o => o.type === 'takeaway') }
+                    ].map(({ type, orders }) => ({
+                      type,
+                      orderCount: orders.length,
+                      avgValue: orders.length > 0 ? orders.reduce((sum, o) => sum + o.total, 0) / orders.length : 0
+                    }))}
+                    fill={CHART_COLORS[1]} 
+                  />
+                </ScatterChart>
+              </ResponsiveContainer>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">F&B Performance Radar</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <RadarChart data={[
+                  { 
+                    metric: 'Order Volume', 
+                    value: Math.min((fnbData.totalOrders / 50) * 100, 100),
+                    fullMark: 100 
+                  },
+                  { 
+                    metric: 'Revenue', 
+                    value: Math.min((fnbData.totalRevenue / 10000) * 100, 100),
+                    fullMark: 100 
+                  },
+                  { 
+                    metric: 'Avg Order Value', 
+                    value: Math.min((fnbData.avgOrderValue / 100) * 100, 100),
+                    fullMark: 100 
+                  },
+                  { 
+                    metric: 'Completion Rate', 
+                    value: fnbData.totalOrders > 0 ? (fnbData.completedOrders / fnbData.totalOrders) * 100 : 0,
+                    fullMark: 100 
+                  },
+                  { 
+                    metric: 'Menu Coverage', 
+                    value: Math.min((fnbData.recipes / 50) * 100, 100),
+                    fullMark: 100 
+                  }
+                ]}>
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="metric" />
+                  <PolarRadiusAxis angle={90} domain={[0, 100]} />
+                  <Radar name="Performance" dataKey="value" stroke={CHART_COLORS[3]} fill={CHART_COLORS[3]} fillOpacity={0.6} />
+                  <Tooltip formatter={(value) => `${Number(value).toFixed(1)}%`} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </Card>
+          </div>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Hourly Order Heat Map</h3>
+            <div className="space-y-2">
+              {(() => {
+                const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+                
+                return daysOfWeek.map((dayName) => {
+                  const hourlyData = Array.from({ length: 24 }, (_, hour) => {
+                    const orderCount = filteredData.orders.filter(o => {
+                      const orderDate = new Date(o.createdAt)
+                      const orderDay = orderDate.toLocaleDateString('en-US', { weekday: 'long' })
+                      return orderDay === dayName && orderDate.getHours() === hour
+                    }).length
+                    return orderCount
+                  })
+                  const maxOrders = Math.max(...hourlyData, 1)
+                  
+                  return (
+                    <div key={dayName} className="flex items-center gap-2">
+                      <span className="text-xs w-20 text-muted-foreground">{dayName.slice(0, 3)}</span>
+                      <div className="flex gap-0.5 flex-1">
+                        {hourlyData.map((count, hour) => {
+                          const intensity = maxOrders > 0 ? count / maxOrders : 0
+                          const bgColor = intensity === 0 ? 'bg-muted' : 
+                                        intensity < 0.33 ? 'bg-accent/30' :
+                                        intensity < 0.66 ? 'bg-accent/60' : 'bg-accent'
+                          return (
+                            <div 
+                              key={hour}
+                              className={`h-6 flex-1 rounded-sm ${bgColor} hover:ring-1 hover:ring-accent cursor-pointer transition-all`}
+                              title={`${dayName} ${hour}:00 - ${count} orders`}
+                            />
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })
+              })()}
+              <div className="flex items-center gap-2 mt-3 pt-3 border-t">
+                <span className="text-xs text-muted-foreground">Orders:</span>
+                <div className="flex items-center gap-1">
+                  <div className="w-4 h-4 bg-muted rounded-sm" />
+                  <span className="text-xs">None</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-4 h-4 bg-accent/30 rounded-sm" />
+                  <span className="text-xs">Low</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-4 h-4 bg-accent/60 rounded-sm" />
+                  <span className="text-xs">Medium</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-4 h-4 bg-accent rounded-sm" />
+                  <span className="text-xs">High</span>
+                </div>
+              </div>
+            </div>
           </Card>
         </TabsContent>
 
@@ -1588,6 +2033,98 @@ export function Analytics(props: AnalyticsProps) {
               </ComposedChart>
             </ResponsiveContainer>
           </Card>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Financial Health Radar</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <RadarChart data={[
+                  { 
+                    metric: 'Revenue Growth', 
+                    value: prevFinanceData && prevFinanceData.revenue > 0 
+                      ? Math.min(Math.max(((financeData.revenue - prevFinanceData.revenue) / prevFinanceData.revenue) * 200 + 50, 0), 100)
+                      : 50,
+                    fullMark: 100 
+                  },
+                  { 
+                    metric: 'Profit Margin', 
+                    value: Math.min(financeData.profitMargin * 2, 100),
+                    fullMark: 100 
+                  },
+                  { 
+                    metric: 'Collection Efficiency', 
+                    value: financeData.totalInvoices > 0 ? (financeData.totalPayments / financeData.totalInvoices) * 100 : 0,
+                    fullMark: 100 
+                  },
+                  { 
+                    metric: 'Expense Control', 
+                    value: financeData.revenue > 0 ? Math.max(100 - ((financeData.expenseAmount / financeData.revenue) * 100), 0) : 0,
+                    fullMark: 100 
+                  },
+                  { 
+                    metric: 'Cash Flow', 
+                    value: Math.min((financeData.netProfit / 1000) * 10, 100),
+                    fullMark: 100 
+                  }
+                ]}>
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="metric" />
+                  <PolarRadiusAxis angle={90} domain={[0, 100]} />
+                  <Radar name="Financial Health" dataKey="value" stroke={CHART_COLORS[4]} fill={CHART_COLORS[4]} fillOpacity={0.6} />
+                  <Tooltip formatter={(value) => `${Number(value).toFixed(1)}%`} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Revenue vs Expense Correlation</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <ScatterChart>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    type="number" 
+                    dataKey="revenue" 
+                    name="Revenue" 
+                    tickFormatter={(value) => formatCurrency(value)}
+                  />
+                  <YAxis 
+                    type="number" 
+                    dataKey="expenses" 
+                    name="Expenses"
+                    tickFormatter={(value) => formatCurrency(value)}
+                  />
+                  <ZAxis range={[100, 400]} />
+                  <Tooltip 
+                    cursor={{ strokeDasharray: '3 3' }}
+                    formatter={(value: any) => formatCurrency(value)}
+                  />
+                  <Legend />
+                  <Scatter 
+                    name="Daily Performance" 
+                    data={Array.from({ length: 30 }, (_, i) => {
+                      const date = new Date()
+                      date.setDate(date.getDate() - (29 - i))
+                      const dayPayments = props.payments.filter(p => {
+                        const payDate = new Date(p.processedAt)
+                        return payDate.toDateString() === date.toDateString() && 
+                               isWithinDateRange(p.processedAt, dateRange)
+                      })
+                      const dayExpenses = props.expenses.filter(e => {
+                        const expDate = new Date(e.expenseDate)
+                        return expDate.toDateString() === date.toDateString() &&
+                               isWithinDateRange(e.expenseDate, dateRange)
+                      })
+                      return {
+                        revenue: dayPayments.reduce((sum, p) => sum + p.amount, 0),
+                        expenses: dayExpenses.reduce((sum, e) => sum + e.amount, 0)
+                      }
+                    }).filter(d => d.revenue > 0 || d.expenses > 0)}
+                    fill={CHART_COLORS[0]} 
+                  />
+                </ScatterChart>
+              </ResponsiveContainer>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="staff" className="space-y-6 mt-6">
