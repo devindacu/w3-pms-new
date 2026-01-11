@@ -1,103 +1,127 @@
 # Planning Guide
 
-Integrate Google Analytics API to track website audience data and acquisition metrics, with configuration management in the Settings menu.
+Create visual charts for email open rates and click-through rates in the Analytics module to provide actionable insights into email campaign performance.
 
 **Experience Qualities**:
-1. **Data-Driven** - Surface actionable insights from Google Analytics with clear, organized metrics that inform business decisions
-2. **Professional** - Present analytics data with polished visualizations and enterprise-grade reporting interfaces
-3. **Streamlined** - Make Google Analytics configuration and authentication straightforward with clear setup instructions
+1. **Data-Driven** - Surface actionable insights from email analytics with clear visualizations showing open rates, click-through rates, and engagement patterns
+2. **Professional** - Present email metrics with polished charts and enterprise-grade reporting interfaces
+3. **Insightful** - Make it easy to spot trends, compare performance across templates, and identify optimization opportunities
 
 **Complexity Level**: Light Application (multiple features with basic state)
-  - Focused on Google Analytics API integration with configuration management and data visualization
+  - Focused on email analytics data visualization with interactive charts and trend analysis
 
 ## Essential Features
 
-### Google Analytics Configuration (Settings)
-- **Functionality**: Manage Google Analytics connection credentials and property settings
-- **Purpose**: Enable users to connect their Google Analytics account to view audience and acquisition data
-- **Trigger**: User navigates to Settings → Google Analytics tab
-- **Progression**: View status → Enter credentials (Property ID, API credentials) → Test connection → Save configuration → Confirm success
-- **Success criteria**: Configuration saved successfully, connection test passes, status indicator shows "Connected"
+### Email Open Rate Trend Chart
+- **Functionality**: Display time-series visualization of email open rates over the last 14 days
+- **Purpose**: Help users identify patterns in email engagement and optimal sending times
+- **Trigger**: User navigates to Analytics module → Email tab
+- **Progression**: View chart → Hover for detailed metrics → Compare across time periods
+- **Success criteria**: Line chart displays smoothly, tooltips show precise values, trend is clearly visible
 
-### Audience Analytics Dashboard
-- **Functionality**: Display real-time and historical audience metrics from Google Analytics
-- **Purpose**: Provide insights into website visitors, demographics, and user behavior
-- **Trigger**: User navigates to Analytics module → Google Analytics tab
-- **Progression**: Select date range → View audience metrics (users, sessions, page views, bounce rate, session duration) → Filter by dimension → Export data
-- **Success criteria**: Metrics display correctly with proper formatting, date filtering works, charts render smoothly
+### Click-Through Rate Trend Chart
+- **Functionality**: Show click-through rate trends alongside open rates for comparison
+- **Purpose**: Track email effectiveness and content engagement over time
+- **Trigger**: User views Email Analytics dashboard
+- **Progression**: View dual-line trend chart → Analyze correlation between opens and clicks → Identify high-performing periods
+- **Success criteria**: Both metrics visible on same chart, legend clearly differentiates lines, data updates correctly
 
-### Acquisition Analytics Dashboard
-- **Functionality**: Show traffic sources and marketing channel performance
-- **Purpose**: Track where website traffic originates and which channels drive conversions
-- **Trigger**: User navigates to Analytics module → Google Analytics tab → Acquisition section
-- **Progression**: Select date range → View acquisition metrics by channel (Organic, Direct, Referral, Social, Paid) → Analyze top sources → Export data
-- **Success criteria**: Channel breakdown displays accurately, source/medium data shows properly, trends visualized clearly
+### Template Performance Comparison
+- **Functionality**: Bar chart comparing open rates and click rates across different email templates
+- **Purpose**: Identify top-performing templates and those needing improvement
+- **Trigger**: Email Analytics tab loads
+- **Progression**: View bar chart → Compare template performance → Click template for detailed insights
+- **Success criteria**: Up to 8 templates displayed, bars grouped by metric, templates ranked by performance
 
-### Mock Data Mode
-- **Functionality**: Display sample Google Analytics data when API is not configured
-- **Purpose**: Allow users to explore the interface and understand analytics capabilities before connecting
-- **Trigger**: Google Analytics not configured or connection fails
-- **Progression**: View mock data → See "Connect Google Analytics" prompt → Click to configure
-- **Success criteria**: Realistic mock data displays, clear indication that data is simulated, easy path to configuration
+### Engagement Funnel Visualization
+- **Functionality**: Horizontal bar chart showing sent → opened → clicked progression for each template
+- **Purpose**: Visualize drop-off at each stage of email engagement
+- **Trigger**: User scrolls to funnel section in Email Analytics
+- **Progression**: View funnel → Identify templates with high drop-off → Investigate causes
+- **Success criteria**: Clear visual hierarchy showing funnel stages, easy to spot bottlenecks
+
+### Click-to-Open Rate Distribution
+- **Functionality**: Area chart displaying click-to-open rate trends across templates
+- **Purpose**: Measure content quality and relevance independent of deliverability
+- **Trigger**: User views advanced metrics section
+- **Progression**: Analyze CTR distribution → Compare against benchmarks → Identify outliers
+- **Success criteria**: Smooth area visualization, percentage formatting clear, comparisons intuitive
 
 ## Edge Case Handling
-- **API Authentication Failure**: Display clear error message with troubleshooting steps and link to Google Analytics documentation
-- **Rate Limiting**: Show warning when approaching API quota limits, implement request throttling
-- **Invalid Property ID**: Validate format before saving, provide helpful error messages
-- **Network Errors**: Graceful fallback to cached data with timestamp, retry mechanism for failed requests
-- **Empty Data Sets**: Show "No data available for selected period" with helpful suggestions
-- **Date Range Limits**: Enforce API constraints on date ranges, prevent queries beyond data retention period
+- **No Email Data**: Display empty state with message "No email analytics data available" and helpful next steps
+- **Single Template**: Show single bar/data point with context that more templates enable better comparison
+- **Date Range Too Short**: Warn when selected period has insufficient data for trend analysis
+- **All Zero Values**: Handle gracefully with message explaining potential causes
+- **Very High/Low Values**: Chart scales automatically to accommodate outliers without distorting visualization
 
 ## Design Direction
-The design should feel analytical and data-centric while remaining accessible. Analytics dashboards should inspire confidence through clean data presentation, professional charts, and organized metric cards. The configuration interface should feel secure and trustworthy, reducing anxiety around API credential management.
+The design should feel analytical and insight-driven while remaining approachable. Charts should inspire confidence through professional styling, clear legends, and interactive tooltips. Color choices should make it easy to distinguish between metrics and identify performance levels at a glance.
 
 ## Color Selection
-A sophisticated data-focused palette with vibrant accent colors for metrics visualization.
+A sophisticated data-focused palette optimized for chart readability and metric distinction.
 
-- **Primary Color**: Deep Indigo (oklch(0.45 0.14 270)) - Conveys trust and professionalism for analytics context
+- **Primary Color**: Deep Purple (oklch(0.65 0.22 265)) - Used for open rate metrics and primary data series
 - **Secondary Colors**: 
-  - Teal (oklch(0.55 0.12 200)) - For acquisition metrics and growth indicators
-  - Slate (oklch(0.35 0.02 240)) - Supporting neutral for secondary data
-- **Accent Color**: Vibrant Purple (oklch(0.62 0.20 290)) - Highlights key metrics, CTAs, and important data points
+  - Teal (oklch(0.55 0.16 220)) - For secondary data series and supporting metrics
+  - Mint (oklch(0.60 0.18 155)) - For positive/success indicators in engagement funnels
+- **Accent Color**: Warm Orange (oklch(0.68 0.24 35)) - Highlights click rate metrics and calls-to-action
 - **Foreground/Background Pairings**: 
-  - Primary (Deep Indigo oklch(0.45 0.14 270)): White text (oklch(0.98 0 0)) - Ratio 10.2:1 ✓
-  - Accent (Vibrant Purple oklch(0.62 0.20 290)): White text (oklch(0.98 0 0)) - Ratio 5.8:1 ✓
-  - Background (Dark oklch(0.15 0.012 265)): Light foreground (oklch(0.98 0.008 265)) - Ratio 15.4:1 ✓
+  - Primary (Deep Purple oklch(0.65 0.22 265)): Dark background - Ratio 8.2:1 ✓
+  - Accent (Warm Orange oklch(0.68 0.24 35)): Dark background - Ratio 7.5:1 ✓
+  - Chart Background (Dark oklch(0.18 0.015 265)): Grid lines (oklch(0.28 0.020 265)) - Ratio 4.2:1 ✓
 
 ## Font Selection
-Typography should feel technical yet approachable, with excellent readability for data-heavy interfaces.
+Typography should emphasize numerical data while maintaining excellent readability for labels and legends.
 
 - **Typographic Hierarchy**: 
-  - H1 (Section Titles): IBM Plex Sans SemiBold/32px/tight tracking
-  - H2 (Subsections): IBM Plex Sans SemiBold/24px/normal tracking
-  - H3 (Metric Cards): IBM Plex Sans Medium/18px/normal tracking
-  - Data Values: IBM Plex Mono Regular/24px/tabular numerals for alignment
-  - Body Text: IBM Plex Sans Regular/14px/1.5 line-height
-  - Labels: IBM Plex Sans Medium/12px/wide tracking uppercase
+  - H1 (Page Title): IBM Plex Sans SemiBold/24px/tight tracking
+  - H2 (Chart Titles): IBM Plex Sans SemiBold/16px/normal tracking
+  - Chart Values: IBM Plex Sans Medium/14px/tabular numerals
+  - Axis Labels: IBM Plex Sans Regular/12px/normal tracking
+  - Tooltips: IBM Plex Sans Regular/13px/1.4 line-height
+  - Legends: IBM Plex Sans Medium/12px/normal tracking
 
 ## Animations
-Animations should be purposeful and enhance data comprehension without distraction.
+Chart animations should enhance comprehension without causing distraction or delay.
 
-- Metric cards fade in sequentially (50ms stagger) when loading
-- Chart transitions smoothly between date ranges (300ms ease-out)
-- Connection status indicator pulses subtly when testing
-- Success confirmations use a quick scale + fade animation (200ms)
-- Number counters animate upward when displaying new values
-- Hover states on chart elements provide immediate visual feedback
+- Charts fade in with 300ms ease-out when tab becomes active
+- Data points animate into position with 400ms spring easing
+- Tooltips appear instantly on hover, fade out with 150ms delay
+- Line chart paths draw from left to right over 500ms
+- Bar charts grow from zero to final value over 400ms with stagger
+- Hover states on chart elements respond within 100ms
 
 ## Component Selection
 - **Components**: 
-  - Card (metric display), Tabs (switching between Audience/Acquisition), Button (configuration actions), Input (API credentials), Label (form fields), Badge (connection status), Switch (enable/disable features), Select (date range presets), Alert (error messages), Skeleton (loading states)
-  - Recharts components: AreaChart (trends over time), BarChart (channel comparison), PieChart (traffic source breakdown), LineChart (session duration trends)
+  - Card (chart containers), Tabs (switching between analytics views), Badge (metric indicators), Select (period/template filters)
+  - Recharts components: LineChart (open/click rate trends), BarChart (template comparison), AreaChart (click-to-open distribution), ComposedChart (combined metrics)
 - **Customizations**: 
-  - Custom metric card with large number display, trend indicator, and sparkline
-  - Custom connection status indicator with icon and color-coded states
-  - Custom API credential input with show/hide toggle and validation feedback
+  - Custom chart tooltips with dark background matching app theme
+  - Custom legend with larger hit areas for mobile interaction
+  - Responsive chart containers that adapt to screen size
+  - Custom axis formatters for percentage and count values
 - **States**: 
-  - Buttons: Default (solid), hover (slight lift), active (pressed), disabled (muted with reduced opacity), loading (spinner)
-  - Inputs: Default (subtle border), focus (accented border with glow), error (red border with message), success (green border with checkmark)
-  - Cards: Default (flat), hover (subtle elevation increase), selected (accented border)
+  - Charts: Loading (skeleton), empty (helpful message), error (retry option), populated (interactive)
+  - Tooltips: Hidden (default), visible on hover (desktop), visible on tap (mobile)
+  - Filters: Default, selected (accented), disabled (when no data available)
 - **Icon Selection**: 
+  - TrendUp (positive metrics), TrendDown (metrics needing attention), ChartBar (analytics sections), EnvelopeOpen (open rate), CursorClick (click rate)
+- **Spacing**: 
+  - Chart cards: p-6 (24px padding)
+  - Grid gaps: gap-6 (24px between charts)
+  - Chart margins: Responsive based on axis label length
+- **Mobile**: 
+  - Charts stack vertically on screens < 768px
+  - Reduced chart heights on mobile (250px vs 300px)
+  - Larger touch targets for interactive elements (44px minimum)
+  - Simplified tooltips with essential information only
+
+## Previous Features (Context)
+
+### Google Analytics Integration
+- Integrated Google Analytics API for tracking website audience data and acquisition metrics
+- Configuration management in Settings menu with secure credential storage
+- Mock data mode for exploring interface before API connection 
   - ChartBar (analytics navigation), Globe (audience metrics), MagnifyingGlass (acquisition data), Plug (connection status), CheckCircle (connected), WarningCircle (disconnected), Calendar (date picker), ArrowUp/ArrowDown (trends), Eye/EyeSlash (show/hide credentials)
 - **Spacing**: 
   - Consistent 4px base unit
