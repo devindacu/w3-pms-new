@@ -1,0 +1,23 @@
+# <type>(<scope>): <subject>
+#
+# <body>
+#
+# <footer>
+
+# Type: feat, fix, docs, style, refactor, perf, test, chore, ci
+# Scope: frontend, housekeeping, fnb, crm, finance, hr, inventory, analytics, ui, core, config
+# Subject: Brief description (50 chars or less)
+#
+# Body: Detailed explanation of changes (wrap at 72 chars)
+# - Why was this change necessary?
+# - How does it address the issue?
+# - What are the side effects?
+#
+# Footer: Reference issues, breaking changes
+# Example: Closes #123, Fixes #456
+# Example: BREAKING CHANGE: API endpoint renamed
+#
+# Examples:
+# feat(frontend): add quick check-in functionality
+# fix(finance): correct invoice calculation for multiple taxes
+# docs(readme): update installation instructions

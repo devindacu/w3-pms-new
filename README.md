@@ -35,6 +35,7 @@ W3 Hotel PMS is an enterprise-grade property management platform designed for ef
 
 - **[PRD.md](./PRD.md)** - Complete product requirements and design specifications
 - **[SECURITY.md](./SECURITY.md)** - Security guidelines and best practices
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contributing guidelines and git workflow
 
 ## Getting Started
 
@@ -64,6 +65,27 @@ src/
 ## Development
 
 The system uses lazy loading for modules to improve initial load time. All modules are loaded on-demand as users navigate through the application.
+
+### Contributing
+
+We welcome contributions! Please read our [Contributing Guidelines](./CONTRIBUTING.md) before submitting pull requests.
+
+To set up your local development environment:
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Start the development server: `npm run dev`
+4. Make your changes following our [git commit guidelines](./CONTRIBUTING.md#git-commit-guidelines)
+
+### Setting up Git Commit Template (Optional)
+
+To use the project's commit message template:
+
+```bash
+git config commit.template .gitmessage
+```
+
+This will help you write properly formatted commit messages.
 
 ## License
 
