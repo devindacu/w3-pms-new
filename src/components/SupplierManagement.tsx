@@ -738,3 +738,4 @@ function SupplierDetailDialog({ supplier, open, onClose, onEdit }: SupplierDetai
     </Dialog>
   )
 }
+

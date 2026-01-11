@@ -162,7 +162,7 @@ export function NotificationPanel({
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-full sm:max-w-md z-50">
+      <SheetContent className="w-full sm:max-w-xl">
         <SheetHeader>
           <SheetTitle className="flex items-center justify-between">
             <span>Notifications</span>

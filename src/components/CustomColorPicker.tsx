@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -21,7 +21,8 @@ import {
   FloppyDisk, 
   Trash,
   Sparkle,
-  PaintBrush
+  PaintBrush,
+  Check
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { useTheme, type ThemeColors } from '@/hooks/use-theme'
@@ -40,7 +41,7 @@ interface ColorPickerProps {
 }
 
 export function CustomColorPicker({ open, onOpenChange }: ColorPickerProps) {
-  const { applyTheme, applyCustomColors } = useTheme()
+  const { applyTheme } = useTheme()
   const [customMoods, setCustomMoods] = useKV<CustomColorMood[]>('custom-color-moods', [])
   
   const [moodName, setMoodName] = useState('')
@@ -67,20 +68,10 @@ export function CustomColorPicker({ open, onOpenChange }: ColorPickerProps) {
   }
 
   const handlePreview = () => {
-    const overlay = document.createElement('div')
-    overlay.className = 'theme-transition-overlay'
-    overlay.style.top = '50%'
-    overlay.style.left = '50%'
-    overlay.style.transform = 'translate(-50%, -50%)'
-    document.body.appendChild(overlay)
-    setTimeout(() => overlay.remove(), 1000)
-    
-    setTimeout(() => {
-      applyTheme(previewColors)
-      toast.success('Preview applied!', {
-        description: 'These colors are temporary. Save to make them permanent.',
-      })
-    }, 200)
+    applyTheme(previewColors)
+    toast.success('Preview applied!', {
+      description: 'These colors are temporary. Save to make them permanent.',
+    })
   }
 
   const handleSave = () => {
@@ -98,24 +89,17 @@ export function CustomColorPicker({ open, onOpenChange }: ColorPickerProps) {
 
     setCustomMoods((currentMoods) => [...(currentMoods || []), newMood])
     
-    const overlay = document.createElement('div')
-    overlay.className = 'theme-transition-overlay'
-    overlay.style.top = '50%'
-    overlay.style.left = '50%'
-    overlay.style.transform = 'translate(-50%, -50%)'
-    document.body.appendChild(overlay)
-    setTimeout(() => overlay.remove(), 1000)
+    applyTheme(previewColors)
+    localStorage.setItem('theme-colors', JSON.stringify(previewColors))
+    localStorage.setItem('active-custom-mood', newMood.id)
+    localStorage.removeItem('theme-color-mood')
     
-    setTimeout(() => {
-      applyCustomColors(previewColors)
-      
-      toast.success('Color mood saved!', {
-        description: `"${moodName}" has been added to your custom moods`,
-      })
+    toast.success('Color mood saved!', {
+      description: `"${moodName}" has been added to your custom moods`,
+    })
 
-      setMoodName('')
-      onOpenChange(false)
-    }, 200)
+    setMoodName('')
+    onOpenChange(false)
   }
 
   const handleDelete = (moodId: string) => {
@@ -123,35 +107,32 @@ export function CustomColorPicker({ open, onOpenChange }: ColorPickerProps) {
       (currentMoods || []).filter(m => m.id !== moodId)
     )
     
+    if (localStorage.getItem('active-custom-mood') === moodId) {
+      localStorage.removeItem('active-custom-mood')
+    }
+    
     toast.success('Custom mood deleted')
   }
 
   const handleApplyCustomMood = (mood: CustomColorMood) => {
-    const overlay = document.createElement('div')
-    overlay.className = 'theme-transition-overlay'
-    overlay.style.top = '50%'
-    overlay.style.left = '50%'
-    overlay.style.transform = 'translate(-50%, -50%)'
-    document.body.appendChild(overlay)
-    setTimeout(() => overlay.remove(), 1000)
+    applyTheme(mood.colors)
+    localStorage.setItem('theme-colors', JSON.stringify(mood.colors))
+    localStorage.setItem('active-custom-mood', mood.id)
+    localStorage.removeItem('theme-color-mood')
     
-    setTimeout(() => {
-      applyCustomColors(mood.colors)
-      
-      setPrimaryL(parseFloat(mood.colors.primary.match(/oklch\(([0-9.]+)/)?.[1] || '0.48') * 100)
-      setPrimaryC(parseFloat(mood.colors.primary.match(/oklch\([0-9.]+ ([0-9.]+)/)?.[1] || '0.18') * 100)
-      setPrimaryH(parseInt(mood.colors.primary.match(/oklch\([0-9.]+ [0-9.]+ ([0-9]+)\)/)?.[1] || '265'))
-      
-      setSecondaryL(parseFloat(mood.colors.secondary.match(/oklch\(([0-9.]+)/)?.[1] || '0.72') * 100)
-      setSecondaryC(parseFloat(mood.colors.secondary.match(/oklch\([0-9.]+ ([0-9.]+)/)?.[1] || '0.14') * 100)
-      setSecondaryH(parseInt(mood.colors.secondary.match(/oklch\([0-9.]+ [0-9.]+ ([0-9]+)\)/)?.[1] || '195'))
-      
-      setAccentL(parseFloat(mood.colors.accent.match(/oklch\(([0-9.]+)/)?.[1] || '0.62') * 100)
-      setAccentC(parseFloat(mood.colors.accent.match(/oklch\([0-9.]+ ([0-9.]+)\)/)?.[1] || '0.20') * 100)
-      setAccentH(parseInt(mood.colors.accent.match(/oklch\([0-9.]+ [0-9.]+ ([0-9]+)\)/)?.[1] || '30'))
-      
-      toast.success(`Applied "${mood.name}"`)
-    }, 200)
+    setPrimaryL(parseFloat(mood.colors.primary.match(/oklch\(([0-9.]+)/)?.[1] || '0.48') * 100)
+    setPrimaryC(parseFloat(mood.colors.primary.match(/oklch\([0-9.]+ ([0-9.]+)/)?.[1] || '0.18') * 100)
+    setPrimaryH(parseInt(mood.colors.primary.match(/oklch\([0-9.]+ [0-9.]+ ([0-9]+)\)/)?.[1] || '265'))
+    
+    setSecondaryL(parseFloat(mood.colors.secondary.match(/oklch\(([0-9.]+)/)?.[1] || '0.72') * 100)
+    setSecondaryC(parseFloat(mood.colors.secondary.match(/oklch\([0-9.]+ ([0-9.]+)/)?.[1] || '0.14') * 100)
+    setSecondaryH(parseInt(mood.colors.secondary.match(/oklch\([0-9.]+ [0-9.]+ ([0-9]+)\)/)?.[1] || '195'))
+    
+    setAccentL(parseFloat(mood.colors.accent.match(/oklch\(([0-9.]+)/)?.[1] || '0.62') * 100)
+    setAccentC(parseFloat(mood.colors.accent.match(/oklch\([0-9.]+ ([0-9.]+)\)/)?.[1] || '0.20') * 100)
+    setAccentH(parseInt(mood.colors.accent.match(/oklch\([0-9.]+ [0-9.]+ ([0-9]+)\)/)?.[1] || '30'))
+    
+    toast.success(`Applied "${mood.name}"`)
   }
 
   const colorPresets = [
@@ -537,8 +518,17 @@ export function CustomColorPicker({ open, onOpenChange }: ColorPickerProps) {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {(customMoods || []).map((mood) => {
+                  const isActive = localStorage.getItem('active-custom-mood') === mood.id
                   return (
-                    <Card key={mood.id} className="p-4 relative">
+                    <Card key={mood.id} className={`p-4 relative ${isActive ? 'ring-2 ring-primary' : ''}`}>
+                      {isActive && (
+                        <div className="absolute top-2 right-2">
+                          <Badge className="bg-primary text-primary-foreground">
+                            <Check size={12} className="mr-1" />
+                            Active
+                          </Badge>
+                        </div>
+                      )}
                       <h4 className="font-semibold mb-3">{mood.name}</h4>
                       <div className="flex gap-2 mb-4">
                         <div

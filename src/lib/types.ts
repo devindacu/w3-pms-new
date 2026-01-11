@@ -4101,7 +4101,6 @@ export type DashboardWidgetType =
   | 'arrivals-departures'
   | 'guest-feedback'
   | 'revenue-chart'
-  | 'revenue-analytics'
   | 'occupancy-chart'
   | 'department-performance'
   | 'pending-approvals'

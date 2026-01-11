@@ -1,89 +1,63 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { Palette, Check, PaintBrush } from '@phosphor-icons/react'
+import { Palette, Check, PaintBrush, Sparkle } from '@phosphor-icons/react'
 import { useTheme, type ColorMood, colorMoods } from '@/hooks/use-theme'
 import { toast } from 'sonner'
 import { CustomColorPicker } from '@/components/CustomColorPicker'
-import { motion } from 'framer-motion'
+import { Badge } from '@/components/ui/badge'
 
 const moodLabels: Record<ColorMood, string> = {
-  indigo: 'Indigo',
-  violet: 'Violet',
-  emerald: 'Emerald',
-  rose: 'Rose',
-  amber: 'Amber',
-  cyan: 'Cyan',
-  slate: 'Slate',
-  crimson: 'Crimson',
+  blue: 'Ocean Blue',
+  purple: 'Royal Purple',
+  green: 'Forest Green',
+  orange: 'Sunset Orange',
+  rose: 'Romantic Rose',
+  cyan: 'Sky Cyan',
 }
 
 const moodDescriptions: Record<ColorMood, string> = {
-  indigo: 'Professional & trusted',
-  violet: 'Creative & luxurious',
-  emerald: 'Fresh & natural',
-  rose: 'Elegant & warm',
-  amber: 'Energetic & bold',
-  cyan: 'Modern & clean',
-  slate: 'Minimal & focused',
-  crimson: 'Powerful & dynamic',
+  blue: 'Professional and calm',
+  purple: 'Creative and luxurious',
+  green: 'Fresh and natural',
+  orange: 'Energetic and warm',
+  rose: 'Elegant and sophisticated',
+  cyan: 'Modern and clean',
 }
 
 export function ColorMoodSelector() {
-  const [selectedMood, setSelectedMood] = useState<ColorMood>('indigo')
+  const [selectedMood, setSelectedMood] = useState<ColorMood>('blue')
   const [open, setOpen] = useState(false)
   const [customPickerOpen, setCustomPickerOpen] = useState(false)
-  const [hasCustomColors, setHasCustomColors] = useState(false)
-  const [isAnimating, setIsAnimating] = useState(false)
+  const [hasCustomMood, setHasCustomMood] = useState(false)
   const { applyColorMood } = useTheme()
 
   useEffect(() => {
-    const savedCustomColors = localStorage.getItem('theme-custom-colors')
-    if (savedCustomColors) {
-      setHasCustomColors(true)
-      return
-    }
-    
-    const savedMood = localStorage.getItem('theme-color-mood') as ColorMood | null
-    if (savedMood && colorMoods[savedMood]) {
-      setSelectedMood(savedMood)
-      setHasCustomColors(false)
+    const activeCustom = localStorage.getItem('active-custom-mood')
+    if (activeCustom) {
+      setHasCustomMood(true)
+    } else {
+      setHasCustomMood(false)
+      const savedMood = localStorage.getItem('theme-color-mood') as ColorMood | null
+      if (savedMood && colorMoods[savedMood]) {
+        setSelectedMood(savedMood)
+      }
     }
   }, [open])
 
-  const createColorTransitionEffect = () => {
-    const overlay = document.createElement('div')
-    overlay.className = 'theme-transition-overlay'
-    overlay.style.top = '50%'
-    overlay.style.left = '50%'
-    
-    document.body.appendChild(overlay)
-    
-    setTimeout(() => {
-      overlay.remove()
-    }, 800)
-  }
-
   const handleMoodChange = (mood: ColorMood) => {
-    if (isAnimating) return
-    
-    setIsAnimating(true)
     setSelectedMood(mood)
-    setHasCustomColors(false)
-    createColorTransitionEffect()
-    
-    setTimeout(() => {
-      applyColorMood(mood)
-      setOpen(false)
-      toast.success(`Theme: ${moodLabels[mood]}`, {
-        description: moodDescriptions[mood],
-      })
-      setIsAnimating(false)
-    }, 150)
+    setHasCustomMood(false)
+    applyColorMood(mood)
+    localStorage.removeItem('active-custom-mood')
+    setOpen(false)
+    toast.success(`Theme changed to ${moodLabels[mood]}`, {
+      description: moodDescriptions[mood],
+    })
   }
 
   const getMoodPreviewColor = (mood: ColorMood) => {
@@ -97,77 +71,101 @@ export function ColorMoodSelector() {
           <Button
             variant="ghost"
             size="icon"
-            className="relative w-10 h-10 rounded-xl bg-muted/50 hover:bg-muted border border-border/50"
+            className="shine-effect relative group"
             title="Change color theme"
           >
-            <Palette size={20} className="text-primary" weight="duotone" />
+            <Palette 
+              size={20} 
+              className="text-primary transition-all duration-300 group-hover:scale-110" 
+              weight="duotone" 
+            />
+            {hasCustomMood && (
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full border-2 border-background" />
+            )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-72 p-4 rounded-2xl" align="end">
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Palette size={16} className="text-primary" weight="fill" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-sm">Color Theme</h3>
-                <p className="text-xs text-muted-foreground">Choose your accent color</p>
-              </div>
+        <PopoverContent className="w-72 p-4" align="end">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 pb-2 border-b">
+              <Palette size={20} className="text-primary" weight="duotone" />
+              <h3 className="font-semibold text-sm">Color Mood</h3>
             </div>
-            
-            <div className="grid grid-cols-4 gap-2">
-              {(Object.keys(colorMoods) as ColorMood[]).map((mood, index) => {
-                const isSelected = mood === selectedMood && !hasCustomColors
+            {hasCustomMood && (
+              <div className="flex items-center gap-2 p-2 bg-accent/10 rounded-md border border-accent/20">
+                <Sparkle size={16} className="text-accent" weight="fill" />
+                <p className="text-xs text-accent font-medium">Custom mood active</p>
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Choose a color palette to personalize your experience
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {(Object.keys(colorMoods) as ColorMood[]).map((mood) => {
+                const isSelected = mood === selectedMood && !hasCustomMood
                 return (
-                  <motion.button
+                  <button
                     key={mood}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.03 }}
                     onClick={() => handleMoodChange(mood)}
-                    disabled={isAnimating}
                     className={`
-                      group relative p-2 rounded-xl border-2 transition-all duration-200
-                      hover:scale-105 disabled:opacity-50
-                      ${isSelected ? 'border-primary bg-primary/5 shadow-sm' : 'border-transparent hover:border-border bg-muted/30'}
+                      relative p-3 rounded-lg border-2 transition-all duration-200
+                      hover:scale-105 hover:shadow-md
+                      ${isSelected 
+                        ? 'border-primary bg-primary/5 shadow-sm' 
+                        : 'border-border hover:border-primary/50'
+                      }
                     `}
                   >
-                    <div className="flex flex-col items-center gap-1.5">
+                    <div className="flex items-center gap-2 mb-1.5">
                       <div 
-                        className="w-8 h-8 rounded-full shadow-sm transition-transform group-hover:scale-110"
-                        style={{ backgroundColor: getMoodPreviewColor(mood) }}
+                        className="w-4 h-4 rounded-full ring-2 ring-offset-2 ring-offset-background"
+                        style={{ 
+                          backgroundColor: getMoodPreviewColor(mood),
+                          boxShadow: `0 0 12px ${getMoodPreviewColor(mood)}40`,
+                        }}
                       />
-                      <span className="text-[10px] font-medium truncate w-full text-center text-muted-foreground group-hover:text-foreground">
+                      <span className="text-xs font-medium">
                         {moodLabels[mood]}
                       </span>
                     </div>
+                    <p className="text-[10px] text-muted-foreground text-left">
+                      {moodDescriptions[mood]}
+                    </p>
                     {isSelected && (
-                      <motion.div 
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center"
-                      >
-                        <Check size={10} weight="bold" className="text-primary-foreground" />
-                      </motion.div>
+                      <div className="absolute top-2 right-2">
+                        <Check size={14} weight="bold" className="text-primary" />
+                      </div>
                     )}
-                  </motion.button>
+                  </button>
                 )
               })}
             </div>
-            
-            <div className="pt-2 border-t border-border">
+            <div className="pt-3 border-t">
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="w-full rounded-xl"
+                className="w-full"
                 onClick={() => {
                   setOpen(false)
                   setCustomPickerOpen(true)
                 }}
               >
                 <PaintBrush size={16} className="mr-2" />
-                Custom Colors
+                Create Custom Colors
               </Button>
+            </div>
+            <div className="pt-2 border-t">
+              <p className="text-[10px] text-muted-foreground text-center">
+                {hasCustomMood ? (
+                  <span className="flex items-center justify-center gap-1">
+                    <Sparkle size={12} className="text-accent" weight="fill" />
+                    <span className="font-medium text-accent">Custom mood</span>
+                  </span>
+                ) : (
+                  <>
+                    Selected: <span className="font-medium text-foreground">{moodLabels[selectedMood]}</span>
+                  </>
+                )}
+              </p>
             </div>
           </div>
         </PopoverContent>

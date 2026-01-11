@@ -1,29 +1,13 @@
-import { useEffect, useState, CSSProperties } from "react"
+import { useTheme } from "next-themes"
+import { CSSProperties } from "react"
 import { Toaster as Sonner, ToasterProps } from "sonner"
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const [theme, setTheme] = useState<"light" | "dark">("light")
-
-  useEffect(() => {
-    const updateTheme = () => {
-      const isDark = document.documentElement.classList.contains('dark')
-      setTheme(isDark ? "dark" : "light")
-    }
-
-    updateTheme()
-
-    const observer = new MutationObserver(updateTheme)
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class']
-    })
-
-    return () => observer.disconnect()
-  }, [])
+  const { theme = "system" } = useTheme()
 
   return (
     <Sonner
-      theme={theme}
+      theme={theme as ToasterProps["theme"]}
       className="toaster group"
       style={
         {
