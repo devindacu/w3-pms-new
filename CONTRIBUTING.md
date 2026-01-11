@@ -223,7 +223,7 @@ When you encounter merge conflicts during development, follow these steps:
 git pull upstream main
 # Conflicts appear
 # Resolve conflicts in files
-git add .
+git add path/to/resolved-file1 path/to/resolved-file2
 git commit -m "Merge upstream changes and resolve conflicts"
 ```
 
@@ -232,7 +232,7 @@ git commit -m "Merge upstream changes and resolve conflicts"
 git rebase upstream/main
 # Conflicts appear
 # Resolve conflicts in files
-git add .
+git add path/to/resolved-file1 path/to/resolved-file2
 git rebase --continue
 # Repeat for each conflicting commit
 ```
@@ -242,7 +242,7 @@ git rebase --continue
 git cherry-pick <commit-hash>
 # Conflicts appear
 # Resolve conflicts in files
-git add .
+git add path/to/resolved-file1 path/to/resolved-file2
 git cherry-pick --continue
 ```
 
