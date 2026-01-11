@@ -10,6 +10,7 @@ import { EmailTemplateAnalyticsComponent } from '@/components/EmailTemplateAnaly
 import { DialogSettings } from '@/components/DialogSettings'
 import { TestEmailTemplate } from '@/components/TestEmailTemplate'
 import { BackupManagement } from '@/components/BackupManagement'
+import { GoogleAnalyticsSettings } from '@/components/GoogleAnalyticsSettings'
 import type { 
   HotelBranding, 
   TaxConfiguration, 
@@ -28,7 +29,8 @@ import {
   EnvelopeSimple,
   ChartBar,
   FrameCorners,
-  FloppyDisk
+  FloppyDisk,
+  Globe
 } from '@phosphor-icons/react'
 
 interface SettingsProps {
@@ -44,6 +46,7 @@ interface SettingsProps {
   campaignAnalytics: EmailCampaignAnalytics[]
   emailRecords: EmailSentRecord[]
   currentUser: SystemUser
+  activeTab?: string
 }
 
 export function Settings({
@@ -58,9 +61,10 @@ export function Settings({
   emailAnalytics,
   campaignAnalytics,
   emailRecords,
-  currentUser
+  currentUser,
+  activeTab: initialActiveTab
 }: SettingsProps) {
-  const [activeTab, setActiveTab] = useState('branding')
+  const [activeTab, setActiveTab] = useState(initialActiveTab || 'branding')
 
   return (
     <div className="space-y-6">
@@ -70,7 +74,7 @@ export function Settings({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-1">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9 gap-1">
           <TabsTrigger value="branding" className="gap-2">
             <Palette size={18} />
             <span className="hidden sm:inline">Branding</span>
@@ -94,6 +98,10 @@ export function Settings({
           <TabsTrigger value="email-analytics" className="gap-2">
             <ChartBar size={18} />
             <span className="hidden sm:inline">Analytics</span>
+          </TabsTrigger>
+          <TabsTrigger value="google-analytics" className="gap-2">
+            <Globe size={18} />
+            <span className="hidden sm:inline">Google Analytics</span>
           </TabsTrigger>
           <TabsTrigger value="version-control" className="gap-2">
             <FloppyDisk size={18} />
@@ -165,6 +173,10 @@ export function Settings({
             campaignAnalytics={campaignAnalytics}
             emailRecords={emailRecords}
           />
+        </TabsContent>
+
+        <TabsContent value="google-analytics" className="mt-6">
+          <GoogleAnalyticsSettings currentUser={currentUser} />
         </TabsContent>
 
         <TabsContent value="version-control" className="mt-6">

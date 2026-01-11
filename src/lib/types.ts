@@ -4416,3 +4416,98 @@ export interface ConsolidatedFinancialReport {
   generatedAt: number
   generatedBy: string
 }
+
+export interface GoogleAnalyticsConfig {
+  id: string
+  propertyId: string
+  measurementId?: string
+  viewId?: string
+  serviceAccountEmail?: string
+  privateKey?: string
+  isActive: boolean
+  connectionStatus: 'connected' | 'disconnected' | 'error' | 'testing'
+  lastSync?: number
+  lastError?: string
+  createdAt: number
+  updatedAt: number
+  createdBy: string
+}
+
+export interface GoogleAnalyticsAudienceMetrics {
+  date: number
+  users: number
+  newUsers: number
+  sessions: number
+  pageviews: number
+  bounceRate: number
+  avgSessionDuration: number
+  pagesPerSession: number
+  deviceCategory?: {
+    desktop: number
+    mobile: number
+    tablet: number
+  }
+  demographics?: {
+    age: Record<string, number>
+    gender: Record<string, number>
+  }
+  location?: {
+    country: string
+    sessions: number
+  }[]
+}
+
+export interface GoogleAnalyticsAcquisitionMetrics {
+  date: number
+  channel: string
+  source: string
+  medium: string
+  users: number
+  newUsers: number
+  sessions: number
+  bounceRate: number
+  pagesPerSession: number
+  avgSessionDuration: number
+  goalCompletions: number
+  goalConversionRate: number
+  transactionRevenue?: number
+}
+
+export interface GoogleAnalyticsTrafficSource {
+  source: string
+  medium: string
+  channel: string
+  users: number
+  sessions: number
+  bounceRate: number
+  avgSessionDuration: number
+}
+
+export interface GoogleAnalyticsBehaviorMetrics {
+  date: number
+  pageTitle: string
+  pagePath: string
+  pageviews: number
+  uniquePageviews: number
+  avgTimeOnPage: number
+  entrances: number
+  bounceRate: number
+  exitRate: number
+}
+
+export interface GoogleAnalyticsRealtimeData {
+  activeUsers: number
+  activePages: {
+    pageTitle: string
+    activeUsers: number
+  }[]
+  topSources: {
+    source: string
+    activeUsers: number
+  }[]
+  topCountries: {
+    country: string
+    activeUsers: number
+  }[]
+  timestamp: number
+}

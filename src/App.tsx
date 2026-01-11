@@ -306,6 +306,7 @@ function App() {
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
+  const [settingsTab, setSettingsTab] = useState<string>('branding')
   
   const [dashboardFilters, setDashboardFilters] = useState<DashboardFiltersType>({
     dateRange: {
@@ -316,6 +317,20 @@ function App() {
   })
 
   useTheme()
+
+  useEffect(() => {
+    const handleNavigateToSettings = (event: CustomEvent) => {
+      setCurrentModule('settings')
+      if (event.detail) {
+        setSettingsTab(event.detail)
+      }
+    }
+
+    window.addEventListener('navigate-to-settings', handleNavigateToSettings as EventListener)
+    return () => {
+      window.removeEventListener('navigate-to-settings', handleNavigateToSettings as EventListener)
+    }
+  }, [])
 
   useEffect(() => {
     const refreshNotifications = () => {
@@ -1473,6 +1488,7 @@ function App() {
               campaignAnalytics={campaignAnalytics || []}
               emailRecords={emailRecords || []}
               currentUser={currentUser}
+              activeTab={settingsTab}
             />
           )}
         </div>

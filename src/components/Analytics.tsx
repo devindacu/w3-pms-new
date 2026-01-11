@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -17,7 +17,8 @@ import {
   TrendUp,
   TrendDown,
   Buildings,
-  ArrowsCounterClockwise
+  ArrowsCounterClockwise,
+  Globe
 } from '@phosphor-icons/react'
 import { formatCurrency, formatPercent } from '@/lib/helpers'
 import {
@@ -40,6 +41,7 @@ import {
 } from 'recharts'
 import { AnalyticsDateFilter, type DateRange } from '@/components/AnalyticsDateFilter'
 import { PercentageChangeIndicator } from '@/components/PercentageChangeIndicator'
+import { GoogleAnalyticsDashboard } from '@/components/GoogleAnalyticsDashboard'
 import type {
   Room,
   Reservation,
@@ -435,7 +437,7 @@ export function Analytics(props: AnalyticsProps) {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9">
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-10">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="rooms">Rooms</TabsTrigger>
           <TabsTrigger value="revenue">Revenue</TabsTrigger>
@@ -445,6 +447,10 @@ export function Analytics(props: AnalyticsProps) {
           <TabsTrigger value="inventory">Inventory</TabsTrigger>
           <TabsTrigger value="finance">Finance</TabsTrigger>
           <TabsTrigger value="staff">Staff</TabsTrigger>
+          <TabsTrigger value="google-analytics" className="gap-1">
+            <Globe size={16} />
+            <span className="hidden lg:inline">Google</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 mt-6">
@@ -879,6 +885,14 @@ export function Analytics(props: AnalyticsProps) {
               <p className="text-3xl font-semibold">{staffData.departments}</p>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="google-analytics" className="mt-6">
+          <GoogleAnalyticsDashboard 
+            onNavigateToSettings={() => {
+              window.dispatchEvent(new CustomEvent('navigate-to-settings', { detail: 'google-analytics' }))
+            }} 
+          />
         </TabsContent>
       </Tabs>
     </div>

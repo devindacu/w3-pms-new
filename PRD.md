@@ -1,243 +1,113 @@
-# W3 Hotel Management System - Unified PMS Platform
+# Planning Guide
 
-A comprehensive cloud-based Property Management System integrating Front Office, Housekeeping, F&B/POS, Inventory, Procurement, Finance, HR, Engineering, CRM, and Analytics into one centralized platform for modern hotel operations.
+Integrate Google Analytics API to track website audience data and acquisition metrics, with configuration management in the Settings menu.
 
-**Experience Qualities**: 
-1. **Efficient** - Streamlined workflows that reduce manual work and enable staff to focus on guest experience
-2. **Unified** - All hotel operations accessible from a single integrated platform with real-time synchronization
-3. **Intelligent** - Data-driven insights and automation that optimize operations and revenue
+**Experience Qualities**:
+1. **Data-Driven** - Surface actionable insights from Google Analytics with clear, organized metrics that inform business decisions
+2. **Professional** - Present analytics data with polished visualizations and enterprise-grade reporting interfaces
+3. **Streamlined** - Make Google Analytics configuration and authentication straightforward with clear setup instructions
 
-**Complexity Level**: Complex Application (advanced functionality, multi-module integration)
-  - Enterprise hotel management with role-based access, real-time inventory tracking, automated workflows, financial integration, and comprehensive operational control across all departments
+**Complexity Level**: Light Application (multiple features with basic state)
+  - Focused on Google Analytics API integration with configuration management and data visualization
 
 ## Essential Features
 
-### Alerts & Notifications
-- **Functionality**: Real-time alert system tracking critical events across all modules with dashboard alerts, notification panel, email delivery, and auto-refresh monitoring
-- **Purpose**: Keeps staff informed of critical issues requiring immediate attention and enables proactive operations management
-- **Trigger**: System monitors inventory levels, pending approvals, due dates, quality issues, and operational thresholds every minute
-- **Progression**: System detects condition → Generate notification → Display in panel with priority badge → Show critical alerts on dashboard → Email digest option → User reviews → Takes action → Marks as read/archive → Notification removed from active view
-- **Success criteria**: All critical conditions detected within 1 minute, notifications categorized by priority (critical/high/medium/low), email delivery successful, zero missed critical alerts, dashboard shows top 5 urgent items, notification count badge accurate
+### Google Analytics Configuration (Settings)
+- **Functionality**: Manage Google Analytics connection credentials and property settings
+- **Purpose**: Enable users to connect their Google Analytics account to view audience and acquisition data
+- **Trigger**: User navigates to Settings → Google Analytics tab
+- **Progression**: View status → Enter credentials (Property ID, API credentials) → Test connection → Save configuration → Confirm success
+- **Success criteria**: Configuration saved successfully, connection test passes, status indicator shows "Connected"
 
-### Unified Dashboard
-- **Functionality**: Central command center displaying key metrics across all hotel operations (occupancy, revenue, inventory alerts, pending tasks, housekeeping status)
-- **Purpose**: Provides instant operational overview enabling rapid decision-making and issue identification
-- **Trigger**: User logs in or navigates to home
-- **Progression**: Login → Dashboard loads with module widgets → View critical alerts → Navigate to specific module → Return to dashboard
-- **Success criteria**: All metrics accurate and real-time, alerts prioritized correctly, navigation seamless
+### Audience Analytics Dashboard
+- **Functionality**: Display real-time and historical audience metrics from Google Analytics
+- **Purpose**: Provide insights into website visitors, demographics, and user behavior
+- **Trigger**: User navigates to Analytics module → Google Analytics tab
+- **Progression**: Select date range → View audience metrics (users, sessions, page views, bounce rate, session duration) → Filter by dimension → Export data
+- **Success criteria**: Metrics display correctly with proper formatting, date filtering works, charts render smoothly
 
-### Front Office Management
-- **Functionality**: Guest reservations, check-in/check-out, room allocation, folio management, billing, payment processing, comprehensive reservation details viewing with full guest and stay information
-- **Purpose**: Manages complete guest lifecycle from booking to departure with easy access to all reservation information
-- **Trigger**: Guest booking received or walk-in arrival
-- **Progression**: Create reservation → Assign room → View reservation details (guest info, room info, stay details, pricing breakdown, special requests, guest history) → Check-in guest → Update folio with charges → Process checkout → Generate invoice → Accept payment
-- **Success criteria**: Booking conflicts prevented, folios accurate, payments reconcile, guest history maintained, reservation details accessible with one click showing comprehensive information including guest contact details, room amenities, stay duration, pricing breakdown, payment status, special requests, and loyalty information
+### Acquisition Analytics Dashboard
+- **Functionality**: Show traffic sources and marketing channel performance
+- **Purpose**: Track where website traffic originates and which channels drive conversions
+- **Trigger**: User navigates to Analytics module → Google Analytics tab → Acquisition section
+- **Progression**: Select date range → View acquisition metrics by channel (Organic, Direct, Referral, Social, Paid) → Analyze top sources → Export data
+- **Success criteria**: Channel breakdown displays accurately, source/medium data shows properly, trends visualized clearly
 
-### Housekeeping Operations
-- **Functionality**: Room status tracking (clean/dirty/inspected), housekeeper assignment, workload planning, linen management
-- **Purpose**: Ensures rooms are guest-ready and housekeeping efficiency maximized
-- **Trigger**: Guest checkout or room status update
-- **Progression**: Room becomes vacant → Housekeeper assigned → Clean room → Update status to inspected → Front desk notified → Room available for sale
-- **Success criteria**: Status updates real-time, workload balanced, cleaning standards maintained
-
-### Point of Sale (F&B)
-- **Functionality**: Restaurant, bar, room service ordering with menu management, kitchen order tickets, auto inventory deduction
-- **Purpose**: Streamlines F&B operations and integrates sales with inventory and guest billing
-- **Trigger**: Order placed at restaurant, bar, or via room service
-- **Progression**: Take order → Generate KOT to kitchen → Prepare items → Deduct ingredients from inventory → Close bill (room charge or cash) → Update guest folio if applicable
-- **Success criteria**: Orders accurate, inventory updates automatic, bills reconcile, kitchen timing optimized
-
-### Inventory & Procurement
-- **Functionality**: Multi-store inventory tracking, stock alerts, requisition workflows, purchase orders with preview/print/email, goods receiving, FIFO/batch tracking, PO approval hierarchy, audit trails
-- **Purpose**: Maintains optimal stock levels while minimizing waste and costs with comprehensive PO lifecycle management
-- **Trigger**: Stock falls below reorder level or department submits requisition
-- **Progression**: Low stock alert → Create requisition → Approve requisition → Auto-generate PO → Preview PO → Approve PO → Print/Email to supplier → Track PO status (Draft → Approved → Ordered → Received → Closed) → Receive goods (GRN) → Update inventory → Match invoice → Audit trail
-- **Success criteria**: Stock-outs prevented, expiry minimized, procurement costs optimized, supplier performance tracked, PO approval workflow enforced, digital PO documents with QR codes, email delivery confirmation, complete audit trail
-
-### Food Management
-- **Functionality**: Dedicated food inventory tracking with category-based organization (perishable, non-perishable, frozen, beverage, spices, etc.), order frequency management (daily, weekly, monthly, on-demand), supplier assignment per food type, quality & expiry tracking for perishables, minimum stock alerts with auto re-order triggers
-- **Purpose**: Maintains precise control over food inventory with emphasis on quality, freshness, and minimizing waste while ensuring adequate stock for kitchen operations
-- **Trigger**: Daily/weekly/monthly ordering cycles, stock below reorder level, or quality check required
-- **Progression**: Monitor food inventory → Quality check on perishables → Stock reaches reorder level → Auto-alert to procurement → Order from assigned supplier → Receive and quality inspect → Update batch and expiry dates → Track usage → Generate waste/expiry reports
-- **Success criteria**: Fresh ingredients always available, minimal spoilage/waste, quality standards maintained, supplier performance tracked, cost variance controlled, expiry tracking prevents usage of expired items
-
-### Recipe & Menu Management
-- **Functionality**: Recipe builder with ingredient mapping, portion costing, menu management, auto inventory deduction from recipes
-- **Purpose**: Controls food costs and ensures consistent quality
-- **Trigger**: Chef creates recipe or updates menu
-- **Progression**: Create recipe → Map ingredients to inventory → Calculate portion cost → Add to menu → When dish sold → Auto deduct ingredients from stock
-- **Success criteria**: Recipe costs accurate, inventory deductions automatic, food cost variance minimized
-
-### Guest Invoicing & Billing
-- **Functionality**: Comprehensive invoice management with view, edit, download, and share capabilities including professional invoice viewer with detailed line items and tax breakdown, inline editing for draft invoices with real-time total recalculation, multi-format download (HTML/PDF/JSON) with fully styled templates, multi-channel sharing (email with custom messages, shareable links, WhatsApp/SMS integration), quick print functionality, and complete audit trail tracking
-- **Purpose**: Streamlines guest billing workflows with professional invoice presentation, enables flexible invoice modifications before finalization, provides multiple delivery formats to match guest preferences, facilitates instant sharing via email or messaging platforms, ensures tax compliance with detailed breakdown, and maintains complete financial and delivery audit trails
-- **Trigger**: Invoice list view access, individual invoice selection, checkout completion, payment received, or manual invoice generation request
-- **Progression**: Navigate to invoice management → Search/filter invoices → Select invoice → View detailed invoice with formatted layout → Edit draft invoice (modify guest details, line items, instructions) → Download invoice (select format: HTML/PDF/JSON) → Share invoice (email with custom message OR copy shareable link OR share via WhatsApp/SMS) → Track delivery status → Update audit trail → Record in system
-- **Success criteria**: Invoice list displays all invoices with search/filter/status tracking, view dialog shows professional formatted invoice matching brand identity with all charges and taxes accurately calculated, edit functionality allows modifications to draft/final invoices with real-time total updates, download generates properly formatted files in selected format (HTML with embedded styles, PDF-ready HTML, or structured JSON), share via email includes customizable subject and message with invoice attachment equivalent, shareable links copy to clipboard and work across platforms, WhatsApp/SMS sharing opens respective apps with pre-filled invoice link, quick actions (print/email) work from invoice list, all actions tracked in audit trail with timestamp and user, complete delivery history maintained per invoice
-
-### Finance & Accounting
-- **Functionality**: Chart of accounts, AP/AR, revenue centers, tax management, integration with all revenue/expense modules
-- **Purpose**: Maintains financial accuracy and enables comprehensive reporting
-- **Trigger**: Transaction occurs in any module (sale, purchase, payment)
-- **Progression**: Transaction initiated → Auto journal entry created → Post to ledger → Update balances → Reconcile → Generate reports
-- **Success criteria**: All transactions captured, reconciliation clean, reports accurate, audit trail complete
-
-### CRM & Guest Engagement
-- **Functionality**: Guest profiles, preferences, loyalty program, feedback tracking, marketing campaigns
-- **Purpose**: Enhances guest satisfaction and drives repeat business
-- **Trigger**: Guest check-in or profile update
-- **Progression**: Guest arrives → Profile loaded with preferences → Personalize service → Capture feedback → Award loyalty points → Send post-stay communication
-- **Success criteria**: Preferences applied, feedback captured, loyalty tracked, marketing effective
-
-### Engineering & Maintenance
-- **Functionality**: Preventive maintenance schedules, work order management, spare parts inventory, equipment history
-- **Purpose**: Minimizes downtime and extends asset life
-- **Trigger**: Scheduled maintenance due or issue reported
-- **Progression**: Maintenance due → Create work order → Assign technician → Issue spare parts → Complete work → Update equipment log
-- **Success criteria**: Schedules adhered to, response times met, parts availability maintained
-
-### Maintenance & Construction
-- **Functionality**: Construction material inventory management (electrical, plumbing, carpentry, masonry, painting, HVAC, hardware, safety equipment), project-based requirement creation, inventory segregation by segment (regular maintenance vs project construction vs emergency stock), contractor and supplier integration for quick order dispatch, project tracking with tasks and budget monitoring, material usage logging
-- **Purpose**: Manages all engineering and construction-related consumables and materials, tracks ongoing and planned projects, ensures material availability for both routine maintenance and major construction projects
-- **Trigger**: Project creation, material stock reaches reorder level, maintenance work order created, construction project approved
-- **Progression**: Create project → Define material requirements → Allocate materials from inventory → Track usage → Monitor project progress and budget → Receive materials from suppliers → Update contractor assignments → Complete project tasks → Final inspection
-- **Success criteria**: Materials available when needed, projects completed on time and within budget, contractors properly managed, inventory segregated by purpose, emergency stock maintained, material costs tracked accurately
-
-### HR & Staff Management
-- **Functionality**: Employee profiles, attendance, leave management, shift rosters, performance reviews, role-based access control
-- **Purpose**: Optimizes staff scheduling and maintains employee records with comprehensive HR tracking
-- **Trigger**: Shift planning period, leave request, or performance review cycle
-- **Progression**: Create roster → Assign shifts by department → Track attendance → Process leave → Evaluate performance → Generate reports
-- **Success criteria**: Coverage adequate, attendance accurate, leave approved timely, performance reviews completed, shift conflicts prevented
-
-### Analytics & Reporting
-- **Functionality**: Comprehensive reporting across all hotel operations including operational reports (order summary, supplier price comparison, department consumption, GRN variance, expiry forecast), financial reports (cost per department, food cost percentage, purchase cost trends, budget utilization), and kitchen & menu reports (ingredient usage, dish profitability, menu performance analysis) with export capabilities and period selection
-- **Purpose**: Enables data-driven decisions through detailed analysis of purchasing patterns, cost control, supplier performance, inventory efficiency, and profitability metrics
-- **Trigger**: User navigates to Analytics module or scheduled report generation
-- **Progression**: Select report category (Operational/Financial/Kitchen) → Choose period (Daily/Weekly/Monthly/Custom) → View detailed tables and metrics → Apply advanced filters → Export report (CSV/PDF/Excel) → Print report → Analyze insights
-- **Success criteria**: All reports display accurate data from integrated systems, period filtering works correctly, export functions generate proper files, supplier comparisons identify best prices, variance reports highlight discrepancies, profitability analysis shows margin calculations, budget utilization tracks spending vs allocation
-
-### Revenue Management & Rate Planning
-- **Functionality**: Room type configuration with bedding/view/amenities, hierarchical rate plans (parent/child with derived formulas), daily rate calendar with drag-drop editing, bulk rate updates, stay restrictions (min/max stay, CTA/CTD, stop-sell), seasonal pricing, event-based pricing, corporate negotiated rates, occupancy-based pricing (extra adult/child charges), meal plan rates (RO/BB/HB/FB/AI), promotional rates with blackout dates, rate override management, comprehensive audit logging
-- **Purpose**: Provides sophisticated revenue management and yield control enabling hotels to maximize revenue through dynamic pricing, market segmentation, and demand-based rate optimization
-- **Trigger**: Rate planning period, season change, special event, occupancy forecast change, corporate contract negotiation, competitive rate adjustment
-- **Progression**: Define room types with attributes → Create parent rate plans (BAR, Corporate, etc.) → Derive child rate plans with formulas (BAR -10%, Early Bird, etc.) → Set up seasonal pricing → Configure meal plan rates → Add event days with multipliers → Set stay restrictions → Configure corporate accounts with negotiated rates → Set occupancy pricing rules → Populate rate calendar → Apply bulk updates → Monitor and override rates → Review audit logs → Analyze rate performance
-- **Success criteria**: Rate hierarchy enforced, derived rates calculate correctly, restrictions prevent invalid bookings, seasonal rates apply automatically, event pricing triggers on dates, corporate rates honor contracts, occupancy pricing adjusts for extra guests, meal plans calculate properly, rate changes logged with full audit trail, calendar updates sync to channels, override approvals tracked
+### Mock Data Mode
+- **Functionality**: Display sample Google Analytics data when API is not configured
+- **Purpose**: Allow users to explore the interface and understand analytics capabilities before connecting
+- **Trigger**: Google Analytics not configured or connection fails
+- **Progression**: View mock data → See "Connect Google Analytics" prompt → Click to configure
+- **Success criteria**: Realistic mock data displays, clear indication that data is simulated, easy path to configuration
 
 ## Edge Case Handling
-
-- **Double Bookings**: Real-time room availability checking prevents conflicts; manual override with warning for authorized users
-- **Stock Discrepancies**: Variance tracking with adjustment workflows; automatic alerts for significant discrepancies
-- **Payment Failures**: Transaction rollback with retry mechanism; manual reconciliation tools for failed transactions
-- **Guest No-Shows**: Automatic no-show processing with configurable policies and revenue posting
-- **Expired Items**: Automated alerts before expiry; batch tracking prevents expired stock usage; visual warnings for items expiring within 3 days; daily expiry reports
-- **Quality Rejections**: Quality check workflow for incoming food items; rejected items quarantined and supplier notified; alternative supplier auto-suggested
-- **Concurrent Edits**: Optimistic locking with conflict resolution prompts
-- **Network Issues**: Offline mode queues critical operations; sync when connection restored
-- **Missing Permissions**: Graceful denial with clear messaging and request access workflow
+- **API Authentication Failure**: Display clear error message with troubleshooting steps and link to Google Analytics documentation
+- **Rate Limiting**: Show warning when approaching API quota limits, implement request throttling
+- **Invalid Property ID**: Validate format before saving, provide helpful error messages
+- **Network Errors**: Graceful fallback to cached data with timestamp, retry mechanism for failed requests
+- **Empty Data Sets**: Show "No data available for selected period" with helpful suggestions
+- **Date Range Limits**: Enforce API constraints on date ranges, prevent queries beyond data retention period
 
 ## Design Direction
-
-**Light Theme**: The design embodies modern hotel luxury with a sophisticated, professional aesthetic. The warm cream backgrounds paired with rich jewel-tone accents create an inviting, premium atmosphere. Visual hierarchy is achieved through purposeful use of color, generous whitespace, and refined typography that feels both welcoming and efficient.
-
-**Dark Theme**: The design embodies a futuristic, sophisticated aesthetic inspired by 2026 design trends - featuring dark mode with vibrant neon accents, glassmorphism effects, bold gradients, and fluid micro-interactions. The interface feels premium and immersive while maintaining operational clarity through strong visual hierarchy, purposeful animations, and intelligent use of light and color to guide user attention.
+The design should feel analytical and data-centric while remaining accessible. Analytics dashboards should inspire confidence through clean data presentation, professional charts, and organized metric cards. The configuration interface should feel secure and trustworthy, reducing anxiety around API credential management.
 
 ## Color Selection
+A sophisticated data-focused palette with vibrant accent colors for metrics visualization.
 
-**Light Theme**: Sophisticated, modern hotel brand palette with warm cream backgrounds and rich jewel-toned accents creating a premium, professional atmosphere that feels fresh and inviting.
-
-- **Primary Color**: Royal Indigo (oklch(0.48 0.18 265)) - Deep, sophisticated purple-blue conveying trust, professionalism, and premium hotel service
-- **Secondary Color**: Coastal Teal (oklch(0.72 0.14 195)) - Fresh, calming aqua representing relaxation and hospitality
-- **Accent Color**: Sunset Coral (oklch(0.62 0.20 30)) - Warm, welcoming orange-red for CTAs and important actions creating energy and urgency
-- **Success Color**: Garden Green (oklch(0.55 0.16 155)) - Natural emerald green for positive confirmations
-- **Destructive Color**: Ruby Red (oklch(0.58 0.22 20)) - Clear warning and alert color
-- **Foreground/Background Pairings**:
-  - Background (Warm Cream oklch(0.98 0.008 85)): Deep Indigo text (oklch(0.20 0.015 265)) - Ratio 15.2:1 ✓
-  - Card (Pure White oklch(1 0 0)): Deep Indigo text (oklch(0.22 0.015 265)) - Ratio 13.8:1 ✓
-  - Primary (Royal Indigo oklch(0.48 0.18 265)): White text (oklch(0.99 0 0)) - Ratio 8.9:1 ✓
-  - Secondary (Coastal Teal oklch(0.72 0.14 195)): White text (oklch(0.98 0 0)) - Ratio 5.8:1 ✓
-  - Accent (Sunset Coral oklch(0.62 0.20 30)): White text (oklch(0.99 0 0)) - Ratio 5.2:1 ✓
-  - Success (Garden Green oklch(0.55 0.16 155)): White text (oklch(0.99 0 0)) - Ratio 6.5:1 ✓
-
-**Dark Theme**: Futuristic cyberpunk-inspired scheme with deep dark backgrounds and vibrant neon accents creating a high-tech, premium atmosphere for night operations.
-
-- **Primary Color**: Electric Purple (oklch(0.75 0.22 280)) - Bold, modern accent for key actions and focal points
-- **Secondary Colors**: Vivid Magenta (oklch(0.65 0.18 310)) for secondary actions; Deep Navy (oklch(0.13 0.015 250)) for backgrounds
-- **Accent Color**: Neon Cyan (oklch(0.70 0.25 180)) - Striking highlight color for CTAs and interactive elements
-- **Success Color**: Bright Lime (oklch(0.68 0.20 150)) - Clear positive feedback
-- **Destructive Color**: Hot Coral (oklch(0.60 0.25 25)) - Attention-grabbing alerts
+- **Primary Color**: Deep Indigo (oklch(0.45 0.14 270)) - Conveys trust and professionalism for analytics context
+- **Secondary Colors**: 
+  - Teal (oklch(0.55 0.12 200)) - For acquisition metrics and growth indicators
+  - Slate (oklch(0.35 0.02 240)) - Supporting neutral for secondary data
+- **Accent Color**: Vibrant Purple (oklch(0.62 0.20 290)) - Highlights key metrics, CTAs, and important data points
+- **Foreground/Background Pairings**: 
+  - Primary (Deep Indigo oklch(0.45 0.14 270)): White text (oklch(0.98 0 0)) - Ratio 10.2:1 ✓
+  - Accent (Vibrant Purple oklch(0.62 0.20 290)): White text (oklch(0.98 0 0)) - Ratio 5.8:1 ✓
+  - Background (Dark oklch(0.15 0.012 265)): Light foreground (oklch(0.98 0.008 265)) - Ratio 15.4:1 ✓
 
 ## Font Selection
+Typography should feel technical yet approachable, with excellent readability for data-heavy interfaces.
 
-Typography should communicate professionalism and clarity with distinct fonts for interface elements versus data display, using IBM Plex Sans for UI clarity, IBM Plex Serif for editorial content, and Fira Code for data/numbers.
-
-**Primary Font**: IBM Plex Sans - Professional, highly legible sans-serif perfect for UI elements and navigation
-**Secondary Font**: IBM Plex Serif - Elegant serif for guest communications and formal content
-**Monospace Font**: Fira Code - Clear monospace for financial data, codes, and technical information
-
-- **Typographic Hierarchy**:
-  - H1 (Dashboard Title): IBM Plex Sans SemiBold/36px/tight letter spacing (-0.02em)
-  - H2 (Module Header): IBM Plex Sans SemiBold/28px/tight letter spacing (-0.01em)
-  - H3 (Section Header): IBM Plex Sans Medium/20px/normal letter spacing
-  - Body (Content): IBM Plex Sans Regular/15px/relaxed line height (1.6)
-  - Data (Numbers/Financial): Fira Code Medium/14px/tabular numbers
-  - Label (Form): IBM Plex Sans Medium/14px/wide letter spacing (0.005em)
-  - Small (Meta): IBM Plex Sans Regular/13px/normal letter spacing
+- **Typographic Hierarchy**: 
+  - H1 (Section Titles): IBM Plex Sans SemiBold/32px/tight tracking
+  - H2 (Subsections): IBM Plex Sans SemiBold/24px/normal tracking
+  - H3 (Metric Cards): IBM Plex Sans Medium/18px/normal tracking
+  - Data Values: IBM Plex Mono Regular/24px/tabular numerals for alignment
+  - Body Text: IBM Plex Sans Regular/14px/1.5 line-height
+  - Labels: IBM Plex Sans Medium/12px/wide tracking uppercase
 
 ## Animations
+Animations should be purposeful and enhance data comprehension without distraction.
 
-Animations embody fluidity and sophistication with purpose-driven micro-interactions that enhance usability while creating moments of delight through smooth, physics-based motion and intelligent transitions.
-
-- **Purposeful Meaning**: Fluid, confident transitions (200-400ms) with spring physics that communicate state changes, create spatial continuity, and guide users through complex workflows with natural, organic motion
-- **Hierarchy of Movement**: 
-  - Priority 1: Interactive elements (buttons, inputs) with scale transforms (1.05x on hover), glow effects, and spring animations (cubic-bezier(0.34, 1.56, 0.64, 1))
-  - Priority 2: Cards and containers with lift effects (translateY -8px), enhanced shadows, and backdrop blur transitions
-  - Priority 3: Page transitions with slide and fade combinations, maintaining spatial relationships
-  - Priority 4: Background gradients with subtle mesh animations and floating elements creating ambient motion
-  - Priority 5: Loading states with shimmer effects, pulse glows, and skeleton screens that maintain layout
-- **Special Effects**:
-  - Glassmorphism with backdrop-blur (20-32px) and semi-transparent backgrounds
-  - Glow borders using gradient masks and opacity transitions
-  - Shine effects on hover with diagonal gradient sweeps
-  - Text shimmer for headings with gradient animation
-  - Floating animations for decorative icons
-  - Pulse glow for notifications and alerts
+- Metric cards fade in sequentially (50ms stagger) when loading
+- Chart transitions smoothly between date ranges (300ms ease-out)
+- Connection status indicator pulses subtly when testing
+- Success confirmations use a quick scale + fade animation (200ms)
+- Number counters animate upward when displaying new values
+- Hover states on chart elements provide immediate visual feedback
 
 ## Component Selection
-
 - **Components**: 
-  - **Card** for module widgets, room cards, reservation cards with status-coded borders
-  - **Sheet/Dialog** for transaction forms (check-in, orders, requisitions) with multi-step wizards
-  - **Table** for detailed listings (reservations, inventory, transactions) with sorting, filtering, inline actions
-  - **Tabs** for switching between views (daily/weekly/monthly analytics, different POS sections)
-  - **Badge** for status indicators with semantic colors (occupied/vacant, clean/dirty, approved/pending)
-  - **Avatar** for staff and guest representation
-  - **Calendar** for date picking in reservations and reports
-  - **Select** with search for room selection, guest lookup, item selection
-  - **Command** for quick navigation and global search (Cmd+K)
-  - **Progress** for task completion, occupancy rates, inventory levels
-  - **Separator** for organizing dense operational interfaces
-  - **Alert** for critical operational notifications (stock-outs, maintenance issues)
-  - **Sidebar** for primary navigation between modules with collapsible sections
-  
+  - Card (metric display), Tabs (switching between Audience/Acquisition), Button (configuration actions), Input (API credentials), Label (form fields), Badge (connection status), Switch (enable/disable features), Select (date range presets), Alert (error messages), Skeleton (loading states)
+  - Recharts components: AreaChart (trends over time), BarChart (channel comparison), PieChart (traffic source breakdown), LineChart (session duration trends)
 - **Customizations**: 
-  - Custom room grid component showing visual floor plan with real-time status
-  - Custom inventory dashboard with aging analysis and reorder point visualizations
-  - Custom guest folio component with running balance and itemized charges
-  - Custom KOT (Kitchen Order Ticket) display for kitchen staff
-  
+  - Custom metric card with large number display, trend indicator, and sparkline
+  - Custom connection status indicator with icon and color-coded states
+  - Custom API credential input with show/hide toggle and validation feedback
 - **States**: 
-  - Room cards: color-coded by status (green=clean, red=dirty, blue=occupied, yellow=maintenance)
-  - Transaction buttons: loading spinner during processing, success checkmark, error state with retry
-  - Inventory items: warning state when below reorder point, danger when stock-out, info when near expiry
-  
+  - Buttons: Default (solid), hover (slight lift), active (pressed), disabled (muted with reduced opacity), loading (spinner)
+  - Inputs: Default (subtle border), focus (accented border with glow), error (red border with message), success (green border with checkmark)
+  - Cards: Default (flat), hover (subtle elevation increase), selected (accented border)
 - **Icon Selection**: 
-  - Gauge (Dashboard), BedDouble (Rooms), Broom (Housekeeping), ForkKnife (F&B), Package (Inventory), Carrot (Food Management), ShoppingCart (Procurement), CurrencyDollar (Finance), Users (HR), Wrench (Engineering), ChartBar (Analytics), Bell (Notifications), MagnifyingGlass (Search), Warning (Alerts), Calendar (Expiry), MapPin (Location), Barcode (Item ID)
-  
+  - ChartBar (analytics navigation), Globe (audience metrics), MagnifyingGlass (acquisition data), Plug (connection status), CheckCircle (connected), WarningCircle (disconnected), Calendar (date picker), ArrowUp/ArrowDown (trends), Eye/EyeSlash (show/hide credentials)
 - **Spacing**: 
-  - Module cards: p-6, Dashboard grid: gap-6, Form sections: space-y-4, Page margins: p-6 md:p-8, Dense tables: gap-2
-  
+  - Consistent 4px base unit
+  - Card padding: 6 (24px)
+  - Section gaps: 6 (24px)
+  - Metric card internal spacing: 4 (16px)
+  - Form field gaps: 4 (16px)
 - **Mobile**: 
-  - Desktop (≥1024px): Multi-column dashboard with persistent fixed sidebar (64 units wide), 4-column stat grids, 6-column room grids, split views for transactions
-  - Tablet (768-1023px): Responsive 2-column grids, drawer sidebar accessible via hamburger menu, modal forms, 4-column room grids
-  - Mobile (<768px): Single column layout, sticky top header with menu button, notification panel, and branding, full-width cards with responsive padding (p-4 vs p-6), 2-column room grids, flexible stacked layouts for complex cards, truncated text with line-clamp, responsive font sizes (text-2xl md:text-3xl lg:text-4xl), full-width buttons on mobile that adapt to auto-width on larger screens
+  - Stack metric cards vertically on mobile
+  - Charts adjust height/width responsively
+  - Tabs switch to dropdown menu below 640px
+  - Form inputs full-width on mobile
+  - Data tables switch to card layout on small screens
