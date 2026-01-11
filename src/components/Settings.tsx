@@ -6,7 +6,6 @@ import { SystemSettings } from '@/components/SystemSettings'
 import { TaxSettings } from '@/components/TaxSettings'
 import { UserPreferences } from '@/components/UserPreferences'
 import { EmailTemplateManagement } from '@/components/EmailTemplateSettings'
-import { EmailTemplateAnalyticsComponent } from '@/components/EmailTemplateAnalytics'
 import { DialogSettings } from '@/components/DialogSettings'
 import { TestEmailTemplate } from '@/components/TestEmailTemplate'
 import { BackupManagement } from '@/components/BackupManagement'
@@ -15,10 +14,7 @@ import type {
   HotelBranding, 
   TaxConfiguration, 
   ServiceChargeConfiguration, 
-  SystemUser,
-  EmailTemplateAnalytics,
-  EmailSentRecord,
-  EmailCampaignAnalytics
+  SystemUser
 } from '@/lib/types'
 import type { EmailTemplate } from '@/lib/invoiceEmailTemplates'
 import { 
@@ -27,7 +23,6 @@ import {
   Receipt,
   User,
   EnvelopeSimple,
-  ChartBar,
   FrameCorners,
   FloppyDisk,
   Globe
@@ -42,9 +37,9 @@ interface SettingsProps {
   setServiceCharge: (update: (current: ServiceChargeConfiguration | null) => ServiceChargeConfiguration) => void
   emailTemplates: EmailTemplate[]
   setEmailTemplates: (update: (current: EmailTemplate[]) => EmailTemplate[]) => void
-  emailAnalytics: EmailTemplateAnalytics[]
-  campaignAnalytics: EmailCampaignAnalytics[]
-  emailRecords: EmailSentRecord[]
+  emailAnalytics: any[]
+  campaignAnalytics: any[]
+  emailRecords: any[]
   currentUser: SystemUser
   activeTab?: string
 }
@@ -74,7 +69,7 @@ export function Settings({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9 gap-1">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-1">
           <TabsTrigger value="branding" className="gap-2">
             <Palette size={18} />
             <span className="hidden sm:inline">Branding</span>
@@ -94,10 +89,6 @@ export function Settings({
           <TabsTrigger value="email-templates" className="gap-2">
             <EnvelopeSimple size={18} />
             <span className="hidden sm:inline">Templates</span>
-          </TabsTrigger>
-          <TabsTrigger value="email-analytics" className="gap-2">
-            <ChartBar size={18} />
-            <span className="hidden sm:inline">Analytics</span>
           </TabsTrigger>
           <TabsTrigger value="google-analytics" className="gap-2">
             <Globe size={18} />
@@ -165,14 +156,6 @@ export function Settings({
               currentUser={currentUser}
             />
           </div>
-        </TabsContent>
-
-        <TabsContent value="email-analytics" className="mt-6">
-          <EmailTemplateAnalyticsComponent
-            templateAnalytics={emailAnalytics}
-            campaignAnalytics={campaignAnalytics}
-            emailRecords={emailRecords}
-          />
         </TabsContent>
 
         <TabsContent value="google-analytics" className="mt-6">

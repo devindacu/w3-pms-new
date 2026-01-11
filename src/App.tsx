@@ -1225,6 +1225,9 @@ function App() {
               channelReservations={channelReservations || []}
               channelPerformance={channelPerformance || []}
               maintenanceRequests={maintenanceRequests || []}
+              emailAnalytics={emailAnalytics || []}
+              campaignAnalytics={campaignAnalytics || []}
+              emailRecords={emailRecords || []}
             />
           )}
           {currentModule === 'revenue-trends' && (

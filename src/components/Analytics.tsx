@@ -42,6 +42,7 @@ import {
 import { AnalyticsDateFilter, type DateRange } from '@/components/AnalyticsDateFilter'
 import { PercentageChangeIndicator } from '@/components/PercentageChangeIndicator'
 import { GoogleAnalyticsDashboard } from '@/components/GoogleAnalyticsDashboard'
+import { EmailTemplateAnalyticsComponent } from '@/components/EmailTemplateAnalytics'
 import type {
   Room,
   Reservation,
@@ -66,7 +67,10 @@ import type {
   GuestFeedback,
   ChannelReservation,
   ChannelPerformance,
-  MaintenanceRequest
+  MaintenanceRequest,
+  EmailTemplateAnalytics,
+  EmailSentRecord,
+  EmailCampaignAnalytics
 } from '@/lib/types'
 
 interface AnalyticsProps {
@@ -94,6 +98,9 @@ interface AnalyticsProps {
   channelReservations: ChannelReservation[]
   channelPerformance: ChannelPerformance[]
   maintenanceRequests: MaintenanceRequest[]
+  emailAnalytics: EmailTemplateAnalytics[]
+  campaignAnalytics: EmailCampaignAnalytics[]
+  emailRecords: EmailSentRecord[]
 }
 
 const CHART_COLORS = ['#8B5CF6', '#06B6D4', '#10B981', '#F59E0B', '#EF4444']
@@ -437,7 +444,7 @@ export function Analytics(props: AnalyticsProps) {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-10">
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-11">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="rooms">Rooms</TabsTrigger>
           <TabsTrigger value="revenue">Revenue</TabsTrigger>
@@ -447,6 +454,7 @@ export function Analytics(props: AnalyticsProps) {
           <TabsTrigger value="inventory">Inventory</TabsTrigger>
           <TabsTrigger value="finance">Finance</TabsTrigger>
           <TabsTrigger value="staff">Staff</TabsTrigger>
+          <TabsTrigger value="email">Email</TabsTrigger>
           <TabsTrigger value="google-analytics" className="gap-1">
             <Globe size={16} />
             <span className="hidden lg:inline">Google</span>
@@ -885,6 +893,14 @@ export function Analytics(props: AnalyticsProps) {
               <p className="text-3xl font-semibold">{staffData.departments}</p>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="email" className="mt-6">
+          <EmailTemplateAnalyticsComponent
+            templateAnalytics={props.emailAnalytics}
+            campaignAnalytics={props.campaignAnalytics}
+            emailRecords={props.emailRecords}
+          />
         </TabsContent>
 
         <TabsContent value="google-analytics" className="mt-6">
