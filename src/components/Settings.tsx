@@ -9,6 +9,7 @@ import { EmailTemplateManagement } from '@/components/EmailTemplateSettings'
 import { EmailTemplateAnalyticsComponent } from '@/components/EmailTemplateAnalytics'
 import { DialogSettings } from '@/components/DialogSettings'
 import { TestEmailTemplate } from '@/components/TestEmailTemplate'
+import { VersionControl } from '@/components/VersionControl'
 import type { 
   HotelBranding, 
   TaxConfiguration, 
@@ -26,7 +27,8 @@ import {
   User,
   EnvelopeSimple,
   ChartBar,
-  FrameCorners
+  FrameCorners,
+  ClockCounterClockwise
 } from '@phosphor-icons/react'
 
 interface SettingsProps {
@@ -68,7 +70,7 @@ export function Settings({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 gap-1">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-1">
           <TabsTrigger value="branding" className="gap-2">
             <Palette size={18} />
             <span className="hidden sm:inline">Branding</span>
@@ -92,6 +94,10 @@ export function Settings({
           <TabsTrigger value="email-analytics" className="gap-2">
             <ChartBar size={18} />
             <span className="hidden sm:inline">Analytics</span>
+          </TabsTrigger>
+          <TabsTrigger value="version-control" className="gap-2">
+            <ClockCounterClockwise size={18} />
+            <span className="hidden sm:inline">Backups</span>
           </TabsTrigger>
           <TabsTrigger value="preferences" className="gap-2">
             <User size={18} />
@@ -159,6 +165,10 @@ export function Settings({
             campaignAnalytics={campaignAnalytics}
             emailRecords={emailRecords}
           />
+        </TabsContent>
+
+        <TabsContent value="version-control" className="mt-6">
+          <VersionControl currentUser={currentUser} />
         </TabsContent>
 
         <TabsContent value="preferences" className="mt-6">
