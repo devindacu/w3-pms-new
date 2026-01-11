@@ -39,6 +39,8 @@ import {
   List,
   FileText
 } from '@phosphor-icons/react'
+import { DashboardFilters, type DashboardFilters as DashboardFiltersType } from '@/components/DashboardFilters'
+import { applyDashboardFilters, type FilteredDashboardData } from '@/lib/filterHelpers'
 import { 
   type Room, 
   type Guest, 
@@ -302,6 +304,14 @@ function App() {
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
+  
+  const [dashboardFilters, setDashboardFilters] = useState<DashboardFiltersType>({
+    dateRange: {
+      from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      to: new Date()
+    },
+    category: 'all'
+  })
 
   useTheme()
 
@@ -528,18 +538,47 @@ function App() {
   const renderDashboard = () => {
     const layout = initializeDefaultLayout()
     
-    const widgetData = {
-      urgentAmenities: getUrgentAmenities(amenities || []).length,
-      lowStockAmenities: (amenities || []).filter(a => a.currentStock <= a.reorderLevel).length,
-      totalAmenities: (amenities || []).length,
-      urgentFood: getUrgentFoodItems(foodItems || []).length,
-      expiringFood: getExpiringFoodItems(foodItems || [], 7).length,
-      totalFood: (foodItems || []).length,
-      activeProjects: (constructionProjects || []).filter(p => p.status === 'in-progress').length,
-      totalMaterials: (constructionMaterials || []).length,
-      lowStockMaterials: (constructionMaterials || []).filter(m => m.currentStock <= m.reorderLevel).length,
+    const rawData: FilteredDashboardData = {
       rooms: rooms || [],
-      lowStockItems: (inventory || []).filter(item => item.currentStock <= item.reorderLevel && item.currentStock > 0),
+      reservations: reservations || [],
+      housekeepingTasks: housekeepingTasks || [],
+      orders: orders || [],
+      inventory: inventory || [],
+      maintenanceRequests: maintenanceRequests || [],
+      guests: guests || [],
+      employees: employees || [],
+      payments: payments || [],
+      expenses: expenses || [],
+      invoices: guestInvoices || [],
+      foodItems: foodItems || [],
+      amenities: amenities || [],
+      constructionMaterials: constructionMaterials || [],
+      generalProducts: generalProducts || []
+    }
+    
+    const { current: filteredData, comparison: comparisonData } = applyDashboardFilters(rawData, dashboardFilters)
+    
+    const filteredMetrics = calculateDashboardMetrics(
+      filteredData.rooms,
+      filteredData.reservations,
+      filteredData.housekeepingTasks,
+      filteredData.orders,
+      filteredData.inventory,
+      filteredData.maintenanceRequests
+    )
+    
+    const widgetData = {
+      urgentAmenities: getUrgentAmenities(filteredData.amenities).length,
+      lowStockAmenities: filteredData.amenities.filter(a => a.currentStock <= a.reorderLevel).length,
+      totalAmenities: filteredData.amenities.length,
+      urgentFood: getUrgentFoodItems(filteredData.foodItems).length,
+      expiringFood: getExpiringFoodItems(filteredData.foodItems, 7).length,
+      totalFood: filteredData.foodItems.length,
+      activeProjects: (constructionProjects || []).filter(p => p.status === 'in-progress').length,
+      totalMaterials: filteredData.constructionMaterials.length,
+      lowStockMaterials: filteredData.constructionMaterials.filter(m => m.currentStock <= m.reorderLevel).length,
+      rooms: filteredData.rooms,
+      lowStockItems: filteredData.inventory.filter(item => item.currentStock <= item.reorderLevel && item.currentStock > 0),
       pendingRequisitions: (requisitions || []).filter(r => r.status === 'pending-approval').length,
       pendingPOs: (purchaseOrders || []).filter(po => po.status === 'draft').length,
       pendingInvoices: (invoices || []).filter(inv => inv.status === 'pending-validation').length,
@@ -550,13 +589,28 @@ function App() {
         { name: 'Engineering', performance: 88 },
         { name: 'Finance', performance: 95 }
       ],
-      reservations: reservations || [],
-      guests: guests || [],
+      reservations: filteredData.reservations,
+      guests: filteredData.guests,
       guestProfiles: guestProfiles || [],
       guestFeedback: guestFeedback || [],
       activeRecipes: (recipes || []).filter(r => r.isActive).length,
       consumptionLogs: (consumptionLogs || []).length,
-      wasteTracking: (wasteTracking || []).length
+      wasteTracking: (wasteTracking || []).length,
+      comparisonData
+    }
+
+    const handleFiltersChange = (newFilters: DashboardFiltersType) => {
+      setDashboardFilters(newFilters)
+    }
+
+    const handleFiltersReset = () => {
+      setDashboardFilters({
+        dateRange: {
+          from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+          to: new Date()
+        },
+        category: 'all'
+      })
     }
 
     return (
@@ -606,6 +660,12 @@ function App() {
             onViewAll={() => setNotificationPanelOpen(true)}
           />
           
+          <DashboardFilters
+            filters={dashboardFilters}
+            onFiltersChange={handleFiltersChange}
+            onReset={handleFiltersReset}
+          />
+          
           <div className={`grid gap-6 ${layout?.columns === 1 ? 'grid-cols-1' : layout?.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : layout?.columns === 4 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-2'}`}>
             {(layout?.widgets || [])
               .filter(w => w.isVisible)
@@ -614,7 +674,7 @@ function App() {
                 <div key={widget.id} className="transition-all duration-200 hover:scale-[1.02]">
                   <WidgetRenderer
                     widget={widget}
-                    metrics={metrics}
+                    metrics={filteredMetrics}
                     data={widgetData}
                     onNavigate={(module) => setCurrentModule(module as Module)}
                   />
