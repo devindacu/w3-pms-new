@@ -168,6 +168,7 @@ import { Settings } from '@/components/Settings'
 import { Finance } from '@/components/Finance'
 import { InvoiceManagement } from '@/components/InvoiceManagement'
 import { PaymentTracking } from '@/components/PaymentTracking'
+import { Reports } from '@/components/Reports'
 import { DashboardWidgetManager } from '@/components/DashboardWidgetManager'
 import { WidgetRenderer } from '@/components/DashboardWidgets'
 import { getDefaultWidgetsForRole, getWidgetSize } from '@/lib/widgetConfig'
@@ -210,7 +211,7 @@ import type {
   EmailCampaignAnalytics
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -898,6 +899,12 @@ function App() {
             Maintenance & Constructions
           </Button>
 
+          <Separator className="my-2" />
+
+          <div className="px-3 py-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Analytics & Reports</p>
+          </div>
+
           <Button
             variant={currentModule === 'analytics' ? 'default' : 'ghost'}
             className="w-full justify-start"
@@ -923,6 +930,15 @@ function App() {
           >
             <Sparkle size={18} className="mr-2" />
             AI Forecasting
+          </Button>
+
+          <Button
+            variant={currentModule === 'reports' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('reports')}
+          >
+            <FileText size={18} className="mr-2" />
+            Reports
           </Button>
 
           <Separator className="my-2" />
@@ -1492,6 +1508,20 @@ function App() {
               emailRecords={emailRecords || []}
               currentUser={currentUser}
               activeTab={settingsTab}
+            />
+          )}
+          {currentModule === 'reports' && (
+            <Reports
+              rooms={rooms || []}
+              reservations={reservations || []}
+              guests={guests || []}
+              orders={orders || []}
+              employees={employees || []}
+              housekeepingTasks={housekeepingTasks || []}
+              inventory={inventory || []}
+              guestInvoices={guestInvoices || []}
+              payments={payments || []}
+              expenses={expenses || []}
             />
           )}
         </div>
