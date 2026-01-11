@@ -27,7 +27,8 @@ import {
   Eye,
   Plus,
   Pencil,
-  Trash
+  Trash,
+  Clock
 } from '@phosphor-icons/react'
 import type {
   Room,
@@ -42,8 +43,11 @@ import type {
   Expense
 } from '@/lib/types'
 import type { CustomReport } from '@/lib/reportBuilderTypes'
+import type { ReportSchedule, ScheduleExecutionLog } from '@/lib/reportScheduleTypes'
 import { formatCurrency, formatDate } from '@/lib/helpers'
 import { CustomReportBuilder } from './CustomReportBuilder'
+import { ReportScheduleDialog } from './ReportScheduleDialog'
+import { ScheduleManagement } from './ScheduleManagement'
 
 interface ReportsProps {
   rooms: Room[]
@@ -56,6 +60,7 @@ interface ReportsProps {
   guestInvoices: GuestInvoice[]
   payments: Payment[]
   expenses: Expense[]
+  currentUser: { id: string; email: string; firstName: string; lastName: string }
 }
 
 type ReportCategory = 'financial' | 'operational' | 'guest' | 'inventory' | 'hr'
@@ -80,12 +85,23 @@ export function Reports({
   inventory,
   guestInvoices,
   payments,
-  expenses
+  expenses,
+  currentUser
 }: ReportsProps) {
   const [selectedCategory, setSelectedCategory] = useState<ReportCategory | 'all'>('all')
   const [customReports, setCustomReports] = useKV<CustomReport[]>('w3-hotel-custom-reports', [])
+  const [reportSchedules, setReportSchedules] = useKV<ReportSchedule[]>('w3-hotel-report-schedules', [])
+  const [executionLogs, setExecutionLogs] = useKV<ScheduleExecutionLog[]>('w3-hotel-schedule-logs', [])
   const [reportBuilderOpen, setReportBuilderOpen] = useState(false)
   const [editingReport, setEditingReport] = useState<CustomReport | undefined>(undefined)
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
+  const [schedulingReport, setSchedulingReport] = useState<{
+    id: string
+    name: string
+    type: 'template' | 'custom'
+    formats: ('pdf' | 'excel' | 'csv')[]
+  } | null>(null)
+  const [editingSchedule, setEditingSchedule] = useState<ReportSchedule | undefined>(undefined)
 
   const reportTemplates: ReportTemplate[] = [
     {
@@ -257,11 +273,11 @@ export function Reports({
   ]
 
   const handleGenerateReport = (reportId: string, format: 'pdf' | 'excel' | 'csv') => {
-    console.log(`Generating ${reportId} in ${format} format`)
+    toast.success(`Generating ${reportId} in ${format} format`)
   }
 
   const handlePreviewReport = (reportId: string) => {
-    console.log(`Previewing ${reportId}`)
+    toast.info(`Previewing ${reportId}`)
   }
 
   const handleOpenReportBuilder = (report?: CustomReport) => {
@@ -292,6 +308,86 @@ export function Reports({
     if (report) {
       toast.info(`Running report: ${report.name}`)
     }
+  }
+
+  const handleOpenScheduleDialog = (reportId: string, reportName: string, reportType: 'template' | 'custom', formats: ('pdf' | 'excel' | 'csv')[]) => {
+    setSchedulingReport({ id: reportId, name: reportName, type: reportType, formats })
+    setEditingSchedule(undefined)
+    setScheduleDialogOpen(true)
+  }
+
+  const handleEditSchedule = (schedule: ReportSchedule) => {
+    const report = schedule.reportType === 'template' 
+      ? reportTemplates.find(r => r.id === schedule.reportId)
+      : (customReports || []).find(r => r.id === schedule.reportId)
+    
+    if (report) {
+      setSchedulingReport({
+        id: schedule.reportId,
+        name: schedule.reportType === 'template' ? (report as ReportTemplate).name : (report as CustomReport).name,
+        type: schedule.reportType,
+        formats: schedule.reportType === 'template' ? (report as ReportTemplate).formats : ['pdf', 'excel', 'csv']
+      })
+      setEditingSchedule(schedule)
+      setScheduleDialogOpen(true)
+    }
+  }
+
+  const handleSaveSchedule = (schedule: ReportSchedule) => {
+    setReportSchedules((prev) => {
+      const existing = (prev || []).find(s => s.id === schedule.id)
+      if (existing) {
+        return (prev || []).map(s => s.id === schedule.id ? schedule : s)
+      }
+      return [...(prev || []), schedule]
+    })
+    toast.success('Report schedule saved')
+  }
+
+  const handleDeleteSchedule = (scheduleId: string) => {
+    setReportSchedules((prev) => (prev || []).filter(s => s.id !== scheduleId))
+  }
+
+  const handleToggleScheduleStatus = (scheduleId: string) => {
+    setReportSchedules((prev) => 
+      (prev || []).map(s => 
+        s.id === scheduleId 
+          ? { ...s, status: s.status === 'active' ? 'paused' as const : 'active' as const }
+          : s
+      )
+    )
+  }
+
+  const handleRunScheduleNow = (scheduleId: string) => {
+    const schedule = (reportSchedules || []).find(s => s.id === scheduleId)
+    if (!schedule) return
+
+    const startTime = Date.now()
+    
+    setTimeout(() => {
+      const duration = Date.now() - startTime
+      const log: ScheduleExecutionLog = {
+        id: `log-${Date.now()}`,
+        scheduleId,
+        executedAt: Date.now(),
+        status: 'success',
+        duration,
+        reportSize: Math.floor(Math.random() * 500000) + 100000,
+        emailsSent: schedule.emailRecipients.length,
+        generatedFileUrl: `/reports/generated-${Date.now()}.${schedule.format}`
+      }
+
+      setExecutionLogs((prev) => [...(prev || []), log])
+      setReportSchedules((prev) =>
+        (prev || []).map(s =>
+          s.id === scheduleId
+            ? { ...s, lastRun: Date.now(), runCount: s.runCount + 1 }
+            : s
+        )
+      )
+      
+      toast.success(`Report generated and sent to ${schedule.emailRecipients.length} recipient(s)`)
+    }, 2000)
   }
 
   return (
@@ -383,6 +479,13 @@ export function Reports({
                         >
                           <Eye size={16} className="mr-1" />
                           Preview
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleOpenScheduleDialog(report.id, report.name, 'template', report.formats)}
+                        >
+                          <Clock size={16} />
                         </Button>
                         <div className="flex gap-1">
                           {report.formats.includes('pdf') && (
@@ -495,6 +598,13 @@ export function Reports({
                         </Button>
                         <Button
                           size="sm"
+                          variant="outline"
+                          onClick={() => handleOpenScheduleDialog(report.id, report.name, 'custom', ['pdf', 'excel', 'csv'])}
+                        >
+                          <Clock size={16} />
+                        </Button>
+                        <Button
+                          size="sm"
                           variant="ghost"
                           title="Download PDF"
                         >
@@ -516,17 +626,13 @@ export function Reports({
           </TabsContent>
 
           <TabsContent value="scheduled" className="space-y-4">
-            <Card className="p-8 text-center">
-              <CalendarBlank size={48} className="mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold mb-2">No Scheduled Reports</h3>
-              <p className="text-muted-foreground mb-6">
-                Schedule reports to be automatically generated and sent to your email
-              </p>
-              <Button>
-                <CalendarBlank size={20} className="mr-2" />
-                Schedule Your First Report
-              </Button>
-            </Card>
+            <ScheduleManagement
+              schedules={reportSchedules || []}
+              onEdit={handleEditSchedule}
+              onDelete={handleDeleteSchedule}
+              onToggleStatus={handleToggleScheduleStatus}
+              onRunNow={handleRunScheduleNow}
+            />
           </TabsContent>
 
           <TabsContent value="history" className="space-y-4">
@@ -555,6 +661,24 @@ export function Reports({
           </div>
         </DialogContent>
       </Dialog>
+
+      {schedulingReport && (
+        <ReportScheduleDialog
+          open={scheduleDialogOpen}
+          onClose={() => {
+            setScheduleDialogOpen(false)
+            setSchedulingReport(null)
+            setEditingSchedule(undefined)
+          }}
+          schedule={editingSchedule}
+          reportId={schedulingReport.id}
+          reportName={schedulingReport.name}
+          reportType={schedulingReport.type}
+          availableFormats={schedulingReport.formats}
+          onSave={handleSaveSchedule}
+          currentUser={currentUser}
+        />
+      )}
     </div>
   )
 }

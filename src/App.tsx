@@ -1522,6 +1522,7 @@ function App() {
               guestInvoices={guestInvoices || []}
               payments={payments || []}
               expenses={expenses || []}
+              currentUser={currentUser}
             />
           )}
         </div>
