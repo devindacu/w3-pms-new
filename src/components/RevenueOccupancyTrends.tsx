@@ -32,20 +32,23 @@ import {
   ForkKnife
 } from '@phosphor-icons/react'
 import { formatCurrency, formatPercent } from '@/lib/helpers'
-import type { Reservation, Order, GuestInvoice, RoomTypeConfig, RatePlanConfig } from '@/lib/types'
+import type { Reservation, Order, GuestInvoice, RoomTypeConfig, RatePlanConfig, Room } from '@/lib/types'
 import { RevenueBreakdownDialog } from '@/components/RevenueBreakdownDialog'
+import { RevenueForecasting } from '@/components/RevenueForecasting'
+import { Sparkle } from '@phosphor-icons/react'
 
 interface RevenueOccupancyTrendsProps {
   reservations: Reservation[]
   orders: Order[]
   invoices: GuestInvoice[]
   totalRooms: number
+  rooms?: Room[]
   roomTypes?: RoomTypeConfig[]
   ratePlans?: RatePlanConfig[]
 }
 
 type Period = '7d' | '30d' | '90d' | '1y'
-type ViewType = 'combined' | 'revenue' | 'occupancy' | 'fnb'
+type ViewType = 'combined' | 'revenue' | 'occupancy' | 'fnb' | 'forecasting'
 
 interface TrendData {
   date: string
@@ -64,6 +67,7 @@ export function RevenueOccupancyTrends({
   orders, 
   invoices,
   totalRooms,
+  rooms = [],
   roomTypes = [],
   ratePlans = []
 }: RevenueOccupancyTrendsProps) {
@@ -334,7 +338,7 @@ export function RevenueOccupancyTrends({
       </div>
 
       <Tabs value={viewType} onValueChange={(v) => setViewType(v as ViewType)} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="combined">
             <ChartBar size={18} className="mr-2" />
             Combined
@@ -350,6 +354,10 @@ export function RevenueOccupancyTrends({
           <TabsTrigger value="fnb">
             <ForkKnife size={18} className="mr-2" />
             F&B
+          </TabsTrigger>
+          <TabsTrigger value="forecasting">
+            <Sparkle size={18} className="mr-2" />
+            Forecasting
           </TabsTrigger>
         </TabsList>
 
@@ -567,6 +575,26 @@ export function RevenueOccupancyTrends({
               </BarChart>
             </ResponsiveContainer>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="forecasting" className="space-y-4">
+          {rooms.length > 0 && roomTypes.length > 0 ? (
+            <RevenueForecasting
+              reservations={reservations}
+              invoices={invoices}
+              rooms={rooms}
+              roomTypes={roomTypes}
+              ratePlans={ratePlans}
+            />
+          ) : (
+            <Card className="p-12 text-center">
+              <Sparkle size={48} className="mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Revenue Forecasting Not Available</h3>
+              <p className="text-muted-foreground mb-6">
+                Please configure room types and ensure you have historical booking data to enable predictive forecasting.
+              </p>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>

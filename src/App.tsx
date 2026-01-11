@@ -1202,6 +1202,7 @@ function App() {
               orders={orders || []}
               invoices={guestInvoices || []}
               totalRooms={(rooms || []).length}
+              rooms={rooms || []}
               roomTypes={roomTypeConfigs || []}
               ratePlans={ratePlanConfigs || []}
             />
