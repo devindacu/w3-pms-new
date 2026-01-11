@@ -9,7 +9,7 @@ import { EmailTemplateManagement } from '@/components/EmailTemplateSettings'
 import { EmailTemplateAnalyticsComponent } from '@/components/EmailTemplateAnalytics'
 import { DialogSettings } from '@/components/DialogSettings'
 import { TestEmailTemplate } from '@/components/TestEmailTemplate'
-import { VersionControl } from '@/components/VersionControl'
+import { BackupManagement } from '@/components/BackupManagement'
 import type { 
   HotelBranding, 
   TaxConfiguration, 
@@ -28,7 +28,7 @@ import {
   EnvelopeSimple,
   ChartBar,
   FrameCorners,
-  ClockCounterClockwise
+  FloppyDisk
 } from '@phosphor-icons/react'
 
 interface SettingsProps {
@@ -96,7 +96,7 @@ export function Settings({
             <span className="hidden sm:inline">Analytics</span>
           </TabsTrigger>
           <TabsTrigger value="version-control" className="gap-2">
-            <ClockCounterClockwise size={18} />
+            <FloppyDisk size={18} />
             <span className="hidden sm:inline">Backups</span>
           </TabsTrigger>
           <TabsTrigger value="preferences" className="gap-2">
@@ -168,7 +168,7 @@ export function Settings({
         </TabsContent>
 
         <TabsContent value="version-control" className="mt-6">
-          <VersionControl currentUser={currentUser} />
+          <BackupManagement currentUser={currentUser} />
         </TabsContent>
 
         <TabsContent value="preferences" className="mt-6">
