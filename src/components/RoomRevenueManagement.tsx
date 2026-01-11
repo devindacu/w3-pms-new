@@ -42,7 +42,7 @@ import {
   Users,
   ChartLine
 } from '@phosphor-icons/react'
-import type { Room, RoomStatus, RoomType, RoomTypeConfig, RatePlanConfig, Season, EventDay, CorporateAccount, RateCalendar, SystemUser } from '@/lib/types'
+import type { Room, RoomStatus, RoomType, RoomTypeConfig, RatePlanConfig, Season, EventDay, CorporateAccount, RateCalendar, SystemUser, Reservation, GuestInvoice } from '@/lib/types'
 import { RoomDialog } from '@/components/RoomDialog'
 import { RoomDetailsDialog } from '@/components/RoomDetailsDialog'
 import { RoomTypeDialog } from '@/components/RoomTypeDialog'
@@ -52,6 +52,7 @@ import { RateCalendarView } from '@/components/RateCalendarView'
 import { SeasonDialog } from '@/components/SeasonDialog'
 import { EventDayDialog } from '@/components/EventDayDialog'
 import { CorporateAccountDialog } from '@/components/CorporateAccountDialog'
+import { RevenueBreakdownDialog } from '@/components/RevenueBreakdownDialog'
 import { formatCurrency } from '@/lib/helpers'
 
 interface RoomRevenueManagementProps {
@@ -70,6 +71,8 @@ interface RoomRevenueManagementProps {
   rateCalendar: RateCalendar[]
   setRateCalendar: (calendar: RateCalendar[] | ((current: RateCalendar[]) => RateCalendar[])) => void
   currentUser: SystemUser
+  reservations?: Reservation[]
+  invoices?: GuestInvoice[]
 }
 
 export function RoomRevenueManagement({
@@ -87,7 +90,9 @@ export function RoomRevenueManagement({
   setCorporateAccounts,
   rateCalendar,
   setRateCalendar,
-  currentUser
+  currentUser,
+  reservations = [],
+  invoices = []
 }: RoomRevenueManagementProps) {
   const [activeTab, setActiveTab] = useState('rooms')
   const [searchQuery, setSearchQuery] = useState('')
@@ -365,7 +370,13 @@ export function RoomRevenueManagement({
             Unified management of rooms, types, rates, and revenue optimization
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <RevenueBreakdownDialog
+            reservations={reservations}
+            invoices={invoices}
+            roomTypes={roomTypes}
+            ratePlans={ratePlans}
+          />
           {activeTab === 'rooms' && (
             <Button onClick={handleAddRoom} size="lg">
               <Plus size={20} className="mr-2" />

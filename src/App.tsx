@@ -1030,6 +1030,8 @@ function App() {
               rateCalendar={rateCalendar || []}
               setRateCalendar={setRateCalendar}
               currentUser={currentUser}
+              reservations={reservations || []}
+              invoices={guestInvoices || []}
             />
           )}
           {currentModule === 'housekeeping' && (
@@ -1200,6 +1202,8 @@ function App() {
               orders={orders || []}
               invoices={guestInvoices || []}
               totalRooms={(rooms || []).length}
+              roomTypes={roomTypeConfigs || []}
+              ratePlans={ratePlanConfigs || []}
             />
           )}
           {currentModule === 'forecasting' && (

@@ -32,13 +32,16 @@ import {
   ForkKnife
 } from '@phosphor-icons/react'
 import { formatCurrency, formatPercent } from '@/lib/helpers'
-import type { Reservation, Order, GuestInvoice } from '@/lib/types'
+import type { Reservation, Order, GuestInvoice, RoomTypeConfig, RatePlanConfig } from '@/lib/types'
+import { RevenueBreakdownDialog } from '@/components/RevenueBreakdownDialog'
 
 interface RevenueOccupancyTrendsProps {
   reservations: Reservation[]
   orders: Order[]
   invoices: GuestInvoice[]
   totalRooms: number
+  roomTypes?: RoomTypeConfig[]
+  ratePlans?: RatePlanConfig[]
 }
 
 type Period = '7d' | '30d' | '90d' | '1y'
@@ -60,7 +63,9 @@ export function RevenueOccupancyTrends({
   reservations, 
   orders, 
   invoices,
-  totalRooms 
+  totalRooms,
+  roomTypes = [],
+  ratePlans = []
 }: RevenueOccupancyTrendsProps) {
   const [period, setPeriod] = useState<Period>('30d')
   const [viewType, setViewType] = useState<ViewType>('combined')
@@ -241,6 +246,12 @@ export function RevenueOccupancyTrends({
               <SelectItem value="1y">Last Year</SelectItem>
             </SelectContent>
           </Select>
+          <RevenueBreakdownDialog
+            reservations={reservations}
+            invoices={invoices}
+            roomTypes={roomTypes}
+            ratePlans={ratePlans}
+          />
           <Button variant="outline" size="sm" onClick={handleExport}>
             <Download size={16} className="mr-2" />
             Export
