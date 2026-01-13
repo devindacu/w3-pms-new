@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
 import { useSyncedKV } from '@/hooks/use-synced-kv'
 import { useBroadcastSync, type SyncMessage } from '@/hooks/use-broadcast-sync'
+import { ConflictResolutionDemo } from './ConflictResolutionDemo'
 import {
   ArrowsClockwise,
   CheckCircle,
@@ -31,7 +32,8 @@ import {
   Warning,
   Pencil,
   Copy,
-  CloudArrowDown
+  CloudArrowDown,
+  GitMerge
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -377,10 +379,14 @@ export function SyncTestingPanel() {
       </div>
 
       <Tabs defaultValue="items" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="items">
             <Database size={16} className="mr-2" />
             Test Items
+          </TabsTrigger>
+          <TabsTrigger value="conflicts">
+            <GitMerge size={16} className="mr-2" />
+            Conflicts
           </TabsTrigger>
           <TabsTrigger value="activity">
             <Clock size={16} className="mr-2" />
@@ -391,6 +397,10 @@ export function SyncTestingPanel() {
             Auto Tests
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="conflicts" className="space-y-4">
+          <ConflictResolutionDemo />
+        </TabsContent>
 
         <TabsContent value="items" className="space-y-4">
           <Card>
