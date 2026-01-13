@@ -175,6 +175,8 @@ import { getDefaultWidgetsForRole, getWidgetSize } from '@/lib/widgetConfig'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { ColorMoodSelector } from '@/components/ColorMoodSelector'
 import { RevenueOccupancyTrends } from '@/components/RevenueOccupancyTrends'
+import { SyncStatusIndicator } from '@/components/SyncStatusIndicator'
+import { SyncDemoDialog } from '@/components/SyncDemoDialog'
 import type {
   DashboardLayout,
   DashboardWidget,
@@ -1001,6 +1003,8 @@ function App() {
               className="h-8 w-auto object-contain"
             />
             <div className="flex items-center gap-2">
+              <SyncDemoDialog />
+              <SyncStatusIndicator />
               <ColorMoodSelector />
               <ThemeToggle />
               <NotificationPanel
