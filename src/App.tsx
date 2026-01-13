@@ -38,7 +38,8 @@ import {
   Bell,
   List,
   FileText,
-  TrendUp
+  TrendUp,
+  ArrowsClockwise
 } from '@phosphor-icons/react'
 import { DashboardFilters, type DashboardFilters as DashboardFiltersType } from '@/components/DashboardFilters'
 import { applyDashboardFilters, type FilteredDashboardData } from '@/lib/filterHelpers'
@@ -177,6 +178,7 @@ import { ColorMoodSelector } from '@/components/ColorMoodSelector'
 import { RevenueOccupancyTrends } from '@/components/RevenueOccupancyTrends'
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator'
 import { SyncDemoDialog } from '@/components/SyncDemoDialog'
+import { SyncTestingPanel } from '@/components/SyncTestingPanel'
 import type {
   DashboardLayout,
   DashboardWidget,
@@ -213,7 +215,7 @@ import type {
   EmailCampaignAnalytics
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'sync-testing'
 
 function App() {
   const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
@@ -945,6 +947,21 @@ function App() {
 
           <Separator className="my-2" />
 
+          <div className="px-3 py-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Testing & Tools</p>
+          </div>
+
+          <Button
+            variant={currentModule === 'sync-testing' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('sync-testing')}
+          >
+            <ArrowsClockwise size={18} className="mr-2" />
+            Sync Testing
+          </Button>
+
+          <Separator className="my-2" />
+
           <Button
             variant={currentModule === 'invoice-center' ? 'default' : 'ghost'}
             className="w-full justify-start"
@@ -1529,6 +1546,7 @@ function App() {
               currentUser={currentUser}
             />
           )}
+          {currentModule === 'sync-testing' && <SyncTestingPanel />}
         </div>
         
         <footer className="border-t border-border overflow-hidden mt-auto bg-card">
