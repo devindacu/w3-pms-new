@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
+import { useServerSync } from '@/hooks/use-server-sync'
 import { Toaster, toast } from 'sonner'
 import { useTheme } from '@/hooks/use-theme'
 import { Button } from '@/components/ui/button'
@@ -44,6 +45,8 @@ import {
   Lightning,
   Play
 } from '@phosphor-icons/react'
+import { ServerSyncStatusIndicator } from '@/components/ServerSyncStatusIndicator'
+import { ServerSyncConflictDialog } from '@/components/ServerSyncConflictDialog'
 import { DashboardFilters, type DashboardFilters as DashboardFiltersType } from '@/components/DashboardFilters'
 import { applyDashboardFilters, type FilteredDashboardData } from '@/lib/filterHelpers'
 import { 
@@ -221,9 +224,53 @@ import type {
 type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'sync-testing'
 
 function App() {
-  const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
-  const [rooms, setRooms] = useKV<Room[]>('w3-hotel-rooms', [])
-  const [reservations, setReservations] = useKV<Reservation[]>('w3-hotel-reservations', [])
+  const {
+    value: guests,
+    setValue: setGuests,
+    syncStatus: guestsSyncStatus,
+    pendingConflicts: guestsConflicts,
+    resolveConflict: resolveGuestsConflict,
+    ignoreConflict: ignoreGuestsConflict,
+    queueDepth: guestsQueueDepth,
+    lastSyncTime: guestsLastSyncTime,
+    forceSync: forceGuestsSync,
+  } = useServerSync<Guest[]>('w3-hotel-guests', [], {
+    syncInterval: 30000,
+    autoResolveStrategy: 'manual',
+    enableSync: true,
+  })
+
+  const {
+    value: rooms,
+    setValue: setRooms,
+    syncStatus: roomsSyncStatus,
+    pendingConflicts: roomsConflicts,
+    resolveConflict: resolveRoomsConflict,
+    ignoreConflict: ignoreRoomsConflict,
+    queueDepth: roomsQueueDepth,
+    lastSyncTime: roomsLastSyncTime,
+    forceSync: forceRoomsSync,
+  } = useServerSync<Room[]>('w3-hotel-rooms', [], {
+    syncInterval: 30000,
+    autoResolveStrategy: 'manual',
+    enableSync: true,
+  })
+
+  const {
+    value: reservations,
+    setValue: setReservations,
+    syncStatus: reservationsSyncStatus,
+    pendingConflicts: reservationsConflicts,
+    resolveConflict: resolveReservationsConflict,
+    ignoreConflict: ignoreReservationsConflict,
+    queueDepth: reservationsQueueDepth,
+    lastSyncTime: reservationsLastSyncTime,
+    forceSync: forceReservationsSync,
+  } = useServerSync<Reservation[]>('w3-hotel-reservations', [], {
+    syncInterval: 30000,
+    autoResolveStrategy: 'manual',
+    enableSync: true,
+  })
   const [folios, setFolios] = useKV<Folio[]>('w3-hotel-folios', [])
   const [inventory, setInventory] = useKV<InventoryItem[]>('w3-hotel-inventory', [])
   const [menuItems, setMenuItems] = useKV<MenuItem[]>('w3-hotel-menu', [])
@@ -315,6 +362,7 @@ function App() {
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
   const [settingsTab, setSettingsTab] = useState<string>('branding')
+  const [showSyncConflicts, setShowSyncConflicts] = useState(false)
   
   const [dashboardFilters, setDashboardFilters] = useState<DashboardFiltersType>({
     dateRange: {
@@ -323,6 +371,75 @@ function App() {
     },
     category: 'all'
   })
+
+  const getCombinedSyncStatus = (): 'synced' | 'syncing' | 'offline' | 'conflict' | 'error' => {
+    if (guestsConflicts.length > 0 || roomsConflicts.length > 0 || reservationsConflicts.length > 0) {
+      return 'conflict'
+    }
+    if (guestsSyncStatus === 'syncing' || roomsSyncStatus === 'syncing' || reservationsSyncStatus === 'syncing') {
+      return 'syncing'
+    }
+    if (guestsSyncStatus === 'offline' || roomsSyncStatus === 'offline' || reservationsSyncStatus === 'offline') {
+      return 'offline'
+    }
+    if (guestsSyncStatus === 'error' || roomsSyncStatus === 'error' || reservationsSyncStatus === 'error') {
+      return 'error'
+    }
+    return 'synced'
+  }
+
+  const getCombinedQueueDepth = () => guestsQueueDepth + roomsQueueDepth + reservationsQueueDepth
+  
+  const getCombinedConflictCount = () => guestsConflicts.length + roomsConflicts.length + reservationsConflicts.length
+
+  const getLatestSyncTime = () => {
+    const times = [guestsLastSyncTime, roomsLastSyncTime, reservationsLastSyncTime].filter(Boolean)
+    return times.length > 0 ? Math.max(...times) : Date.now()
+  }
+
+  const handleForceSync = () => {
+    forceGuestsSync()
+    forceRoomsSync()
+    forceReservationsSync()
+  }
+
+  const allConflicts = [
+    ...guestsConflicts.map(c => ({ ...c, dataType: 'Guests' as const })),
+    ...roomsConflicts.map(c => ({ ...c, dataType: 'Rooms' as const })),
+    ...reservationsConflicts.map(c => ({ ...c, dataType: 'Reservations' as const })),
+  ]
+
+  const handleResolveConflict = (conflictId: string, strategy: any, customValue?: any) => {
+    const conflict = allConflicts.find(c => c.id === conflictId)
+    if (!conflict) return
+
+    if (conflict.dataType === 'Guests') {
+      resolveGuestsConflict(conflictId, strategy, customValue)
+    } else if (conflict.dataType === 'Rooms') {
+      resolveRoomsConflict(conflictId, strategy, customValue)
+    } else if (conflict.dataType === 'Reservations') {
+      resolveReservationsConflict(conflictId, strategy, customValue)
+    }
+  }
+
+  const handleIgnoreConflict = (conflictId: string) => {
+    const conflict = allConflicts.find(c => c.id === conflictId)
+    if (!conflict) return
+
+    if (conflict.dataType === 'Guests') {
+      ignoreGuestsConflict(conflictId)
+    } else if (conflict.dataType === 'Rooms') {
+      ignoreRoomsConflict(conflictId)
+    } else if (conflict.dataType === 'Reservations') {
+      ignoreReservationsConflict(conflictId)
+    }
+  }
+
+  useEffect(() => {
+    if (getCombinedConflictCount() > 0) {
+      setShowSyncConflicts(true)
+    }
+  }, [guestsConflicts.length, roomsConflicts.length, reservationsConflicts.length])
 
   useTheme()
 
@@ -1065,6 +1182,14 @@ function App() {
             />
             <div className="flex items-center gap-2">
               <SyncDemoDialog />
+              <ServerSyncStatusIndicator
+                syncStatus={getCombinedSyncStatus()}
+                queueDepth={getCombinedQueueDepth()}
+                lastSyncTime={getLatestSyncTime()}
+                conflictCount={getCombinedConflictCount()}
+                onForceSync={handleForceSync}
+                onShowConflicts={() => setShowSyncConflicts(true)}
+              />
               <SyncStatusIndicator />
               <ColorMoodSelector />
               <ThemeToggle />
@@ -1616,6 +1741,14 @@ function App() {
         </footer>
         </main>
       </Sheet>
+
+      <ServerSyncConflictDialog
+        open={showSyncConflicts}
+        onOpenChange={setShowSyncConflicts}
+        conflicts={allConflicts}
+        onResolve={handleResolveConflict}
+        onIgnore={handleIgnoreConflict}
+      />
 
       <Toaster position="top-right" richColors />
     </div>

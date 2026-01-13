@@ -431,6 +431,47 @@ No data loss during migration - local data is preserved.
 - Version tracking and metadata
 - Field-level change detection
 - Cross-tab synchronization integration
+- **✅ Enabled for Guests data** - Real-time server sync with conflict resolution
+- **✅ Enabled for Rooms data** - Real-time server sync with conflict resolution
+- **✅ Enabled for Reservations data** - Real-time server sync with conflict resolution
+
+## Enabled Data Types
+
+### 🟢 Guests (`w3-hotel-guests`)
+**Status**: Server sync enabled  
+**Sync Interval**: 30 seconds  
+**Auto-resolve Strategy**: Manual (user must choose)  
+**Conflict Window**: 30 seconds  
+**Use Case**: Critical guest information requires manual conflict resolution to prevent data loss
+
+### 🟢 Rooms (`w3-hotel-rooms`)
+**Status**: Server sync enabled  
+**Sync Interval**: 30 seconds  
+**Auto-resolve Strategy**: Manual (user must choose)  
+**Conflict Window**: 30 seconds  
+**Use Case**: Room status changes across multiple devices need careful conflict handling
+
+### 🟢 Reservations (`w3-hotel-reservations`)
+**Status**: Server sync enabled  
+**Sync Interval**: 30 seconds  
+**Auto-resolve Strategy**: Manual (user must choose)  
+**Conflict Window**: 30 seconds  
+**Use Case**: Booking conflicts must be resolved manually to prevent double bookings
+
+## Combined Sync Status
+
+The application shows a **combined sync status** in the header that aggregates:
+- Sync status from all three data types (guests, rooms, reservations)
+- Total pending changes across all synced data
+- Total conflict count requiring resolution
+- Latest sync timestamp from any data type
+
+**Status Priority**:
+1. **Conflict** - If any data type has pending conflicts
+2. **Syncing** - If any data type is currently syncing
+3. **Offline** - If any data type is offline
+4. **Error** - If any data type has sync errors
+5. **Synced** - All data types are successfully synced
 
 ## How to Use
 
