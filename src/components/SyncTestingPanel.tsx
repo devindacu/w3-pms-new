@@ -229,7 +229,7 @@ export function SyncTestingPanel() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-semibold flex items-center gap-3">
-          <ArrowsClockwise size={32} className="text-primary" />
+          <ArrowsClockwise size={32} className="text-primary animate-spin-slow" />
           Real-Time Sync Testing
         </h1>
         <p className="text-muted-foreground mt-1">
@@ -237,27 +237,65 @@ export function SyncTestingPanel() {
         </p>
       </div>
 
-      <Card className="border-primary/20 bg-primary/5">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Info size={20} className="text-primary" />
-            How to Test Multi-Tab Sync
+      <Card className="border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 relative overflow-hidden">
+        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))] pointer-events-none" />
+        <CardHeader className="relative">
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <CloudArrowDown size={24} className="text-primary" />
+            </div>
+            🚀 Ready to See Live Sync in Action?
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <ol className="list-decimal list-inside space-y-2 text-sm">
-            <li>Open this application in multiple browser tabs (press <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+T</kbd> or <kbd className="px-2 py-1 bg-muted rounded text-xs">Cmd+T</kbd>)</li>
-            <li>Navigate to this <strong>Sync Testing</strong> page in all tabs</li>
-            <li>Arrange the tabs side-by-side for easy comparison</li>
-            <li>Create, update, or delete items in one tab</li>
-            <li>Watch changes instantly appear in all other tabs!</li>
-          </ol>
-          <Separator />
-          <div className="flex items-center gap-2 text-sm">
-            <Warning size={18} className="text-amber-500 shrink-0" />
-            <p className="text-muted-foreground">
-              All changes are automatically broadcast using the <code className="px-1.5 py-0.5 bg-muted rounded text-xs">BroadcastChannel API</code>
+        <CardContent className="space-y-4 relative">
+          <div className="bg-card/80 backdrop-blur-sm p-4 rounded-lg border-2 border-primary/20">
+            <p className="font-semibold text-lg mb-3 flex items-center gap-2">
+              <span className="text-2xl">👀</span>
+              Follow these steps to witness real-time magic:
             </p>
+            <ol className="space-y-3 text-sm">
+              <li className="flex items-start gap-3 p-3 bg-primary/5 rounded-lg">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground font-bold text-xs shrink-0">1</span>
+                <div>
+                  <p className="font-semibold mb-1">Open Multiple Tabs</p>
+                  <p className="text-muted-foreground">Press <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono">Ctrl+T</kbd> (Windows/Linux) or <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono">Cmd+T</kbd> (Mac) to open 2-3 new tabs</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-3 p-3 bg-accent/5 rounded-lg">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-accent text-accent-foreground font-bold text-xs shrink-0">2</span>
+                <div>
+                  <p className="font-semibold mb-1">Navigate to Sync Testing</p>
+                  <p className="text-muted-foreground">In each new tab, click <strong>Testing & Tools → Sync Testing</strong> in the sidebar</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-3 p-3 bg-secondary/5 rounded-lg">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-secondary text-secondary-foreground font-bold text-xs shrink-0">3</span>
+                <div>
+                  <p className="font-semibold mb-1">Arrange Side-by-Side</p>
+                  <p className="text-muted-foreground">Arrange your browser windows or use split-screen to see multiple tabs at once</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-3 p-3 bg-success/5 rounded-lg border-2 border-success/20">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-success text-success-foreground font-bold text-xs shrink-0 animate-pulse">4</span>
+                <div>
+                  <p className="font-semibold mb-1 flex items-center gap-2">
+                    <Lightning size={16} className="text-success" />
+                    Test the Magic!
+                  </p>
+                  <p className="text-muted-foreground">Create, update, or delete items in one tab and watch them <strong className="text-success">instantly sync</strong> to all other tabs! ✨</p>
+                </div>
+              </li>
+            </ol>
+          </div>
+          
+          <div className="flex items-start gap-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+            <Warning size={20} className="text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
+            <div className="text-sm space-y-1">
+              <p className="font-semibold text-amber-900 dark:text-amber-200">Powered by BroadcastChannel API</p>
+              <p className="text-amber-800/80 dark:text-amber-300/80">
+                All changes are automatically broadcast across browser tabs using native web APIs - no server required! This enables <strong>instant multi-user collaboration</strong> in the same browser.
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -414,8 +452,8 @@ export function SyncTestingPanel() {
                     <p className="text-sm">Create one above to start testing sync</p>
                   </div>
                 ) : (
-                  (testItems || []).map((item) => (
-                    <Card key={item.id} className="p-4 hover:shadow-md transition-shadow">
+                  (testItems || []).map((item, index) => (
+                    <Card key={item.id} className="p-4 hover:shadow-md transition-all animate-slide-in hover:scale-[1.01] border-l-4 border-l-primary">
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex-1 space-y-1">
                           <div className="flex items-center gap-2">
@@ -424,13 +462,25 @@ export function SyncTestingPanel() {
                               item.status === 'active' ? 'default' :
                               item.status === 'completed' ? 'secondary' :
                               'outline'
-                            }>
+                            } className="animate-pulse">
                               {item.status}
                             </Badge>
+                            {Date.now() - item.updatedAt < 3000 && (
+                              <Badge variant="outline" className="gap-1 bg-success/10 border-success/20 animate-pulse">
+                                <CheckCircle size={12} className="text-success" />
+                                <span className="text-success text-xs">Synced!</span>
+                              </Badge>
+                            )}
                           </div>
                           <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                            <div>Value: <span className="font-mono font-semibold text-foreground">{item.value}</span></div>
-                            <div>Tab: <code className="text-xs">{item.tabId}</code></div>
+                            <div className="flex items-center gap-1">
+                              <span>Value:</span>
+                              <span className="font-mono font-semibold text-foreground bg-primary/10 px-1.5 py-0.5 rounded">{item.value}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span>Tab:</span>
+                              <code className="text-xs bg-muted px-1.5 py-0.5 rounded">{item.tabId}</code>
+                            </div>
                             <div>Created: {new Date(item.createdAt).toLocaleTimeString()}</div>
                             <div>Updated: {new Date(item.updatedAt).toLocaleTimeString()}</div>
                           </div>
@@ -440,7 +490,7 @@ export function SyncTestingPanel() {
                             size="sm"
                             variant="outline"
                             onClick={() => updateTestItem(item.id)}
-                            className="gap-2"
+                            className="gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
                           >
                             <Pencil size={14} />
                             Update
@@ -449,6 +499,7 @@ export function SyncTestingPanel() {
                             size="sm"
                             variant="destructive"
                             onClick={() => deleteTestItem(item.id)}
+                            className="gap-1"
                           >
                             <Trash size={14} />
                           </Button>

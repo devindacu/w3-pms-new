@@ -39,7 +39,10 @@ import {
   List,
   FileText,
   TrendUp,
-  ArrowsClockwise
+  ArrowsClockwise,
+  CheckCircle,
+  Lightning,
+  Play
 } from '@phosphor-icons/react'
 import { DashboardFilters, type DashboardFilters as DashboardFiltersType } from '@/components/DashboardFilters'
 import { applyDashboardFilters, type FilteredDashboardData } from '@/lib/filterHelpers'
@@ -676,6 +679,47 @@ function App() {
         </Card>
       ) : (
         <>
+          <Card className="border-primary/30 bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 relative overflow-hidden">
+            <div className="absolute inset-0 bg-grid-white/10 pointer-events-none" />
+            <div className="relative p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-primary/20 rounded-xl shrink-0">
+                  <ArrowsClockwise size={32} className="text-primary animate-spin-slow" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
+                    🚀 See Real-Time Sync in Action!
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Open multiple browser tabs and watch data sync instantly across all tabs - no server required!
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline" className="bg-background/50 gap-1">
+                      <CheckCircle size={14} className="text-success" />
+                      Multi-tab collaboration
+                    </Badge>
+                    <Badge variant="outline" className="bg-background/50 gap-1">
+                      <Lightning size={14} className="text-accent" />
+                      Instant updates
+                    </Badge>
+                    <Badge variant="outline" className="bg-background/50 gap-1">
+                      <Users size={14} className="text-secondary" />
+                      BroadcastChannel API
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+              <Button 
+                onClick={() => setCurrentModule('sync-testing')} 
+                size="lg"
+                className="gap-2 shrink-0 w-full md:w-auto shadow-lg hover:shadow-xl transition-shadow"
+              >
+                <Play size={20} />
+                Try Sync Demo
+              </Button>
+            </div>
+          </Card>
+          
           <DashboardAlerts
             notifications={notifications || []}
             onDismiss={handleDismiss}
