@@ -39,11 +39,7 @@ import {
   Bell,
   List,
   FileText,
-  TrendUp,
-  ArrowsClockwise,
-  CheckCircle,
-  Lightning,
-  Play
+  TrendUp
 } from '@phosphor-icons/react'
 import { ServerSyncStatusIndicator } from '@/components/ServerSyncStatusIndicator'
 import { ServerSyncConflictDialog } from '@/components/ServerSyncConflictDialog'
@@ -183,8 +179,6 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 import { ColorMoodSelector } from '@/components/ColorMoodSelector'
 import { RevenueOccupancyTrends } from '@/components/RevenueOccupancyTrends'
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator'
-import { SyncDemoDialog } from '@/components/SyncDemoDialog'
-import { SyncTestingPanel } from '@/components/SyncTestingPanel'
 import type {
   DashboardLayout,
   DashboardWidget,
@@ -221,7 +215,7 @@ import type {
   EmailCampaignAnalytics
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'sync-testing'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports'
 
 function App() {
   const {
@@ -526,6 +520,17 @@ function App() {
     window.addEventListener('navigate-to-settings', handleNavigateToSettings as EventListener)
     return () => {
       window.removeEventListener('navigate-to-settings', handleNavigateToSettings as EventListener)
+    }
+  }, [])
+
+  useEffect(() => {
+    const hasAnyData = (rooms || []).length > 0 || 
+                       (guests || []).length > 0 || 
+                       (reservations || []).length > 0 || 
+                       (employees || []).length > 0
+
+    if (!hasAnyData) {
+      loadSampleData()
     }
   }, [])
 
@@ -868,47 +873,6 @@ function App() {
         </Card>
       ) : (
         <>
-          <Card className="border-primary/30 bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 relative overflow-hidden">
-            <div className="absolute inset-0 bg-grid-white/10 pointer-events-none" />
-            <div className="relative p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-primary/20 rounded-xl shrink-0">
-                  <ArrowsClockwise size={32} className="text-primary animate-spin-slow" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
-                    🚀 See Real-Time Sync in Action!
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Open multiple browser tabs and watch data sync instantly across all tabs - no server required!
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline" className="bg-background/50 gap-1">
-                      <CheckCircle size={14} className="text-success" />
-                      Multi-tab collaboration
-                    </Badge>
-                    <Badge variant="outline" className="bg-background/50 gap-1">
-                      <Lightning size={14} className="text-accent" />
-                      Instant updates
-                    </Badge>
-                    <Badge variant="outline" className="bg-background/50 gap-1">
-                      <Users size={14} className="text-secondary" />
-                      BroadcastChannel API
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-              <Button 
-                onClick={() => setCurrentModule('sync-testing')} 
-                size="lg"
-                className="gap-2 shrink-0 w-full md:w-auto shadow-lg hover:shadow-xl transition-shadow"
-              >
-                <Play size={20} />
-                Try Sync Demo
-              </Button>
-            </div>
-          </Card>
-          
           <DashboardAlerts
             notifications={notifications || []}
             onDismiss={handleDismiss}
@@ -1180,21 +1144,6 @@ function App() {
 
           <Separator className="my-2" />
 
-          <div className="px-3 py-2">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Testing & Tools</p>
-          </div>
-
-          <Button
-            variant={currentModule === 'sync-testing' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('sync-testing')}
-          >
-            <ArrowsClockwise size={18} className="mr-2" />
-            Sync Testing
-          </Button>
-
-          <Separator className="my-2" />
-
           <Button
             variant={currentModule === 'invoice-center' ? 'default' : 'ghost'}
             className="w-full justify-start"
@@ -1253,7 +1202,6 @@ function App() {
               className="h-8 w-auto object-contain"
             />
             <div className="flex items-center gap-2">
-              <SyncDemoDialog />
               <ServerSyncStatusIndicator
                 syncStatus={getCombinedSyncStatus()}
                 queueDepth={getCombinedQueueDepth()}
@@ -1787,7 +1735,6 @@ function App() {
               currentUser={currentUser}
             />
           )}
-          {currentModule === 'sync-testing' && <SyncTestingPanel />}
         </div>
         
         <footer className="border-t border-border overflow-hidden mt-auto bg-card">
