@@ -271,13 +271,60 @@ function App() {
     autoResolveStrategy: 'manual',
     enableSync: true,
   })
+
+  const {
+    value: employees,
+    setValue: setEmployees,
+    syncStatus: employeesSyncStatus,
+    pendingConflicts: employeesConflicts,
+    resolveConflict: resolveEmployeesConflict,
+    ignoreConflict: ignoreEmployeesConflict,
+    queueDepth: employeesQueueDepth,
+    lastSyncTime: employeesLastSyncTime,
+    forceSync: forceEmployeesSync,
+  } = useServerSync<Employee[]>('w3-hotel-employees', [], {
+    syncInterval: 30000,
+    autoResolveStrategy: 'manual',
+    enableSync: true,
+  })
+
+  const {
+    value: invoices,
+    setValue: setInvoices,
+    syncStatus: invoicesSyncStatus,
+    pendingConflicts: invoicesConflicts,
+    resolveConflict: resolveInvoicesConflict,
+    ignoreConflict: ignoreInvoicesConflict,
+    queueDepth: invoicesQueueDepth,
+    lastSyncTime: invoicesLastSyncTime,
+    forceSync: forceInvoicesSync,
+  } = useServerSync<Invoice[]>('w3-hotel-invoices', [], {
+    syncInterval: 30000,
+    autoResolveStrategy: 'manual',
+    enableSync: true,
+  })
+
+  const {
+    value: housekeepingTasks,
+    setValue: setHousekeepingTasks,
+    syncStatus: housekeepingSyncStatus,
+    pendingConflicts: housekeepingConflicts,
+    resolveConflict: resolveHousekeepingConflict,
+    ignoreConflict: ignoreHousekeepingConflict,
+    queueDepth: housekeepingQueueDepth,
+    lastSyncTime: housekeepingLastSyncTime,
+    forceSync: forceHousekeepingSync,
+  } = useServerSync<HousekeepingTask[]>('w3-hotel-housekeeping', [], {
+    syncInterval: 30000,
+    autoResolveStrategy: 'manual',
+    enableSync: true,
+  })
+
   const [folios, setFolios] = useKV<Folio[]>('w3-hotel-folios', [])
   const [inventory, setInventory] = useKV<InventoryItem[]>('w3-hotel-inventory', [])
   const [menuItems, setMenuItems] = useKV<MenuItem[]>('w3-hotel-menu', [])
-  const [housekeepingTasks, setHousekeepingTasks] = useKV<HousekeepingTask[]>('w3-hotel-housekeeping', [])
   const [orders, setOrders] = useKV<Order[]>('w3-hotel-orders', [])
   const [suppliers, setSuppliers] = useKV<Supplier[]>('w3-hotel-suppliers', [])
-  const [employees, setEmployees] = useKV<Employee[]>('w3-hotel-employees', [])
   const [maintenanceRequests, setMaintenanceRequests] = useKV<MaintenanceRequest[]>('w3-hotel-maintenance', [])
   const [foodItems, setFoodItems] = useKV<FoodItem[]>('w3-hotel-food-items', [])
   const [amenities, setAmenities] = useKV<Amenity[]>('w3-hotel-amenities', [])
@@ -297,7 +344,6 @@ function App() {
   const [requisitions, setRequisitions] = useKV<Requisition[]>('w3-hotel-requisitions', [])
   const [purchaseOrders, setPurchaseOrders] = useKV<PurchaseOrder[]>('w3-hotel-purchase-orders', [])
   const [grns, setGRNs] = useKV<GoodsReceivedNote[]>('w3-hotel-grns', [])
-  const [invoices, setInvoices] = useKV<Invoice[]>('w3-hotel-invoices', [])
   const [recipes, setRecipes] = useKV<Recipe[]>('w3-hotel-recipes', [])
   const [menus, setMenus] = useKV<Menu[]>('w3-hotel-menus', [])
   const [consumptionLogs, setConsumptionLogs] = useKV<KitchenConsumptionLog[]>('w3-hotel-consumption-logs', [])
@@ -373,27 +419,34 @@ function App() {
   })
 
   const getCombinedSyncStatus = (): 'synced' | 'syncing' | 'offline' | 'conflict' | 'error' => {
-    if (guestsConflicts.length > 0 || roomsConflicts.length > 0 || reservationsConflicts.length > 0) {
+    if (guestsConflicts.length > 0 || roomsConflicts.length > 0 || reservationsConflicts.length > 0 || 
+        employeesConflicts.length > 0 || invoicesConflicts.length > 0 || housekeepingConflicts.length > 0) {
       return 'conflict'
     }
-    if (guestsSyncStatus === 'syncing' || roomsSyncStatus === 'syncing' || reservationsSyncStatus === 'syncing') {
+    if (guestsSyncStatus === 'syncing' || roomsSyncStatus === 'syncing' || reservationsSyncStatus === 'syncing' ||
+        employeesSyncStatus === 'syncing' || invoicesSyncStatus === 'syncing' || housekeepingSyncStatus === 'syncing') {
       return 'syncing'
     }
-    if (guestsSyncStatus === 'offline' || roomsSyncStatus === 'offline' || reservationsSyncStatus === 'offline') {
+    if (guestsSyncStatus === 'offline' || roomsSyncStatus === 'offline' || reservationsSyncStatus === 'offline' ||
+        employeesSyncStatus === 'offline' || invoicesSyncStatus === 'offline' || housekeepingSyncStatus === 'offline') {
       return 'offline'
     }
-    if (guestsSyncStatus === 'error' || roomsSyncStatus === 'error' || reservationsSyncStatus === 'error') {
+    if (guestsSyncStatus === 'error' || roomsSyncStatus === 'error' || reservationsSyncStatus === 'error' ||
+        employeesSyncStatus === 'error' || invoicesSyncStatus === 'error' || housekeepingSyncStatus === 'error') {
       return 'error'
     }
     return 'synced'
   }
 
-  const getCombinedQueueDepth = () => guestsQueueDepth + roomsQueueDepth + reservationsQueueDepth
+  const getCombinedQueueDepth = () => guestsQueueDepth + roomsQueueDepth + reservationsQueueDepth + 
+    employeesQueueDepth + invoicesQueueDepth + housekeepingQueueDepth
   
-  const getCombinedConflictCount = () => guestsConflicts.length + roomsConflicts.length + reservationsConflicts.length
+  const getCombinedConflictCount = () => guestsConflicts.length + roomsConflicts.length + reservationsConflicts.length +
+    employeesConflicts.length + invoicesConflicts.length + housekeepingConflicts.length
 
   const getLatestSyncTime = () => {
-    const times = [guestsLastSyncTime, roomsLastSyncTime, reservationsLastSyncTime].filter(Boolean)
+    const times = [guestsLastSyncTime, roomsLastSyncTime, reservationsLastSyncTime, 
+      employeesLastSyncTime, invoicesLastSyncTime, housekeepingLastSyncTime].filter(Boolean)
     return times.length > 0 ? Math.max(...times) : Date.now()
   }
 
@@ -401,12 +454,18 @@ function App() {
     forceGuestsSync()
     forceRoomsSync()
     forceReservationsSync()
+    forceEmployeesSync()
+    forceInvoicesSync()
+    forceHousekeepingSync()
   }
 
   const allConflicts = [
     ...guestsConflicts.map(c => ({ ...c, dataType: 'Guests' as const })),
     ...roomsConflicts.map(c => ({ ...c, dataType: 'Rooms' as const })),
     ...reservationsConflicts.map(c => ({ ...c, dataType: 'Reservations' as const })),
+    ...employeesConflicts.map(c => ({ ...c, dataType: 'Employees' as const })),
+    ...invoicesConflicts.map(c => ({ ...c, dataType: 'Supplier Invoices' as const })),
+    ...housekeepingConflicts.map(c => ({ ...c, dataType: 'Housekeeping Tasks' as const })),
   ]
 
   const handleResolveConflict = (conflictId: string, strategy: any, customValue?: any) => {
@@ -419,6 +478,12 @@ function App() {
       resolveRoomsConflict(conflictId, strategy, customValue)
     } else if (conflict.dataType === 'Reservations') {
       resolveReservationsConflict(conflictId, strategy, customValue)
+    } else if (conflict.dataType === 'Employees') {
+      resolveEmployeesConflict(conflictId, strategy, customValue)
+    } else if (conflict.dataType === 'Supplier Invoices') {
+      resolveInvoicesConflict(conflictId, strategy, customValue)
+    } else if (conflict.dataType === 'Housekeeping Tasks') {
+      resolveHousekeepingConflict(conflictId, strategy, customValue)
     }
   }
 
@@ -432,6 +497,12 @@ function App() {
       ignoreRoomsConflict(conflictId)
     } else if (conflict.dataType === 'Reservations') {
       ignoreReservationsConflict(conflictId)
+    } else if (conflict.dataType === 'Employees') {
+      ignoreEmployeesConflict(conflictId)
+    } else if (conflict.dataType === 'Supplier Invoices') {
+      ignoreInvoicesConflict(conflictId)
+    } else if (conflict.dataType === 'Housekeeping Tasks') {
+      ignoreHousekeepingConflict(conflictId)
     }
   }
 
@@ -439,7 +510,8 @@ function App() {
     if (getCombinedConflictCount() > 0) {
       setShowSyncConflicts(true)
     }
-  }, [guestsConflicts.length, roomsConflicts.length, reservationsConflicts.length])
+  }, [guestsConflicts.length, roomsConflicts.length, reservationsConflicts.length, 
+      employeesConflicts.length, invoicesConflicts.length, housekeepingConflicts.length])
 
   useTheme()
 
