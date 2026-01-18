@@ -121,6 +121,16 @@ export function FrontOffice({
   const [statusFilter, setStatusFilter] = useState<GuestInvoiceStatus | 'all'>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [editingInvoice, setEditingInvoice] = useState<GuestInvoice | undefined>()
+  const [quickSearchOpen, setQuickSearchOpen] = useState(false)
+  const [guestStatsDialogOpen, setGuestStatsDialogOpen] = useState(false)
+  const [roomAssignmentDialogOpen, setRoomAssignmentDialogOpen] = useState(false)
+  const [batchCheckInDialogOpen, setBatchCheckInDialogOpen] = useState(false)
+  const [batchCheckOutDialogOpen, setBatchCheckOutDialogOpen] = useState(false)
+  const [nightAuditDialogOpen, setNightAuditDialogOpen] = useState(false)
+  const [groupReservationsDialogOpen, setGroupReservationsDialogOpen] = useState(false)
+  const [waitlistDialogOpen, setWaitlistDialogOpen] = useState(false)
+  const [selectedGuests, setSelectedGuests] = useState<string[]>([])
+  const [selectedReservations, setSelectedReservations] = useState<string[]>([])
 
   const today = Date.now()
   const arrivalsToday = reservations.filter(r => {
@@ -136,6 +146,27 @@ export function FrontOffice({
   })
 
   const inHouseGuests = reservations.filter(r => r.status === 'checked-in')
+
+  const overdueCheckouts = reservations.filter(r => {
+    if (r.status !== 'checked-in') return false
+    const checkOutDate = new Date(r.checkOutDate).setHours(0, 0, 0, 0)
+    const todayDate = new Date(today).setHours(0, 0, 0, 0)
+    return checkOutDate < todayDate
+  })
+
+  const upcomingArrivals = reservations.filter(r => {
+    const checkIn = new Date(r.checkInDate).setHours(0, 0, 0, 0)
+    const todayDate = new Date(today).setHours(0, 0, 0, 0)
+    const in3Days = new Date(today + (3 * 24 * 60 * 60 * 1000)).setHours(0, 0, 0, 0)
+    return checkIn > todayDate && checkIn <= in3Days && r.status === 'confirmed'
+  })
+
+  const vipGuests = guests.filter(g => {
+    const profile = (guestProfiles || []).find(p => p.guestId === g.id)
+    return profile?.loyaltyInfo?.tier === 'platinum' || profile?.loyaltyInfo?.tier === 'gold'
+  })
+
+  const repeatGuests = guests.filter(g => g.totalStays && g.totalStays > 1)
 
   const filteredGuests = guests.filter(g => 
     `${g.firstName} ${g.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -568,13 +599,16 @@ export function FrontOffice({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
         <Card className="p-6 border-l-4 border-l-primary">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-muted-foreground">Arrivals Today</h3>
             <CalendarCheck size={20} className="text-primary" />
           </div>
           <p className="text-3xl font-semibold">{arrivalsToday.length}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            +{upcomingArrivals.length} in 3 days
+          </p>
         </Card>
 
         <Card className="p-6 border-l-4 border-l-accent">
@@ -583,6 +617,11 @@ export function FrontOffice({
             <CalendarX size={20} className="text-accent" />
           </div>
           <p className="text-3xl font-semibold">{departurestoday.length}</p>
+          {overdueCheckouts.length > 0 && (
+            <p className="text-xs text-destructive mt-1">
+              {overdueCheckouts.length} overdue
+            </p>
+          )}
         </Card>
 
         <Card className="p-6 border-l-4 border-l-success">
@@ -591,6 +630,9 @@ export function FrontOffice({
             <Key size={20} className="text-success" />
           </div>
           <p className="text-3xl font-semibold">{inHouseGuests.length}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {vipGuests.length} VIP guests
+          </p>
         </Card>
 
         <Card className="p-6 border-l-4 border-l-secondary">
@@ -599,6 +641,33 @@ export function FrontOffice({
             <UserPlus size={20} className="text-secondary" />
           </div>
           <p className="text-3xl font-semibold">{guests.length}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {repeatGuests.length} repeat guests
+          </p>
+        </Card>
+
+        <Card className="p-6 border-l-4 border-l-purple-500">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Pending Folios</h3>
+            <Receipt size={20} className="text-purple-500" />
+          </div>
+          <p className="text-3xl font-semibold">{pendingFolios.length}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {formatCurrency(pendingFolios.reduce((sum, f) => sum + f.balance, 0))}
+          </p>
+        </Card>
+
+        <Card className="p-6 border-l-4 border-l-blue-500">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Total Revenue</h3>
+            <CurrencyDollar size={20} className="text-blue-500" />
+          </div>
+          <p className="text-3xl font-semibold">
+            {formatCurrency((guestInvoices || []).reduce((sum, inv) => sum + inv.grandTotal, 0))}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {invoiceStats.outstanding} outstanding
+          </p>
         </Card>
       </div>
 
@@ -608,6 +677,12 @@ export function FrontOffice({
             <TabsTrigger value="reservations">Reservations</TabsTrigger>
             <TabsTrigger value="arrivals">Arrivals Today</TabsTrigger>
             <TabsTrigger value="departures">Departures Today</TabsTrigger>
+            <TabsTrigger value="upcoming">
+              Upcoming ({upcomingArrivals.length})
+            </TabsTrigger>
+            <TabsTrigger value="vip">
+              VIP Guests ({vipGuests.length})
+            </TabsTrigger>
             <TabsTrigger value="guests">Guest Relations</TabsTrigger>
             <TabsTrigger value="invoices">
               <Receipt size={16} className="mr-1" />
@@ -801,6 +876,152 @@ export function FrontOffice({
                           <CalendarX size={16} className="mr-1" />
                           Check Out
                         </Button>
+                      </div>
+                    </div>
+                  </Card>
+                )
+              })
+            )}
+          </TabsContent>
+
+          <TabsContent value="upcoming" className="space-y-4">
+            {upcomingArrivals.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                No upcoming arrivals in the next 3 days
+              </div>
+            ) : (
+              upcomingArrivals.map(reservation => {
+                const guest = guests.find(g => g.id === reservation.guestId)
+                const room = rooms.find(r => r.id === reservation.roomId)
+                const daysUntilArrival = Math.ceil((new Date(reservation.checkInDate).getTime() - today) / (24 * 60 * 60 * 1000))
+                
+                return (
+                  <Card key={reservation.id} className="p-4 border-l-4 border-l-blue-500">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-lg font-semibold">
+                            {guest ? `${guest.firstName} ${guest.lastName}` : 'Unknown Guest'}
+                          </h3>
+                          <Badge className="bg-blue-100 text-blue-800">
+                            In {daysUntilArrival} day{daysUntilArrival !== 1 ? 's' : ''}
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <p className="text-muted-foreground">Room</p>
+                            <p className="font-medium">{room?.roomNumber || 'Not assigned'}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Check-in</p>
+                            <p className="font-medium">{formatDate(reservation.checkInDate)}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Nights</p>
+                            <p className="font-medium">{calculateNights(reservation.checkInDate, reservation.checkOutDate)}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Total Amount</p>
+                            <p className="font-medium">{formatCurrency(reservation.totalAmount)}</p>
+                          </div>
+                        </div>
+                        {reservation.specialRequests && (
+                          <div className="mt-2 text-sm">
+                            <p className="text-muted-foreground">Special Requests</p>
+                            <p>{reservation.specialRequests}</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => handleViewDetails(reservation)}>
+                          <Eye size={16} className="mr-1" />
+                          View Details
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => handleEditReservation(reservation)}>
+                          <FileText size={16} className="mr-1" />
+                          Edit
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                )
+              })
+            )}
+          </TabsContent>
+
+          <TabsContent value="vip" className="space-y-4">
+            {vipGuests.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                No VIP guests found
+              </div>
+            ) : (
+              vipGuests.map(guest => {
+                const profile = (guestProfiles || []).find(p => p.guestId === guest.id)
+                const guestReservations = reservations.filter(r => r.guestId === guest.id)
+                const activeReservation = guestReservations.find(r => r.status === 'checked-in')
+                const upcomingReservation = guestReservations.find(r => r.status === 'confirmed' && new Date(r.checkInDate).getTime() > today)
+                const room = activeReservation ? rooms.find(r => r.id === activeReservation.roomId) : null
+                
+                return (
+                  <Card key={guest.id} className="p-4 border-l-4 border-l-yellow-500">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-lg font-semibold">
+                            {guest.firstName} {guest.lastName}
+                          </h3>
+                          <Badge className="bg-yellow-100 text-yellow-800 capitalize">
+                            {profile?.loyaltyInfo?.tier || 'VIP'}
+                          </Badge>
+                          {activeReservation && <Badge variant="secondary">In-House</Badge>}
+                          {upcomingReservation && !activeReservation && <Badge className="bg-blue-100 text-blue-800">Arriving Soon</Badge>}
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+                          <div>
+                            <p className="text-muted-foreground">Email</p>
+                            <p className="font-medium">{guest.email || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Phone</p>
+                            <p className="font-medium">{guest.phone}</p>
+                          </div>
+                          {activeReservation && room && (
+                            <div>
+                              <p className="text-muted-foreground">Current Room</p>
+                              <p className="font-medium">{room.roomNumber}</p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-muted-foreground">Total Stays</p>
+                            <p className="font-medium">{guest.totalStays || 0} stays</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Loyalty Points</p>
+                            <p className="font-medium text-yellow-600">{profile?.loyaltyInfo?.points.toLocaleString() || 0} pts</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Total Spent</p>
+                            <p className="font-medium">{formatCurrency(guest.totalSpent || 0)}</p>
+                          </div>
+                        </div>
+                        {profile?.preferences?.notesForStaff && (
+                          <div className="mt-2 text-sm">
+                            <p className="text-muted-foreground">VIP Notes</p>
+                            <p className="text-yellow-700">{profile.preferences.notesForStaff}</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => handleEditGuest(guest)}>
+                          <Eye size={16} className="mr-1" />
+                          View Profile
+                        </Button>
+                        {activeReservation && (
+                          <Button size="sm" variant="outline" onClick={() => handleViewFolio(activeReservation)}>
+                            <Receipt size={16} className="mr-1" />
+                            Folio
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </Card>
