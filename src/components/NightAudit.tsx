@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   Dialog,
   DialogContent,
@@ -15,6 +16,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { 
   Moon, 
   PlayCircle, 
@@ -29,7 +38,16 @@ import {
   Package,
   ChartBar,
   ArrowsClockwise,
-  Database
+  Database,
+  Download,
+  Printer,
+  Eye,
+  Bed,
+  ForkKnife,
+  Sparkle,
+  TrendUp,
+  TrendDown,
+  Users
 } from '@phosphor-icons/react'
 import { 
   NightAuditLog,
@@ -487,6 +505,35 @@ export function NightAudit({
     }
   }
 
+  const exportDailyReport = () => {
+    if (!currentAudit) return
+    toast.success('Report export functionality will be implemented')
+  }
+
+  const printDailyReport = () => {
+    if (!currentAudit) return
+    toast.success('Report printing functionality will be implemented')
+  }
+
+  const calculateOccupancy = () => {
+    const totalRooms = rooms.length
+    const occupiedRooms = reservations.filter(r => r.status === 'checked-in').length
+    return totalRooms > 0 ? (occupiedRooms / totalRooms) * 100 : 0
+  }
+
+  const calculateADR = () => {
+    const occupiedReservations = reservations.filter(r => r.status === 'checked-in')
+    if (occupiedReservations.length === 0) return 0
+    const totalRevenue = occupiedReservations.reduce((sum, r) => sum + r.ratePerNight, 0)
+    return totalRevenue / occupiedReservations.length
+  }
+
+  const calculateRevPAR = () => {
+    const occupancy = calculateOccupancy()
+    const adr = calculateADR()
+    return (occupancy / 100) * adr
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -588,56 +635,294 @@ export function NightAudit({
 
       {currentAudit && !isRunning && (
         <Card className="p-6">
-          <h3 className="font-semibold mb-4">Audit Summary</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Card className="p-4 bg-card border-l-4 border-l-primary">
-              <p className="text-sm text-muted-foreground mb-1">Room Revenue</p>
-              <p className="text-2xl font-semibold">{formatCurrency(currentAudit.summary.roomRevenue)}</p>
-            </Card>
-            <Card className="p-4 bg-card border-l-4 border-l-accent">
-              <p className="text-sm text-muted-foreground mb-1">F&B Revenue</p>
-              <p className="text-2xl font-semibold">{formatCurrency(currentAudit.summary.fnbRevenue)}</p>
-            </Card>
-            <Card className="p-4 bg-card border-l-4 border-l-secondary">
-              <p className="text-sm text-muted-foreground mb-1">Other Revenue</p>
-              <p className="text-2xl font-semibold">{formatCurrency(currentAudit.summary.extraRevenue)}</p>
-            </Card>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold">Daily Audit Report</h3>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={exportDailyReport}>
+                <Download size={16} className="mr-2" />
+                Export
+              </Button>
+              <Button variant="outline" size="sm" onClick={printDailyReport}>
+                <Printer size={16} className="mr-2" />
+                Print
+              </Button>
+            </div>
           </div>
 
-          <Separator className="my-6" />
+          <Tabs defaultValue="summary" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="summary">Summary</TabsTrigger>
+              <TabsTrigger value="revenue">Revenue</TabsTrigger>
+              <TabsTrigger value="operations">Operations</TabsTrigger>
+              <TabsTrigger value="reconciliation">Reconciliation</TabsTrigger>
+              <TabsTrigger value="statistics">Statistics</TabsTrigger>
+            </TabsList>
 
-          <h4 className="font-semibold mb-3">Operations</h4>
-          <div className="space-y-2">
-            {currentAudit.operations.map(operation => (
-              <div key={operation.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  {getOperationIcon(operation.operationType)}
+            <TabsContent value="summary" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Card className="p-4 bg-card border-l-4 border-l-primary">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-muted-foreground">Room Revenue</p>
+                    <Bed size={20} className="text-primary" />
+                  </div>
+                  <p className="text-2xl font-semibold">{formatCurrency(currentAudit.summary.roomRevenue)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {currentAudit.roomChargesPosted} charges posted
+                  </p>
+                </Card>
+                <Card className="p-4 bg-card border-l-4 border-l-accent">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-muted-foreground">F&B Revenue</p>
+                    <ForkKnife size={20} className="text-accent" />
+                  </div>
+                  <p className="text-2xl font-semibold">{formatCurrency(currentAudit.summary.fnbRevenue)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Restaurant & Bar</p>
+                </Card>
+                <Card className="p-4 bg-card border-l-4 border-l-secondary">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-muted-foreground">Extra Services</p>
+                    <Sparkle size={20} className="text-secondary" />
+                  </div>
+                  <p className="text-2xl font-semibold">{formatCurrency(currentAudit.summary.extraRevenue)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Spa, Laundry, etc.</p>
+                </Card>
+                <Card className="p-4 bg-card border-l-4 border-l-success">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-muted-foreground">Total Revenue</p>
+                    <TrendUp size={20} className="text-success" />
+                  </div>
+                  <p className="text-2xl font-semibold">{formatCurrency(currentAudit.totalRevenue)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {currentAudit.invoicesGenerated} invoices
+                  </p>
+                </Card>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="p-4">
+                  <p className="text-sm text-muted-foreground mb-1">Tax Collected</p>
+                  <p className="text-xl font-semibold">{formatCurrency(currentAudit.summary.totalTax)}</p>
+                </Card>
+                <Card className="p-4">
+                  <p className="text-sm text-muted-foreground mb-1">Service Charge</p>
+                  <p className="text-xl font-semibold">{formatCurrency(currentAudit.summary.totalServiceCharge)}</p>
+                </Card>
+                <Card className="p-4">
+                  <p className="text-sm text-muted-foreground mb-1">Outstanding Balance</p>
+                  <p className="text-xl font-semibold text-destructive">{formatCurrency(currentAudit.summary.outstandingBalance)}</p>
+                </Card>
+              </div>
+
+              {currentAudit.errors.length > 0 && (
+                <Alert variant="destructive">
+                  <Warning size={16} />
+                  <AlertDescription>
+                    {currentAudit.errors.length} error(s) occurred during the audit. Please review and resolve.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </TabsContent>
+
+            <TabsContent value="revenue" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="p-4">
+                  <h4 className="font-semibold mb-3">Revenue Breakdown</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Bed size={16} className="text-primary" />
+                        <span className="text-sm">Room Revenue</span>
+                      </div>
+                      <span className="font-medium">{formatCurrency(currentAudit.summary.roomRevenue)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <ForkKnife size={16} className="text-accent" />
+                        <span className="text-sm">F&B Revenue</span>
+                      </div>
+                      <span className="font-medium">{formatCurrency(currentAudit.summary.fnbRevenue)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Sparkle size={16} className="text-secondary" />
+                        <span className="text-sm">Extra Services</span>
+                      </div>
+                      <span className="font-medium">{formatCurrency(currentAudit.summary.extraRevenue)}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between font-semibold">
+                      <span>Subtotal</span>
+                      <span>{formatCurrency(currentAudit.totalRevenue)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Service Charge</span>
+                      <span>{formatCurrency(currentAudit.summary.totalServiceCharge)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Tax</span>
+                      <span>{formatCurrency(currentAudit.summary.totalTax)}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between font-bold text-lg">
+                      <span>Grand Total</span>
+                      <span className="text-primary">
+                        {formatCurrency(currentAudit.totalRevenue + currentAudit.summary.totalServiceCharge + currentAudit.summary.totalTax)}
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card className="p-4">
+                  <h4 className="font-semibold mb-3">Payment Collection</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Cash Payments</span>
+                      <span className="font-medium">{formatCurrency(currentAudit.summary.cashPayments)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Card Payments</span>
+                      <span className="font-medium">{formatCurrency(currentAudit.summary.cardPayments)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Other Payments</span>
+                      <span className="font-medium">{formatCurrency(currentAudit.summary.otherPayments)}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between font-semibold">
+                      <span>Total Collected</span>
+                      <span className="text-success">
+                        {formatCurrency(
+                          currentAudit.summary.cashPayments + 
+                          currentAudit.summary.cardPayments + 
+                          currentAudit.summary.otherPayments
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="operations" className="space-y-4">
+              <h4 className="font-semibold">Night Audit Operations</h4>
+              <div className="space-y-2">
+                {currentAudit.operations.map(operation => (
+                  <div key={operation.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      {getOperationIcon(operation.operationType)}
+                      <div>
+                        <p className="font-medium text-sm">
+                          {operation.operationType.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {operation.recordsProcessed} records processed
+                          {operation.duration && ` • ${operation.duration}ms`}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      {getOperationStatusBadge(operation.status)}
+                      {operation.errors && operation.errors.length > 0 && (
+                        <p className="text-xs text-destructive mt-1">{operation.errors.length} errors</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="reconciliation" className="space-y-4">
+              <h4 className="font-semibold mb-3">Payment Reconciliation</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="p-4 border-l-4 border-l-success">
+                  <p className="text-sm text-muted-foreground mb-2">Reconciled Payments</p>
+                  <p className="text-3xl font-semibold text-success">{currentAudit.paymentsReconciled}</p>
+                </Card>
+                <Card className="p-4 border-l-4 border-l-destructive">
+                  <p className="text-sm text-muted-foreground mb-2">Unreconciled Amount</p>
+                  <p className="text-3xl font-semibold text-destructive">
+                    {formatCurrency(currentAudit.summary.outstandingBalance)}
+                  </p>
+                </Card>
+              </div>
+
+              {currentAudit.warnings.length > 0 && (
+                <div className="space-y-2">
+                  <h5 className="font-medium text-sm">Warnings</h5>
+                  {currentAudit.warnings.map(warning => (
+                    <Alert key={warning.id} className="border-amber-500">
+                      <Warning size={16} className="text-amber-600" />
+                      <AlertDescription>{warning.message}</AlertDescription>
+                    </Alert>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="statistics" className="space-y-4">
+              <h4 className="font-semibold mb-3">Daily Statistics</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-muted-foreground">Occupancy Rate</p>
+                    <Users size={20} className="text-primary" />
+                  </div>
+                  <p className="text-2xl font-semibold">{calculateOccupancy().toFixed(1)}%</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {reservations.filter(r => r.status === 'checked-in').length} / {rooms.length} rooms
+                  </p>
+                </Card>
+
+                <Card className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-muted-foreground">ADR</p>
+                    <CurrencyDollar size={20} className="text-accent" />
+                  </div>
+                  <p className="text-2xl font-semibold">{formatCurrency(calculateADR())}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Average Daily Rate</p>
+                </Card>
+
+                <Card className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-muted-foreground">RevPAR</p>
+                    <TrendUp size={20} className="text-success" />
+                  </div>
+                  <p className="text-2xl font-semibold">{formatCurrency(calculateRevPAR())}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Revenue Per Available Room</p>
+                </Card>
+              </div>
+
+              <Card className="p-4">
+                <h5 className="font-semibold mb-3">Arrivals & Departures</h5>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="font-medium text-sm">
-                      {operation.operationType.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                    <p className="text-sm text-muted-foreground mb-1">Arrivals Today</p>
+                    <p className="text-2xl font-semibold">
+                      {reservations.filter(r => {
+                        const checkInDate = new Date(r.checkInDate)
+                        checkInDate.setHours(0, 0, 0, 0)
+                        const auditDate = new Date(config.auditDate)
+                        auditDate.setHours(0, 0, 0, 0)
+                        return checkInDate.getTime() === auditDate.getTime()
+                      }).length}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {operation.recordsProcessed} records • {operation.duration ? `${operation.duration}ms` : '-'}
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Departures Today</p>
+                    <p className="text-2xl font-semibold">
+                      {reservations.filter(r => {
+                        const checkOutDate = new Date(r.checkOutDate)
+                        checkOutDate.setHours(0, 0, 0, 0)
+                        const auditDate = new Date(config.auditDate)
+                        auditDate.setHours(0, 0, 0, 0)
+                        return checkOutDate.getTime() === auditDate.getTime()
+                      }).length}
                     </p>
                   </div>
                 </div>
-                {getOperationStatusBadge(operation.status)}
-              </div>
-            ))}
-          </div>
-
-          {currentAudit.errors.length > 0 && (
-            <>
-              <Separator className="my-6" />
-              <Alert variant="destructive">
-                <Warning size={16} />
-                <AlertDescription>
-                  {currentAudit.errors.length} error(s) occurred during the audit. Please review and resolve.
-                </AlertDescription>
-              </Alert>
-            </>
-          )}
+              </Card>
+            </TabsContent>
+          </Tabs>
         </Card>
       )}
 

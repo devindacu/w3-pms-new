@@ -39,7 +39,8 @@ import {
   Bell,
   List,
   FileText,
-  TrendUp
+  TrendUp,
+  Moon
 } from '@phosphor-icons/react'
 import { ServerSyncStatusIndicator } from '@/components/ServerSyncStatusIndicator'
 import { ServerSyncConflictDialog } from '@/components/ServerSyncConflictDialog'
@@ -178,6 +179,7 @@ import { getDefaultWidgetsForRole, getWidgetSize } from '@/lib/widgetConfig'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { ColorMoodSelector } from '@/components/ColorMoodSelector'
 import { RevenueOccupancyTrends } from '@/components/RevenueOccupancyTrends'
+import { NightAudit } from '@/components/NightAudit'
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator'
 import type {
   DashboardLayout,
@@ -215,7 +217,7 @@ import type {
   EmailCampaignAnalytics
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit'
 
 function App() {
   const {
@@ -398,6 +400,8 @@ function App() {
   const [costCenterReports, setCostCenterReports] = useKV<import('@/lib/types').CostCenterReport[]>('w3-hotel-cost-center-reports', [])
   const [profitCenterReports, setProfitCenterReports] = useKV<import('@/lib/types').ProfitCenterReport[]>('w3-hotel-profit-center-reports', [])
   const [dashboardLayout, setDashboardLayout] = useKV<DashboardLayout | null>('w3-hotel-dashboard-layout', null)
+  const [invoiceSequences, setInvoiceSequences] = useKV<import('@/lib/types').InvoiceNumberSequence[]>('w3-hotel-invoice-sequences', [])
+  const [nightAuditLogs, setNightAuditLogs] = useKV<import('@/lib/types').NightAuditLog[]>('w3-hotel-night-audit-logs', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
@@ -1077,6 +1081,15 @@ function App() {
           </Button>
 
           <Button
+            variant={currentModule === 'night-audit' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('night-audit')}
+          >
+            <Moon size={18} className="mr-2" />
+            Night Audit
+          </Button>
+
+          <Button
             variant={currentModule === 'hr' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('hr')}
@@ -1741,6 +1754,26 @@ function App() {
               guestInvoices={guestInvoices || []}
               payments={payments || []}
               expenses={expenses || []}
+              currentUser={currentUser}
+            />
+          )}
+          {currentModule === 'night-audit' && (
+            <NightAudit
+              folios={folios || []}
+              setFolios={setFolios}
+              reservations={reservations || []}
+              rooms={rooms || []}
+              guests={guests || []}
+              guestInvoices={guestInvoices || []}
+              setGuestInvoices={setGuestInvoices}
+              payments={payments || []}
+              setPayments={setPayments}
+              taxes={taxes || []}
+              serviceCharge={serviceCharge || null}
+              invoiceSequences={invoiceSequences || []}
+              setInvoiceSequences={setInvoiceSequences}
+              auditLogs={nightAuditLogs || []}
+              setAuditLogs={setNightAuditLogs}
               currentUser={currentUser}
             />
           )}
