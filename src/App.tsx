@@ -833,39 +833,42 @@ function App() {
     }
 
     return (
-    <div className="space-y-4 md:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-foreground">Hotel Dashboard</h1>
-          <p className="text-muted-foreground mt-1 text-sm md:text-base">Unified view of all hotel operations</p>
-        </div>
-        <div className="flex items-center gap-3">
-          {!hasData && (
-            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto">
-              <Database size={20} className="mr-2" />
-              Load Sample Data
-            </Button>
-          )}
-          {hasData && layout && (
-            <DashboardWidgetManager
-              userId={currentUser.id}
-              userRole={currentUser.role}
-              currentLayout={layout}
-              onLayoutChange={handleLayoutChange}
-            />
-          )}
+    <div className="mobile-spacing-compact">
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div>
+            <h1 className="mobile-heading-responsive font-semibold text-foreground">Hotel Dashboard</h1>
+            <p className="text-muted-foreground mt-1 mobile-text-responsive">Unified view of all hotel operations</p>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            {!hasData && (
+              <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto mobile-optimized-button">
+                <Database size={20} className="mr-2" />
+                <span className="hidden sm:inline">Load Sample Data</span>
+                <span className="sm:hidden">Load Data</span>
+              </Button>
+            )}
+            {hasData && layout && (
+              <DashboardWidgetManager
+                userId={currentUser.id}
+                userRole={currentUser.role}
+                currentLayout={layout}
+                onLayoutChange={handleLayoutChange}
+              />
+            )}
+          </div>
         </div>
       </div>
 
       {!hasData ? (
-        <Card className="p-8 md:p-12 lg:p-16 text-center">
+        <Card className="mobile-card-compact text-center">
           <div className="max-w-md mx-auto">
-            <Gauge size={48} className="mx-auto text-primary mb-4 md:w-16 md:h-16" />
-            <h3 className="text-xl md:text-2xl font-semibold mb-2">Welcome to W3 Hotel PMS</h3>
-            <p className="text-muted-foreground mb-6 text-sm md:text-base">
+            <Gauge size={48} className="mx-auto text-primary mb-4 sm:w-16 sm:h-16" />
+            <h3 className="text-lg sm:text-xl md:text-2xl font-semibold mb-2">Welcome to W3 Hotel PMS</h3>
+            <p className="text-muted-foreground mb-6 mobile-text-responsive">
               Your comprehensive hotel management solution integrating all operations in one platform
             </p>
-            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto">
+            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto mobile-optimized-button">
               <Database size={20} className="mr-2" />
               Load Sample Data to Get Started
             </Button>
@@ -885,12 +888,12 @@ function App() {
             onReset={handleFiltersReset}
           />
           
-          <div className={`grid gap-6 ${layout?.columns === 1 ? 'grid-cols-1' : layout?.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : layout?.columns === 4 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-2'}`}>
+          <div className={`grid gap-4 sm:gap-6 ${layout?.columns === 1 ? 'grid-cols-1' : layout?.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : layout?.columns === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-2'}`}>
             {(layout?.widgets || [])
               .filter(w => w.isVisible)
               .sort((a, b) => a.position - b.position)
               .map(widget => (
-                <div key={widget.id} className="transition-all duration-200 hover:scale-[1.02]">
+                <div key={widget.id} className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
                   <WidgetRenderer
                     widget={widget}
                     metrics={filteredMetrics}
@@ -1177,54 +1180,60 @@ function App() {
         </SheetContent>
 
         <main className="flex-1 flex flex-col lg:ml-64 min-h-screen">
-          <div className="sticky top-0 z-30 border-b bg-card px-4 py-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="lg:hidden">
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <List size={24} />
-                  </Button>
-                </SheetTrigger>
+          <div className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+            <div className="px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                <div className="lg:hidden">
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-10">
+                      <List size={20} className="sm:w-6 sm:h-6" />
+                    </Button>
+                  </SheetTrigger>
+                </div>
+                <div className="hidden sm:flex items-center gap-2 flex-1 max-w-md">
+                  <GlobalSearch
+                    guests={guests || []}
+                    guestProfiles={guestProfiles || []}
+                    reservations={reservations || []}
+                    invoices={guestInvoices || []}
+                    onNavigate={handleNavigateFromSearch}
+                  />
+                </div>
               </div>
-              <div className="hidden sm:flex items-center gap-2 flex-1 max-w-md">
-                <GlobalSearch
-                  guests={guests || []}
-                  guestProfiles={guestProfiles || []}
-                  reservations={reservations || []}
-                  invoices={guestInvoices || []}
-                  onNavigate={handleNavigateFromSearch}
+              <img 
+                src={w3PMSLogo}
+                alt="W3 Hotel PMS" 
+                className="h-6 sm:h-8 w-auto object-contain flex-shrink-0"
+              />
+              <div className="flex items-center gap-1 sm:gap-2">
+                <div className="hidden md:flex items-center gap-2">
+                  <ServerSyncStatusIndicator
+                    syncStatus={getCombinedSyncStatus()}
+                    queueDepth={getCombinedQueueDepth()}
+                    lastSyncTime={getLatestSyncTime()}
+                    conflictCount={getCombinedConflictCount()}
+                    onForceSync={handleForceSync}
+                    onShowConflicts={() => setShowSyncConflicts(true)}
+                  />
+                  <SyncStatusIndicator />
+                </div>
+                <div className="hidden sm:block">
+                  <ColorMoodSelector />
+                </div>
+                <ThemeToggle />
+                <NotificationPanel
+                  notifications={notifications || []}
+                  onMarkAsRead={handleMarkAsRead}
+                  onMarkAllAsRead={handleMarkAllAsRead}
+                  onDismiss={handleDismiss}
+                  onArchive={handleArchive}
+                  onClearAll={handleClearAll}
                 />
               </div>
             </div>
-            <img 
-              src={w3PMSLogo}
-              alt="W3 Hotel PMS" 
-              className="h-8 w-auto object-contain"
-            />
-            <div className="flex items-center gap-2">
-              <ServerSyncStatusIndicator
-                syncStatus={getCombinedSyncStatus()}
-                queueDepth={getCombinedQueueDepth()}
-                lastSyncTime={getLatestSyncTime()}
-                conflictCount={getCombinedConflictCount()}
-                onForceSync={handleForceSync}
-                onShowConflicts={() => setShowSyncConflicts(true)}
-              />
-              <SyncStatusIndicator />
-              <ColorMoodSelector />
-              <ThemeToggle />
-              <NotificationPanel
-                notifications={notifications || []}
-                onMarkAsRead={handleMarkAsRead}
-                onMarkAllAsRead={handleMarkAllAsRead}
-                onDismiss={handleDismiss}
-                onArchive={handleArchive}
-                onClearAll={handleClearAll}
-              />
-            </div>
           </div>
           
-          <div className="sm:hidden px-4 py-2 border-b bg-card">
+          <div className="sm:hidden px-3 py-2 border-b bg-card">
             <GlobalSearch
               guests={guests || []}
               guestProfiles={guestProfiles || []}
@@ -1234,7 +1243,7 @@ function App() {
             />
           </div>
 
-        <div className="flex-1 p-4 md:p-6 lg:p-8">{currentModule === 'dashboard' && renderDashboard()}
+        <div className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8">{currentModule === 'dashboard' && renderDashboard()}
           {currentModule === 'front-office' && (
             <FrontOffice
               guests={guests || []}
@@ -1738,21 +1747,21 @@ function App() {
         </div>
         
         <footer className="border-t border-border overflow-hidden mt-auto bg-card">
-          <div className="px-4 py-4 md:px-6 lg:px-8 md:py-5">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
-              <p className="text-sm font-medium text-foreground/80">
+          <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 md:gap-3">
+              <p className="text-xs sm:text-sm font-medium text-foreground/80 text-center">
                 © {new Date().getFullYear()} {branding?.hotelName || 'W3 Hotel'} - Design & Developed by
               </p>
               <a 
                 href="https://www.w3media.lk/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity mobile-optimized-button p-0 min-h-0"
               >
                 <img 
                   src={w3MediaLogo}
                   alt="W3 Media PVT LTD" 
-                  className="h-6 md:h-7"
+                  className="h-5 sm:h-6 md:h-7"
                 />
               </a>
             </div>

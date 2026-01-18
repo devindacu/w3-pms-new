@@ -176,6 +176,50 @@
     @apply text-right flex-1 break-words;
   }
 
+  .mobile-optimized-button {
+    @apply min-h-[44px] min-w-[44px] touch-manipulation;
+  }
+
+  .mobile-optimized-input {
+    @apply min-h-[44px] text-[16px];
+  }
+
+  .mobile-scroll-container {
+    @apply -mx-4 px-4 overflow-x-auto;
+  }
+
+  .mobile-safe-area {
+    padding-bottom: env(safe-area-inset-bottom, 1rem);
+  }
+
+  .mobile-header-sticky {
+    @apply sticky top-0 z-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60;
+  }
+
+  .mobile-bottom-sticky {
+    @apply sticky bottom-0 z-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60;
+  }
+
+  .mobile-card-compact {
+    @apply p-3 sm:p-4 md:p-6;
+  }
+
+  .mobile-spacing-compact {
+    @apply space-y-3 sm:space-y-4 md:space-y-6;
+  }
+
+  .mobile-grid-responsive {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6;
+  }
+
+  .mobile-text-responsive {
+    @apply text-sm sm:text-base;
+  }
+
+  .mobile-heading-responsive {
+    @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl;
+  }
+
   @keyframes spin-slow {
     from {
       transform: rotate(0deg);
