@@ -55,7 +55,7 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 flex flex-col w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] sm:w-[calc(100vw-2rem)] sm:max-w-[95vw] md:w-auto md:max-w-[90vw] lg:max-w-[85vw] xl:max-w-7xl max-h-[95vh] sm:max-h-[92vh] md:max-h-[90vh] translate-x-[-50%] translate-y-[-50%] gap-2 sm:gap-3 md:gap-4 rounded-lg border p-3 sm:p-4 md:p-5 lg:p-6 shadow-lg duration-200 overflow-hidden",
+          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 flex flex-col w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] sm:w-[calc(100vw-2rem)] sm:max-w-[calc(100vw-2rem)] md:w-[calc(100vw-2rem)] md:max-w-[calc(100vw-2rem)] lg:w-[calc(100vw-3rem)] lg:max-w-[calc(100vw-3rem)] xl:w-[calc(100vw-4rem)] xl:max-w-[calc(100vw-4rem)] max-h-[95vh] sm:max-h-[92vh] md:max-h-[90vh] translate-x-[-50%] translate-y-[-50%] gap-2 sm:gap-3 md:gap-4 rounded-lg border p-3 sm:p-4 md:p-5 lg:p-6 shadow-lg duration-200 overflow-hidden",
           className
         )}
         {...props}

@@ -14,6 +14,8 @@
 @layer components {
   [data-radix-dialog-content] {
     @apply max-h-[95vh] sm:max-h-[92vh] md:max-h-[90vh] overflow-hidden flex flex-col;
+    width: 95vw !important;
+    max-width: 95vw !important;
     background: var(--card);
     border: 1px solid var(--border);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
