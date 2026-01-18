@@ -32,28 +32,32 @@ export function Housekeeping({ rooms, setRooms, tasks, setTasks, employees }: Ho
   const [selectedTask, setSelectedTask] = useState<HousekeepingTask | undefined>()
   const [selectedRoom, setSelectedRoom] = useState<Room | undefined>()
 
-  const pendingTasks = tasks.filter(t => t.status === 'pending')
-  const inProgressTasks = tasks.filter(t => t.status === 'in-progress')
-  const completedToday = tasks.filter(t => {
+  const safeTasks = tasks || []
+  const safeRooms = rooms || []
+  const safeEmployees = employees || []
+
+  const pendingTasks = safeTasks.filter(t => t.status === 'pending')
+  const inProgressTasks = safeTasks.filter(t => t.status === 'in-progress')
+  const completedToday = safeTasks.filter(t => {
     if (!t.completedAt) return false
     const today = new Date().setHours(0, 0, 0, 0)
     const completedDate = new Date(t.completedAt).setHours(0, 0, 0, 0)
     return completedDate === today
   })
 
-  const cleanRooms = rooms.filter(r => r.status === 'vacant-clean' || r.status === 'occupied-clean')
-  const dirtyRooms = rooms.filter(r => r.status === 'vacant-dirty' || r.status === 'occupied-dirty')
-  const maintenanceRooms = rooms.filter(r => r.status === 'maintenance' || r.status === 'out-of-order')
+  const cleanRooms = safeRooms.filter(r => r.status === 'vacant-clean' || r.status === 'occupied-clean')
+  const dirtyRooms = safeRooms.filter(r => r.status === 'vacant-dirty' || r.status === 'occupied-dirty')
+  const maintenanceRooms = safeRooms.filter(r => r.status === 'maintenance' || r.status === 'out-of-order')
 
-  const filteredRooms = rooms.filter(r => 
+  const filteredRooms = safeRooms.filter(r => 
     r.roomNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
     r.roomType.toLowerCase().includes(searchQuery.toLowerCase()) ||
     r.status.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const filteredTasks = tasks.filter(t => {
-    const room = rooms.find(r => r.id === t.roomId)
-    const employee = employees.find(e => e.id === t.assignedTo)
+  const filteredTasks = safeTasks.filter(t => {
+    const room = safeRooms.find(r => r.id === t.roomId)
+    const employee = safeEmployees.find(e => e.id === t.assignedTo)
     const employeeName = employee ? `${employee.firstName} ${employee.lastName}` : ''
     return room && (
       room.roomNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
