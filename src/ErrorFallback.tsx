@@ -1,4 +1,3 @@
-import React from "react";
 import { Alert, AlertTitle, AlertDescription } from "./components/ui/alert";
 import { Button } from "./components/ui/button";
 
@@ -9,7 +8,7 @@ interface ErrorFallbackProps {
   resetErrorBoundary: () => void;
 }
 
-export const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetErrorBoundary }) => {
+export const ErrorFallback = ({ error, resetErrorBoundary }: ErrorFallbackProps) => {
   // When encountering an error in the development mode, rethrow it and don't display the boundary.
   // The parent UI will take care of showing a more helpful dialog.
   if (import.meta.env.DEV) throw error;
