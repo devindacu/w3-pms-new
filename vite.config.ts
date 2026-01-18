@@ -19,10 +19,13 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': resolve(projectRoot, 'src')
+      '@': resolve(projectRoot, 'src'),
+      'react': resolve(projectRoot, 'node_modules/react'),
+      'react-dom': resolve(projectRoot, 'node_modules/react-dom')
     }
   },
   optimizeDeps: {
-    exclude: ['framer-motion']
+    exclude: ['framer-motion'],
+    include: ['react', 'react-dom', 'vaul', 'embla-carousel-react']
   },
 });
