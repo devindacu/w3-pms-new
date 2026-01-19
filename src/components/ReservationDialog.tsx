@@ -238,7 +238,7 @@ export function ReservationDialog({
                   <SelectValue placeholder="Select guest" />
                 </SelectTrigger>
                 <SelectContent>
-                  {guests.map(guest => (
+                  {guests.filter(guest => guest.id && guest.id.trim() !== '').map(guest => (
                     <SelectItem key={guest.id} value={guest.id}>
                       {guest.firstName} {guest.lastName} - {guest.phone}
                     </SelectItem>
@@ -258,7 +258,7 @@ export function ReservationDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="no-room">No Room Assigned</SelectItem>
-                  {availableRooms.map(room => (
+                  {availableRooms.filter(room => room.id && room.id.trim() !== '').map(room => (
                     <SelectItem key={room.id} value={room.id}>
                       {room.roomNumber} - {room.roomType} (LKR {room.baseRate}/night)
                     </SelectItem>

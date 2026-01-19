@@ -190,8 +190,8 @@ export function RoomDialog({ open, onOpenChange, room, onSave }: RoomDialogProps
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {(roomTypes || []).filter(rt => rt.isActive).length > 0 ? (
-                    (roomTypes || []).filter(rt => rt.isActive).map(rt => (
+                  {(roomTypes || []).filter(rt => rt.isActive && rt.code && rt.code.trim() !== '').length > 0 ? (
+                    (roomTypes || []).filter(rt => rt.isActive && rt.code && rt.code.trim() !== '').map(rt => (
                       <SelectItem key={rt.id} value={rt.code}>
                         {rt.name}
                       </SelectItem>
