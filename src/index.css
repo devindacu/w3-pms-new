@@ -12,13 +12,51 @@
 }
 
 @layer components {
+  /* 
+   * Dialog & Modal Optimization for Full-Width Displays
+   * 
+   * Responsive breakpoints:
+   * - Mobile: < 640px (sm) - Full width minus margins
+   * - Tablet: 640px - 1024px - 92vw max width
+   * - Desktop: 1024px - 1536px (xl) - 1600px max width
+   * - Large Desktop: 1536px - 1920px (2xl) - 1800px max width
+   * - Ultra-wide: > 1920px - 2000px max width
+   * 
+   * Grid Systems:
+   * - dialog-grid-1 to dialog-grid-6: Auto-responsive column grids
+   * - dialog-layout-2col to dialog-layout-4col: Fixed column layouts
+   * - dialog-split-view: 1:2 ratio for detail/master views
+   * - dialog-sidebar-layout: Adaptive sidebar (300px -> 400px)
+   * - dialog-two-panel: Side-by-side on 2xl screens
+   * 
+   * Best Practices:
+   * 1. Use dialog-body-scrollable for content area
+   * 2. Add dialog-header-fixed and dialog-footer-fixed for sticky headers/footers
+   * 3. Choose appropriate grid class based on content density
+   * 4. Use dialog-comfortable-layout for forms, dialog-dense-layout for data tables
+   */
+  
   [data-radix-dialog-content] {
-    @apply max-h-[95vh] sm:max-h-[92vh] md:max-h-[90vh] overflow-hidden flex flex-col;
+    @apply max-h-[95vh] sm:max-h-[92vh] md:max-h-[90vh] lg:max-h-[88vh] overflow-hidden flex flex-col;
     width: 95vw !important;
-    max-width: 95vw !important;
+    max-width: min(1600px, 95vw) !important;
     background: var(--card);
     border: 1px solid var(--border);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  }
+  
+  @media (min-width: 1536px) {
+    [data-radix-dialog-content] {
+      width: 90vw !important;
+      max-width: 1800px !important;
+    }
+  }
+  
+  @media (min-width: 1920px) {
+    [data-radix-dialog-content] {
+      width: 85vw !important;
+      max-width: 2000px !important;
+    }
   }
   
   .dialog-content-wrapper {
@@ -26,35 +64,43 @@
   }
   
   .dialog-header-fixed {
-    @apply sticky top-0 z-10 pb-2 sm:pb-3 md:pb-4 border-b shrink-0;
+    @apply sticky top-0 z-10 pb-2 sm:pb-3 md:pb-4 lg:pb-5 border-b shrink-0 px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10;
     background: var(--card);
     border-color: var(--border);
   }
   
   .dialog-footer-fixed {
-    @apply sticky bottom-0 z-10 pt-2 sm:pt-3 md:pt-4 border-t shrink-0;
+    @apply sticky bottom-0 z-10 pt-2 sm:pt-3 md:pt-4 lg:pt-5 border-t shrink-0 px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10;
     background: var(--card);
     border-color: var(--border);
   }
   
   .dialog-body-scrollable {
-    @apply overflow-y-auto overflow-x-hidden flex-1 px-3 sm:px-4 md:px-5 lg:px-6 py-2 sm:py-3 md:py-4 min-h-0;
+    @apply overflow-y-auto overflow-x-hidden flex-1 px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 py-2 sm:py-3 md:py-4 lg:py-6 min-h-0;
   }
 
   .dialog-grid-1 {
-    @apply grid grid-cols-1 gap-3 sm:gap-4 md:gap-5;
+    @apply grid grid-cols-1 gap-3 sm:gap-4 md:gap-5 lg:gap-6;
   }
 
   .dialog-grid-2 {
-    @apply grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5;
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6 xl:gap-7;
   }
 
   .dialog-grid-3 {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5;
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5 lg:gap-6;
   }
 
   .dialog-grid-4 {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5;
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5 lg:gap-6;
+  }
+  
+  .dialog-grid-5 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-5 lg:gap-6;
+  }
+  
+  .dialog-grid-6 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5 lg:gap-6;
   }
 
   .dialog-form-field {
@@ -62,43 +108,43 @@
   }
 
   .dialog-form-label {
-    @apply text-xs sm:text-sm font-medium;
+    @apply text-xs sm:text-sm lg:text-base font-medium;
   }
 
   .dialog-form-input {
-    @apply text-sm sm:text-base h-9 sm:h-10;
+    @apply text-sm sm:text-base h-9 sm:h-10 lg:h-11;
   }
 
   .dialog-form-textarea {
-    @apply text-sm sm:text-base min-h-[80px] sm:min-h-[100px];
+    @apply text-sm sm:text-base min-h-[80px] sm:min-h-[100px] lg:min-h-[120px];
   }
 
   .dialog-button {
-    @apply h-9 sm:h-10 text-sm px-3 sm:px-4;
+    @apply h-9 sm:h-10 lg:h-11 text-sm lg:text-base px-3 sm:px-4 lg:px-6;
   }
 
   .dialog-button-sm {
-    @apply h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3;
+    @apply h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3 lg:px-4;
   }
 
   .dialog-section {
-    @apply space-y-3 sm:space-y-4;
+    @apply space-y-3 sm:space-y-4 lg:space-y-5 xl:space-y-6;
   }
 
   .dialog-section-title {
-    @apply text-sm sm:text-base font-semibold;
+    @apply text-sm sm:text-base lg:text-lg font-semibold;
   }
 
   .dialog-tabs-content {
-    @apply mt-3 sm:mt-4 space-y-3 sm:space-y-4;
+    @apply mt-3 sm:mt-4 space-y-3 sm:space-y-4 lg:space-y-5;
   }
 
   .dialog-card {
-    @apply p-3 sm:p-4 md:p-5 rounded-lg border bg-card;
+    @apply p-3 sm:p-4 md:p-5 lg:p-6 xl:p-7 rounded-lg border bg-card;
   }
 
   .dialog-stat-card {
-    @apply p-3 sm:p-4 md:p-5 rounded-lg border;
+    @apply p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg border;
   }
 
   .responsive-table-container {
@@ -110,19 +156,47 @@
   }
 
   .responsive-table th {
-    @apply px-2 sm:px-4 py-2 sm:py-3;
+    @apply px-2 sm:px-4 lg:px-6 py-2 sm:py-3;
   }
 
   .responsive-table td {
-    @apply px-2 sm:px-4 py-2 sm:py-3;
+    @apply px-2 sm:px-4 lg:px-6 py-2 sm:py-3;
+  }
+  
+  @media (min-width: 1280px) {
+    .responsive-table {
+      @apply text-sm;
+    }
+    
+    .responsive-table th {
+      @apply px-6 py-3;
+    }
+    
+    .responsive-table td {
+      @apply px-6 py-3;
+    }
+  }
+  
+  @media (min-width: 1536px) {
+    .responsive-table {
+      @apply text-base;
+    }
+    
+    .responsive-table th {
+      @apply px-8 py-4;
+    }
+    
+    .responsive-table td {
+      @apply px-8 py-4;
+    }
   }
 
   .responsive-card-grid {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4;
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5;
   }
 
   .responsive-stat-grid {
-    @apply grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4;
+    @apply grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4 lg:gap-5;
   }
 
   .mobile-stack {
@@ -144,7 +218,8 @@
   @media (max-width: 640px) {
     [data-radix-dialog-content] {
       margin: 0.5rem;
-      width: calc(100vw - 1rem);
+      width: calc(100vw - 1rem) !important;
+      max-width: calc(100vw - 1rem) !important;
     }
 
     .dialog-responsive-stack > * {
@@ -163,6 +238,31 @@
   @media (min-width: 640px) and (max-width: 1024px) {
     .tablet-optimize {
       @apply text-sm;
+    }
+    
+    [data-radix-dialog-content] {
+      width: 92vw !important;
+      max-width: 92vw !important;
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .responsive-card-grid {
+      @apply grid-cols-4;
+    }
+    
+    .responsive-stat-grid {
+      @apply grid-cols-5;
+    }
+  }
+  
+  @media (min-width: 1536px) {
+    .responsive-card-grid {
+      @apply grid-cols-5;
+    }
+    
+    .responsive-stat-grid {
+      @apply grid-cols-6;
     }
   }
 
@@ -211,7 +311,7 @@
   }
 
   .mobile-grid-responsive {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6;
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 md:gap-6;
   }
 
   .mobile-text-responsive {
@@ -229,6 +329,58 @@
     to {
       transform: rotate(360deg);
     }
+  }
+  
+  .dialog-layout-auto {
+    @apply grid gap-4 sm:gap-5 lg:gap-6 xl:gap-8;
+    grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  }
+  
+  .dialog-layout-2col {
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 lg:gap-6 xl:gap-8;
+  }
+  
+  .dialog-layout-3col {
+    @apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 xl:gap-8;
+  }
+  
+  .dialog-layout-4col {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6;
+  }
+  
+  .dialog-split-view {
+    @apply grid grid-cols-1 xl:grid-cols-[1fr_2fr] gap-4 sm:gap-5 lg:gap-6 xl:gap-8;
+  }
+  
+  .dialog-sidebar-layout {
+    @apply grid grid-cols-1 lg:grid-cols-[300px_1fr] xl:grid-cols-[350px_1fr] 2xl:grid-cols-[400px_1fr] gap-4 sm:gap-5 lg:gap-6;
+  }
+  
+  .dialog-compact-grid {
+    @apply grid gap-3 sm:gap-4 lg:gap-5;
+    grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr));
+  }
+  
+  @media (min-width: 1536px) {
+    .dialog-compact-grid {
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+  }
+  
+  .dialog-dense-layout {
+    @apply space-y-2 sm:space-y-3 lg:space-y-4;
+  }
+  
+  .dialog-comfortable-layout {
+    @apply space-y-4 sm:space-y-5 lg:space-y-6 xl:space-y-8;
+  }
+  
+  .dialog-two-panel {
+    @apply grid grid-cols-1 2xl:grid-cols-2 gap-6 lg:gap-8 xl:gap-10;
+  }
+  
+  .dialog-main-sidebar {
+    @apply grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-6 lg:gap-8;
   }
 
   .animate-spin-slow {
