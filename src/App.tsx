@@ -319,6 +319,7 @@ function App() {
   const [folios, setFolios] = useKV<Folio[]>('w3-hotel-folios', [])
   const [inventory, setInventory] = useKV<InventoryItem[]>('w3-hotel-inventory', [])
   const [menuItems, setMenuItems] = useKV<MenuItem[]>('w3-hotel-menu', [])
+  const [menuCategories, setMenuCategories] = useKV<import('@/lib/types').MenuItemCategory[]>('w3-hotel-menu-categories', [])
   const [orders, setOrders] = useKV<Order[]>('w3-hotel-orders', [])
   const [suppliers, setSuppliers] = useKV<Supplier[]>('w3-hotel-suppliers', [])
   const [maintenanceRequests, setMaintenanceRequests] = useKV<MaintenanceRequest[]>('w3-hotel-maintenance', [])
@@ -1310,6 +1311,8 @@ function App() {
             <FnBPOS
               menuItems={menuItems || []}
               setMenuItems={setMenuItems}
+              menuCategories={menuCategories || []}
+              setMenuCategories={setMenuCategories}
               orders={orders || []}
               setOrders={setOrders}
               guests={guests || []}

@@ -40,19 +40,22 @@ import { toast } from 'sonner'
 import type { MenuItem, Order, OrderItem, Guest, Room } from '@/lib/types'
 import { formatCurrency } from '@/lib/helpers'
 import { OrderDialog } from './OrderDialog'
-import { MenuItemDialog } from './MenuItemDialog'
+import { MenuItemDialogEnhanced } from './MenuItemDialogEnhanced'
+import { MenuCategoryDialog } from './MenuCategoryDialog'
 
 interface FnBPOSProps {
   menuItems: MenuItem[]
   setMenuItems: (items: MenuItem[] | ((prev: MenuItem[]) => MenuItem[])) => void
+  menuCategories: import('@/lib/types').MenuItemCategory[]
+  setMenuCategories: (categories: import('@/lib/types').MenuItemCategory[] | ((prev: import('@/lib/types').MenuItemCategory[]) => import('@/lib/types').MenuItemCategory[])) => void
   orders: Order[]
   setOrders: (orders: Order[] | ((prev: Order[]) => Order[])) => void
   guests: Guest[]
   rooms: Room[]
 }
 
-export function FnBPOS({ menuItems, setMenuItems, orders, setOrders, guests, rooms }: FnBPOSProps) {
-  const [currentView, setCurrentView] = useState<'pos' | 'orders' | 'menu'>('pos')
+export function FnBPOS({ menuItems, setMenuItems, menuCategories, setMenuCategories, orders, setOrders, guests, rooms }: FnBPOSProps) {
+  const [currentView, setCurrentView] = useState<'pos' | 'orders' | 'menu' | 'categories'>('pos')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('All')
   const [cart, setCart] = useState<OrderItem[]>([])
@@ -64,9 +67,12 @@ export function FnBPOS({ menuItems, setMenuItems, orders, setOrders, guests, roo
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false)
   const [isMenuItemDialogOpen, setIsMenuItemDialogOpen] = useState(false)
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false)
   const [editingMenuItem, setEditingMenuItem] = useState<MenuItem | undefined>(undefined)
+  const [editingCategory, setEditingCategory] = useState<import('@/lib/types').MenuItemCategory | undefined>(undefined)
 
-  const categories = ['All', ...Array.from(new Set(menuItems.map(item => item.category)))]
+  const categories = ['All', ...menuCategories.filter(c => c.isActive).map(c => c.name)]
+
 
   const filteredMenuItems = menuItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -751,8 +757,9 @@ export function FnBPOS({ menuItems, setMenuItems, orders, setOrders, guests, roo
         rooms={rooms}
       />
 
-      <MenuItemDialog
+      <MenuItemDialogEnhanced
         menuItem={editingMenuItem}
+        categories={menuCategories}
         open={isMenuItemDialogOpen}
         onOpenChange={setIsMenuItemDialogOpen}
         onSave={(item) => {
@@ -764,6 +771,24 @@ export function FnBPOS({ menuItems, setMenuItems, orders, setOrders, guests, roo
             toast.success('Menu item added successfully')
           }
           setIsMenuItemDialogOpen(false)
+          setEditingMenuItem(undefined)
+        }}
+      />
+
+      <MenuCategoryDialog
+        category={editingCategory}
+        open={isCategoryDialogOpen}
+        onOpenChange={setIsCategoryDialogOpen}
+        onSave={(category) => {
+          if (editingCategory) {
+            setMenuCategories((prev) => prev.map(c => c.id === category.id ? category : c))
+            toast.success('Category updated successfully')
+          } else {
+            setMenuCategories((prev) => [...prev, category])
+            toast.success('Category added successfully')
+          }
+          setIsCategoryDialogOpen(false)
+          setEditingCategory(undefined)
         }}
       />
     </div>

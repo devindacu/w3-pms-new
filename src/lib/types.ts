@@ -350,16 +350,43 @@ export type DietaryRestriction = 'vegetarian' | 'vegan' | 'gluten-free' | 'dairy
 export type AllergenType = 'milk' | 'eggs' | 'fish' | 'shellfish' | 'tree-nuts' | 'peanuts' | 'wheat' | 'soybeans' | 'sesame'
 export type ConsumptionLogType = 'recipe-consumption' | 'waste' | 'spoilage' | 'variance'
 
+export interface MenuItemCategory {
+  id: string
+  name: string
+  description?: string
+  icon?: string
+  color?: string
+  sortOrder: number
+  isActive: boolean
+  parentCategoryId?: string
+  createdAt: number
+  updatedAt: number
+}
+
 export interface MenuItem {
   id: string
   name: string
   description?: string
   category: string
+  categoryId?: string
   price: number
   recipeId?: string
   available: boolean
   preparationTime: number
   imageUrl?: string
+  images?: string[]
+  tags?: string[]
+  allergens?: AllergenType[]
+  dietaryInfo?: DietaryRestriction[]
+  spiceLevel?: 'mild' | 'medium' | 'hot' | 'extra-hot'
+  isSpecial?: boolean
+  discountPercentage?: number
+  calories?: number
+  servingSize?: string
+  sortOrder?: number
+  createdAt?: number
+  updatedAt?: number
+  createdBy?: string
 }
 
 export interface Recipe {
