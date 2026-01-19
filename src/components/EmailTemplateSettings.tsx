@@ -28,6 +28,7 @@ import { EmailTemplate, AVAILABLE_VARIABLES, TemplateVariable, DEFAULT_TEMPLATES
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Switch } from '@/components/ui/switch'
 import type { HotelBranding } from '@/lib/types'
+import { createSafeHtml } from '@/lib/sanitize'
 
 interface EmailTemplateManagementProps {
   templates: EmailTemplate[]
@@ -328,7 +329,7 @@ export function EmailTemplateManagement({ templates, setTemplates, branding, cur
                     <p className="text-sm">{applyBrandingToTemplate(previewTemplate.subject)}</p>
                   </div>
                   <ScrollArea className="h-[500px]">
-                    <div dangerouslySetInnerHTML={{ __html: applyBrandingToTemplate(previewTemplate.bodyHtml) }} />
+                    <div dangerouslySetInnerHTML={createSafeHtml(applyBrandingToTemplate(previewTemplate.bodyHtml), true)} />
                   </ScrollArea>
                 </TabsContent>
                 
@@ -591,7 +592,7 @@ function TemplateEditorDialog({ open, onOpenChange, template, branding, onSave, 
                   </div>
                 </div>
                 <ScrollArea className="h-[300px] border rounded p-3 bg-white">
-                  <div dangerouslySetInnerHTML={{ __html: applyBrandingToPreview(formData.bodyHtml) }} />
+                  <div dangerouslySetInnerHTML={createSafeHtml(applyBrandingToPreview(formData.bodyHtml), true)} />
                 </ScrollArea>
                 <p className="text-xs text-muted-foreground mt-2">
                   Colors and hotel info update automatically from Settings → Branding
