@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { MigrationManager, allMigrations } from '@/lib/migrations'
+import { MigrationManager } from '@/lib/migrations'
+import { allMigrations } from '@/lib/migrations/index'
 import { VersionControl } from '@/lib/versionControl'
 import { DataIntegrity } from '@/lib/dataIntegrity'
 import { toast } from 'sonner'

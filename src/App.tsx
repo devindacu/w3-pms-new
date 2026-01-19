@@ -4,6 +4,7 @@ import { useServerSync } from '@/hooks/use-server-sync'
 import { Toaster, toast } from 'sonner'
 import { useTheme } from '@/hooks/use-theme'
 import { useBrandingTheme } from '@/hooks/use-branding-theme'
+import { useMigrationManager } from '@/hooks/use-migration-manager'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -516,6 +517,12 @@ function App() {
 
   useTheme()
   useBrandingTheme(branding || null)
+  
+  const {
+    isInitialized: migrationInitialized,
+    currentVersion: systemVersion,
+    pendingMigrations: systemPendingMigrations
+  } = useMigrationManager()
 
   useEffect(() => {
     const handleNavigateToSettings = (event: CustomEvent) => {
