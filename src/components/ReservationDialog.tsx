@@ -11,8 +11,9 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import { type Reservation, type Guest, type Room } from '@/lib/types'
-import { generateId, generateNumber, calculateNights, checkBookingConflict, formatDate } from '@/lib/helpers'
-import { Warning, CalendarX, CheckCircle, Calendar } from '@phosphor-icons/react'
+import { generateId, generateNumber, calculateNights, formatDate } from '@/lib/helpers'
+import { checkBookingConflict, findAlternativeRooms, validateReservationDates } from '@/lib/bookingValidation'
+import { Warning, CalendarX, CheckCircle, Calendar, Lightbulb } from '@phosphor-icons/react'
 import { RoomAvailabilityCalendar } from './RoomAvailabilityCalendar'
 
 interface ReservationDialogProps {
@@ -52,6 +53,13 @@ export function ReservationDialog({
     conflictingReservations: Reservation[]
   }>({ hasConflict: false, conflictingReservations: [] })
 
+  const [alternativeRooms, setAlternativeRooms] = useState<Array<{
+    room: Room
+    distance: number
+    availableFrom: number
+    availableTo: number
+  }>>([])
+
   const [forceBook, setForceBook] = useState(false)
 
   useEffect(() => {
@@ -86,6 +94,7 @@ export function ReservationDialog({
     }
     setForceBook(false)
     setConflictCheck({ hasConflict: false, conflictingReservations: [] })
+    setAlternativeRooms([])
   }, [reservation, open])
 
   useEffect(() => {
@@ -104,14 +113,31 @@ export function ReservationDialog({
         setConflictCheck(conflict)
         if (conflict.hasConflict) {
           setForceBook(false)
+          // Find alternative rooms if there's a conflict
+          const selectedRoom = rooms.find(r => r.id === formData.roomId)
+          if (selectedRoom) {
+            const alternatives = findAlternativeRooms(
+              selectedRoom.roomType,
+              checkIn,
+              checkOut,
+              rooms,
+              reservations,
+              5
+            )
+            setAlternativeRooms(alternatives)
+          }
+        } else {
+          setAlternativeRooms([])
         }
       } else {
         setConflictCheck({ hasConflict: false, conflictingReservations: [] })
+        setAlternativeRooms([])
       }
     } else {
       setConflictCheck({ hasConflict: false, conflictingReservations: [] })
+      setAlternativeRooms([])
     }
-  }, [formData.roomId, formData.checkInDate, formData.checkOutDate, reservations, reservation])
+  }, [formData.roomId, formData.checkInDate, formData.checkOutDate, reservations, reservation, rooms])
 
   const availableRooms = rooms.filter(r => 
     r.status === 'vacant-clean' || r.status === 'vacant-dirty' || r.id === reservation?.roomId
@@ -335,6 +361,57 @@ export function ReservationDialog({
                       </Alert>
                     )}
                   </div>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Alternative Room Suggestions */}
+            {conflictCheck.hasConflict && alternativeRooms.length > 0 && (
+              <Alert className="border-blue-500/50 bg-blue-50/50 dark:bg-blue-950/20">
+                <Lightbulb className="h-5 w-5 text-blue-600" />
+                <AlertTitle className="text-blue-900 dark:text-blue-100">
+                  Alternative Rooms Available
+                </AlertTitle>
+                <AlertDescription className="space-y-3">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    The following rooms are available for your selected dates:
+                  </p>
+                  <div className="space-y-2">
+                    {alternativeRooms.map(({ room }) => (
+                      <div
+                        key={room.id}
+                        className="flex items-center justify-between bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-800 rounded-md p-3 hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => handleRoomChange(room.id)}
+                      >
+                        <div className="space-y-1 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-sm">
+                              Room {room.roomNumber} - {room.roomType}
+                            </p>
+                            {room.roomType !== rooms.find(r => r.id === formData.roomId)?.roomType && (
+                              <Badge variant="secondary" className="text-xs">
+                                {room.roomType === 'Suite' || room.roomType === 'Deluxe' ? 'Upgrade' : 'Alternative'}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            LKR {room.baseRate}/night • Floor {room.floor} • Status: {room.status}
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                        >
+                          Select
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground italic">
+                    Click on any room to automatically select it for this reservation
+                  </p>
                 </AlertDescription>
               </Alert>
             )}
