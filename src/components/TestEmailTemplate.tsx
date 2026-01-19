@@ -25,6 +25,7 @@ import { toast } from 'sonner'
 import type { EmailTemplate } from '@/lib/invoiceEmailTemplates'
 import type { HotelBranding, GuestInvoice } from '@/lib/types'
 import { generateInvoiceEmail } from '@/lib/invoiceEmailTemplates'
+import { createSafeHtml } from '@/lib/sanitize'
 
 interface TestEmailTemplateProps {
   templates: EmailTemplate[]
@@ -294,7 +295,7 @@ export function TestEmailTemplate({ templates, branding }: TestEmailTemplateProp
                         <ScrollArea className="h-[600px] w-full border rounded-md">
                           <div 
                             className="p-4"
-                            dangerouslySetInnerHTML={{ __html: previewHtml }}
+                            dangerouslySetInnerHTML={createSafeHtml(previewHtml, true)}
                           />
                         </ScrollArea>
                       </div>
