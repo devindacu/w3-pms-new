@@ -678,8 +678,5 @@ export function createFolioFromReservation(
     balance: reservation.totalAmount,
     createdAt: Date.now(),
     updatedAt: Date.now()
-    status: 'open',
-    createdAt: Date.now(),
-    updatedAt: Date.now()
   }
 }

@@ -8,7 +8,7 @@ export const migration_2026_01_19_add_settings_table: Migration = {
   async up() {
     console.log('Migration 1.1.0: Adding system settings support')
     
-    const existingSettings = await spark.kv.get('w3-hotel-system-settings')
+    const existingSettings = await window.spark.kv.get('w3-hotel-system-settings')
     if (!existingSettings) {
       const defaultSettings = {
         id: 'system-settings',
@@ -26,7 +26,7 @@ export const migration_2026_01_19_add_settings_table: Migration = {
         updatedAt: Date.now(),
       }
       
-      await spark.kv.set('w3-hotel-system-settings', defaultSettings)
+      await window.spark.kv.set('w3-hotel-system-settings', defaultSettings)
     }
   },
   
