@@ -1217,11 +1217,6 @@ function App() {
                   />
                 </div>
               </div>
-              <img 
-                src={branding?.logo || w3PMSLogo}
-                alt={branding?.hotelName || "W3 Hotel PMS"} 
-                className="h-6 sm:h-8 w-auto object-contain flex-shrink-0"
-              />
               <div className="flex items-center gap-1 sm:gap-2">
                 <div className="hidden md:flex items-center gap-2">
                   <ServerSyncStatusIndicator
