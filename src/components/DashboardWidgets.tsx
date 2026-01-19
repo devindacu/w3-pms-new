@@ -20,12 +20,17 @@ import {
   Heart,
   Star,
   ChartLine,
-  ChartPie
+  ChartPie,
+  ArrowUp,
+  ArrowDown,
+  CaretUp,
+  CaretDown
 } from '@phosphor-icons/react'
 import type { DashboardWidget, DashboardMetrics, Reservation, GuestFeedback } from '@/lib/types'
-import { formatCurrency, formatPercent, getRoomStatusColor } from '@/lib/helpers'
+import { formatCurrency, formatPercent, getRoomStatusColor, calculateDashboardMetrics } from '@/lib/helpers'
 import { PercentageChangeIndicator } from '@/components/PercentageChangeIndicator'
 import { format } from 'date-fns'
+import type { FilteredDashboardData } from '@/lib/filterHelpers'
 
 interface WidgetRendererProps {
   widget: DashboardWidget
@@ -34,8 +39,109 @@ interface WidgetRendererProps {
   onNavigate?: (module: string) => void
 }
 
+interface ComparisonIndicatorProps {
+  current: number
+  previous: number
+  format?: 'currency' | 'percent' | 'number'
+  inverse?: boolean
+}
+
+function ComparisonIndicator({ current, previous, format = 'number', inverse = false }: ComparisonIndicatorProps) {
+  const change = current - previous
+  const percentChange = previous !== 0 ? ((change / previous) * 100) : 0
+  const isPositive = inverse ? change < 0 : change > 0
+  const isNegative = inverse ? change > 0 : change < 0
+
+  const formatValue = (val: number) => {
+    switch (format) {
+      case 'currency':
+        return formatCurrency(val)
+      case 'percent':
+        return formatPercent(val)
+      default:
+        return val.toFixed(0)
+    }
+  }
+
+  if (change === 0) {
+    return (
+      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+        <span>No change</span>
+      </div>
+    )
+  }
+
+  return (
+    <div className={`flex items-center gap-1 text-xs font-medium ${isPositive ? 'text-success' : isNegative ? 'text-destructive' : 'text-muted-foreground'}`}>
+      {isPositive ? <TrendUp size={14} /> : <TrendDown size={14} />}
+      <span>{Math.abs(percentChange).toFixed(1)}%</span>
+      <span className="text-muted-foreground">
+        ({change > 0 ? '+' : ''}{formatValue(change)})
+      </span>
+    </div>
+  )
+}
+
+interface ComparisonBarProps {
+  current: number
+  previous: number
+  label: string
+  color?: string
+}
+
+function ComparisonBar({ current, previous, label, color = 'bg-primary' }: ComparisonBarProps) {
+  const max = Math.max(current, previous, 1)
+  const currentPercent = (current / max) * 100
+  const previousPercent = (previous / max) * 100
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between text-sm">
+        <span className="font-medium">{label}</span>
+        <span className="text-muted-foreground">{formatCurrency(current)}</span>
+      </div>
+      <div className="space-y-1">
+        <div className="relative w-full bg-muted rounded-full h-3">
+          <div
+            className={`${color} h-3 rounded-full transition-all relative`}
+            style={{ width: `${currentPercent}%` }}
+          >
+            <span className="absolute right-1 top-0 text-[10px] font-medium text-primary-foreground">
+              Current
+            </span>
+          </div>
+        </div>
+        <div className="relative w-full bg-muted rounded-full h-2 opacity-60">
+          <div
+            className={`${color} opacity-50 h-2 rounded-full transition-all relative`}
+            style={{ width: `${previousPercent}%` }}
+          >
+            <span className="absolute right-1 top-0 text-[10px] font-medium text-muted-foreground">
+              Previous
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRendererProps) {
   if (!widget.isVisible) return null
+
+  const comparisonData = data?.comparisonData as FilteredDashboardData | undefined
+  const hasComparison = !!comparisonData
+
+  const comparisonMetrics = hasComparison
+    ? calculateDashboardMetrics(
+        comparisonData.rooms,
+        comparisonData.reservations,
+        comparisonData.housekeepingTasks,
+        comparisonData.orders,
+        comparisonData.inventory,
+        comparisonData.maintenanceRequests
+      )
+    : null
 
   const renderWidget = () => {
     switch (widget.type) {
@@ -46,13 +152,32 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
               <h3 className="text-sm font-medium text-muted-foreground">Occupancy</h3>
               <Bed size={20} className="text-primary floating-animation" />
             </div>
-            <div className="space-y-2">
-              <p className="text-3xl font-semibold gradient-text">{formatPercent(metrics.occupancy.rate)}</p>
-              <div className="flex items-center gap-4 text-sm">
-                <span className="text-muted-foreground">
-                  {metrics.occupancy.occupied} / {metrics.occupancy.occupied + metrics.occupancy.available} rooms
-                </span>
+            <div className="space-y-3">
+              <div>
+                <p className="text-3xl font-semibold gradient-text">{formatPercent(metrics.occupancy.rate)}</p>
+                <div className="flex items-center gap-4 text-sm mt-1">
+                  <span className="text-muted-foreground">
+                    {metrics.occupancy.occupied} / {metrics.occupancy.occupied + metrics.occupancy.available} rooms
+                  </span>
+                </div>
               </div>
+              
+              {hasComparison && comparisonMetrics && (
+                <div className="pt-2 border-t">
+                  <ComparisonIndicator
+                    current={metrics.occupancy.rate}
+                    previous={comparisonMetrics.occupancy.rate}
+                    format="percent"
+                  />
+                  <div className="mt-2 space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Previous Period:</span>
+                      <span className="font-medium">{formatPercent(comparisonMetrics.occupancy.rate)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div className="grid grid-cols-2 gap-2 pt-2">
                 <div className="text-xs">
                   <span className="text-muted-foreground">Available:</span>
@@ -74,10 +199,26 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
               <h3 className="text-sm font-medium text-muted-foreground">Revenue Today</h3>
               <CurrencyDollar size={20} className="text-success floating-animation" />
             </div>
-            <div className="space-y-2">
-              <div className="flex items-baseline justify-between gap-2">
+            <div className="space-y-3">
+              <div>
                 <p className="text-3xl font-semibold gradient-text">{formatCurrency(metrics.revenue.today)}</p>
               </div>
+              
+              {hasComparison && comparisonMetrics && (
+                <div className="pt-2 border-t">
+                  <ComparisonIndicator
+                    current={metrics.revenue.today}
+                    previous={comparisonMetrics.revenue.today}
+                    format="currency"
+                  />
+                  <div className="mt-2 space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Previous Period:</span>
+                      <span className="font-medium">{formatCurrency(comparisonMetrics.revenue.today)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </Card>
         )
@@ -89,9 +230,22 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
               <h3 className="text-sm font-medium text-muted-foreground">Housekeeping</h3>
               <Broom size={20} className="text-accent floating-animation" />
             </div>
-            <div className="space-y-2">
-              <p className="text-3xl font-semibold gradient-text">{metrics.housekeeping.pendingTasks}</p>
-              <p className="text-sm text-muted-foreground">Pending tasks</p>
+            <div className="space-y-3">
+              <div>
+                <p className="text-3xl font-semibold gradient-text">{metrics.housekeeping.pendingTasks}</p>
+                <p className="text-sm text-muted-foreground">Pending tasks</p>
+              </div>
+              
+              {hasComparison && comparisonMetrics && (
+                <div className="pt-2 border-t">
+                  <ComparisonIndicator
+                    current={metrics.housekeeping.pendingTasks}
+                    previous={comparisonMetrics.housekeeping.pendingTasks}
+                    inverse={true}
+                  />
+                </div>
+              )}
+              
               <div className="grid grid-cols-2 gap-2 pt-2">
                 <div className="text-xs">
                   <span className="text-muted-foreground">Clean:</span>
@@ -350,11 +504,29 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Revenue Today</span>
-                <span className="text-lg font-semibold">{formatCurrency(metrics.revenue.today)}</span>
+                <div className="text-right">
+                  <span className="text-lg font-semibold">{formatCurrency(metrics.revenue.today)}</span>
+                  {hasComparison && comparisonMetrics && (
+                    <ComparisonIndicator
+                      current={metrics.revenue.today}
+                      previous={comparisonMetrics.revenue.today}
+                      format="currency"
+                    />
+                  )}
+                </div>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Revenue MTD</span>
-                <span className="text-lg font-semibold">{formatCurrency(metrics.revenue.month)}</span>
+                <div className="text-right">
+                  <span className="text-lg font-semibold">{formatCurrency(metrics.revenue.month)}</span>
+                  {hasComparison && comparisonMetrics && (
+                    <ComparisonIndicator
+                      current={metrics.revenue.month}
+                      previous={comparisonMetrics.revenue.month}
+                      format="currency"
+                    />
+                  )}
+                </div>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Growth</span>
@@ -820,6 +992,138 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </Card>
+        )
+
+      case 'period-comparison':
+        if (!hasComparison || !comparisonMetrics) {
+          return (
+            <Card className="p-6 h-full">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-semibold">Period Comparison</h3>
+                <ChartBar size={18} className="text-muted-foreground" />
+              </div>
+              <div className="text-center py-8">
+                <p className="text-sm text-muted-foreground">
+                  Enable comparison mode in filters to view period-over-period metrics
+                </p>
+              </div>
+            </Card>
+          )
+        }
+
+        const currentRevenue = metrics.revenue.today
+        const previousRevenue = comparisonMetrics.revenue.today
+        const currentOrders = metrics.fnb.ordersToday
+        const previousOrders = comparisonMetrics.fnb.ordersToday
+        const currentOccupancy = metrics.occupancy.rate
+        const previousOccupancy = comparisonMetrics.occupancy.rate
+        const currentTasks = metrics.housekeeping.pendingTasks
+        const previousTasks = comparisonMetrics.housekeeping.pendingTasks
+
+        return (
+          <Card className="p-6 h-full">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h3 className="text-base font-semibold">Period Comparison</h3>
+              <ChartBar size={18} className="text-muted-foreground" />
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-lg bg-success/10 border border-success/20">
+                  <div className="flex items-center gap-2 mb-1">
+                    <CaretUp size={16} className="text-success" weight="fill" />
+                    <span className="text-xs text-muted-foreground">Current Period</span>
+                  </div>
+                  <p className="text-2xl font-semibold">{formatCurrency(currentRevenue)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Total Revenue</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/50 border border-muted">
+                  <div className="flex items-center gap-2 mb-1">
+                    <CaretDown size={16} className="text-muted-foreground" weight="fill" />
+                    <span className="text-xs text-muted-foreground">Previous Period</span>
+                  </div>
+                  <p className="text-2xl font-semibold text-muted-foreground">{formatCurrency(previousRevenue)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Total Revenue</p>
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-2">
+                <ComparisonBar
+                  current={currentRevenue}
+                  previous={previousRevenue}
+                  label="Revenue"
+                  color="bg-success"
+                />
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium">F&B Orders</span>
+                    <span className="text-muted-foreground">{currentOrders}</span>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="relative w-full bg-muted rounded-full h-3">
+                      <div
+                        className="bg-accent h-3 rounded-full transition-all"
+                        style={{ width: `${Math.min((currentOrders / Math.max(currentOrders, previousOrders, 1)) * 100, 100)}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Previous: {previousOrders}</span>
+                      <ComparisonIndicator
+                        current={currentOrders}
+                        previous={previousOrders}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium">Occupancy Rate</span>
+                    <span className="text-muted-foreground">{formatPercent(currentOccupancy)}</span>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="relative w-full bg-muted rounded-full h-3">
+                      <div
+                        className="bg-primary h-3 rounded-full transition-all"
+                        style={{ width: `${currentOccupancy}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Previous: {formatPercent(previousOccupancy)}</span>
+                      <ComparisonIndicator
+                        current={currentOccupancy}
+                        previous={previousOccupancy}
+                        format="percent"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium">Pending Tasks</span>
+                    <span className="text-muted-foreground">{currentTasks}</span>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="relative w-full bg-muted rounded-full h-3">
+                      <div
+                        className="bg-destructive h-3 rounded-full transition-all"
+                        style={{ width: `${Math.min((currentTasks / Math.max(currentTasks, previousTasks, 1)) * 100, 100)}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Previous: {previousTasks}</span>
+                      <ComparisonIndicator
+                        current={currentTasks}
+                        previous={previousTasks}
+                        inverse={true}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </Card>

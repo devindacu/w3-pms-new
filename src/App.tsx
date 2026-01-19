@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
+import { useServerSync } from '@/hooks/use-server-sync'
 import { Toaster, toast } from 'sonner'
 import { useTheme } from '@/hooks/use-theme'
 import { Button } from '@/components/ui/button'
@@ -37,8 +38,14 @@ import {
   Sparkle,
   Bell,
   List,
-  FileText
+  FileText,
+  TrendUp,
+  Moon
 } from '@phosphor-icons/react'
+import { ServerSyncStatusIndicator } from '@/components/ServerSyncStatusIndicator'
+import { ServerSyncConflictDialog } from '@/components/ServerSyncConflictDialog'
+import { DashboardFilters, type DashboardFilters as DashboardFiltersType } from '@/components/DashboardFilters'
+import { applyDashboardFilters, type FilteredDashboardData } from '@/lib/filterHelpers'
 import { 
   type Room, 
   type Guest, 
@@ -165,11 +172,15 @@ import { Settings } from '@/components/Settings'
 import { Finance } from '@/components/Finance'
 import { InvoiceManagement } from '@/components/InvoiceManagement'
 import { PaymentTracking } from '@/components/PaymentTracking'
+import { Reports } from '@/components/Reports'
 import { DashboardWidgetManager } from '@/components/DashboardWidgetManager'
 import { WidgetRenderer } from '@/components/DashboardWidgets'
 import { getDefaultWidgetsForRole, getWidgetSize } from '@/lib/widgetConfig'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { ColorMoodSelector } from '@/components/ColorMoodSelector'
+import { RevenueOccupancyTrends } from '@/components/RevenueOccupancyTrends'
+import { NightAudit } from '@/components/NightAudit'
+import { SyncStatusIndicator } from '@/components/SyncStatusIndicator'
 import type {
   DashboardLayout,
   DashboardWidget,
@@ -206,19 +217,110 @@ import type {
   EmailCampaignAnalytics
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit'
 
 function App() {
-  const [guests, setGuests] = useKV<Guest[]>('w3-hotel-guests', [])
-  const [rooms, setRooms] = useKV<Room[]>('w3-hotel-rooms', [])
-  const [reservations, setReservations] = useKV<Reservation[]>('w3-hotel-reservations', [])
+  const {
+    value: guests,
+    setValue: setGuests,
+    syncStatus: guestsSyncStatus,
+    pendingConflicts: guestsConflicts,
+    resolveConflict: resolveGuestsConflict,
+    ignoreConflict: ignoreGuestsConflict,
+    queueDepth: guestsQueueDepth,
+    lastSyncTime: guestsLastSyncTime,
+    forceSync: forceGuestsSync,
+  } = useServerSync<Guest[]>('w3-hotel-guests', [], {
+    syncInterval: 30000,
+    autoResolveStrategy: 'manual',
+    enableSync: true,
+  })
+
+  const {
+    value: rooms,
+    setValue: setRooms,
+    syncStatus: roomsSyncStatus,
+    pendingConflicts: roomsConflicts,
+    resolveConflict: resolveRoomsConflict,
+    ignoreConflict: ignoreRoomsConflict,
+    queueDepth: roomsQueueDepth,
+    lastSyncTime: roomsLastSyncTime,
+    forceSync: forceRoomsSync,
+  } = useServerSync<Room[]>('w3-hotel-rooms', [], {
+    syncInterval: 30000,
+    autoResolveStrategy: 'manual',
+    enableSync: true,
+  })
+
+  const {
+    value: reservations,
+    setValue: setReservations,
+    syncStatus: reservationsSyncStatus,
+    pendingConflicts: reservationsConflicts,
+    resolveConflict: resolveReservationsConflict,
+    ignoreConflict: ignoreReservationsConflict,
+    queueDepth: reservationsQueueDepth,
+    lastSyncTime: reservationsLastSyncTime,
+    forceSync: forceReservationsSync,
+  } = useServerSync<Reservation[]>('w3-hotel-reservations', [], {
+    syncInterval: 30000,
+    autoResolveStrategy: 'manual',
+    enableSync: true,
+  })
+
+  const {
+    value: employees,
+    setValue: setEmployees,
+    syncStatus: employeesSyncStatus,
+    pendingConflicts: employeesConflicts,
+    resolveConflict: resolveEmployeesConflict,
+    ignoreConflict: ignoreEmployeesConflict,
+    queueDepth: employeesQueueDepth,
+    lastSyncTime: employeesLastSyncTime,
+    forceSync: forceEmployeesSync,
+  } = useServerSync<Employee[]>('w3-hotel-employees', [], {
+    syncInterval: 30000,
+    autoResolveStrategy: 'manual',
+    enableSync: true,
+  })
+
+  const {
+    value: invoices,
+    setValue: setInvoices,
+    syncStatus: invoicesSyncStatus,
+    pendingConflicts: invoicesConflicts,
+    resolveConflict: resolveInvoicesConflict,
+    ignoreConflict: ignoreInvoicesConflict,
+    queueDepth: invoicesQueueDepth,
+    lastSyncTime: invoicesLastSyncTime,
+    forceSync: forceInvoicesSync,
+  } = useServerSync<Invoice[]>('w3-hotel-invoices', [], {
+    syncInterval: 30000,
+    autoResolveStrategy: 'manual',
+    enableSync: true,
+  })
+
+  const {
+    value: housekeepingTasks,
+    setValue: setHousekeepingTasks,
+    syncStatus: housekeepingSyncStatus,
+    pendingConflicts: housekeepingConflicts,
+    resolveConflict: resolveHousekeepingConflict,
+    ignoreConflict: ignoreHousekeepingConflict,
+    queueDepth: housekeepingQueueDepth,
+    lastSyncTime: housekeepingLastSyncTime,
+    forceSync: forceHousekeepingSync,
+  } = useServerSync<HousekeepingTask[]>('w3-hotel-housekeeping', [], {
+    syncInterval: 30000,
+    autoResolveStrategy: 'manual',
+    enableSync: true,
+  })
+
   const [folios, setFolios] = useKV<Folio[]>('w3-hotel-folios', [])
   const [inventory, setInventory] = useKV<InventoryItem[]>('w3-hotel-inventory', [])
   const [menuItems, setMenuItems] = useKV<MenuItem[]>('w3-hotel-menu', [])
-  const [housekeepingTasks, setHousekeepingTasks] = useKV<HousekeepingTask[]>('w3-hotel-housekeeping', [])
   const [orders, setOrders] = useKV<Order[]>('w3-hotel-orders', [])
   const [suppliers, setSuppliers] = useKV<Supplier[]>('w3-hotel-suppliers', [])
-  const [employees, setEmployees] = useKV<Employee[]>('w3-hotel-employees', [])
   const [maintenanceRequests, setMaintenanceRequests] = useKV<MaintenanceRequest[]>('w3-hotel-maintenance', [])
   const [foodItems, setFoodItems] = useKV<FoodItem[]>('w3-hotel-food-items', [])
   const [amenities, setAmenities] = useKV<Amenity[]>('w3-hotel-amenities', [])
@@ -238,7 +340,6 @@ function App() {
   const [requisitions, setRequisitions] = useKV<Requisition[]>('w3-hotel-requisitions', [])
   const [purchaseOrders, setPurchaseOrders] = useKV<PurchaseOrder[]>('w3-hotel-purchase-orders', [])
   const [grns, setGRNs] = useKV<GoodsReceivedNote[]>('w3-hotel-grns', [])
-  const [invoices, setInvoices] = useKV<Invoice[]>('w3-hotel-invoices', [])
   const [recipes, setRecipes] = useKV<Recipe[]>('w3-hotel-recipes', [])
   const [menus, setMenus] = useKV<Menu[]>('w3-hotel-menus', [])
   const [consumptionLogs, setConsumptionLogs] = useKV<KitchenConsumptionLog[]>('w3-hotel-consumption-logs', [])
@@ -299,11 +400,143 @@ function App() {
   const [costCenterReports, setCostCenterReports] = useKV<import('@/lib/types').CostCenterReport[]>('w3-hotel-cost-center-reports', [])
   const [profitCenterReports, setProfitCenterReports] = useKV<import('@/lib/types').ProfitCenterReport[]>('w3-hotel-profit-center-reports', [])
   const [dashboardLayout, setDashboardLayout] = useKV<DashboardLayout | null>('w3-hotel-dashboard-layout', null)
+  const [invoiceSequences, setInvoiceSequences] = useKV<import('@/lib/types').InvoiceNumberSequence[]>('w3-hotel-invoice-sequences', [])
+  const [nightAuditLogs, setNightAuditLogs] = useKV<import('@/lib/types').NightAuditLog[]>('w3-hotel-night-audit-logs', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
+  const [settingsTab, setSettingsTab] = useState<string>('branding')
+  const [showSyncConflicts, setShowSyncConflicts] = useState(false)
+  
+  const [dashboardFilters, setDashboardFilters] = useState<DashboardFiltersType>({
+    dateRange: {
+      from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      to: new Date()
+    },
+    category: 'all'
+  })
+
+  const getCombinedSyncStatus = (): 'synced' | 'syncing' | 'offline' | 'conflict' | 'error' => {
+    if (guestsConflicts.length > 0 || roomsConflicts.length > 0 || reservationsConflicts.length > 0 || 
+        employeesConflicts.length > 0 || invoicesConflicts.length > 0 || housekeepingConflicts.length > 0) {
+      return 'conflict'
+    }
+    if (guestsSyncStatus === 'syncing' || roomsSyncStatus === 'syncing' || reservationsSyncStatus === 'syncing' ||
+        employeesSyncStatus === 'syncing' || invoicesSyncStatus === 'syncing' || housekeepingSyncStatus === 'syncing') {
+      return 'syncing'
+    }
+    if (guestsSyncStatus === 'offline' || roomsSyncStatus === 'offline' || reservationsSyncStatus === 'offline' ||
+        employeesSyncStatus === 'offline' || invoicesSyncStatus === 'offline' || housekeepingSyncStatus === 'offline') {
+      return 'offline'
+    }
+    if (guestsSyncStatus === 'error' || roomsSyncStatus === 'error' || reservationsSyncStatus === 'error' ||
+        employeesSyncStatus === 'error' || invoicesSyncStatus === 'error' || housekeepingSyncStatus === 'error') {
+      return 'error'
+    }
+    return 'synced'
+  }
+
+  const getCombinedQueueDepth = () => guestsQueueDepth + roomsQueueDepth + reservationsQueueDepth + 
+    employeesQueueDepth + invoicesQueueDepth + housekeepingQueueDepth
+  
+  const getCombinedConflictCount = () => guestsConflicts.length + roomsConflicts.length + reservationsConflicts.length +
+    employeesConflicts.length + invoicesConflicts.length + housekeepingConflicts.length
+
+  const getLatestSyncTime = () => {
+    const times = [guestsLastSyncTime, roomsLastSyncTime, reservationsLastSyncTime, 
+      employeesLastSyncTime, invoicesLastSyncTime, housekeepingLastSyncTime].filter(Boolean)
+    return times.length > 0 ? Math.max(...times) : Date.now()
+  }
+
+  const handleForceSync = () => {
+    forceGuestsSync()
+    forceRoomsSync()
+    forceReservationsSync()
+    forceEmployeesSync()
+    forceInvoicesSync()
+    forceHousekeepingSync()
+  }
+
+  const allConflicts = [
+    ...guestsConflicts.map(c => ({ ...c, dataType: 'Guests' as const })),
+    ...roomsConflicts.map(c => ({ ...c, dataType: 'Rooms' as const })),
+    ...reservationsConflicts.map(c => ({ ...c, dataType: 'Reservations' as const })),
+    ...employeesConflicts.map(c => ({ ...c, dataType: 'Employees' as const })),
+    ...invoicesConflicts.map(c => ({ ...c, dataType: 'Supplier Invoices' as const })),
+    ...housekeepingConflicts.map(c => ({ ...c, dataType: 'Housekeeping Tasks' as const })),
+  ]
+
+  const handleResolveConflict = (conflictId: string, strategy: any, customValue?: any) => {
+    const conflict = allConflicts.find(c => c.id === conflictId)
+    if (!conflict) return
+
+    if (conflict.dataType === 'Guests') {
+      resolveGuestsConflict(conflictId, strategy, customValue)
+    } else if (conflict.dataType === 'Rooms') {
+      resolveRoomsConflict(conflictId, strategy, customValue)
+    } else if (conflict.dataType === 'Reservations') {
+      resolveReservationsConflict(conflictId, strategy, customValue)
+    } else if (conflict.dataType === 'Employees') {
+      resolveEmployeesConflict(conflictId, strategy, customValue)
+    } else if (conflict.dataType === 'Supplier Invoices') {
+      resolveInvoicesConflict(conflictId, strategy, customValue)
+    } else if (conflict.dataType === 'Housekeeping Tasks') {
+      resolveHousekeepingConflict(conflictId, strategy, customValue)
+    }
+  }
+
+  const handleIgnoreConflict = (conflictId: string) => {
+    const conflict = allConflicts.find(c => c.id === conflictId)
+    if (!conflict) return
+
+    if (conflict.dataType === 'Guests') {
+      ignoreGuestsConflict(conflictId)
+    } else if (conflict.dataType === 'Rooms') {
+      ignoreRoomsConflict(conflictId)
+    } else if (conflict.dataType === 'Reservations') {
+      ignoreReservationsConflict(conflictId)
+    } else if (conflict.dataType === 'Employees') {
+      ignoreEmployeesConflict(conflictId)
+    } else if (conflict.dataType === 'Supplier Invoices') {
+      ignoreInvoicesConflict(conflictId)
+    } else if (conflict.dataType === 'Housekeeping Tasks') {
+      ignoreHousekeepingConflict(conflictId)
+    }
+  }
+
+  useEffect(() => {
+    if (getCombinedConflictCount() > 0) {
+      setShowSyncConflicts(true)
+    }
+  }, [guestsConflicts.length, roomsConflicts.length, reservationsConflicts.length, 
+      employeesConflicts.length, invoicesConflicts.length, housekeepingConflicts.length])
 
   useTheme()
+
+  useEffect(() => {
+    const handleNavigateToSettings = (event: CustomEvent) => {
+      setCurrentModule('settings')
+      if (event.detail) {
+        setSettingsTab(event.detail)
+      }
+    }
+
+    window.addEventListener('navigate-to-settings', handleNavigateToSettings as EventListener)
+    return () => {
+      window.removeEventListener('navigate-to-settings', handleNavigateToSettings as EventListener)
+    }
+  }, [])
+
+  useEffect(() => {
+    const hasAnyData = (rooms || []).length > 0 || 
+                       (guests || []).length > 0 || 
+                       (reservations || []).length > 0 || 
+                       (employees || []).length > 0
+
+    if (!hasAnyData) {
+      loadSampleData()
+    }
+  }, [])
 
   useEffect(() => {
     const refreshNotifications = () => {
@@ -490,7 +723,7 @@ function App() {
 
   const initializeDefaultLayout = () => {
     if (!dashboardLayout) {
-      const defaultWidgets = getDefaultWidgetsForRole(currentUser.role)
+      const defaultWidgets = getDefaultWidgetsForRole(currentUser.role) || []
       const widgets: DashboardWidget[] = defaultWidgets.map((type, index) => ({
         id: `widget-${Date.now()}-${index}`,
         type,
@@ -528,18 +761,47 @@ function App() {
   const renderDashboard = () => {
     const layout = initializeDefaultLayout()
     
-    const widgetData = {
-      urgentAmenities: getUrgentAmenities(amenities || []).length,
-      lowStockAmenities: (amenities || []).filter(a => a.currentStock <= a.reorderLevel).length,
-      totalAmenities: (amenities || []).length,
-      urgentFood: getUrgentFoodItems(foodItems || []).length,
-      expiringFood: getExpiringFoodItems(foodItems || [], 7).length,
-      totalFood: (foodItems || []).length,
-      activeProjects: (constructionProjects || []).filter(p => p.status === 'in-progress').length,
-      totalMaterials: (constructionMaterials || []).length,
-      lowStockMaterials: (constructionMaterials || []).filter(m => m.currentStock <= m.reorderLevel).length,
+    const rawData: FilteredDashboardData = {
       rooms: rooms || [],
-      lowStockItems: (inventory || []).filter(item => item.currentStock <= item.reorderLevel && item.currentStock > 0),
+      reservations: reservations || [],
+      housekeepingTasks: housekeepingTasks || [],
+      orders: orders || [],
+      inventory: inventory || [],
+      maintenanceRequests: maintenanceRequests || [],
+      guests: guests || [],
+      employees: employees || [],
+      payments: payments || [],
+      expenses: expenses || [],
+      invoices: guestInvoices || [],
+      foodItems: foodItems || [],
+      amenities: amenities || [],
+      constructionMaterials: constructionMaterials || [],
+      generalProducts: generalProducts || []
+    }
+    
+    const { current: filteredData, comparison: comparisonData } = applyDashboardFilters(rawData, dashboardFilters)
+    
+    const filteredMetrics = calculateDashboardMetrics(
+      filteredData.rooms,
+      filteredData.reservations,
+      filteredData.housekeepingTasks,
+      filteredData.orders,
+      filteredData.inventory,
+      filteredData.maintenanceRequests
+    )
+    
+    const widgetData = {
+      urgentAmenities: getUrgentAmenities(filteredData.amenities).length,
+      lowStockAmenities: filteredData.amenities.filter(a => a.currentStock <= a.reorderLevel).length,
+      totalAmenities: filteredData.amenities.length,
+      urgentFood: getUrgentFoodItems(filteredData.foodItems).length,
+      expiringFood: getExpiringFoodItems(filteredData.foodItems, 7).length,
+      totalFood: filteredData.foodItems.length,
+      activeProjects: (constructionProjects || []).filter(p => p.status === 'in-progress').length,
+      totalMaterials: filteredData.constructionMaterials.length,
+      lowStockMaterials: filteredData.constructionMaterials.filter(m => m.currentStock <= m.reorderLevel).length,
+      rooms: filteredData.rooms,
+      lowStockItems: filteredData.inventory.filter(item => item.currentStock <= item.reorderLevel && item.currentStock > 0),
       pendingRequisitions: (requisitions || []).filter(r => r.status === 'pending-approval').length,
       pendingPOs: (purchaseOrders || []).filter(po => po.status === 'draft').length,
       pendingInvoices: (invoices || []).filter(inv => inv.status === 'pending-validation').length,
@@ -550,49 +812,67 @@ function App() {
         { name: 'Engineering', performance: 88 },
         { name: 'Finance', performance: 95 }
       ],
-      reservations: reservations || [],
-      guests: guests || [],
+      reservations: filteredData.reservations,
+      guests: filteredData.guests,
       guestProfiles: guestProfiles || [],
       guestFeedback: guestFeedback || [],
       activeRecipes: (recipes || []).filter(r => r.isActive).length,
       consumptionLogs: (consumptionLogs || []).length,
-      wasteTracking: (wasteTracking || []).length
+      wasteTracking: (wasteTracking || []).length,
+      comparisonData
+    }
+
+    const handleFiltersChange = (newFilters: DashboardFiltersType) => {
+      setDashboardFilters(newFilters)
+    }
+
+    const handleFiltersReset = () => {
+      setDashboardFilters({
+        dateRange: {
+          from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+          to: new Date()
+        },
+        category: 'all'
+      })
     }
 
     return (
-    <div className="space-y-4 md:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-foreground">Hotel Dashboard</h1>
-          <p className="text-muted-foreground mt-1 text-sm md:text-base">Unified view of all hotel operations</p>
-        </div>
-        <div className="flex items-center gap-3">
-          {!hasData && (
-            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto">
-              <Database size={20} className="mr-2" />
-              Load Sample Data
-            </Button>
-          )}
-          {hasData && layout && (
-            <DashboardWidgetManager
-              userId={currentUser.id}
-              userRole={currentUser.role}
-              currentLayout={layout}
-              onLayoutChange={handleLayoutChange}
-            />
-          )}
+    <div className="mobile-spacing-compact">
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div>
+            <h1 className="mobile-heading-responsive font-semibold text-foreground">Hotel Dashboard</h1>
+            <p className="text-muted-foreground mt-1 mobile-text-responsive">Unified view of all hotel operations</p>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            {!hasData && (
+              <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto mobile-optimized-button">
+                <Database size={20} className="mr-2" />
+                <span className="hidden sm:inline">Load Sample Data</span>
+                <span className="sm:hidden">Load Data</span>
+              </Button>
+            )}
+            {hasData && layout && (
+              <DashboardWidgetManager
+                userId={currentUser.id}
+                userRole={currentUser.role}
+                currentLayout={layout}
+                onLayoutChange={handleLayoutChange}
+              />
+            )}
+          </div>
         </div>
       </div>
 
       {!hasData ? (
-        <Card className="p-8 md:p-12 lg:p-16 text-center">
+        <Card className="mobile-card-compact text-center">
           <div className="max-w-md mx-auto">
-            <Gauge size={48} className="mx-auto text-primary mb-4 md:w-16 md:h-16" />
-            <h3 className="text-xl md:text-2xl font-semibold mb-2">Welcome to W3 Hotel PMS</h3>
-            <p className="text-muted-foreground mb-6 text-sm md:text-base">
+            <Gauge size={48} className="mx-auto text-primary mb-4 sm:w-16 sm:h-16" />
+            <h3 className="text-lg sm:text-xl md:text-2xl font-semibold mb-2">Welcome to W3 Hotel PMS</h3>
+            <p className="text-muted-foreground mb-6 mobile-text-responsive">
               Your comprehensive hotel management solution integrating all operations in one platform
             </p>
-            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto">
+            <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto mobile-optimized-button">
               <Database size={20} className="mr-2" />
               Load Sample Data to Get Started
             </Button>
@@ -606,15 +886,21 @@ function App() {
             onViewAll={() => setNotificationPanelOpen(true)}
           />
           
-          <div className={`grid gap-6 ${layout?.columns === 1 ? 'grid-cols-1' : layout?.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : layout?.columns === 4 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-2'}`}>
-            {layout?.widgets
+          <DashboardFilters
+            filters={dashboardFilters}
+            onFiltersChange={handleFiltersChange}
+            onReset={handleFiltersReset}
+          />
+          
+          <div className={`grid gap-4 sm:gap-6 ${layout?.columns === 1 ? 'grid-cols-1' : layout?.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : layout?.columns === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-2'}`}>
+            {(layout?.widgets || [])
               .filter(w => w.isVisible)
               .sort((a, b) => a.position - b.position)
               .map(widget => (
-                <div key={widget.id} className="transition-all duration-200 hover:scale-[1.02]">
+                <div key={widget.id} className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
                   <WidgetRenderer
                     widget={widget}
-                    metrics={metrics}
+                    metrics={filteredMetrics}
                     data={widgetData}
                     onNavigate={(module) => setCurrentModule(module as Module)}
                   />
@@ -795,6 +1081,15 @@ function App() {
           </Button>
 
           <Button
+            variant={currentModule === 'night-audit' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('night-audit')}
+          >
+            <Moon size={18} className="mr-2" />
+            Night Audit
+          </Button>
+
+          <Button
             variant={currentModule === 'hr' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('hr')}
@@ -821,6 +1116,12 @@ function App() {
             Maintenance & Constructions
           </Button>
 
+          <Separator className="my-2" />
+
+          <div className="px-3 py-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Analytics & Reports</p>
+          </div>
+
           <Button
             variant={currentModule === 'analytics' ? 'default' : 'ghost'}
             className="w-full justify-start"
@@ -831,12 +1132,30 @@ function App() {
           </Button>
 
           <Button
+            variant={currentModule === 'revenue-trends' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('revenue-trends')}
+          >
+            <TrendUp size={18} className="mr-2" />
+            Revenue & Occupancy
+          </Button>
+
+          <Button
             variant={currentModule === 'forecasting' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('forecasting')}
           >
             <Sparkle size={18} className="mr-2" />
             AI Forecasting
+          </Button>
+
+          <Button
+            variant={currentModule === 'reports' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('reports')}
+          >
+            <FileText size={18} className="mr-2" />
+            Reports
           </Button>
 
           <Separator className="my-2" />
@@ -874,45 +1193,60 @@ function App() {
         </SheetContent>
 
         <main className="flex-1 flex flex-col lg:ml-64 min-h-screen">
-          <div className="sticky top-0 z-30 border-b bg-card px-4 py-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="lg:hidden">
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <List size={24} />
-                  </Button>
-                </SheetTrigger>
+          <div className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+            <div className="px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                <div className="lg:hidden">
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-10">
+                      <List size={20} className="sm:w-6 sm:h-6" />
+                    </Button>
+                  </SheetTrigger>
+                </div>
+                <div className="hidden sm:flex items-center gap-2 flex-1 max-w-md">
+                  <GlobalSearch
+                    guests={guests || []}
+                    guestProfiles={guestProfiles || []}
+                    reservations={reservations || []}
+                    invoices={guestInvoices || []}
+                    onNavigate={handleNavigateFromSearch}
+                  />
+                </div>
               </div>
-              <div className="hidden sm:flex items-center gap-2 flex-1 max-w-md">
-                <GlobalSearch
-                  guests={guests || []}
-                  guestProfiles={guestProfiles || []}
-                  reservations={reservations || []}
-                  invoices={guestInvoices || []}
-                  onNavigate={handleNavigateFromSearch}
+              <img 
+                src={w3PMSLogo}
+                alt="W3 Hotel PMS" 
+                className="h-6 sm:h-8 w-auto object-contain flex-shrink-0"
+              />
+              <div className="flex items-center gap-1 sm:gap-2">
+                <div className="hidden md:flex items-center gap-2">
+                  <ServerSyncStatusIndicator
+                    syncStatus={getCombinedSyncStatus()}
+                    queueDepth={getCombinedQueueDepth()}
+                    lastSyncTime={getLatestSyncTime()}
+                    conflictCount={getCombinedConflictCount()}
+                    onForceSync={handleForceSync}
+                    onShowConflicts={() => setShowSyncConflicts(true)}
+                  />
+                  <SyncStatusIndicator />
+                </div>
+                <div className="hidden sm:block">
+                  <ColorMoodSelector />
+                </div>
+                <ThemeToggle />
+                <NotificationPanel
+                  notifications={notifications || []}
+                  onMarkAsRead={handleMarkAsRead}
+                  onMarkAllAsRead={handleMarkAllAsRead}
+                  onDismiss={handleDismiss}
+                  onArchive={handleArchive}
+                  onClearAll={handleClearAll}
                 />
               </div>
             </div>
-            <img 
-              src={w3PMSLogo}
-              alt="W3 Hotel PMS" 
-              className="h-8 w-auto object-contain"
-            />
-            <div className="flex items-center gap-2">
-              <ColorMoodSelector />
-              <ThemeToggle />
-              <NotificationPanel
-                notifications={notifications || []}
-                onMarkAsRead={handleMarkAsRead}
-                onMarkAllAsRead={handleMarkAllAsRead}
-                onDismiss={handleDismiss}
-                onArchive={handleArchive}
-                onClearAll={handleClearAll}
-              />
-            </div>
           </div>
           
-          <div className="sm:hidden px-4 py-2 border-b bg-card">
+          <div className="sm:hidden px-3 py-2 border-b bg-card">
             <GlobalSearch
               guests={guests || []}
               guestProfiles={guestProfiles || []}
@@ -922,7 +1256,7 @@ function App() {
             />
           </div>
 
-        <div className="flex-1 p-4 md:p-6 lg:p-8">{currentModule === 'dashboard' && renderDashboard()}
+        <div className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8">{currentModule === 'dashboard' && renderDashboard()}
           {currentModule === 'front-office' && (
             <FrontOffice
               guests={guests || []}
@@ -959,6 +1293,8 @@ function App() {
               rateCalendar={rateCalendar || []}
               setRateCalendar={setRateCalendar}
               currentUser={currentUser}
+              reservations={reservations || []}
+              invoices={guestInvoices || []}
             />
           )}
           {currentModule === 'housekeeping' && (
@@ -1113,6 +1449,10 @@ function App() {
           )}
           {currentModule === 'analytics' && (
             <Analytics
+              rooms={rooms || []}
+              reservations={reservations || []}
+              guests={guests || []}
+              guestProfiles={guestProfiles || []}
               orders={orders || []}
               foodItems={foodItems || []}
               suppliers={suppliers || []}
@@ -1121,6 +1461,32 @@ function App() {
               menus={menus || []}
               consumptionLogs={consumptionLogs || []}
               purchaseOrders={purchaseOrders || []}
+              employees={employees || []}
+              housekeepingTasks={housekeepingTasks || []}
+              guestInvoices={guestInvoices || []}
+              payments={payments || []}
+              expenses={expenses || []}
+              folios={folios || []}
+              inventory={inventory || []}
+              complaints={complaints || []}
+              guestFeedback={guestFeedback || []}
+              channelReservations={channelReservations || []}
+              channelPerformance={channelPerformance || []}
+              maintenanceRequests={maintenanceRequests || []}
+              emailAnalytics={emailAnalytics || []}
+              campaignAnalytics={campaignAnalytics || []}
+              emailRecords={emailRecords || []}
+            />
+          )}
+          {currentModule === 'revenue-trends' && (
+            <RevenueOccupancyTrends
+              reservations={reservations || []}
+              orders={orders || []}
+              invoices={guestInvoices || []}
+              totalRooms={(rooms || []).length}
+              rooms={rooms || []}
+              roomTypes={roomTypeConfigs || []}
+              ratePlans={ratePlanConfigs || []}
             />
           )}
           {currentModule === 'forecasting' && (
@@ -1373,26 +1739,62 @@ function App() {
               campaignAnalytics={campaignAnalytics || []}
               emailRecords={emailRecords || []}
               currentUser={currentUser}
+              activeTab={settingsTab}
+            />
+          )}
+          {currentModule === 'reports' && (
+            <Reports
+              rooms={rooms || []}
+              reservations={reservations || []}
+              guests={guests || []}
+              orders={orders || []}
+              employees={employees || []}
+              housekeepingTasks={housekeepingTasks || []}
+              inventory={inventory || []}
+              guestInvoices={guestInvoices || []}
+              payments={payments || []}
+              expenses={expenses || []}
+              currentUser={currentUser}
+            />
+          )}
+          {currentModule === 'night-audit' && (
+            <NightAudit
+              folios={folios || []}
+              setFolios={setFolios}
+              reservations={reservations || []}
+              rooms={rooms || []}
+              guests={guests || []}
+              guestInvoices={guestInvoices || []}
+              setGuestInvoices={setGuestInvoices}
+              payments={payments || []}
+              setPayments={setPayments}
+              taxes={taxes || []}
+              serviceCharge={serviceCharge || null}
+              invoiceSequences={invoiceSequences || []}
+              setInvoiceSequences={setInvoiceSequences}
+              auditLogs={nightAuditLogs || []}
+              setAuditLogs={setNightAuditLogs}
+              currentUser={currentUser}
             />
           )}
         </div>
         
         <footer className="border-t border-border overflow-hidden mt-auto bg-card">
-          <div className="px-4 py-4 md:px-6 lg:px-8 md:py-5">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
-              <p className="text-sm font-medium text-foreground/80">
+          <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 md:gap-3">
+              <p className="text-xs sm:text-sm font-medium text-foreground/80 text-center">
                 © {new Date().getFullYear()} {branding?.hotelName || 'W3 Hotel'} - Design & Developed by
               </p>
               <a 
                 href="https://www.w3media.lk/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity mobile-optimized-button p-0 min-h-0"
               >
                 <img 
                   src={w3MediaLogo}
                   alt="W3 Media PVT LTD" 
-                  className="h-6 md:h-7"
+                  className="h-5 sm:h-6 md:h-7"
                 />
               </a>
             </div>
@@ -1400,6 +1802,14 @@ function App() {
         </footer>
         </main>
       </Sheet>
+
+      <ServerSyncConflictDialog
+        open={showSyncConflicts}
+        onOpenChange={setShowSyncConflicts}
+        conflicts={allConflicts}
+        onResolve={handleResolveConflict}
+        onIgnore={handleIgnoreConflict}
+      />
 
       <Toaster position="top-right" richColors />
     </div>

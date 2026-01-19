@@ -1,384 +1,371 @@
 import { useState, useMemo } from 'react'
 import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import {
-  Bed,
-  Check,
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { 
+  Bed, 
+  MagnifyingGlass, 
   Broom,
   Wrench,
+  CheckCircle,
   Clock,
-  DoorOpen,
-  MagnifyingGlass,
-  FunnelSimple,
-  SquaresFour,
-  List as ListIcon
+  XCircle,
+  Warning,
+  CalendarBlank,
+  Users
 } from '@phosphor-icons/react'
-import type { Room, RoomStatus, RoomType, Reservation } from '@/lib/types'
-import { formatCurrency, getRoomStatusColor } from '@/lib/helpers'
-import { motion } from 'framer-motion'
+import { type Room, type Reservation } from '@/lib/types'
+import { formatDate } from '@/lib/helpers'
 
 interface RoomAvailabilityDashboardProps {
   rooms: Room[]
   reservations: Reservation[]
-  onRoomClick: (room: Room) => void
-  onQuickAction?: (room: Room, action: 'clean' | 'inspect' | 'maintenance' | 'assign') => void
+  onRoomClick?: (room: Room) => void
+  onQuickAssign?: (roomId: string) => void
 }
 
-export function RoomAvailabilityDashboard({
-  rooms,
+export function RoomAvailabilityDashboard({ 
+  rooms, 
   reservations,
   onRoomClick,
-  onQuickAction
+  onQuickAssign
 }: RoomAvailabilityDashboardProps) {
   const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<RoomStatus | 'all'>('all')
-  const [typeFilter, setTypeFilter] = useState<RoomType | 'all'>('all')
-  const [floorFilter, setFloorFilter] = useState<string>('all')
-  const [viewMode, setViewMode] = useState<'grid' | 'floor'>('grid')
+  const [filterStatus, setFilterStatus] = useState<string>('all')
+  const [filterFloor, setFilterFloor] = useState<string>('all')
+  const [view, setView] = useState<'grid' | 'list'>('grid')
 
-  const floors = useMemo(() => 
-    Array.from(new Set(rooms.map(r => r.floor))).sort((a, b) => a - b),
-    [rooms]
-  )
+  const floors = useMemo(() => {
+    const floorSet = new Set(rooms.map(r => String(r.floor || 1)))
+    return Array.from(floorSet).sort((a, b) => parseInt(a) - parseInt(b))
+  }, [rooms])
+
+  const statusCounts = useMemo(() => {
+    const counts = {
+      vacant: 0,
+      occupied: 0,
+      dirty: 0,
+      maintenance: 0,
+      reserved: 0
+    }
+    
+    rooms.forEach(room => {
+      if (room.status === 'vacant-clean') counts.vacant++
+      else if (room.status === 'occupied-clean' || room.status === 'occupied-dirty') counts.occupied++
+      else if (room.status === 'vacant-dirty') counts.dirty++
+      else if (room.status === 'out-of-order' || room.status === 'maintenance') counts.maintenance++
+      
+      const hasUpcomingReservation = reservations.some(
+        r => r.roomId === room.id && r.status === 'confirmed' && 
+        new Date(r.checkInDate) > new Date() && 
+        new Date(r.checkInDate) <= new Date(Date.now() + 24 * 60 * 60 * 1000)
+      )
+      if (hasUpcomingReservation) counts.reserved++
+    })
+    
+    return counts
+  }, [rooms, reservations])
 
   const filteredRooms = useMemo(() => {
     return rooms.filter(room => {
-      const matchesSearch = room.roomNumber.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesStatus = statusFilter === 'all' || room.status === statusFilter
-      const matchesType = typeFilter === 'all' || room.roomType === typeFilter
-      const matchesFloor = floorFilter === 'all' || room.floor.toString() === floorFilter
-      return matchesSearch && matchesStatus && matchesType && matchesFloor
+      const matchesSearch = searchQuery === '' || 
+        room.roomNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        room.roomType.toLowerCase().includes(searchQuery.toLowerCase())
+      
+      const matchesStatus = filterStatus === 'all' || 
+        (filterStatus === 'vacant' && room.status === 'vacant-clean') ||
+        (filterStatus === 'occupied' && (room.status === 'occupied-clean' || room.status === 'occupied-dirty')) ||
+        (filterStatus === 'dirty' && room.status === 'vacant-dirty') ||
+        (filterStatus === 'maintenance' && (room.status === 'out-of-order' || room.status === 'maintenance'))
+      
+      const matchesFloor = filterFloor === 'all' || String(room.floor) === filterFloor
+      
+      return matchesSearch && matchesStatus && matchesFloor
     })
-  }, [rooms, searchQuery, statusFilter, typeFilter, floorFilter])
+  }, [rooms, searchQuery, filterStatus, filterFloor])
 
-  const roomStats = useMemo(() => {
-    const total = rooms.length
-    const available = rooms.filter(r => r.status === 'vacant-clean').length
-    const occupied = rooms.filter(r => r.status.includes('occupied')).length
-    const dirty = rooms.filter(r => r.status.includes('dirty')).length
-    const maintenance = rooms.filter(r => r.status.includes('maintenance')).length
-    const occupancyRate = total > 0 ? ((occupied / total) * 100).toFixed(1) : '0'
-    
-    return { total, available, occupied, dirty, maintenance, occupancyRate }
-  }, [rooms])
-
-  const getStatusIcon = (status: RoomStatus) => {
-    if (status.includes('occupied')) return <Bed size={18} weight="fill" />
-    if (status.includes('dirty')) return <Broom size={18} />
-    if (status.includes('maintenance')) return <Wrench size={18} />
-    if (status.includes('clean')) return <Check size={18} weight="bold" />
-    return <DoorOpen size={18} />
+  const getRoomStatusIcon = (status: string) => {
+    switch (status) {
+      case 'vacant-clean':
+        return <CheckCircle size={20} className="text-success" weight="fill" />
+      case 'occupied':
+        return <Users size={20} className="text-primary" weight="fill" />
+      case 'vacant-dirty':
+      case 'dirty':
+        return <Broom size={20} className="text-accent" weight="fill" />
+      case 'out-of-order':
+        return <Wrench size={20} className="text-destructive" weight="fill" />
+      default:
+        return <Clock size={20} className="text-muted-foreground" />
+    }
   }
 
-  const getStatusLabel = (status: RoomStatus): string => {
-    const labels: Record<string, string> = {
-      'vacant-clean': 'Available',
-      'vacant-dirty': 'Needs Cleaning',
-      'occupied-clean': 'Occupied',
-      'occupied-dirty': 'Occupied',
-      'out-of-order': 'Maintenance',
-      'maintenance': 'Maintenance'
+  const getRoomStatusColor = (status: string) => {
+    switch (status) {
+      case 'vacant-clean':
+        return 'bg-success/10 border-success/30 hover:bg-success/20'
+      case 'occupied':
+        return 'bg-primary/10 border-primary/30 hover:bg-primary/20'
+      case 'vacant-dirty':
+      case 'dirty':
+        return 'bg-accent/10 border-accent/30 hover:bg-accent/20'
+      case 'out-of-order':
+        return 'bg-destructive/10 border-destructive/30 hover:bg-destructive/20'
+      default:
+        return 'bg-muted border-border hover:bg-muted/80'
     }
-    return labels[status] || status
   }
 
-  const getQuickActions = (room: Room) => {
-    const actions: Array<{ action: 'clean' | 'inspect' | 'maintenance' | 'assign', label: string, icon: React.ReactElement }> = []
-    
-    if (room.status.includes('dirty')) {
-      actions.push({ action: 'clean', label: 'Mark Clean', icon: <Broom size={14} /> })
+  const getRoomStatusLabel = (status: string) => {
+    switch (status) {
+      case 'vacant-clean':
+        return 'Available'
+      case 'occupied':
+        return 'Occupied'
+      case 'vacant-dirty':
+      case 'dirty':
+        return 'Dirty'
+      case 'out-of-order':
+        return 'Maintenance'
+      default:
+        return status
     }
-    if (room.status === 'vacant-clean' && onQuickAction) {
-      actions.push({ action: 'assign', label: 'Assign Guest', icon: <Bed size={14} /> })
-    }
-    if (!room.status.includes('maintenance')) {
-      actions.push({ action: 'maintenance', label: 'Maintenance', icon: <Wrench size={14} /> })
-    }
-    
-    return actions
+  }
+
+  const getUpcomingReservation = (roomId: string) => {
+    return reservations.find(
+      r => r.roomId === roomId && 
+      r.status === 'confirmed' && 
+      new Date(r.checkInDate) > new Date()
+    )
   }
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
-        <Card className="p-4 border-l-4 border-l-primary">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs md:text-sm text-muted-foreground">Total Rooms</p>
-              <p className="text-2xl md:text-3xl font-bold">{roomStats.total}</p>
-            </div>
-            <Bed size={32} className="text-primary" />
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <Card className="p-4 border-l-4 border-l-success">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Available</h3>
+            <CheckCircle size={20} className="text-success" weight="fill" />
           </div>
+          <p className="text-3xl font-semibold">{statusCounts.vacant}</p>
         </Card>
 
-        <Card className="p-4 border-l-4 border-l-success">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs md:text-sm text-muted-foreground">Available</p>
-              <p className="text-2xl md:text-3xl font-bold text-success">{roomStats.available}</p>
-            </div>
-            <Check size={32} className="text-success" weight="bold" />
+        <Card className="p-4 border-l-4 border-l-primary">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Occupied</h3>
+            <Users size={20} className="text-primary" weight="fill" />
           </div>
+          <p className="text-3xl font-semibold">{statusCounts.occupied}</p>
         </Card>
 
         <Card className="p-4 border-l-4 border-l-accent">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs md:text-sm text-muted-foreground">Occupied</p>
-              <p className="text-2xl md:text-3xl font-bold text-accent">{roomStats.occupied}</p>
-            </div>
-            <Bed size={32} className="text-accent" weight="fill" />
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Dirty</h3>
+            <Broom size={20} className="text-accent" weight="fill" />
           </div>
+          <p className="text-3xl font-semibold">{statusCounts.dirty}</p>
         </Card>
 
         <Card className="p-4 border-l-4 border-l-destructive">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs md:text-sm text-muted-foreground">Dirty</p>
-              <p className="text-2xl md:text-3xl font-bold text-destructive">{roomStats.dirty}</p>
-            </div>
-            <Broom size={32} className="text-destructive" />
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Maintenance</h3>
+            <Wrench size={20} className="text-destructive" weight="fill" />
           </div>
+          <p className="text-3xl font-semibold">{statusCounts.maintenance}</p>
         </Card>
 
         <Card className="p-4 border-l-4 border-l-secondary">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs md:text-sm text-muted-foreground">Occupancy</p>
-              <p className="text-2xl md:text-3xl font-bold text-secondary">{roomStats.occupancyRate}%</p>
-            </div>
-            <Clock size={32} className="text-secondary" />
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Reserved (24h)</h3>
+            <CalendarBlank size={20} className="text-secondary" weight="fill" />
           </div>
+          <p className="text-3xl font-semibold">{statusCounts.reserved}</p>
         </Card>
       </div>
 
-      <Card className="p-4 md:p-6">
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <h3 className="text-lg font-semibold">Room Status Overview</h3>
-            <div className="flex items-center gap-2">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-              >
-                <SquaresFour size={16} className="mr-1" />
-                Grid
-              </Button>
-              <Button
-                variant={viewMode === 'floor' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('floor')}
-              >
-                <ListIcon size={16} className="mr-1" />
-                By Floor
-              </Button>
-            </div>
+      <Card className="p-6">
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex-1 relative">
+            <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+            <Input
+              placeholder="Search by room number or type..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="relative">
-              <MagnifyingGlass size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search room..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-full md:w-48">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="vacant">Available</SelectItem>
+              <SelectItem value="occupied">Occupied</SelectItem>
+              <SelectItem value="dirty">Dirty</SelectItem>
+              <SelectItem value="maintenance">Maintenance</SelectItem>
+            </SelectContent>
+          </Select>
 
-            <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val as RoomStatus | 'all')}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="vacant-clean">Available</SelectItem>
-                <SelectItem value="vacant-dirty">Dirty</SelectItem>
-                <SelectItem value="occupied-clean">Occupied</SelectItem>
-                <SelectItem value="out-of-order">Maintenance</SelectItem>
-              </SelectContent>
-            </Select>
+          <Select value={filterFloor} onValueChange={setFilterFloor}>
+            <SelectTrigger className="w-full md:w-32">
+              <SelectValue placeholder="Floor" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Floors</SelectItem>
+              {floors.map(floor => (
+                <SelectItem key={floor} value={floor}>Floor {floor}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-            <Select value={typeFilter} onValueChange={(val) => setTypeFilter(val as RoomType | 'all')}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="standard">Standard</SelectItem>
-                <SelectItem value="deluxe">Deluxe</SelectItem>
-                <SelectItem value="suite">Suite</SelectItem>
-                <SelectItem value="presidential">Presidential</SelectItem>
-              </SelectContent>
-            </Select>
+          <Tabs value={view} onValueChange={(v) => setView(v as 'grid' | 'list')} className="w-full md:w-auto">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="grid">Grid</TabsTrigger>
+              <TabsTrigger value="list">List</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
 
-            <Select value={floorFilter} onValueChange={setFloorFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by floor" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Floors</SelectItem>
-                {floors.map(floor => (
-                  <SelectItem key={floor} value={floor.toString()}>
-                    Floor {floor}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        {view === 'grid' ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            {filteredRooms.map(room => {
+              const upcomingReservation = getUpcomingReservation(room.id)
+              return (
+                <Card
+                  key={room.id}
+                  className={`p-4 cursor-pointer transition-all hover:scale-105 border-2 ${getRoomStatusColor(room.status)}`}
+                  onClick={() => onRoomClick?.(room)}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <h3 className="font-semibold text-lg">{room.roomNumber}</h3>
+                      <p className="text-xs text-muted-foreground">{room.roomType}</p>
+                    </div>
+                    {getRoomStatusIcon(room.status)}
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <Badge variant="secondary" className="text-xs">
+                      {getRoomStatusLabel(room.status)}
+                    </Badge>
+                    
+                    {upcomingReservation && (
+                      <div className="mt-2 p-2 bg-secondary/20 rounded text-xs">
+                        <div className="flex items-center gap-1 text-secondary-foreground">
+                          <CalendarBlank size={12} />
+                          <span>Reserved</span>
+                        </div>
+                        <p className="text-muted-foreground mt-1">
+                          {formatDate(upcomingReservation.checkInDate)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {room.status === 'vacant-clean' && onQuickAssign && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="w-full mt-3"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onQuickAssign(room.id)
+                      }}
+                    >
+                      Quick Assign
+                    </Button>
+                  )}
+                </Card>
+              )
+            })}
           </div>
-
-          {viewMode === 'grid' ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-              {filteredRooms.map((room) => (
-                <TooltipProvider key={room.id}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <motion.div
-                        whileHover={{ scale: 1.05, y: -4 }}
-                        whileTap={{ scale: 0.98 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <Card
-                          className={`
-                            p-3 cursor-pointer transition-all duration-200
-                            border-2 hover:shadow-lg
-                            ${getRoomStatusColor(room.status)}
-                          `}
-                          onClick={() => onRoomClick(room)}
-                        >
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-lg">{room.roomNumber}</span>
-                              {getStatusIcon(room.status)}
-                            </div>
-                            <Badge variant="secondary" className="text-xs w-full justify-center">
-                              {room.roomType}
-                            </Badge>
-                            <div className="text-xs text-muted-foreground">
-                              Floor {room.floor}
-                            </div>
-                          </div>
-                        </Card>
-                      </motion.div>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="p-3">
-                      <div className="space-y-1">
-                        <p className="font-semibold">{room.roomNumber} - {room.roomType}</p>
-                        <p className="text-xs">Status: {getStatusLabel(room.status)}</p>
-                        <p className="text-xs">Rate: {formatCurrency(room.baseRate)}/night</p>
-                        <p className="text-xs">Floor: {room.floor} | Capacity: {room.maxOccupancy}</p>
-                        {getQuickActions(room).length > 0 && (
-                          <div className="flex gap-1 mt-2 pt-2 border-t">
-                            {getQuickActions(room).map((qa) => (
-                              <Button
-                                key={qa.action}
-                                size="sm"
-                                variant="outline"
-                                className="text-xs h-7 px-2"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  onQuickAction?.(room, qa.action)
-                                }}
-                              >
-                                {qa.icon}
-                                <span className="ml-1">{qa.label}</span>
-                              </Button>
-                            ))}
-                          </div>
+        ) : (
+          <div className="space-y-2">
+            {filteredRooms.map(room => {
+              const upcomingReservation = getUpcomingReservation(room.id)
+              return (
+                <Card
+                  key={room.id}
+                  className={`p-4 cursor-pointer hover:bg-accent/5 border ${getRoomStatusColor(room.status)}`}
+                  onClick={() => onRoomClick?.(room)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      {getRoomStatusIcon(room.status)}
+                      <div>
+                        <h3 className="font-semibold">{room.roomNumber}</h3>
+                        <p className="text-sm text-muted-foreground">{room.roomType}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <Badge variant="secondary">
+                          {getRoomStatusLabel(room.status)}
+                        </Badge>
+                        {upcomingReservation && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Reserved: {formatDate(upcomingReservation.checkInDate)}
+                          </p>
                         )}
                       </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {floors.map(floor => {
-                const floorRooms = filteredRooms.filter(r => r.floor === floor)
-                if (floorRooms.length === 0) return null
-                
-                return (
-                  <div key={floor} className="space-y-3">
-                    <h4 className="font-semibold text-lg flex items-center gap-2">
-                      <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm">
-                        Floor {floor}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        ({floorRooms.length} rooms)
-                      </span>
-                    </h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-                      {floorRooms.map((room) => (
-                        <TooltipProvider key={room.id}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <motion.div
-                                whileHover={{ scale: 1.05, y: -4 }}
-                                whileTap={{ scale: 0.98 }}
-                                transition={{ duration: 0.2 }}
-                              >
-                                <Card
-                                  className={`
-                                    p-3 cursor-pointer transition-all duration-200
-                                    border-2 hover:shadow-lg
-                                    ${getRoomStatusColor(room.status)}
-                                  `}
-                                  onClick={() => onRoomClick(room)}
-                                >
-                                  <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                      <span className="font-bold text-lg">{room.roomNumber}</span>
-                                      {getStatusIcon(room.status)}
-                                    </div>
-                                    <Badge variant="secondary" className="text-xs w-full justify-center">
-                                      {room.roomType}
-                                    </Badge>
-                                  </div>
-                                </Card>
-                              </motion.div>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="p-3">
-                              <div className="space-y-1">
-                                <p className="font-semibold">{room.roomNumber} - {room.roomType}</p>
-                                <p className="text-xs">Status: {getStatusLabel(room.status)}</p>
-                                <p className="text-xs">Rate: {formatCurrency(room.baseRate)}/night</p>
-                                <p className="text-xs">Capacity: {room.maxOccupancy}</p>
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      ))}
+                      
+                      {room.status === 'vacant-clean' && onQuickAssign && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onQuickAssign(room.id)
+                          }}
+                        >
+                          Quick Assign
+                        </Button>
+                      )}
                     </div>
                   </div>
-                )
-              })}
-            </div>
-          )}
+                </Card>
+              )
+            })}
+          </div>
+        )}
 
-          {filteredRooms.length === 0 && (
-            <div className="text-center py-12">
-              <Bed size={64} className="mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No rooms found matching your filters</p>
-            </div>
-          )}
+        {filteredRooms.length === 0 && (
+          <div className="text-center py-12">
+            <Bed size={48} className="mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No rooms found</h3>
+            <p className="text-muted-foreground">
+              Try adjusting your search or filters
+            </p>
+          </div>
+        )}
+      </Card>
+
+      <Card className="p-6">
+        <h3 className="font-semibold mb-4">Legend</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="flex items-center gap-3">
+            <CheckCircle size={20} className="text-success" weight="fill" />
+            <span className="text-sm">Available - Ready for check-in</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Users size={20} className="text-primary" weight="fill" />
+            <span className="text-sm">Occupied - Guest checked in</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Broom size={20} className="text-accent" weight="fill" />
+            <span className="text-sm">Dirty - Needs housekeeping</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Wrench size={20} className="text-destructive" weight="fill" />
+            <span className="text-sm">Maintenance - Out of order</span>
+          </div>
         </div>
       </Card>
     </div>

@@ -1,10 +1,10 @@
 export const responsiveClasses = {
   dialog: {
-    container: 'flex flex-col max-h-[95vh] sm:max-h-[90vh]',
-    header: 'sticky top-0 bg-background z-10 pb-3 sm:pb-4 border-b shrink-0',
-    body: 'overflow-y-auto overflow-x-hidden flex-1 px-3 sm:px-6 py-3 sm:py-4 min-h-0',
-    footer: 'sticky bottom-0 bg-background z-10 pt-3 sm:pt-4 border-t shrink-0',
-    title: 'text-base sm:text-lg font-semibold',
+    container: 'flex flex-col max-h-[95vh] sm:max-h-[92vh] md:max-h-[90vh]',
+    header: 'sticky top-0 bg-background z-10 pb-2 sm:pb-3 md:pb-4 border-b shrink-0',
+    body: 'overflow-y-auto overflow-x-hidden flex-1 px-3 sm:px-4 md:px-5 lg:px-6 py-2 sm:py-3 md:py-4 min-h-0',
+    footer: 'sticky bottom-0 bg-background z-10 pt-2 sm:pt-3 md:pt-4 border-t shrink-0',
+    title: 'text-sm sm:text-base md:text-lg font-semibold',
     description: 'text-xs sm:text-sm text-muted-foreground',
   },
   
@@ -28,25 +28,25 @@ export const responsiveClasses = {
   },
   
   grid: {
-    cols1: 'grid grid-cols-1 gap-3 sm:gap-4',
-    cols2: 'grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4',
-    cols3: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4',
-    cols4: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4',
-    cols6: 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3',
+    cols1: 'grid grid-cols-1 gap-3 sm:gap-4 md:gap-5',
+    cols2: 'grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5',
+    cols3: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5',
+    cols4: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5',
+    cols6: 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4',
   },
   
   spacing: {
     section: 'space-y-3 sm:space-y-4 md:space-y-6',
-    sectionSm: 'space-y-2 sm:space-y-3',
-    stack: 'flex flex-col gap-2 sm:gap-3',
-    stackSm: 'flex flex-col gap-1.5 sm:gap-2',
-    inline: 'flex flex-wrap gap-2 sm:gap-3',
+    sectionSm: 'space-y-2 sm:space-y-3 md:space-y-4',
+    stack: 'flex flex-col gap-2 sm:gap-3 md:gap-4',
+    stackSm: 'flex flex-col gap-1.5 sm:gap-2 md:gap-2.5',
+    inline: 'flex flex-wrap gap-2 sm:gap-3 md:gap-4',
   },
   
   card: {
-    default: 'p-3 sm:p-4 md:p-6 rounded-lg border',
-    compact: 'p-2 sm:p-3 rounded-lg border',
-    stat: 'p-3 sm:p-4 rounded-lg border',
+    default: 'p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg border',
+    compact: 'p-2 sm:p-3 md:p-4 rounded-lg border',
+    stat: 'p-3 sm:p-4 md:p-5 rounded-lg border',
   },
   
   text: {
@@ -67,7 +67,7 @@ export const responsiveClasses = {
   },
   
   layout: {
-    mobileStack: 'flex flex-col sm:flex-row gap-2 sm:gap-3',
+    mobileStack: 'flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4',
     mobileFullWidth: 'w-full sm:w-auto',
     mobileHide: 'hidden sm:block',
     mobileShow: 'block sm:hidden',

@@ -19,18 +19,13 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': resolve(projectRoot, 'src')
+      '@': resolve(projectRoot, 'src'),
+      'react': resolve(projectRoot, 'node_modules/react'),
+      'react-dom': resolve(projectRoot, 'node_modules/react-dom')
     }
   },
-  server: {
-    host: '0.0.0.0',
-    port: 5000,
-    allowedHosts: true,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3001',
-        changeOrigin: true,
-      },
-    },
+  optimizeDeps: {
+    exclude: ['framer-motion'],
+    include: ['react', 'react-dom', 'vaul', 'embla-carousel-react']
   },
 });

@@ -34,6 +34,21 @@ import {
   ArrowUp,
   ArrowDown
 } from '@phosphor-icons/react'
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  ComposedChart
+} from 'recharts'
 import type { EmailTemplateAnalytics, EmailSentRecord, EmailCampaignAnalytics } from '@/lib/types'
 import { formatPercent } from '@/lib/helpers'
 
@@ -124,6 +139,80 @@ export function EmailTemplateAnalyticsComponent({
     return 'text-destructive'
   }
 
+  const chartData = useMemo(() => {
+    return filteredAnalytics.map((analytics) => ({
+      name: analytics.templateName.length > 20 
+        ? analytics.templateName.substring(0, 20) + '...' 
+        : analytics.templateName,
+      fullName: analytics.templateName,
+      openRate: Number(analytics.openRate.toFixed(2)),
+      clickRate: Number(analytics.clickRate.toFixed(2)),
+      clickToOpenRate: Number(analytics.clickToOpenRate.toFixed(2)),
+      deliveryRate: Number(((analytics.totalDelivered / analytics.totalSent) * 100).toFixed(2)),
+      bounceRate: Number(analytics.bounceRate.toFixed(2)),
+      sent: analytics.totalSent,
+      opened: analytics.totalOpened,
+      clicked: analytics.totalClicked,
+    }))
+  }, [filteredAnalytics])
+
+  const trendData = useMemo(() => {
+    const grouped = new Map<string, {
+      date: string
+      totalSent: number
+      totalOpened: number
+      totalClicked: number
+      totalDelivered: number
+    }>()
+
+    emailRecords.forEach(record => {
+      const date = new Date(record.sentAt).toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric' 
+      })
+      
+      if (!grouped.has(date)) {
+        grouped.set(date, {
+          date,
+          totalSent: 0,
+          totalOpened: 0,
+          totalClicked: 0,
+          totalDelivered: 0,
+        })
+      }
+
+      const data = grouped.get(date)!
+      data.totalSent += 1
+      
+      const hasDelivered = record.events.some(e => e.eventType === 'delivered')
+      const hasOpened = record.events.some(e => e.eventType === 'opened')
+      const hasClicked = record.events.some(e => e.eventType === 'clicked')
+      
+      if (hasDelivered) data.totalDelivered += 1
+      if (hasOpened) data.totalOpened += 1
+      if (hasClicked) data.totalClicked += 1
+    })
+
+    const sorted = Array.from(grouped.values())
+      .sort((a, b) => {
+        const dateA = new Date(a.date)
+        const dateB = new Date(b.date)
+        return dateA.getTime() - dateB.getTime()
+      })
+      .slice(-14)
+
+    return sorted.map(item => ({
+      date: item.date,
+      openRate: item.totalDelivered > 0 
+        ? Number(((item.totalOpened / item.totalDelivered) * 100).toFixed(2))
+        : 0,
+      clickRate: item.totalDelivered > 0
+        ? Number(((item.totalClicked / item.totalDelivered) * 100).toFixed(2))
+        : 0,
+      sent: item.totalSent,
+    }))
+  }, [emailRecords])
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -210,6 +299,211 @@ export function EmailTemplateAnalyticsComponent({
           <p className="text-sm text-muted-foreground mt-1">
             Engagement quality metric
           </p>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="p-6">
+          <h3 className="font-semibold mb-4 flex items-center gap-2">
+            <TrendUp size={20} className="text-primary" />
+            Open Rate & Click Rate Trends (Last 14 Days)
+          </h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={trendData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.28 0.020 265)" />
+              <XAxis 
+                dataKey="date" 
+                stroke="oklch(0.68 0.015 265)" 
+                style={{ fontSize: '12px' }}
+              />
+              <YAxis 
+                stroke="oklch(0.68 0.015 265)" 
+                style={{ fontSize: '12px' }}
+                tickFormatter={(value) => `${value}%`}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'oklch(0.18 0.015 265)',
+                  border: '1px solid oklch(0.28 0.020 265)',
+                  borderRadius: '8px',
+                }}
+                labelStyle={{ color: 'oklch(0.98 0.008 265)' }}
+                itemStyle={{ color: 'oklch(0.98 0.008 265)' }}
+                formatter={(value: any) => `${value}%`}
+              />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey="openRate" 
+                name="Open Rate"
+                stroke="oklch(0.65 0.22 265)" 
+                strokeWidth={2}
+                dot={{ fill: 'oklch(0.65 0.22 265)', r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="clickRate" 
+                name="Click Rate"
+                stroke="oklch(0.68 0.24 35)" 
+                strokeWidth={2}
+                dot={{ fill: 'oklch(0.68 0.24 35)', r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="font-semibold mb-4 flex items-center gap-2">
+            <ChartBar size={20} className="text-accent" />
+            Template Performance Comparison
+          </h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartData.slice(0, 8)}>
+              <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.28 0.020 265)" />
+              <XAxis 
+                dataKey="name" 
+                stroke="oklch(0.68 0.015 265)" 
+                style={{ fontSize: '11px' }}
+                angle={-45}
+                textAnchor="end"
+                height={100}
+              />
+              <YAxis 
+                stroke="oklch(0.68 0.015 265)" 
+                style={{ fontSize: '12px' }}
+                tickFormatter={(value) => `${value}%`}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'oklch(0.18 0.015 265)',
+                  border: '1px solid oklch(0.28 0.020 265)',
+                  borderRadius: '8px',
+                }}
+                labelStyle={{ color: 'oklch(0.98 0.008 265)' }}
+                itemStyle={{ color: 'oklch(0.98 0.008 265)' }}
+                formatter={(value: any, name: string) => [
+                  `${value}%`,
+                  name === 'openRate' ? 'Open Rate' : name === 'clickRate' ? 'Click Rate' : name
+                ]}
+                labelFormatter={(label) => {
+                  const item = chartData.find(d => d.name === label)
+                  return item?.fullName || label
+                }}
+              />
+              <Legend 
+                formatter={(value) => value === 'openRate' ? 'Open Rate' : value === 'clickRate' ? 'Click Rate' : value}
+              />
+              <Bar 
+                dataKey="openRate" 
+                fill="oklch(0.65 0.22 265)" 
+                radius={[4, 4, 0, 0]}
+              />
+              <Bar 
+                dataKey="clickRate" 
+                fill="oklch(0.68 0.24 35)" 
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="p-6">
+          <h3 className="font-semibold mb-4 flex items-center gap-2">
+            <EnvelopeOpen size={20} className="text-success" />
+            Engagement Funnel
+          </h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartData.slice(0, 6)} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.28 0.020 265)" />
+              <XAxis 
+                type="number" 
+                stroke="oklch(0.68 0.015 265)" 
+                style={{ fontSize: '12px' }}
+              />
+              <YAxis 
+                dataKey="name" 
+                type="category" 
+                width={150}
+                stroke="oklch(0.68 0.015 265)" 
+                style={{ fontSize: '11px' }}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'oklch(0.18 0.015 265)',
+                  border: '1px solid oklch(0.28 0.020 265)',
+                  borderRadius: '8px',
+                }}
+                labelStyle={{ color: 'oklch(0.98 0.008 265)' }}
+                itemStyle={{ color: 'oklch(0.98 0.008 265)' }}
+                labelFormatter={(label) => {
+                  const item = chartData.find(d => d.name === label)
+                  return item?.fullName || label
+                }}
+              />
+              <Legend 
+                formatter={(value) => {
+                  if (value === 'sent') return 'Sent'
+                  if (value === 'opened') return 'Opened'
+                  if (value === 'clicked') return 'Clicked'
+                  return value
+                }}
+              />
+              <Bar dataKey="sent" fill="oklch(0.55 0.16 220)" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="opened" fill="oklch(0.60 0.18 155)" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="clicked" fill="oklch(0.68 0.24 35)" radius={[0, 4, 4, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="font-semibold mb-4 flex items-center gap-2">
+            <CursorClick size={20} className="text-secondary" />
+            Click-to-Open Rate Distribution
+          </h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={chartData.slice(0, 10)}>
+              <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.28 0.020 265)" />
+              <XAxis 
+                dataKey="name" 
+                stroke="oklch(0.68 0.015 265)" 
+                style={{ fontSize: '11px' }}
+                angle={-45}
+                textAnchor="end"
+                height={100}
+              />
+              <YAxis 
+                stroke="oklch(0.68 0.015 265)" 
+                style={{ fontSize: '12px' }}
+                tickFormatter={(value) => `${value}%`}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'oklch(0.18 0.015 265)',
+                  border: '1px solid oklch(0.28 0.020 265)',
+                  borderRadius: '8px',
+                }}
+                labelStyle={{ color: 'oklch(0.98 0.008 265)' }}
+                itemStyle={{ color: 'oklch(0.98 0.008 265)' }}
+                formatter={(value: any) => `${value}%`}
+                labelFormatter={(label) => {
+                  const item = chartData.find(d => d.name === label)
+                  return item?.fullName || label
+                }}
+              />
+              <Legend formatter={() => 'Click-to-Open Rate'} />
+              <Area 
+                type="monotone" 
+                dataKey="clickToOpenRate" 
+                stroke="oklch(0.55 0.16 220)" 
+                fill="oklch(0.55 0.16 220 / 0.3)" 
+                strokeWidth={2}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </Card>
       </div>
 

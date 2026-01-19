@@ -40,9 +40,10 @@ import {
   Buildings,
   Percent,
   Users,
-  ChartLine
+  ChartLine,
+  Brain
 } from '@phosphor-icons/react'
-import type { Room, RoomStatus, RoomType, RoomTypeConfig, RatePlanConfig, Season, EventDay, CorporateAccount, RateCalendar, SystemUser } from '@/lib/types'
+import type { Room, RoomStatus, RoomType, RoomTypeConfig, RatePlanConfig, Season, EventDay, CorporateAccount, RateCalendar, SystemUser, Reservation, GuestInvoice } from '@/lib/types'
 import { RoomDialog } from '@/components/RoomDialog'
 import { RoomDetailsDialog } from '@/components/RoomDetailsDialog'
 import { RoomTypeDialog } from '@/components/RoomTypeDialog'
@@ -52,6 +53,8 @@ import { RateCalendarView } from '@/components/RateCalendarView'
 import { SeasonDialog } from '@/components/SeasonDialog'
 import { EventDayDialog } from '@/components/EventDayDialog'
 import { CorporateAccountDialog } from '@/components/CorporateAccountDialog'
+import { RevenueBreakdownDialog } from '@/components/RevenueBreakdownDialog'
+import { AIPricingRecommendations } from '@/components/AIPricingRecommendations'
 import { formatCurrency } from '@/lib/helpers'
 
 interface RoomRevenueManagementProps {
@@ -70,6 +73,8 @@ interface RoomRevenueManagementProps {
   rateCalendar: RateCalendar[]
   setRateCalendar: (calendar: RateCalendar[] | ((current: RateCalendar[]) => RateCalendar[])) => void
   currentUser: SystemUser
+  reservations?: Reservation[]
+  invoices?: GuestInvoice[]
 }
 
 export function RoomRevenueManagement({
@@ -87,7 +92,9 @@ export function RoomRevenueManagement({
   setCorporateAccounts,
   rateCalendar,
   setRateCalendar,
-  currentUser
+  currentUser,
+  reservations = [],
+  invoices = []
 }: RoomRevenueManagementProps) {
   const [activeTab, setActiveTab] = useState('rooms')
   const [searchQuery, setSearchQuery] = useState('')
@@ -365,7 +372,13 @@ export function RoomRevenueManagement({
             Unified management of rooms, types, rates, and revenue optimization
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <RevenueBreakdownDialog
+            reservations={reservations}
+            invoices={invoices}
+            roomTypes={roomTypes}
+            ratePlans={ratePlans}
+          />
           {activeTab === 'rooms' && (
             <Button onClick={handleAddRoom} size="lg">
               <Plus size={20} className="mr-2" />
@@ -444,10 +457,11 @@ export function RoomRevenueManagement({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="rooms">Rooms</TabsTrigger>
           <TabsTrigger value="room-types">Room Types</TabsTrigger>
           <TabsTrigger value="rate-plans">Rate Plans</TabsTrigger>
+          <TabsTrigger value="ai-pricing">AI Pricing</TabsTrigger>
           <TabsTrigger value="calendar">Rate Calendar</TabsTrigger>
           <TabsTrigger value="seasons">Seasons & Events</TabsTrigger>
           <TabsTrigger value="corporate">Corporate</TabsTrigger>
@@ -948,6 +962,23 @@ export function RoomRevenueManagement({
               </div>
             )}
           </Card>
+        </TabsContent>
+
+        <TabsContent value="ai-pricing">
+          <AIPricingRecommendations
+            roomTypes={roomTypes}
+            reservations={reservations || []}
+            invoices={invoices || []}
+            onApplyRecommendation={(roomTypeId, newRate) => {
+              setRoomTypes((current) => 
+                current.map(rt => 
+                  rt.id === roomTypeId 
+                    ? { ...rt, baseRate: newRate }
+                    : rt
+                )
+              )
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="calendar">

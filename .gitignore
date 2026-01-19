@@ -32,3 +32,8 @@ pids
 .devcontainer/
 
 .spark-workbench-id
+
+# Temporary download files and cache
+.azDownload-*
+*/.azDownload-*
+**/.azDownload-*

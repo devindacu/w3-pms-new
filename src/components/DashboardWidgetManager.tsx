@@ -112,7 +112,8 @@ export function DashboardWidgetManager({
       'financial-summary': 'Financial Summary',
       'kitchen-operations': 'Kitchen Operations',
       'crm-summary': 'CRM Summary',
-      'channel-performance': 'Channel Performance'
+      'channel-performance': 'Channel Performance',
+      'period-comparison': 'Period Comparison'
     }
     return titles[type]
   }

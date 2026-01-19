@@ -6,17 +6,18 @@ import { SystemSettings } from '@/components/SystemSettings'
 import { TaxSettings } from '@/components/TaxSettings'
 import { UserPreferences } from '@/components/UserPreferences'
 import { EmailTemplateManagement } from '@/components/EmailTemplateSettings'
-import { EmailTemplateAnalyticsComponent } from '@/components/EmailTemplateAnalytics'
 import { DialogSettings } from '@/components/DialogSettings'
 import { TestEmailTemplate } from '@/components/TestEmailTemplate'
+import { BackupManagement } from '@/components/BackupManagement'
+import { GoogleAnalyticsSettings } from '@/components/GoogleAnalyticsSettings'
+import { SyncTestingPanel } from '@/components/SyncTestingPanel'
+import { GitHubSyncSettings } from '@/components/GitHubSyncSettings'
+import { HotelDataBackupSettings } from '@/components/HotelDataBackupSettings'
 import type { 
   HotelBranding, 
   TaxConfiguration, 
   ServiceChargeConfiguration, 
-  SystemUser,
-  EmailTemplateAnalytics,
-  EmailSentRecord,
-  EmailCampaignAnalytics
+  SystemUser
 } from '@/lib/types'
 import type { EmailTemplate } from '@/lib/invoiceEmailTemplates'
 import { 
@@ -25,8 +26,11 @@ import {
   Receipt,
   User,
   EnvelopeSimple,
-  ChartBar,
-  FrameCorners
+  FrameCorners,
+  FloppyDisk,
+  Globe,
+  ArrowsClockwise,
+  GithubLogo
 } from '@phosphor-icons/react'
 
 interface SettingsProps {
@@ -38,10 +42,11 @@ interface SettingsProps {
   setServiceCharge: (update: (current: ServiceChargeConfiguration | null) => ServiceChargeConfiguration) => void
   emailTemplates: EmailTemplate[]
   setEmailTemplates: (update: (current: EmailTemplate[]) => EmailTemplate[]) => void
-  emailAnalytics: EmailTemplateAnalytics[]
-  campaignAnalytics: EmailCampaignAnalytics[]
-  emailRecords: EmailSentRecord[]
+  emailAnalytics: any[]
+  campaignAnalytics: any[]
+  emailRecords: any[]
   currentUser: SystemUser
+  activeTab?: string
 }
 
 export function Settings({
@@ -56,9 +61,10 @@ export function Settings({
   emailAnalytics,
   campaignAnalytics,
   emailRecords,
-  currentUser
+  currentUser,
+  activeTab: initialActiveTab
 }: SettingsProps) {
-  const [activeTab, setActiveTab] = useState('branding')
+  const [activeTab, setActiveTab] = useState(initialActiveTab || 'branding')
 
   return (
     <div className="space-y-6">
@@ -68,7 +74,7 @@ export function Settings({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 gap-1">
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-11 gap-1">
           <TabsTrigger value="branding" className="gap-2">
             <Palette size={18} />
             <span className="hidden sm:inline">Branding</span>
@@ -89,9 +95,25 @@ export function Settings({
             <EnvelopeSimple size={18} />
             <span className="hidden sm:inline">Templates</span>
           </TabsTrigger>
-          <TabsTrigger value="email-analytics" className="gap-2">
-            <ChartBar size={18} />
-            <span className="hidden sm:inline">Analytics</span>
+          <TabsTrigger value="google-analytics" className="gap-2">
+            <Globe size={18} />
+            <span className="hidden sm:inline">Google Analytics</span>
+          </TabsTrigger>
+          <TabsTrigger value="version-control" className="gap-2">
+            <FloppyDisk size={18} />
+            <span className="hidden sm:inline">Backups</span>
+          </TabsTrigger>
+          <TabsTrigger value="hotel-backup" className="gap-2">
+            <FloppyDisk size={18} />
+            <span className="hidden sm:inline">Hotel Backup</span>
+          </TabsTrigger>
+          <TabsTrigger value="github-sync" className="gap-2">
+            <GithubLogo size={18} />
+            <span className="hidden sm:inline">GitHub Sync</span>
+          </TabsTrigger>
+          <TabsTrigger value="sync-testing" className="gap-2">
+            <ArrowsClockwise size={18} />
+            <span className="hidden sm:inline">Sync Testing</span>
           </TabsTrigger>
           <TabsTrigger value="preferences" className="gap-2">
             <User size={18} />
@@ -153,12 +175,24 @@ export function Settings({
           </div>
         </TabsContent>
 
-        <TabsContent value="email-analytics" className="mt-6">
-          <EmailTemplateAnalyticsComponent
-            templateAnalytics={emailAnalytics}
-            campaignAnalytics={campaignAnalytics}
-            emailRecords={emailRecords}
-          />
+        <TabsContent value="google-analytics" className="mt-6">
+          <GoogleAnalyticsSettings currentUser={currentUser} />
+        </TabsContent>
+
+        <TabsContent value="version-control" className="mt-6">
+          <BackupManagement currentUser={currentUser} />
+        </TabsContent>
+
+        <TabsContent value="github-sync" className="mt-6">
+          <GitHubSyncSettings />
+        </TabsContent>
+
+        <TabsContent value="hotel-backup" className="mt-6">
+          <HotelDataBackupSettings />
+        </TabsContent>
+
+        <TabsContent value="sync-testing" className="mt-6">
+          <SyncTestingPanel />
         </TabsContent>
 
         <TabsContent value="preferences" className="mt-6">

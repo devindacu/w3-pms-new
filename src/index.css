@@ -13,7 +13,9 @@
 
 @layer components {
   [data-radix-dialog-content] {
-    @apply max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col;
+    @apply max-h-[95vh] sm:max-h-[92vh] md:max-h-[90vh] overflow-hidden flex flex-col;
+    width: 95vw !important;
+    max-width: 95vw !important;
     background: var(--card);
     border: 1px solid var(--border);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
@@ -24,35 +26,35 @@
   }
   
   .dialog-header-fixed {
-    @apply sticky top-0 z-10 pb-3 sm:pb-4 border-b shrink-0;
+    @apply sticky top-0 z-10 pb-2 sm:pb-3 md:pb-4 border-b shrink-0;
     background: var(--card);
     border-color: var(--border);
   }
   
   .dialog-footer-fixed {
-    @apply sticky bottom-0 z-10 pt-3 sm:pt-4 border-t shrink-0;
+    @apply sticky bottom-0 z-10 pt-2 sm:pt-3 md:pt-4 border-t shrink-0;
     background: var(--card);
     border-color: var(--border);
   }
   
   .dialog-body-scrollable {
-    @apply overflow-y-auto overflow-x-hidden flex-1 px-3 sm:px-6 py-3 sm:py-4 min-h-0;
+    @apply overflow-y-auto overflow-x-hidden flex-1 px-3 sm:px-4 md:px-5 lg:px-6 py-2 sm:py-3 md:py-4 min-h-0;
   }
 
   .dialog-grid-1 {
-    @apply grid grid-cols-1 gap-3 sm:gap-4;
+    @apply grid grid-cols-1 gap-3 sm:gap-4 md:gap-5;
   }
 
   .dialog-grid-2 {
-    @apply grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4;
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5;
   }
 
   .dialog-grid-3 {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4;
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5;
   }
 
   .dialog-grid-4 {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4;
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5;
   }
 
   .dialog-form-field {
@@ -92,11 +94,11 @@
   }
 
   .dialog-card {
-    @apply p-3 sm:p-4 rounded-lg border bg-card;
+    @apply p-3 sm:p-4 md:p-5 rounded-lg border bg-card;
   }
 
   .dialog-stat-card {
-    @apply p-3 sm:p-4 rounded-lg border;
+    @apply p-3 sm:p-4 md:p-5 rounded-lg border;
   }
 
   .responsive-table-container {
@@ -174,6 +176,82 @@
 
   .mobile-card-value {
     @apply text-right flex-1 break-words;
+  }
+
+  .mobile-optimized-button {
+    @apply min-h-[44px] min-w-[44px] touch-manipulation;
+  }
+
+  .mobile-optimized-input {
+    @apply min-h-[44px] text-[16px];
+  }
+
+  .mobile-scroll-container {
+    @apply -mx-4 px-4 overflow-x-auto;
+  }
+
+  .mobile-safe-area {
+    padding-bottom: env(safe-area-inset-bottom, 1rem);
+  }
+
+  .mobile-header-sticky {
+    @apply sticky top-0 z-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60;
+  }
+
+  .mobile-bottom-sticky {
+    @apply sticky bottom-0 z-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60;
+  }
+
+  .mobile-card-compact {
+    @apply p-3 sm:p-4 md:p-6;
+  }
+
+  .mobile-spacing-compact {
+    @apply space-y-3 sm:space-y-4 md:space-y-6;
+  }
+
+  .mobile-grid-responsive {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6;
+  }
+
+  .mobile-text-responsive {
+    @apply text-sm sm:text-base;
+  }
+
+  .mobile-heading-responsive {
+    @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl;
+  }
+
+  @keyframes spin-slow {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .animate-spin-slow {
+    animation: spin-slow 3s linear infinite;
+  }
+
+  @keyframes slide-in-from-top {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slide-in {
+    animation: slide-in-from-top 0.3s ease-out;
+  }
+
+  .bg-grid-white\/10 {
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   }
 
   .mobile-card-header {
