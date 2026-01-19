@@ -37,7 +37,8 @@ import {
   Check,
   SquaresFour,
   ListBullets,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Package
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import type { MenuItem, Order, OrderItem, Guest, Room } from '@/lib/types'
@@ -45,6 +46,8 @@ import { formatCurrency } from '@/lib/helpers'
 import { OrderDialog } from './OrderDialog'
 import { MenuItemDialogEnhanced } from './MenuItemDialogEnhanced'
 import { MenuCategoryDialog } from './MenuCategoryDialog'
+import { MealComboManagement } from './MealComboManagement'
+import type { MealCombo } from '@/lib/types'
 
 interface FnBPOSProps {
   menuItems: MenuItem[]
@@ -55,10 +58,13 @@ interface FnBPOSProps {
   setOrders: (orders: Order[] | ((prev: Order[]) => Order[])) => void
   guests: Guest[]
   rooms: Room[]
+  mealCombos: MealCombo[]
+  setMealCombos: (combos: MealCombo[] | ((prev: MealCombo[]) => MealCombo[])) => void
+  currentUser: { id: string; firstName: string; lastName: string }
 }
 
-export function FnBPOS({ menuItems, setMenuItems, menuCategories, setMenuCategories, orders, setOrders, guests, rooms }: FnBPOSProps) {
-  const [currentView, setCurrentView] = useState<'pos' | 'orders' | 'menu' | 'categories'>('pos')
+export function FnBPOS({ menuItems, setMenuItems, menuCategories, setMenuCategories, orders, setOrders, guests, rooms, mealCombos, setMealCombos, currentUser }: FnBPOSProps) {
+  const [currentView, setCurrentView] = useState<'pos' | 'orders' | 'menu' | 'categories' | 'combos'>('pos')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('All')
   const [cart, setCart] = useState<OrderItem[]>([])
@@ -854,6 +860,10 @@ export function FnBPOS({ menuItems, setMenuItems, menuCategories, setMenuCategor
             <SquaresFour size={18} className="mr-2" />
             Categories
           </TabsTrigger>
+          <TabsTrigger value="combos">
+            <Package size={18} className="mr-2" />
+            Meal Combos
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="pos" className="mt-6">
@@ -953,6 +963,15 @@ export function FnBPOS({ menuItems, setMenuItems, menuCategories, setMenuCategor
               </Card>
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="combos" className="mt-6">
+          <MealComboManagement
+            combos={mealCombos}
+            setCombos={setMealCombos}
+            menuItems={menuItems}
+            currentUser={currentUser}
+          />
         </TabsContent>
       </Tabs>
 

@@ -389,6 +389,54 @@ export interface MenuItem {
   createdBy?: string
 }
 
+export type ComboDiscountType = 'percentage' | 'fixed-amount' | 'custom-price'
+export type ComboStatus = 'active' | 'inactive' | 'scheduled' | 'expired'
+export type ComboAvailability = 'all-day' | 'breakfast' | 'lunch' | 'dinner' | 'custom'
+
+export interface MealComboItem {
+  id: string
+  menuItemId: string
+  menuItemName: string
+  quantity: number
+  isRequired: boolean
+  allowSubstitution: boolean
+  substituteOptions?: string[]
+  price: number
+  category: string
+}
+
+export interface MealCombo {
+  id: string
+  name: string
+  description?: string
+  imageUrl?: string
+  items: MealComboItem[]
+  originalPrice: number
+  comboPrice: number
+  discountType: ComboDiscountType
+  discountValue: number
+  savings: number
+  savingsPercentage: number
+  status: ComboStatus
+  availability: ComboAvailability
+  availableDays?: string[]
+  availableTimeSlots?: TimeSlot[]
+  validFrom?: number
+  validTo?: number
+  maxOrdersPerDay?: number
+  ordersToday?: number
+  tags?: string[]
+  allergens?: AllergenType[]
+  dietaryInfo?: DietaryRestriction[]
+  totalCalories?: number
+  preparationTime: number
+  isSpecial: boolean
+  sortOrder: number
+  createdAt: number
+  updatedAt: number
+  createdBy: string
+}
+
 export interface Recipe {
   id: string
   recipeCode: string

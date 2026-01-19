@@ -403,6 +403,7 @@ function App() {
   const [dashboardLayout, setDashboardLayout] = useKV<DashboardLayout | null>('w3-hotel-dashboard-layout', null)
   const [invoiceSequences, setInvoiceSequences] = useKV<import('@/lib/types').InvoiceNumberSequence[]>('w3-hotel-invoice-sequences', [])
   const [nightAuditLogs, setNightAuditLogs] = useKV<import('@/lib/types').NightAuditLog[]>('w3-hotel-night-audit-logs', [])
+  const [mealCombos, setMealCombos] = useKV<import('@/lib/types').MealCombo[]>('w3-hotel-meal-combos', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
@@ -1317,6 +1318,9 @@ function App() {
               setOrders={setOrders}
               guests={guests || []}
               rooms={rooms || []}
+              mealCombos={mealCombos || []}
+              setMealCombos={setMealCombos}
+              currentUser={currentUser}
             />
           )}
           {currentModule === 'inventory' && (
