@@ -60,7 +60,7 @@ export function GitHubSyncSettings({ initialConfig }: GitHubSyncSettingsProps) {
   const [formData, setFormData] = useState({
     owner: config?.owner || '',
     repo: config?.repo || '',
-    branch: config?.branch || 'main',
+    branch: config?.branch || 'primary',
     token: config?.token || '',
     autoSyncInterval: ((config?.autoSyncInterval || 300000) / 60000).toString(),
     enabled: config?.enabled || false
@@ -74,7 +74,7 @@ export function GitHubSyncSettings({ initialConfig }: GitHubSyncSettingsProps) {
       setFormData({
         owner: config.owner || '',
         repo: config.repo || '',
-        branch: config.branch || 'main',
+        branch: config.branch || 'primary',
         token: config.token || '',
         autoSyncInterval: ((config.autoSyncInterval || 300000) / 60000).toString(),
         enabled: config.enabled || false
@@ -88,7 +88,7 @@ export function GitHubSyncSettings({ initialConfig }: GitHubSyncSettingsProps) {
       const newConfig: GitHubSyncConfig = {
         owner: formData.owner.trim(),
         repo: formData.repo.trim(),
-        branch: formData.branch.trim() || 'main',
+        branch: formData.branch.trim() || 'primary',
         token: formData.token.trim(),
         autoSyncInterval: parseInt(formData.autoSyncInterval) * 60000,
         enabled: formData.enabled
@@ -279,7 +279,7 @@ export function GitHubSyncSettings({ initialConfig }: GitHubSyncSettingsProps) {
                       </Label>
                       <Input
                         id="branch"
-                        placeholder="main"
+                        placeholder="primary"
                         value={formData.branch}
                         onChange={(e) => setFormData(prev => ({ ...prev, branch: e.target.value }))}
                       />
@@ -457,7 +457,7 @@ export function GitHubSyncSettings({ initialConfig }: GitHubSyncSettingsProps) {
                       </div>
                       <div className="flex items-center gap-2">
                         <Check size={16} className="text-success" />
-                        <span><strong>Branch:</strong> Usually <code className="px-1 bg-background rounded">main</code></span>
+                        <span><strong>Branch:</strong> Usually <code className="px-1 bg-background rounded">primary</code></span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Check size={16} className="text-success" />
