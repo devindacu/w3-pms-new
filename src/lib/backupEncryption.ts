@@ -49,7 +49,6 @@ async function generateKey(password: string, salt: Uint8Array, iterations: numbe
   return crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      // @ts-expect-error - Crypto API type compatibility
       salt,
       iterations,
       hash: 'SHA-256'
