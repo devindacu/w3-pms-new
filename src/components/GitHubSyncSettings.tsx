@@ -60,7 +60,7 @@ export function GitHubSyncSettings({ initialConfig }: GitHubSyncSettingsProps) {
   const [formData, setFormData] = useState({
     owner: config?.owner || '',
     repo: config?.repo || '',
-    branch: config?.branch || 'primary',
+    branch: config?.branch || 'main',
     token: config?.token || '',
     autoSyncInterval: ((config?.autoSyncInterval || 300000) / 60000).toString(),
     enabled: config?.enabled || false
@@ -74,7 +74,7 @@ export function GitHubSyncSettings({ initialConfig }: GitHubSyncSettingsProps) {
       setFormData({
         owner: config.owner || '',
         repo: config.repo || '',
-        branch: config.branch || 'primary',
+        branch: config.branch || 'main',
         token: config.token || '',
         autoSyncInterval: ((config.autoSyncInterval || 300000) / 60000).toString(),
         enabled: config.enabled || false
@@ -88,7 +88,7 @@ export function GitHubSyncSettings({ initialConfig }: GitHubSyncSettingsProps) {
       const newConfig: GitHubSyncConfig = {
         owner: formData.owner.trim(),
         repo: formData.repo.trim(),
-        branch: formData.branch.trim() || 'primary',
+        branch: formData.branch.trim() || 'main',
         token: formData.token.trim(),
         autoSyncInterval: parseInt(formData.autoSyncInterval) * 60000,
         enabled: formData.enabled

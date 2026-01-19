@@ -106,7 +106,7 @@ export function useGitHubSync(config: GitHubSyncConfig) {
         body: JSON.stringify({
           message: commitMessage,
           content: btoa(JSON.stringify(dataBlob, null, 2)),
-          branch: syncConfig.branch || 'primary'
+          branch: syncConfig.branch || 'main'
         })
       })
 
@@ -208,7 +208,7 @@ export function useGitHubSync(config: GitHubSyncConfig) {
       return {
         owner: merged.owner || '',
         repo: merged.repo || '',
-        branch: merged.branch || 'primary',
+        branch: merged.branch || 'main',
         token: merged.token,
         autoSyncInterval: merged.autoSyncInterval,
         enabled: merged.enabled
