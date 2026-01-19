@@ -11,9 +11,6 @@ import { TestEmailTemplate } from '@/components/TestEmailTemplate'
 import { BackupManagement } from '@/components/BackupManagement'
 import { GoogleAnalyticsSettings } from '@/components/GoogleAnalyticsSettings'
 import { SyncTestingPanel } from '@/components/SyncTestingPanel'
-import { GitHubSyncSettings } from '@/components/GitHubSyncSettings'
-import { GitHubSyncTest } from '@/components/GitHubSyncTest'
-import { HotelDataBackupSettings } from '@/components/HotelDataBackupSettings'
 import type { 
   HotelBranding, 
   TaxConfiguration, 
@@ -30,8 +27,7 @@ import {
   FrameCorners,
   FloppyDisk,
   Globe,
-  ArrowsClockwise,
-  GithubLogo
+  ArrowsClockwise
 } from '@phosphor-icons/react'
 
 interface SettingsProps {
@@ -75,7 +71,7 @@ export function Settings({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-12 gap-1">
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-8 gap-1">
           <TabsTrigger value="branding" className="gap-2">
             <Palette size={18} />
             <span className="hidden sm:inline">Branding</span>
@@ -103,18 +99,6 @@ export function Settings({
           <TabsTrigger value="version-control" className="gap-2">
             <FloppyDisk size={18} />
             <span className="hidden sm:inline">Backups</span>
-          </TabsTrigger>
-          <TabsTrigger value="hotel-backup" className="gap-2">
-            <FloppyDisk size={18} />
-            <span className="hidden sm:inline">Hotel Backup</span>
-          </TabsTrigger>
-          <TabsTrigger value="github-sync" className="gap-2">
-            <GithubLogo size={18} />
-            <span className="hidden sm:inline">GitHub Sync</span>
-          </TabsTrigger>
-          <TabsTrigger value="github-test" className="gap-2">
-            <GithubLogo size={18} />
-            <span className="hidden sm:inline">GitHub Test</span>
           </TabsTrigger>
           <TabsTrigger value="sync-testing" className="gap-2">
             <ArrowsClockwise size={18} />
@@ -186,18 +170,6 @@ export function Settings({
 
         <TabsContent value="version-control" className="mt-6">
           <BackupManagement currentUser={currentUser} />
-        </TabsContent>
-
-        <TabsContent value="github-sync" className="mt-6">
-          <GitHubSyncSettings />
-        </TabsContent>
-
-        <TabsContent value="github-test" className="mt-6">
-          <GitHubSyncTest />
-        </TabsContent>
-
-        <TabsContent value="hotel-backup" className="mt-6">
-          <HotelDataBackupSettings />
         </TabsContent>
 
         <TabsContent value="sync-testing" className="mt-6">
