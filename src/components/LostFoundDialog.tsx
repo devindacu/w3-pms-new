@@ -1,12 +1,14 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Card } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { ulid } from 'ulid'
+import { Image, Trash, Upload, X } from '@phosphor-icons/react'
 import { type LostFoundItem, type Room, type Employee, type LostFoundCategory, type LostFoundStatus } from '@/lib/types'
 
 interface LostFoundDialogProps {
@@ -39,8 +41,68 @@ export function LostFoundDialog({
     status: item?.status || 'reported',
     storageLocation: item?.storageLocation || '',
     estimatedValue: item?.estimatedValue || 0,
-    notes: item?.notes || ''
+    notes: item?.notes || '',
+    images: item?.images || []
   }))
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [previewUrls, setPreviewUrls] = useState<string[]>(item?.images || [])
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    const maxFiles = 5
+    const currentImagesCount = previewUrls.length
+    
+    if (currentImagesCount >= maxFiles) {
+      toast.error(`Maximum ${maxFiles} images allowed`)
+      return
+    }
+
+    const remainingSlots = maxFiles - currentImagesCount
+    const filesToProcess = Array.from(files).slice(0, remainingSlots)
+
+    filesToProcess.forEach(file => {
+      if (!file.type.startsWith('image/')) {
+        toast.error('Only image files are allowed')
+        return
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size must be less than 5MB')
+        return
+      }
+
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const imageUrl = reader.result as string
+        setPreviewUrls(prev => [...prev, imageUrl])
+        setFormData(prev => ({
+          ...prev,
+          images: [...(prev.images || []), imageUrl]
+        }))
+      }
+      reader.readAsDataURL(file)
+    })
+
+    if (filesToProcess.length < files.length) {
+      toast.info(`Only ${filesToProcess.length} images added (max ${maxFiles} total)`)
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const handleRemoveImage = (index: number) => {
+    setPreviewUrls(prev => prev.filter((_, i) => i !== index))
+    setFormData(prev => ({
+      ...prev,
+      images: (prev.images || []).filter((_, i) => i !== index)
+    }))
+    toast.success('Image removed')
+  }
 
   const handleSubmit = () => {
     if (!formData.description || !formData.foundLocation) {
@@ -73,6 +135,7 @@ export function LostFoundDialog({
         status: formData.status as LostFoundStatus,
         storageLocation: formData.storageLocation || undefined,
         estimatedValue: formData.estimatedValue || 0,
+        images: formData.images || [],
         notes: formData.notes || undefined,
         createdAt: Date.now(),
         updatedAt: Date.now()
@@ -222,6 +285,73 @@ export function LostFoundDialog({
                 placeholder="Any additional information..."
                 className="dialog-form-textarea"
               />
+            </div>
+
+            <div className="dialog-form-field">
+              <Label className="dialog-form-label">Item Photos (Max 5)</Label>
+              <div className="space-y-3">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={previewUrls.length >= 5}
+                  className="w-full h-24 border-2 border-dashed hover:border-primary transition-colors"
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <Upload size={24} />
+                    <span className="text-sm">
+                      {previewUrls.length >= 5 
+                        ? 'Maximum images reached' 
+                        : 'Click to upload photos'
+                      }
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {previewUrls.length}/5 images
+                    </span>
+                  </div>
+                </Button>
+
+                {previewUrls.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    {previewUrls.map((url, index) => (
+                      <Card key={index} className="relative group overflow-hidden aspect-square">
+                        <img
+                          src={url}
+                          alt={`Item photo ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="destructive"
+                            onClick={() => handleRemoveImage(index)}
+                            className="h-8 w-8"
+                          >
+                            <Trash size={16} />
+                          </Button>
+                        </div>
+                        <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                          {index + 1}
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+
+                <p className="text-xs text-muted-foreground">
+                  Upload clear photos of the item. Supported formats: JPG, PNG, GIF. Max size: 5MB per image.
+                </p>
+              </div>
             </div>
           </div>
         </div>
