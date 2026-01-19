@@ -180,6 +180,9 @@ export interface RateAuditLog {
 export type PaymentMethod = 'cash' | 'card' | 'bank-transfer' | 'mobile-payment' | 'credit'
 export type PaymentStatus = 'pending' | 'paid' | 'partially-paid' | 'refunded'
 export type HousekeepingTaskStatus = 'pending' | 'in-progress' | 'completed' | 'inspected'
+export type RoomInspectionStatus = 'clean' | 'inspected' | 'dirty' | 'out-of-service'
+export type LostFoundStatus = 'reported' | 'in-storage' | 'claimed' | 'disposed' | 'donated'
+export type LostFoundCategory = 'electronics' | 'jewelry' | 'clothing' | 'documents' | 'accessories' | 'luggage' | 'personal-items' | 'other'
 export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'served' | 'cancelled'
 export type OrderType = 'dine-in' | 'room-service' | 'takeaway'
 export type StockStatus = 'in-stock' | 'low-stock' | 'out-of-stock' | 'expired'
@@ -343,6 +346,46 @@ export interface HousekeepingTask {
   startedAt?: number
   completedAt?: number
   createdAt: number
+  inspectedBy?: string
+  inspectedAt?: number
+  maintenanceRequestId?: string
+  estimatedDuration?: number
+}
+
+export interface LostFoundItem {
+  id: string
+  itemNumber: string
+  category: LostFoundCategory
+  description: string
+  foundLocation: string
+  foundBy: string
+  foundDate: number
+  roomId?: string
+  guestId?: string
+  guestName?: string
+  status: LostFoundStatus
+  storageLocation?: string
+  claimedBy?: string
+  claimedDate?: number
+  claimVerification?: string
+  disposedDate?: number
+  disposalMethod?: string
+  images?: string[]
+  estimatedValue?: number
+  contactAttempts?: ContactAttempt[]
+  notes?: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface ContactAttempt {
+  id: string
+  attemptDate: number
+  method: 'phone' | 'email' | 'sms' | 'in-person'
+  contacted: string
+  response?: string
+  successful: boolean
+  attemptedBy: string
 }
 
 export type MenuType = 'breakfast' | 'lunch' | 'dinner' | 'buffet' | 'a-la-carte' | 'banquet' | 'staff-meal' | 'seasonal'
