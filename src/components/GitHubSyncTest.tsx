@@ -43,7 +43,7 @@ export function GitHubSyncTest() {
   const defaultConfig: GitHubSyncConfig = {
     owner: '',
     repo: '',
-    branch: 'primary',
+    branch: 'main',
     token: '',
     autoSyncInterval: 300000,
     enabled: false
@@ -61,7 +61,7 @@ export function GitHubSyncTest() {
   const [testConfig, setTestConfig] = useState({
     owner: '',
     repo: '',
-    branch: 'primary',
+    branch: 'main',
     token: ''
   })
 
@@ -74,7 +74,7 @@ export function GitHubSyncTest() {
       setTestConfig({
         owner: config.owner || '',
         repo: config.repo || '',
-        branch: config.branch || 'primary',
+        branch: config.branch || 'main',
         token: config.token || ''
       })
     }

@@ -9,7 +9,7 @@ The W3 Hotel PMS now includes **Automatic Spark Code Sync** - a GitHub Actions-p
 ### 1. GitHub Actions Workflow
 - **File Location**: `.github/workflows/auto-sync.yml`
 - **Status**: ✅ Active and Running
-- **Default Branch**: `primary`
+- **Default Branch**: `main`
 
 ### 2. Automated Sync Schedule
 
@@ -24,7 +24,7 @@ The W3 Hotel PMS now includes **Automatic Spark Code Sync** - a GitHub Actions-p
 - **Purpose**: Reduced frequency during low-activity periods
 
 #### Immediate Sync
-- **Trigger**: Every push to `primary` branch
+- **Trigger**: Every push to `main` branch
 - **Purpose**: Instant backup of critical changes
 
 #### Manual Trigger
@@ -60,7 +60,7 @@ The W3 Hotel PMS now includes **Automatic Spark Code Sync** - a GitHub Actions-p
 ### Workflow Steps
 
 1. **Checkout Code**
-   - Pulls latest code from `primary` branch
+   - Pulls latest code from `main` branch
    - Fetches full git history
 
 2. **Configure Git**
@@ -114,7 +114,7 @@ on:
   # Immediate sync on every push
   push:
     branches:
-      - primary
+      - main
   
   # Active hours: Every 5 minutes (9 AM - 9 PM UTC)
   schedule:
@@ -193,7 +193,7 @@ To manually trigger a sync:
 2. Click **Actions** tab
 3. Select **Automatic Spark Code Sync**
 4. Click **Run workflow** dropdown
-5. Select `primary` branch
+5. Select `main` branch
 6. Click **Run workflow** button
 
 ### Viewing Sync History
@@ -247,7 +247,7 @@ This provides complete protection:
 2. Check for syntax errors (use YAML validator)
 
 **Check 3: Branch Name**
-1. Ensure using `primary` branch
+1. Ensure using `main` branch
 2. Or update workflow to match your branch
 
 ### Sync Failures
@@ -258,7 +258,7 @@ This provides complete protection:
 - Select "Read and write permissions"
 
 **Error: "Branch Not Found"**
-- Solution: Create `primary` branch
+- Solution: Create `main` branch
 - Or update workflow to use your branch name
 
 **Error: "No Changes to Sync"**
@@ -301,7 +301,7 @@ To sync multiple branches:
 on:
   push:
     branches:
-      - primary
+      - main
       - development
       - staging
 ```
@@ -314,7 +314,7 @@ Only sync specific file types:
 on:
   push:
     branches:
-      - primary
+      - main
     paths:
       - 'src/**'
       - 'package.json'
@@ -448,7 +448,7 @@ schedule:
 - ✅ Active hours (5 min) + off-peak (30 min)
 - ✅ Push-triggered immediate sync
 - ✅ Manual workflow dispatch
-- ✅ Primary branch as default
+- ✅ Main branch as default
 - ✅ Complete documentation
 
 ## Summary
@@ -458,7 +458,7 @@ schedule:
 **Key Takeaways:**
 - ✅ Code syncs every 5 minutes during 9 AM - 9 PM UTC
 - ✅ Code syncs every 30 minutes during off-peak hours
-- ✅ Immediate sync on every push to primary
+- ✅ Immediate sync on every push to main
 - ✅ Manual trigger available anytime
 - ✅ No git commands needed ever again
 - ✅ Complete backup and version control

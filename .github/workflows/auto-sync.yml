@@ -3,7 +3,7 @@ name: Automatic Spark Code Sync
 on:
   push:
     branches:
-      - primary
+      - main
   schedule:
     - cron: '*/5 9-20 * * *'
     - cron: '*/30 21-8,0-8 * * *'
@@ -20,7 +20,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: primary
+          ref: main
           fetch-depth: 0
       
       - name: Configure Git
@@ -31,7 +31,7 @@ jobs:
       - name: Check for changes
         id: check_changes
         run: |
-          if git diff --quiet HEAD origin/primary; then
+          if git diff --quiet HEAD origin/main; then
             echo "changes=false" >> $GITHUB_OUTPUT
           else
             echo "changes=true" >> $GITHUB_OUTPUT
@@ -40,7 +40,7 @@ jobs:
       - name: Pull latest changes
         if: steps.check_changes.outputs.changes == 'true'
         run: |
-          git pull origin primary --rebase
+          git pull origin main --rebase
       
       - name: Sync status
         run: |
