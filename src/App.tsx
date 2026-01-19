@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { useServerSync } from '@/hooks/use-server-sync'
 import { Toaster, toast } from 'sonner'

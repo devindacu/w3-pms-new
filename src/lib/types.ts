@@ -991,6 +991,19 @@ export interface MaintenanceRequest {
   completedAt?: number
   notes?: string
   spareParts?: MaintenanceSparePart[]
+  images?: string[]
+  beforeImages?: string[]
+  afterImages?: string[]
+  estimatedDuration?: number
+  actualDuration?: number
+  estimatedCost?: number
+  actualCost?: number
+  laborCost?: number
+  materialCost?: number
+  completionNotes?: string
+  completedBySignature?: string
+  verifiedBy?: string
+  verifiedAt?: number
 }
 
 export interface MaintenanceSparePart {

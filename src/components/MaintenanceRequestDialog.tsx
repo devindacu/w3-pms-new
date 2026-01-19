@@ -18,8 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { type MaintenanceRequest, type Room, type Employee, type MaintenanceStatus, type MaintenancePriority } from '@/lib/types'
-import { generateNumber } from '@/lib/helpers'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { X, Plus, Upload, Camera, CurrencyDollar, Clock, Package, FileText, CheckCircle } from '@phosphor-icons/react'
+import { type MaintenanceRequest, type Room, type Employee, type MaintenanceStatus, type MaintenancePriority, type MaintenanceSparePart } from '@/lib/types'
+import { generateNumber, formatCurrency } from '@/lib/helpers'
 
 interface MaintenanceRequestDialogProps {
   open: boolean
@@ -47,12 +52,32 @@ export function MaintenanceRequestDialog({
     status: 'scheduled',
     assignedTo: '',
     reportedBy: '',
-    notes: ''
+    notes: '',
+    beforeImages: [],
+    afterImages: [],
+    images: [],
+    estimatedDuration: undefined,
+    actualDuration: undefined,
+    estimatedCost: undefined,
+    actualCost: undefined,
+    laborCost: undefined,
+    materialCost: undefined,
+    completionNotes: '',
+    spareParts: []
   })
+
+  const [beforeImagePreviews, setBeforeImagePreviews] = useState<string[]>([])
+  const [afterImagePreviews, setAfterImagePreviews] = useState<string[]>([])
+  const [imagePreviews, setImagePreviews] = useState<string[]>([])
+  const [newPartName, setNewPartName] = useState('')
+  const [newPartQuantity, setNewPartQuantity] = useState(1)
 
   useEffect(() => {
     if (request) {
       setFormData(request)
+      setBeforeImagePreviews(request.beforeImages || [])
+      setAfterImagePreviews(request.afterImages || [])
+      setImagePreviews(request.images || [])
     } else {
       setFormData({
         location: '',
@@ -63,10 +88,111 @@ export function MaintenanceRequestDialog({
         status: 'scheduled',
         assignedTo: '',
         reportedBy: '',
-        notes: ''
+        notes: '',
+        beforeImages: [],
+        afterImages: [],
+        images: [],
+        estimatedDuration: undefined,
+        actualDuration: undefined,
+        estimatedCost: undefined,
+        actualCost: undefined,
+        laborCost: undefined,
+        materialCost: undefined,
+        completionNotes: '',
+        spareParts: []
       })
+      setBeforeImagePreviews([])
+      setAfterImagePreviews([])
+      setImagePreviews([])
     }
   }, [request, open])
+
+  const handleImageUpload = (files: FileList | null, type: 'before' | 'after' | 'general') => {
+    if (!files || files.length === 0) return
+
+    const fileArray = Array.from(files)
+    const readers: Promise<string>[] = []
+
+    fileArray.forEach(file => {
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please upload only image files')
+        return
+      }
+
+      const reader = new FileReader()
+      const promise = new Promise<string>((resolve) => {
+        reader.onloadend = () => {
+          resolve(reader.result as string)
+        }
+        reader.readAsDataURL(file)
+      })
+      readers.push(promise)
+    })
+
+    Promise.all(readers).then(images => {
+      if (type === 'before') {
+        const newImages = [...(formData.beforeImages || []), ...images]
+        setFormData({ ...formData, beforeImages: newImages })
+        setBeforeImagePreviews(newImages)
+      } else if (type === 'after') {
+        const newImages = [...(formData.afterImages || []), ...images]
+        setFormData({ ...formData, afterImages: newImages })
+        setAfterImagePreviews(newImages)
+      } else {
+        const newImages = [...(formData.images || []), ...images]
+        setFormData({ ...formData, images: newImages })
+        setImagePreviews(newImages)
+      }
+      toast.success(`${images.length} image(s) uploaded`)
+    })
+  }
+
+  const removeImage = (index: number, type: 'before' | 'after' | 'general') => {
+    if (type === 'before') {
+      const newImages = (formData.beforeImages || []).filter((_, i) => i !== index)
+      setFormData({ ...formData, beforeImages: newImages })
+      setBeforeImagePreviews(newImages)
+    } else if (type === 'after') {
+      const newImages = (formData.afterImages || []).filter((_, i) => i !== index)
+      setFormData({ ...formData, afterImages: newImages })
+      setAfterImagePreviews(newImages)
+    } else {
+      const newImages = (formData.images || []).filter((_, i) => i !== index)
+      setFormData({ ...formData, images: newImages })
+      setImagePreviews(newImages)
+    }
+    toast.success('Image removed')
+  }
+
+  const handleAddPart = () => {
+    if (!newPartName.trim()) {
+      toast.error('Please enter a part name')
+      return
+    }
+
+    const newPart: MaintenanceSparePart = {
+      inventoryItemId: `part-${Date.now()}`,
+      name: newPartName,
+      quantity: newPartQuantity
+    }
+
+    setFormData({
+      ...formData,
+      spareParts: [...(formData.spareParts || []), newPart]
+    })
+
+    setNewPartName('')
+    setNewPartQuantity(1)
+    toast.success('Part added')
+  }
+
+  const removePart = (index: number) => {
+    setFormData({
+      ...formData,
+      spareParts: (formData.spareParts || []).filter((_, i) => i !== index)
+    })
+    toast.success('Part removed')
+  }
 
   const handleSubmit = () => {
     if (!formData.location || !formData.issueType || !formData.description || !formData.reportedBy) {
@@ -90,6 +216,19 @@ export function MaintenanceRequestDialog({
       startedAt: formData.startedAt,
       completedAt: formData.completedAt,
       spareParts: formData.spareParts || [],
+      images: formData.images || [],
+      beforeImages: formData.beforeImages || [],
+      afterImages: formData.afterImages || [],
+      estimatedDuration: formData.estimatedDuration,
+      actualDuration: formData.actualDuration,
+      estimatedCost: formData.estimatedCost,
+      actualCost: formData.actualCost,
+      laborCost: formData.laborCost,
+      materialCost: formData.materialCost,
+      completionNotes: formData.completionNotes,
+      completedBySignature: formData.completedBySignature,
+      verifiedBy: formData.verifiedBy,
+      verifiedAt: formData.verifiedAt,
       createdAt: request?.createdAt || Date.now()
     }
 
