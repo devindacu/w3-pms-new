@@ -52,7 +52,7 @@ function createGLEntry(params: {
     balance: params.debit - params.credit,
     runningBalance: params.debit - params.credit,
     description: params.description,
-    source: 'night-audit' as any,
+    source: 'system',
     sourceDocumentId: undefined,
     sourceDocumentNumber: params.reference,
     costCenter: undefined,

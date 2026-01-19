@@ -606,8 +606,12 @@ export function syncInventoryWithGRN(
   products: GeneralProduct[],
   setProducts: (items: GeneralProduct[] | ((prev: GeneralProduct[]) => GeneralProduct[])) => void
 ) {
+  // TODO: This is a simplified implementation that tries to update all inventory types
+  // A better approach would be to add itemType to GRNItem or maintain separate item collections
+  // For now, this works because IDs are unique across all inventory types
+  // Each setState call is safe - it only updates if ID matches, otherwise returns unchanged
   grn.items.forEach(item => {
-    // Try to update food items
+    // Try to update food items (will only update if ID matches a food item)
     setFoodItems(currentItems =>
       currentItems.map(fi =>
         fi.id === item.inventoryItemId
@@ -615,7 +619,7 @@ export function syncInventoryWithGRN(
           : fi
       )
     )
-    // Try to update amenities
+    // Try to update amenities (will only update if ID matches an amenity)
     setAmenities(currentItems =>
       currentItems.map(a =>
         a.id === item.inventoryItemId
@@ -623,7 +627,7 @@ export function syncInventoryWithGRN(
           : a
       )
     )
-    // Try to update materials
+    // Try to update materials (will only update if ID matches a material)
     setMaterials(currentItems =>
       currentItems.map(m =>
         m.id === item.inventoryItemId
@@ -631,7 +635,7 @@ export function syncInventoryWithGRN(
           : m
       )
     )
-    // Try to update products
+    // Try to update products (will only update if ID matches a product)
     setProducts(currentItems =>
       currentItems.map(p =>
         p.id === item.inventoryItemId

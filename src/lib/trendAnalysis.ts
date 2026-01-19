@@ -340,17 +340,19 @@ function calculateAverageLOS(reservations: Reservation[]): number {
 
 function calculateGuestSatisfaction(profiles: GuestProfile[]): number {
   if (profiles.length === 0) return 0
-  // GuestProfile doesn't have averageRating, return default value
-  return 75 // Default satisfaction score
+  // TODO: GuestProfile doesn't have averageRating field
+  // Need to calculate from feedback/review data when implemented
+  return 75 // Default satisfaction score placeholder
 }
 
 function calculateRepeatGuestRate(reservations: Reservation[], profiles: GuestProfile[]): number {
   if (reservations.length === 0) return 0
+  // TODO: GuestProfile doesn't have totalStays field
+  // Need to calculate from historical reservation data
+  // This would require counting reservations per guest across the system
   const repeatGuests = reservations.filter(r => {
     const profile = profiles.find(p => p.guestId === r.guestId)
-    // GuestProfile doesn't have totalStays, so we can't determine repeat guests
-    // This would need to be calculated from reservation history
-    return false
+    return false // Placeholder - needs implementation with Guest data
   })
   return (repeatGuests.length / reservations.length) * 100
 }
