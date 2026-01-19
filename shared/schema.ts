@@ -227,3 +227,91 @@ export const maintenanceRequests = pgTable('maintenance_requests', {
   createdAt: timestamp('created_at').defaultNow(),
   completedAt: timestamp('completed_at'),
 });
+
+export const systemSettings = pgTable('system_settings', {
+  id: serial('id').primaryKey(),
+  key: varchar('key', { length: 100 }).unique().notNull(),
+  value: text('value'),
+  category: varchar('category', { length: 100 }),
+  description: text('description'),
+  isEncrypted: boolean('is_encrypted').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const systemVersions = pgTable('system_versions', {
+  id: serial('id').primaryKey(),
+  version: varchar('version', { length: 50 }).notNull(),
+  appliedAt: timestamp('applied_at').defaultNow(),
+  description: text('description'),
+  migrationType: varchar('migration_type', { length: 50 }),
+});
+
+
+export const transactions = pgTable('transactions', {
+  id: serial('id').primaryKey(),
+  type: varchar('type', { length: 50 }).notNull(),
+  accountId: text('account_id'),
+  amount: decimal('amount', { precision: 15, scale: 2 }).notNull(),
+  description: text('description'),
+  reference: varchar('reference', { length: 100 }),
+  transactionDate: date('transaction_date'),
+  createdBy: varchar('created_by', { length: 100 }),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const recipes = pgTable('recipes', {
+  id: serial('id').primaryKey(),
+  menuItemId: text('menu_item_id'),
+  name: varchar('name', { length: 200 }).notNull(),
+  instructions: text('instructions'),
+  prepTime: integer('prep_time'),
+  cookTime: integer('cook_time'),
+  servings: integer('servings'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const recipeIngredients = pgTable('recipe_ingredients', {
+  id: serial('id').primaryKey(),
+  recipeId: integer('recipe_id').references(() => recipes.id),
+  inventoryItemId: text('inventory_item_id'),
+  quantity: decimal('quantity', { precision: 10, scale: 3 }).notNull(),
+  unit: varchar('unit', { length: 50 }),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const rateCalendar = pgTable('rate_calendar', {
+  id: serial('id').primaryKey(),
+  roomType: varchar('room_type', { length: 50 }).notNull(),
+  date: date('date').notNull(),
+  rate: decimal('rate', { precision: 10, scale: 2 }).notNull(),
+  availability: integer('availability').default(0),
+  minStay: integer('min_stay').default(1),
+  isBlocked: boolean('is_blocked').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const channels = pgTable('channels', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  type: varchar('type', { length: 50 }),
+  isActive: boolean('is_active').default(true),
+  connectionDetails: text('connection_details'),
+  commission: decimal('commission', { precision: 5, scale: 2 }),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const auditLogs = pgTable('audit_logs', {
+  id: serial('id').primaryKey(),
+  tableName: varchar('table_name', { length: 100 }).notNull(),
+  recordId: integer('record_id'),
+  action: varchar('action', { length: 20 }).notNull(),
+  oldValues: text('old_values'),
+  newValues: text('new_values'),
+  changedBy: varchar('changed_by', { length: 100 }),
+  changedAt: timestamp('changed_at').defaultNow(),
+  ipAddress: varchar('ip_address', { length: 50 }),
+});

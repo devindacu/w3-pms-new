@@ -1,0 +1,134 @@
+Never replace or reset the database when pulling or pushing code updates.
+Instead:
+
+Update code only
+
+Apply incremental database migrations
+
+Preserve existing settings, users, messages, and history
+
+🧱 Recommended Architecture
+1️⃣ Separate Code & Data (MANDATORY)
+
+Keep these completely independent:
+
+Layer	How
+Application Code	Git (versioned)
+Database	Persistent DB (MySQL / PostgreSQL)
+Config	.env or settings table
+Media / Logs	External storage
+
+🚫 Never store database files inside the code repository.
+
+2️⃣ Versioned Database Migrations (KEY RULE)
+
+Use migration files instead of full database imports.
+
+Example
+-- migration_2026_01_19_add_ai_chat_logs.sql
+ALTER TABLE chat_logs ADD COLUMN ai_confidence_score FLOAT DEFAULT NULL;
+
+
+✔ Existing data stays
+✔ Only new structure is added
+✔ Runs once per version
+
+Every release = new migration file, never modify old ones.
+
+3️⃣ Update Flow (Safe Pull / Push)
+🔄 Code Update Flow
+git pull origin main
+composer install --no-dev
+npm run build
+
+🔄 Database Update Flow
+php artisan migrate
+
+
+or
+
+sequelize db:migrate
+
+
+➡️ NO DROP TABLE
+➡️ NO RESET
+➡️ NO IMPORT .sql FILES
+
+4️⃣ System Settings Protection
+
+Store system settings in one of these ways:
+
+✅ Best Options
+
+settings database table
+
+.env file (not tracked in Git)
+
+Example Table
+settings
+- id
+- key
+- value
+- updated_at
+
+
+⚠️ Never hard-code system settings in source code.
+
+5️⃣ Backward-Compatible Updates
+
+Every new version must:
+
+Work with old data
+
+Add new fields with defaults
+
+Never rename/remove columns without migration logic
+
+Example (Safe)
+ALTER TABLE users ADD COLUMN language VARCHAR(10) DEFAULT 'en';
+
+6️⃣ Version Control Strategy
+Use Semantic Versioning
+v1.2.0 → v1.3.0
+
+Version Tracking Table
+system_versions
+- version
+- applied_at
+
+
+This lets you:
+✔ Track updates
+✔ Roll back safely
+✔ Audit changes
+
+7️⃣ Rollback Safety (Highly Recommended)
+
+Before every update:
+
+mysqldump db_name > backup_2026_01_19.sql
+
+
+Or use:
+
+Automated daily backups
+
+Point-in-time recovery
+
+8️⃣ ZERO-DOWNTIME Deployment (Optional)
+
+For production systems:
+
+Blue–Green deployment
+
+Feature flags
+
+Maintenance mode during migration
+
+🚫 What NOT to Do
+
+❌ Re-import database
+❌ Use DROP TABLE
+❌ Push .env files
+❌ Overwrite settings
+❌ Modify old migration files

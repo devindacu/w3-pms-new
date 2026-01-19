@@ -206,6 +206,140 @@ app.get('/api/maintenance-requests', async (req, res) => {
   }
 });
 
+app.get('/api/system-settings', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.systemSettings);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch system settings' });
+  }
+});
+
+app.get('/api/system-settings/:key', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.systemSettings).where(eq(schema.systemSettings.key, req.params.key));
+    res.json(result[0] || null);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch setting' });
+  }
+});
+
+app.post('/api/system-settings', async (req, res) => {
+  try {
+    const { key, value, category, description } = req.body;
+    try {
+      const result = await db.insert(schema.systemSettings).values({ key, value, category, description }).returning();
+      res.json(result[0]);
+    } catch (insertError: any) {
+      const errorStr = JSON.stringify(insertError);
+      if (insertError.cause?.code === '23505' || errorStr.includes('duplicate') || errorStr.includes('unique')) {
+        const result = await db.update(schema.systemSettings)
+          .set({ value, category, description })
+          .where(eq(schema.systemSettings.key, key))
+          .returning();
+        res.json(result[0]);
+      } else {
+        throw insertError;
+      }
+    }
+  } catch (error: any) {
+    console.error('System settings error:', error);
+    res.status(500).json({ error: 'Failed to save setting', details: error.message });
+  }
+});
+
+app.delete('/api/system-settings/:key', async (req, res) => {
+  try {
+    await db.delete(schema.systemSettings).where(eq(schema.systemSettings.key, req.params.key));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete setting' });
+  }
+});
+
+app.get('/api/system-versions', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.systemVersions);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch versions' });
+  }
+});
+
+app.post('/api/system-versions', async (req, res) => {
+  try {
+    const result = await db.insert(schema.systemVersions).values(req.body).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create version' });
+  }
+});
+
+
+app.get('/api/transactions', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.transactions);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch transactions' });
+  }
+});
+
+app.post('/api/transactions', async (req, res) => {
+  try {
+    const result = await db.insert(schema.transactions).values(req.body).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create transaction' });
+  }
+});
+
+
+app.get('/api/rate-calendar', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.rateCalendar);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch rate calendar' });
+  }
+});
+
+app.post('/api/rate-calendar', async (req, res) => {
+  try {
+    const result = await db.insert(schema.rateCalendar).values(req.body).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create rate entry' });
+  }
+});
+
+app.get('/api/channels', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.channels);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch channels' });
+  }
+});
+
+app.get('/api/audit-logs', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.auditLogs);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch audit logs' });
+  }
+});
+
+app.get('/api/recipes', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.recipes);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch recipes' });
+  }
+});
+
 const PORT = 3001;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`API Server running on http://localhost:${PORT}`);

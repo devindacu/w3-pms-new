@@ -78,6 +78,40 @@ src/
 - **Tailwind CSS**: Utility-first styling
 - **PostCSS**: CSS processing
 
+### Database Backend
+- **PostgreSQL**: Neon-backed PostgreSQL database for persistent data storage
+- **ORM**: Drizzle ORM with schema defined in `/shared/schema.ts`
+- **API Server**: Express.js backend on port 3001 (`/server/index.ts`)
+- **Connection**: Uses `DATABASE_URL` environment variable
+
+### Database Tables (40 tables)
+Core tables: `guests`, `rooms`, `reservations`, `folios`, `folio_charges`, `folio_payments`
+Operations: `housekeeping_tasks`, `menu_items`, `orders`, `order_items`, `inventory_items`
+Procurement: `suppliers`, `purchase_orders`, `requisitions`, `goods_received_notes`
+Finance: `accounts`, `transactions`, `payments`, `expenses`, `budgets`, `cost_centers`, `profit_centers`
+HR: `employees`, `shifts`, `attendances`, `leave_requests`, `duty_rosters`
+System: `system_settings`, `system_versions`, `system_users`, `audit_logs`, `activity_logs`
+Revenue: `rate_calendar`, `channels`
+Kitchen: `recipes`, `recipe_ingredients`
+
+### Version Control & Data Persistence Strategy
+- **Schema Versioning**: `system_versions` table tracks applied migrations
+- **Settings Storage**: `system_settings` table stores all configuration (key-value pairs with categories)
+- **Audit Trail**: `audit_logs` table records all data changes
+- **Migration Files**: Stored in `/migrations/` directory
+- **CRITICAL**: Database data persists across code updates and deployments
+- **RULE**: Never DROP tables, use incremental ALTER statements only
+
+### Update Flow (Safe Pull/Push)
+Code updates: `git pull` → `npm install` → `npm run build`
+Database updates: Apply incremental migrations only - NO reset, NO DROP TABLE, NO full imports
+Settings: Stored in `system_settings` table, never hard-coded
+
 ### Optional Integrations (Configured but may need setup)
 - **GitHub Sync**: Automatic backup to GitHub repository (configurable in Settings)
 - **Default branch**: `primary` for GitHub sync operations
+
+### Known GitHub Sync Issues
+- **CRITICAL**: `.npmrc` file with `legacy-peer-deps=true` must exist for deployment
+- This file may be removed during GitHub pulls and needs to be recreated
+- Backend files (`server/`, `shared/`) may also need recreation after GitHub sync
