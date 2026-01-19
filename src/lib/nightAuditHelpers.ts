@@ -19,6 +19,49 @@ import {
   Department
 } from './types'
 
+// Helper to create a complete GLEntry object
+function createGLEntry(params: {
+  accountCode: string
+  accountName: string
+  debit: number
+  credit: number
+  description: string
+  postingDate: number
+  reference: string
+  createdBy?: string
+}): GLEntry {
+  const journalId = `JE-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+  const lineId = `GL-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+  const fiscalYear = new Date(params.postingDate).getFullYear().toString()
+  const fiscalPeriod = `${fiscalYear}-${String(new Date(params.postingDate).getMonth() + 1).padStart(2, '0')}`
+  
+  return {
+    id: lineId,
+    journalEntryId: journalId,
+    journalNumber: `JNL-${Date.now()}`,
+    lineId,
+    accountId: params.accountCode,
+    accountCode: params.accountCode,
+    accountName: params.accountName,
+    transactionDate: params.postingDate,
+    postingDate: params.postingDate,
+    fiscalPeriod,
+    fiscalYear,
+    debit: params.debit,
+    credit: params.credit,
+    balance: params.debit - params.credit,
+    runningBalance: params.debit - params.credit,
+    description: params.description,
+    source: 'system',
+    sourceDocumentId: undefined,
+    sourceDocumentNumber: params.reference,
+    costCenter: undefined,
+    department: undefined,
+    createdBy: params.createdBy || 'system',
+    createdAt: Date.now()
+  }
+}
+
 export interface NightAuditConfig {
   postRoomCharges: boolean
   postFnBCharges: boolean
@@ -285,7 +328,7 @@ export function generateInvoiceFromFolio(
   const paymentRecords = folio.payments.map(payment => ({
     id: payment.id,
     paymentDate: payment.timestamp,
-    paymentType: payment.method,
+    paymentType: (payment.method === 'credit' ? 'corporate-billing' : payment.method) as PaymentType,
     amount: payment.amount,
     currency: 'USD',
     exchangeRate: 1,
@@ -354,7 +397,7 @@ export function generateGLEntries(
   const reference = invoice.invoiceNumber
   const postingDate = invoice.invoiceDate
   
-  entries.push({
+  entries.push(createGLEntry({
     accountCode: '1200',
     accountName: 'Accounts Receivable',
     debit: invoice.grandTotal,
@@ -362,7 +405,7 @@ export function generateGLEntries(
     description: `Guest invoice ${invoice.invoiceNumber}`,
     postingDate,
     reference
-  })
+  }))
   
   const revenueByDept = invoice.lineItems.reduce((acc, item) => {
     if (!acc[item.department]) acc[item.department] = 0
@@ -376,7 +419,7 @@ export function generateGLEntries(
     const accountName = dept === 'front-office' ? 'Room Revenue' :
                        dept === 'fnb' ? 'F&B Revenue' : 'Other Revenue'
     
-    entries.push({
+    entries.push(createGLEntry({
       accountCode,
       accountName,
       debit: 0,
@@ -384,11 +427,11 @@ export function generateGLEntries(
       description: `${accountName} - ${invoice.invoiceNumber}`,
       postingDate,
       reference
-    })
+    }))
   })
   
   if (invoice.serviceChargeAmount > 0) {
-    entries.push({
+    entries.push(createGLEntry({
       accountCode: '2300',
       accountName: 'Service Charge Payable',
       debit: 0,
@@ -396,7 +439,7 @@ export function generateGLEntries(
       description: `Service Charge - ${invoice.invoiceNumber}`,
       postingDate,
       reference
-    })
+    }))
   }
   
   if (invoice.totalTax > 0) {
@@ -405,7 +448,7 @@ export function generateGLEntries(
                             taxLine.taxType === 'gst' ? '2110' : '2120'
       const taxAccountName = `${taxLine.taxName} Payable`
       
-      entries.push({
+      entries.push(createGLEntry({
         accountCode: taxAccountCode,
         accountName: taxAccountName,
         debit: 0,
@@ -413,7 +456,7 @@ export function generateGLEntries(
         description: `${taxLine.taxName} - ${invoice.invoiceNumber}`,
         postingDate,
         reference
-      })
+      }))
     })
   }
   

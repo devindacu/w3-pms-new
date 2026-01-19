@@ -3381,16 +3381,6 @@ export interface PrepaymentApplication {
   appliedAt: number
 }
 
-export interface GLEntry {
-  accountCode: string
-  accountName: string
-  debit: number
-  credit: number
-  description: string
-  postingDate: number
-  reference: string
-}
-
 export interface InvoiceDeliveryMethod {
   method: 'print' | 'email' | 'download' | 'sms' | 'whatsapp' | 'portal'
   status: InvoiceDeliveryStatus

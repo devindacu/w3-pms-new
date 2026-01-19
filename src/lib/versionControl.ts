@@ -21,7 +21,7 @@ export class VersionControl {
   }
   
   static async getVersionInfo(): Promise<VersionInfo> {
-    const history = await spark.kv.get<SystemVersion[]>(this.VERSION_HISTORY_KEY) || []
+    const history = await window.spark.kv.get<SystemVersion[]>(this.VERSION_HISTORY_KEY) || []
     const current = history.length > 0 ? history[history.length - 1].version : '0.0.0'
     const previous = history.length > 1 ? history[history.length - 2].version : undefined
     
@@ -33,7 +33,7 @@ export class VersionControl {
   }
   
   static async updateVersion(newVersion: string, changelog: string[] = []): Promise<void> {
-    const history = await spark.kv.get<SystemVersion[]>(this.VERSION_HISTORY_KEY) || []
+    const history = await window.spark.kv.get<SystemVersion[]>(this.VERSION_HISTORY_KEY) || []
     const info = await this.getVersionInfo()
     
     const versionRecord: SystemVersion = {
@@ -43,11 +43,11 @@ export class VersionControl {
       changelog
     }
     
-    await spark.kv.set(this.VERSION_HISTORY_KEY, [...history, versionRecord])
+    await window.spark.kv.set(this.VERSION_HISTORY_KEY, [...history, versionRecord])
   }
   
   static async initializeVersion(): Promise<void> {
-    const history = await spark.kv.get<SystemVersion[]>(this.VERSION_HISTORY_KEY)
+    const history = await window.spark.kv.get<SystemVersion[]>(this.VERSION_HISTORY_KEY)
     
     if (!history || history.length === 0) {
       await this.updateVersion(this.CURRENT_VERSION, [

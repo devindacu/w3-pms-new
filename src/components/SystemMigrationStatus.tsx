@@ -8,7 +8,7 @@ import {
   Download, 
   Upload, 
   CheckCircle, 
-  AlertTriangle,
+  Warning,
   Clock,
   Shield
 } from '@phosphor-icons/react'
@@ -200,7 +200,7 @@ export function SystemMigrationStatus() {
 
       <Card className="p-6 bg-accent/10 border-accent">
         <div className="flex items-start gap-3">
-          <AlertTriangle size={24} className="text-accent mt-1" />
+          <Warning size={24} className="text-accent mt-1" />
           <div>
             <h4 className="font-semibold mb-2">Data Persistence Guidelines</h4>
             <ul className="text-sm text-muted-foreground space-y-1">

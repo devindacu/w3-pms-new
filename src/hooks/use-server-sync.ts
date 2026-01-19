@@ -7,8 +7,8 @@ export type SyncStatus = 'synced' | 'syncing' | 'offline' | 'conflict' | 'error'
 export type SyncConflict<T> = {
   id: string
   key: string
-  localValue: T
-  remoteValue: T
+  localValue: T | undefined
+  remoteValue: T | undefined
   localTimestamp: number
   remoteTimestamp: number
   localVersion: number
@@ -79,8 +79,8 @@ export function useServerSync<T>(
   const [lastSyncTime, setLastSyncTime] = useState<number>(Date.now())
   const [version, setVersion] = useState<number>(0)
   
-  const syncIntervalRef = useRef<NodeJS.Timeout>()
-  const isSyncingRef = useRef(false)
+  const syncIntervalRef = useRef<NodeJS.Timeout | undefined>(undefined)
+  const isSyncingRef = useRef<boolean>(false)
 
   const getUserId = async () => {
     try {
@@ -342,7 +342,8 @@ export function useServerSync<T>(
 
   const setValueWithSync = useCallback(
     async (newValue: T | ((prev: T) => T)) => {
-      const userId = (await getUserId()) || undefined
+      const userId = await getUserId()
+      const userIdStr = userId !== undefined ? String(userId) : undefined
       
       setValue((currentValue: T) => {
         const resolvedValue =
@@ -361,7 +362,7 @@ export function useServerSync<T>(
           version: newVersion,
           retries: 0,
           deviceId: DEVICE_ID,
-          userId,
+          userId: userIdStr,
         }
 
         setSyncQueue((prev) => {

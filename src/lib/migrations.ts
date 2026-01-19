@@ -19,7 +19,7 @@ export class MigrationManager {
   private static VERSION_KEY = 'w3-hotel-system-version'
   
   static async getAppliedMigrations(): Promise<MigrationRecord[]> {
-    const migrations = await spark.kv.get<MigrationRecord[]>(this.MIGRATIONS_KEY)
+    const migrations = await window.spark.kv.get<MigrationRecord[]>(this.MIGRATIONS_KEY)
     return migrations || []
   }
   
@@ -35,7 +35,7 @@ export class MigrationManager {
       checksum
     }
     
-    await spark.kv.set(this.MIGRATIONS_KEY, [...applied, record])
+    await window.spark.kv.set(this.MIGRATIONS_KEY, [...applied, record])
   }
   
   static async isMigrationApplied(version: string): Promise<boolean> {
@@ -59,12 +59,12 @@ export class MigrationManager {
   }
   
   static async getCurrentVersion(): Promise<string> {
-    const version = await spark.kv.get<string>(this.VERSION_KEY)
+    const version = await window.spark.kv.get<string>(this.VERSION_KEY)
     return version || '0.0.0'
   }
   
   static async setVersion(version: string): Promise<void> {
-    await spark.kv.set(this.VERSION_KEY, version)
+    await window.spark.kv.set(this.VERSION_KEY, version)
   }
   
   private static async generateChecksum(migration: Migration): Promise<string> {
@@ -86,7 +86,7 @@ export class MigrationManager {
     
     const applied = await this.getAppliedMigrations()
     const updated = applied.filter(m => m.version !== version)
-    await spark.kv.set(this.MIGRATIONS_KEY, updated)
+    await window.spark.kv.set(this.MIGRATIONS_KEY, updated)
     
     console.log(`✓ Migration ${version} rolled back successfully`)
   }
