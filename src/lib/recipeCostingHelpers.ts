@@ -65,7 +65,11 @@ export function calculateRecipeCost(
       }
     }
 
-    // Convert quantity to base unit if needed (simplified - assumes same units)
+    // TODO: Implement unit conversion between recipe units and food item units
+    // For now, this assumes units match. In production, you would need:
+    // - A unit conversion table (e.g., kg to g, L to mL)
+    // - Logic to convert recipe.unit to foodItem.unit before calculation
+    // Example: if recipe uses "kg" and foodItem is in "g", multiply by 1000
     const totalCost = ingredient.quantity * foodItem.unitCost
 
     return {

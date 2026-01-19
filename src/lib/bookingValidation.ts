@@ -1,5 +1,14 @@
 import type { Reservation, Room } from './types'
 
+/**
+ * Get start of day timestamp (midnight) for a given timestamp
+ */
+function getStartOfDay(timestamp: number): number {
+  const date = new Date(timestamp)
+  date.setHours(0, 0, 0, 0)
+  return date.getTime()
+}
+
 export interface BookingConflict {
   hasConflict: boolean
   conflictingReservations: Reservation[]
@@ -162,11 +171,9 @@ export function isRoomReadyForWalkIn(
   }
 
   // Check for existing reservations starting today
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const todayTimestamp = today.getTime()
+  const todayTimestamp = getStartOfDay(Date.now())
   
-  const tomorrow = new Date(today)
+  const tomorrow = new Date(todayTimestamp)
   tomorrow.setDate(tomorrow.getDate() + 1)
   const tomorrowTimestamp = tomorrow.getTime()
 
@@ -243,13 +250,10 @@ export function validateReservationDates(
   checkIn: number,
   checkOut: number
 ): { valid: boolean; error?: string } {
-  const now = Date.now()
+  const todayStart = getStartOfDay(Date.now())
   
   // Check-in cannot be in the past (allow same day)
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  
-  if (checkIn < today.getTime()) {
+  if (checkIn < todayStart) {
     return { 
       valid: false, 
       error: 'Check-in date cannot be in the past' 
@@ -275,7 +279,7 @@ export function validateReservationDates(
 
   // Maximum advance booking (e.g., 1 year)
   const maxAdvanceDays = 365
-  const maxAdvanceTimestamp = now + (maxAdvanceDays * 24 * 60 * 60 * 1000)
+  const maxAdvanceTimestamp = Date.now() + (maxAdvanceDays * 24 * 60 * 60 * 1000)
   if (checkIn > maxAdvanceTimestamp) {
     return { 
       valid: false, 

@@ -56,6 +56,12 @@ export function RecipeCostingDialog({
 }: RecipeCostingDialogProps) {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
 
+  // Create a memoized recipe lookup map for performance
+  const recipeMap = useMemo(() => 
+    new Map(recipes.map(r => [r.id, r])),
+    [recipes]
+  )
+
   // Calculate costs for all recipes
   const recipeCosts = useMemo(() => 
     recipes.map(recipe => calculateRecipeCost(recipe, foodItems)),
@@ -66,12 +72,12 @@ export function RecipeCostingDialog({
   const profitabilityData = useMemo(() => 
     menuItems
       .map(menuItem => {
-        const recipe = recipes.find(r => r.id === menuItem.recipeId)
+        const recipe = recipeMap.get(menuItem.recipeId)
         if (!recipe) return null
         return calculateMenuItemProfitability(menuItem, recipe, foodItems)
       })
       .filter((item): item is MenuItemProfitability => item !== null),
-    [menuItems, recipes, foodItems]
+    [menuItems, recipeMap, foodItems]
   )
 
   // Menu engineering analysis
