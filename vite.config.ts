@@ -11,7 +11,9 @@ const projectRoot = process.env.PROJECT_ROOT || import.meta.dirname
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      jsxRuntime: 'automatic',
+    }),
     tailwindcss(),
     // DO NOT REMOVE
     createIconImportProxy() as PluginOption,
@@ -21,12 +23,40 @@ export default defineConfig({
     alias: {
       '@': resolve(projectRoot, 'src'),
       'react': resolve(projectRoot, 'node_modules/react'),
-      'react-dom': resolve(projectRoot, 'node_modules/react-dom')
-    }
+      'react-dom': resolve(projectRoot, 'node_modules/react-dom'),
+      'react/jsx-runtime': resolve(projectRoot, 'node_modules/react/jsx-runtime')
+    },
+    dedupe: ['react', 'react-dom']
   },
   optimizeDeps: {
     exclude: ['framer-motion'],
-    include: ['react', 'react-dom', 'vaul', 'embla-carousel-react']
+    include: [
+      'react',
+      'react-dom',
+      'react/jsx-runtime',
+      'vaul',
+      'embla-carousel-react',
+      'sonner',
+      '@phosphor-icons/react'
+    ],
+    esbuildOptions: {
+      target: 'esnext',
+      supported: { 
+        'top-level-await': true 
+      },
+    }
+  },
+  build: {
+    target: 'esnext',
+    minify: 'esbuild',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'ui-vendor': ['sonner', '@phosphor-icons/react'],
+        }
+      }
+    }
   },
   server: {
     host: '0.0.0.0',
