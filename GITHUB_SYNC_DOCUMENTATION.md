@@ -54,7 +54,7 @@ const {
 } = useGitHubSync({
   owner: 'your-github-username',
   repo: 'your-repo-name',
-  branch: 'main',
+  branch: 'primary',  // Use 'primary' as the default branch (GitHub's modern naming convention)
   token: 'your-github-token',
   autoSyncInterval: 300000, // 5 minutes
   enabled: true

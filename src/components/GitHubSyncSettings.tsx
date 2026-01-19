@@ -39,7 +39,7 @@ export function GitHubSyncSettings({ initialConfig }: GitHubSyncSettingsProps) {
   const defaultConfig: GitHubSyncConfig = {
     owner: initialConfig?.owner || '',
     repo: initialConfig?.repo || '',
-    branch: initialConfig?.branch || 'main',
+    branch: initialConfig?.branch || 'primary',
     token: initialConfig?.token || '',
     autoSyncInterval: initialConfig?.autoSyncInterval || 300000,
     enabled: initialConfig?.enabled || false

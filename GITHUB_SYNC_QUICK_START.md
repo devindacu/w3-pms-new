@@ -45,12 +45,14 @@ If you don't have one already, visit [github.com](https://github.com) and sign u
 2. Fill in the configuration:
    - **Repository Owner:** Your GitHub username
    - **Repository Name:** `hotel-pms-data` (or the name you chose)
-   - **Branch:** `main` (default)
+   - **Branch:** `primary` (GitHub's modern default branch naming convention)
    - **GitHub Personal Access Token:** Paste the token you copied
    - **Auto-Sync Interval:** `5` minutes (recommended)
 3. Click "Save Configuration"
 4. Click "Test Sync Now" to verify the connection
 5. If successful, toggle "Enable Auto-Sync"
+
+**Note on Branch Naming:** GitHub now uses `primary` as the default branch name (replacing the older `main` or `master` conventions). If your repository uses a different branch name, enter it here. You can verify your repository's default branch in GitHub repository settings.
 
 ## What Gets Synced?
 
@@ -144,8 +146,16 @@ Shorter intervals = more frequent backups but more GitHub commits.
 - Repository name is incorrect
 - Repository doesn't exist
 - Repository owner username is wrong
+- Branch 'primary' doesn't exist in the repository
 
-**Solution:** Double-check repository name and owner in GitHub
+**Solution:** 
+1. Double-check repository name and owner in GitHub
+2. Verify the branch exists in your repository. To create the 'primary' branch:
+   - Go to your GitHub repository
+   - Click on the branch dropdown (usually shows 'main' or 'master')
+   - Type 'primary' in the search box
+   - Click "Create branch: primary from main" (or from your current default branch)
+   - Alternatively, you can rename your default branch to 'primary' in repository settings
 
 ### Sync stuck at "Syncing"
 **Solution:**
