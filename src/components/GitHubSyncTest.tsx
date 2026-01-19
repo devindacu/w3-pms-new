@@ -489,6 +489,33 @@ export function GitHubSyncTest() {
         </div>
       </div>
 
+      <Alert className="border-primary/50 bg-primary/5">
+        <Info size={16} className="text-primary" />
+        <AlertDescription>
+          <div className="space-y-2">
+            <p className="font-semibold text-foreground">✅ GitHub Sync with Primary Branch - Ready to Test</p>
+            <p className="text-sm">
+              This test suite validates that your GitHub repository sync is correctly configured to use the <code className="px-1 py-0.5 bg-background rounded text-primary font-mono">primary</code> branch.
+              Complete the configuration below and run all tests to verify functionality.
+            </p>
+            <div className="flex flex-wrap gap-2 mt-3">
+              <Badge variant="outline" className="bg-background">
+                <CheckCircle size={14} className="mr-1 text-success" />
+                7 Automated Tests
+              </Badge>
+              <Badge variant="outline" className="bg-background">
+                <GitBranch size={14} className="mr-1 text-primary" />
+                Primary Branch Validation
+              </Badge>
+              <Badge variant="outline" className="bg-background">
+                <GithubLogo size={14} className="mr-1" />
+                Real GitHub API Testing
+              </Badge>
+            </div>
+          </div>
+        </AlertDescription>
+      </Alert>
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="p-4">
           <div className="text-center">
@@ -643,15 +670,26 @@ export function GitHubSyncTest() {
                 </div>
               </div>
 
-              <Button
-                onClick={runAllTests}
-                className="w-full"
-                disabled={isRunningTests || !testConfig.owner || !testConfig.repo || !testConfig.branch || !testConfig.token}
-                size="lg"
-              >
-                <Lightning size={20} className="mr-2" />
-                {isRunningTests ? 'Running Tests...' : 'Run All Tests'}
-              </Button>
+              <div className="space-y-3">
+                <Button
+                  onClick={runAllTests}
+                  className="w-full"
+                  disabled={isRunningTests || !testConfig.owner || !testConfig.repo || !testConfig.branch || !testConfig.token}
+                  size="lg"
+                >
+                  <Lightning size={20} className="mr-2" />
+                  {isRunningTests ? 'Running Tests...' : 'Run All Tests'}
+                </Button>
+                
+                {!testConfig.owner || !testConfig.repo || !testConfig.branch || !testConfig.token ? (
+                  <Alert>
+                    <Warning size={16} />
+                    <AlertDescription className="text-sm">
+                      Please fill in all configuration fields above before running tests.
+                    </AlertDescription>
+                  </Alert>
+                ) : null}
+              </div>
             </div>
           </Card>
         </TabsContent>
