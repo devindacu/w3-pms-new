@@ -202,316 +202,316 @@ useMigrationManager() {
 // ✅ Hotel branding with custom logo (PRESERVED)
 // ✅ 150 guests (PRESERVED)
 // ✅ 45 reservations (PRESERVED)
-// ✅ All customizations (PRESERVED)
-// ✅ Plus any new fields from migration (with defaults)
-```
 
-### Scenario 3: Page Refresh
 
-```typescript
-// User working on Invoice Center
-// User configured custom email templates
-// User set specific tax rates
+// 
 
 // USER REFRESHES BROWSER:
 
-// All useKV hooks re-initialize:
-const [branding] = useKV('w3-hotel-branding', null)
-// → Fetches from storage
-// ✅ Logo, colors, settings restored
+// → Fetches 
 
-const [taxes] = useKV('w3-hotel-taxes', [])
 // → Fetches from storage
-// ✅ Tax configurations restored
 
-const [emailTemplates] = useKV('w3-hotel-email-templates', [])
-// → Fetches from storage
-// ✅ Custom templates restored
 
-const [guests] = useServerSync('w3-hotel-guests', [], {...})
-// → Fetches from storage
-// ✅ All guest data restored
 
-// Result: User continues exactly where they left off
+
+
 ```
-
 ## Migration Strategy
-
 ### Adding New Settings (Example)
 
-When a developer needs to add a new setting:
-
 **Step 1: Create Migration File**
-
 ```typescript
-// src/lib/migrations/2026_01_20_add_currency_precision.ts
 
-import { Migration } from '../migrations'
 
-export const migration_2026_01_20_add_currency_precision: Migration = {
   version: '1.3.0',
-  name: 'Add Currency Precision Setting',
-  timestamp: 1737504000000,
-  
+  timestamp: 173750400000
   async up() {
-    // Get existing branding
-    const branding = await spark.kv.get('w3-hotel-branding')
-    
+
     if (branding) {
-      // Add new field with default
-      branding.currencyPrecision = branding.currencyPrecision || 2
-      
-      // Save updated branding
-      await spark.kv.set('w3-hotel-branding', branding)
-      
-      console.log('✓ Added currency precision setting')
+      branding.currencyPr
+      // Save updated brandi
+
     }
-  }
 }
-```
 
-**Step 2: Register Migration**
 
-```typescript
-// src/lib/migrations/index.ts
 
-export const allMigrations: Migration[] = [
-  migration_2026_01_19_initial_schema,
-  migration_2026_01_19_add_settings_table,
-  migration_2026_01_20_add_currency_precision, // ← Add new migration
+export const allMigrations: Migra
+
 ]
-```
 
-**Step 3: Update Type Definitions**
 
-```typescript
-// src/lib/types.ts
 
-export interface HotelBranding {
-  // ... existing fields
+export interf
   currencyPrecision?: number // ← Add new field
-}
-```
 
 **Step 4: Deploy**
 
-```bash
-git commit -m "Add currency precision setting"
 git push
-
 # On production:
-# - Migration runs automatically
 # - Backup created before migration
-# - New field added to existing branding
-# - All other data preserved
-# - No manual intervention needed
-```
-
-## Best Practices
-
+# - All other data preserve
+``
+## Best Practi
 ### ✅ DO
-
 1. **Always use functional updates** when modifying state:
-   ```typescript
-   // ✅ CORRECT
-   setBranding(currentBranding => ({
-     ...currentBranding,
-     hotelName: 'New Name'
+   /
+     ...currentBran
    }))
-   
    // ❌ WRONG - Can cause data loss
-   setBranding({
-     ...branding, // branding might be stale
-     hotelName: 'New Name'
+     .
    })
-   ```
 
-2. **Use migrations for schema changes**:
-   ```typescript
-   // ✅ CORRECT - Add field via migration
-   export const migration: Migration = {
-     async up() {
-       const data = await spark.kv.get('key')
-       data.newField = defaultValue
-       await spark.kv.set('key', data)
-     }
-   }
-   
-   // ❌ WRONG - Direct schema modification
-   // Just hoping the new field exists
    ```
+   export const migration: Migration = {
+     
+   
+ 
+   
 
 3. **Provide default values**:
-   ```typescript
-   // ✅ CORRECT
-   const [settings] = useKV('settings', {
-     theme: 'light',
-     notifications: true
+
+     theme: '
    })
-   
-   // ❌ WRONG
-   const [settings] = useKV('settings') // undefined if not set
-   ```
 
+   ```
 ### ❌ DON'T
-
-1. **Never use localStorage for persistent data**:
-   ```typescript
+1. **Never use localStorage for persistent
    // ❌ WRONG - Will not persist across deployments
-   localStorage.setItem('hotel-settings', JSON.stringify(settings))
+ 
    
-   // ✅ CORRECT
-   const [settings, setSettings] = useKV('w3-hotel-settings', defaultSettings)
-   ```
 
-2. **Never reset database on code updates**:
    ```typescript
-   // ❌ WRONG - Destroys all data
-   await spark.kv.delete('w3-hotel-branding')
-   await spark.kv.delete('w3-hotel-guests')
-   
-   // ✅ CORRECT - Use migrations to update
-   await MigrationManager.runMigrations(allMigrations)
-   ```
 
-3. **Never hard-code settings**:
+   
+   await MigrationM
+
    ```typescript
-   // ❌ WRONG
-   const HOTEL_NAME = 'W3 Hotel' // Can't be changed by user
-   
+   const HOTEL_NAME = 'W
    // ✅ CORRECT
-   const [branding] = useKV('w3-hotel-branding', defaultBranding)
-   const hotelName = branding?.hotelName || 'W3 Hotel'
-   ```
+ 
 
-## Verification
 
-### Test 1: Settings Persistence
 
-```typescript
-// 1. Change hotel name to "Paradise Resort"
-// 2. Refresh page
-// 3. Verify hotel name still shows "Paradise Resort" ✅
 
+// 3. V
 // 2. Upload custom logo
-// 3. Refresh page
-// 4. Verify logo still displays ✅
+// 4. Ve
 
-// 5. Change color scheme
-// 6. Refresh page
-// 7. Verify colors persisted ✅
-```
+// 7. Verify col
 
-### Test 2: Code Update Persistence
 
-```typescript
 // 1. Add 10 sample guests
-// 2. Create 5 reservations
 // 3. Customize branding
-// 4. Simulate code update (refresh page)
-// 5. Verify all data still exists ✅
-```
+// 5. Verify all data still exist
 
-### Test 3: Migration Execution
 
-```typescript
-// 1. Check current version in settings
-// 2. Push code with new migration
-// 3. App loads and runs migration
-// 4. Verify version updated ✅
-// 5. Verify backup created ✅
-// 6. Verify all old data preserved ✅
-// 7. Verify new fields added ✅
-```
+// 1. Check curre
 
-## Troubleshooting
+// 5. Ve
 
-### Issue: Settings not saving
 
-**Check**:
+
+
 1. Are you using `useKV` hook?
-2. Are you using functional updates?
-3. Is the key prefixed with `w3-hotel-`?
-
+3. Is the key prefixed w
 **Solution**:
-```typescript
-// Correct pattern
-const [branding, setBranding] = useKV('w3-hotel-branding', defaultBranding)
+// Cor
 
-setBranding(current => ({
   ...current,
-  hotelName: newName
 }))
+
+
+1. Ar
+
+
+const [settings, setSettings] = useState(
+// ✅ Correct - p
 ```
-
-### Issue: Data lost after refresh
-
-**Check**:
-1. Are you using localStorage instead of useKV?
-2. Are you using state without persistence?
-
-**Solution**:
-```typescript
-// ❌ Wrong - not persisted
-const [settings, setSettings] = useState({})
-
-// ✅ Correct - persisted
-const [settings, setSettings] = useKV('w3-hotel-settings', {})
-```
-
 ### Issue: Migration not running
-
 **Check**:
-1. Is migration registered in `src/lib/migrations/index.ts`?
-2. Is `useMigrationManager()` called in App.tsx?
-3. Check browser console for migration logs
+2. Is `useMigrationManager()` called in App.t
 
-**Solution**:
 ```typescript
-// Check that migration is exported
-export const allMigrations: Migration[] = [
-  migration_2026_01_19_initial_schema,
-  migration_2026_01_19_add_settings_table,
-  yourNewMigration, // ← Must be here
+export
+  mi
 ]
-```
 
-## Files Modified
 
-| File | Purpose |
-|------|---------|
-| `src/App.tsx` | Added migration manager initialization |
-| `src/hooks/use-migration-manager.ts` | Fixed import path for allMigrations |
-| All data states | Already using `useKV` for persistence |
+|-----
 
-## Current Status
 
-✅ **Migration system**: Active and running  
-✅ **Branding persistence**: Working  
-✅ **Settings persistence**: Working  
+
+✅ **Branding pe
 ✅ **Module data persistence**: Working  
-✅ **Backup system**: Active  
-✅ **Version control**: Tracking  
-✅ **Zero data loss**: Guaranteed  
+✅ **Version control*
 
-## Summary
 
-The W3 Hotel PMS now has **enterprise-grade data persistence** that ensures:
 
-1. **Settings Never Lost**: All hotel branding, configurations, and customizations persist across refreshes
-2. **Code Updates Safe**: Pulling/pushing code never resets the database
-3. **Migration Protected**: Automatic backups before any schema changes
-4. **User Confidence**: Changes are immediately saved and permanently stored
-5. **Developer Friendly**: Simple hooks, clear patterns, no complex configuration
+2. **Code Upd
+4. **User Confidence**: Changes are immediately saved and perma
 
-### The Golden Rule
 
-> **All persistent data MUST use `useKV` or `useServerSync` hooks**  
-> **Never use `useState` for data that needs to survive a refresh**
-
----
+> **Never u
 
 **Implementation Date**: January 20, 2026  
-**Status**: ✅ Production Ready  
-**Data Safety**: Guaranteed  
-**User Impact**: Zero data loss on any operation
+**Data Safety**:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -37,6 +37,7 @@ import {
   cleanupOldBackups
 } from '@/lib/backupEncryption'
 import type { SystemUser } from '@/lib/types'
+import { RollbackWizard } from '@/components/RollbackWizard'
 
 interface BackupManagementProps {
   currentUser: SystemUser
@@ -60,6 +61,7 @@ export function BackupManagement({ currentUser }: BackupManagementProps) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [restoreDialogOpen, setRestoreDialogOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [rollbackWizardOpen, setRollbackWizardOpen] = useState(false)
   const [selectedBackup, setSelectedBackup] = useState<BackupMetadata | null>(null)
   
   const [backupName, setBackupName] = useState('')
@@ -278,6 +280,10 @@ export function BackupManagement({ currentUser }: BackupManagementProps) {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button onClick={() => setRollbackWizardOpen(true)} size="lg" variant="outline">
+            <ClockCounterClockwise size={20} className="mr-2" />
+            Rollback Wizard
+          </Button>
           <Button onClick={() => setCreateDialogOpen(true)} size="lg">
             <FloppyDisk size={20} className="mr-2" />
             Create Backup
@@ -788,6 +794,12 @@ export function BackupManagement({ currentUser }: BackupManagementProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <RollbackWizard
+        open={rollbackWizardOpen}
+        onOpenChange={setRollbackWizardOpen}
+        currentUser={currentUser}
+      />
     </div>
   )
 }
