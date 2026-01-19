@@ -392,6 +392,8 @@ export interface MenuItem {
 export type ComboDiscountType = 'percentage' | 'fixed-amount' | 'custom-price'
 export type ComboStatus = 'active' | 'inactive' | 'scheduled' | 'expired'
 export type ComboAvailability = 'all-day' | 'breakfast' | 'lunch' | 'dinner' | 'custom'
+export type PromotionType = 'early-bird' | 'happy-hour' | 'flash-sale' | 'seasonal' | 'limited-time' | 'daily-special' | 'weekend-special' | 'buy-one-get-one' | 'loyalty-exclusive' | 'first-timer' | 'custom'
+export type PromotionTrigger = 'time-based' | 'quantity-limited' | 'first-x-customers' | 'minimum-order' | 'day-of-week' | 'auto-apply'
 
 export interface MealComboItem {
   id: string
@@ -403,6 +405,36 @@ export interface MealComboItem {
   substituteOptions?: string[]
   price: number
   category: string
+}
+
+export interface ComboPromotion {
+  id: string
+  promotionCode?: string
+  promotionType: PromotionType
+  promotionName: string
+  promotionDescription?: string
+  isActive: boolean
+  trigger: PromotionTrigger
+  startDate: number
+  endDate: number
+  startTime?: string
+  endTime?: string
+  daysOfWeek?: string[]
+  additionalDiscountPercentage: number
+  additionalDiscountAmount?: number
+  maxRedemptions?: number
+  currentRedemptions: number
+  maxRedemptionsPerCustomer?: number
+  minOrderValue?: number
+  requiresCode: boolean
+  autoApply: boolean
+  showCountdownTimer: boolean
+  priorityLevel: number
+  badgeText?: string
+  badgeColor?: string
+  notificationMessage?: string
+  createdAt: number
+  createdBy: string
 }
 
 export interface MealCombo {
@@ -432,6 +464,11 @@ export interface MealCombo {
   preparationTime: number
   isSpecial: boolean
   sortOrder: number
+  activePromotion?: ComboPromotion
+  promotions?: ComboPromotion[]
+  isPromotionActive?: boolean
+  promotionPrice?: number
+  promotionSavings?: number
   createdAt: number
   updatedAt: number
   createdBy: string

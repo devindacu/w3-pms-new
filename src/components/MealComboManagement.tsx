@@ -3,11 +3,13 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Plus, MagnifyingGlass, Package, Pencil, Trash, Eye, Clock, TrendUp, CalendarBlank } from '@phosphor-icons/react'
+import { Plus, MagnifyingGlass, Package, Pencil, Trash, Clock, TrendUp, CalendarBlank, Tag, Sparkle, Timer } from '@phosphor-icons/react'
 import { MealComboDialog } from '@/components/MealComboDialog'
+import { ComboPromotionDialog } from '@/components/ComboPromotionDialog'
 import type { MealCombo, MenuItem } from '@/lib/types'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
+import { enrichComboWithPromotion, formatTimeRemaining, getPromotionBadgeColor } from '@/lib/promotionHelpers'
 
 interface MealComboManagementProps {
   combos: MealCombo[]
@@ -22,8 +24,12 @@ export function MealComboManagement({ combos, setCombos, menuItems, currentUser 
   const [availabilityFilter, setAvailabilityFilter] = useState<string>('all')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedCombo, setSelectedCombo] = useState<MealCombo | undefined>(undefined)
+  const [promotionDialogOpen, setPromotionDialogOpen] = useState(false)
+  const [selectedComboForPromotion, setSelectedComboForPromotion] = useState<MealCombo | undefined>(undefined)
 
-  const filteredCombos = combos.filter(combo => {
+  const enrichedCombos = combos.map(enrichComboWithPromotion)
+
+  const filteredCombos = enrichedCombos.filter(combo => {
     const matchesSearch = combo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       combo.description?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' || combo.status === statusFilter
@@ -58,6 +64,15 @@ export function MealComboManagement({ combos, setCombos, menuItems, currentUser 
     }
   }
 
+  const handleManagePromotions = (combo: MealCombo) => {
+    setSelectedComboForPromotion(combo)
+    setPromotionDialogOpen(true)
+  }
+
+  const handleSavePromotions = (combo: MealCombo) => {
+    setCombos((prev) => prev.map(c => c.id === combo.id ? combo : c))
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
@@ -71,6 +86,7 @@ export function MealComboManagement({ combos, setCombos, menuItems, currentUser 
   const stats = {
     total: combos.length,
     active: combos.filter(c => c.status === 'active').length,
+    withPromotions: enrichedCombos.filter(c => c.isPromotionActive).length,
     totalSavings: combos.reduce((sum, c) => sum + c.savings, 0),
     avgDiscount: combos.length > 0 ? combos.reduce((sum, c) => sum + c.savingsPercentage, 0) / combos.length : 0
   }
@@ -83,7 +99,7 @@ export function MealComboManagement({ combos, setCombos, menuItems, currentUser 
             <Package className="text-primary" size={28} />
             Meal Combos & Bundles
           </h2>
-          <p className="text-muted-foreground mt-1">Create and manage combo packages with special pricing</p>
+          <p className="text-muted-foreground mt-1">Create combos with special promotions and time-limited offers</p>
         </div>
         <Button onClick={handleCreate} className="mobile-optimized-button">
           <Plus size={20} className="mr-2" />
@@ -110,10 +126,10 @@ export function MealComboManagement({ combos, setCombos, menuItems, currentUser 
 
         <Card className="p-4 border-l-4 border-l-accent">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">Total Savings</span>
-            <TrendUp className="text-accent" size={20} />
+            <span className="text-sm text-muted-foreground">Active Promotions</span>
+            <Sparkle className="text-accent" size={20} />
           </div>
-          <p className="text-2xl font-bold">${stats.totalSavings.toFixed(2)}</p>
+          <p className="text-2xl font-bold">{stats.withPromotions}</p>
         </Card>
 
         <Card className="p-4 border-l-4 border-l-secondary">
@@ -185,9 +201,26 @@ export function MealComboManagement({ combos, setCombos, menuItems, currentUser 
               {filteredCombos
                 .sort((a, b) => b.createdAt - a.createdAt)
                 .map((combo) => (
-                  <Card key={combo.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <Card key={combo.id} className="overflow-hidden hover:shadow-lg transition-shadow relative">
+                    {combo.isPromotionActive && combo.activePromotion && (
+                      <div className="absolute top-0 left-0 right-0 z-10">
+                        <div className={`${getPromotionBadgeColor(combo.activePromotion.promotionType)} px-3 py-1 text-xs font-bold flex items-center justify-between`}>
+                          <span className="flex items-center gap-1">
+                            <Sparkle size={14} weight="fill" />
+                            {combo.activePromotion.badgeText || combo.activePromotion.promotionName}
+                          </span>
+                          {combo.activePromotion.showCountdownTimer && (
+                            <span className="flex items-center gap-1">
+                              <Timer size={14} />
+                              {formatTimeRemaining(combo.activePromotion.endDate)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     {combo.imageUrl && (
-                      <div className="h-40 overflow-hidden bg-muted">
+                      <div className={`h-40 overflow-hidden bg-muted ${combo.isPromotionActive ? 'mt-7' : ''}`}>
                         <img
                           src={combo.imageUrl}
                           alt={combo.name}
@@ -195,7 +228,8 @@ export function MealComboManagement({ combos, setCombos, menuItems, currentUser 
                         />
                       </div>
                     )}
-                    <div className="p-4 space-y-3">
+
+                    <div className={`p-4 space-y-3 ${!combo.imageUrl && combo.isPromotionActive ? 'mt-7' : ''}`}>
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-lg truncate">{combo.name}</h3>
@@ -220,6 +254,12 @@ export function MealComboManagement({ combos, setCombos, menuItems, currentUser 
                           <Clock size={12} />
                           {combo.availability}
                         </Badge>
+                        {combo.isPromotionActive && (
+                          <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 flex items-center gap-1">
+                            <Sparkle size={12} weight="fill" />
+                            Promo Active
+                          </Badge>
+                        )}
                       </div>
 
                       <div className="space-y-2 pt-2 border-t">
@@ -232,13 +272,36 @@ export function MealComboManagement({ combos, setCombos, menuItems, currentUser 
                           <span className="line-through">${combo.originalPrice.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="font-semibold text-primary">Combo Price:</span>
-                          <span className="font-bold text-primary text-lg">${combo.comboPrice.toFixed(2)}</span>
+                          <span className="font-semibold text-primary">
+                            {combo.isPromotionActive ? 'Promo Price:' : 'Combo Price:'}
+                          </span>
+                          <div className="text-right">
+                            {combo.isPromotionActive && combo.promotionPrice !== undefined ? (
+                              <>
+                                <span className="text-sm line-through text-muted-foreground mr-2">
+                                  ${combo.comboPrice.toFixed(2)}
+                                </span>
+                                <span className="font-bold text-accent text-lg">
+                                  ${combo.promotionPrice.toFixed(2)}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="font-bold text-primary text-lg">${combo.comboPrice.toFixed(2)}</span>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex justify-between items-center bg-success/10 -mx-2 px-2 py-1 rounded">
-                          <span className="text-success font-semibold text-sm">You Save:</span>
-                          <span className="text-success font-bold">
-                            ${combo.savings.toFixed(2)} ({combo.savingsPercentage.toFixed(1)}%)
+                        <div className={`flex justify-between items-center ${combo.isPromotionActive ? 'bg-accent/10' : 'bg-success/10'} -mx-2 px-2 py-1 rounded`}>
+                          <span className={`${combo.isPromotionActive ? 'text-accent' : 'text-success'} font-semibold text-sm`}>
+                            You Save:
+                          </span>
+                          <span className={`${combo.isPromotionActive ? 'text-accent' : 'text-success'} font-bold`}>
+                            ${combo.isPromotionActive && combo.promotionSavings !== undefined
+                              ? (combo.savings + combo.promotionSavings).toFixed(2)
+                              : combo.savings.toFixed(2)
+                            }
+                            {combo.isPromotionActive && combo.promotionSavings !== undefined && (
+                              <span className="text-xs ml-1">(+${combo.promotionSavings.toFixed(2)} promo)</span>
+                            )}
                           </span>
                         </div>
                       </div>
@@ -260,6 +323,15 @@ export function MealComboManagement({ combos, setCombos, menuItems, currentUser 
                         >
                           <Pencil size={16} className="mr-1" />
                           Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleManagePromotions(combo)}
+                          className="flex-1"
+                        >
+                          <Tag size={16} className="mr-1" />
+                          Promos
                         </Button>
                         <Button
                           variant="outline"
@@ -286,6 +358,16 @@ export function MealComboManagement({ combos, setCombos, menuItems, currentUser 
         onSave={handleSave}
         currentUser={currentUser}
       />
+
+      {selectedComboForPromotion && (
+        <ComboPromotionDialog
+          open={promotionDialogOpen}
+          onOpenChange={setPromotionDialogOpen}
+          combo={selectedComboForPromotion}
+          onSave={handleSavePromotions}
+          currentUser={currentUser}
+        />
+      )}
     </div>
   )
 }
