@@ -23,7 +23,7 @@ export function useAutoSave<T>(
   const { recordChange } = useGitHubSync({
     owner: config.gitHubConfig?.owner || '',
     repo: config.gitHubConfig?.repo || '',
-    branch: config.gitHubConfig?.branch || 'main',
+    branch: config.gitHubConfig?.branch || 'Primary', // Default Spark repository branch
     token: config.gitHubConfig?.token,
     autoSyncInterval: config.gitHubConfig?.autoSyncInterval || 300000,
     enabled: config.enableGitHubSync || false

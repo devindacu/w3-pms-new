@@ -48,7 +48,7 @@ export function HotelDataBackupSettings() {
   const [formData, setFormData] = useState({
     owner: config?.owner || '',
     repo: config?.repo || '',
-    branch: config?.branch || 'main',
+    branch: config?.branch || 'Primary', // Default Spark repository branch
     token: config?.token || '',
     frequency: config?.schedule.frequency || 'daily',
     time: config?.schedule.time || '02:00',
@@ -79,7 +79,7 @@ export function HotelDataBackupSettings() {
       setFormData({
         owner: config.owner || '',
         repo: config.repo || '',
-        branch: config.branch || 'main',
+        branch: config.branch || 'Primary', // Default Spark repository branch
         token: config.token || '',
         frequency: config.schedule.frequency || 'daily',
         time: config.schedule.time || '02:00',
@@ -98,7 +98,7 @@ export function HotelDataBackupSettings() {
       updateConfig({
         owner: formData.owner.trim(),
         repo: formData.repo.trim(),
-        branch: formData.branch.trim() || 'main',
+        branch: formData.branch.trim() || 'Primary', // Default Spark repository branch
         token: formData.token.trim(),
         retentionDays: parseInt(formData.retentionDays) || 30,
         compression: formData.compression,

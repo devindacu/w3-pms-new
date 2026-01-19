@@ -27,6 +27,9 @@ export interface ChangeRecord {
   synced: boolean
 }
 
+// Default branch is "Primary" - the Spark repository default branch
+const DEFAULT_BRANCH = 'Primary'
+
 export function useGitHubSync(config: GitHubSyncConfig) {
   const [syncStatus, setSyncStatus] = useState<SyncStatus>({
     status: 'idle',
@@ -106,7 +109,7 @@ export function useGitHubSync(config: GitHubSyncConfig) {
         body: JSON.stringify({
           message: commitMessage,
           content: btoa(JSON.stringify(dataBlob, null, 2)),
-          branch: syncConfig.branch || 'main'
+          branch: syncConfig.branch || DEFAULT_BRANCH
         })
       })
 
@@ -208,7 +211,7 @@ export function useGitHubSync(config: GitHubSyncConfig) {
       return {
         owner: merged.owner || '',
         repo: merged.repo || '',
-        branch: merged.branch || 'main',
+        branch: merged.branch || DEFAULT_BRANCH,
         token: merged.token,
         autoSyncInterval: merged.autoSyncInterval,
         enabled: merged.enabled

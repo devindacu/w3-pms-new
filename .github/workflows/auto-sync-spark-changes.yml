@@ -5,8 +5,8 @@ on:
   # Run on push to detect and sync changes
   push:
     branches:
+      - Primary  # Default Spark repository branch
       - main
-      - Primary
       - 'copilot/**'
   
   # Run periodically to catch any missed changes

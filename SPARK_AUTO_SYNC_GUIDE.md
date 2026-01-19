@@ -73,7 +73,7 @@ The GitHub Actions workflow is already configured and will run automatically. No
 2. Configure:
    - **Repository Owner**: Your GitHub username
    - **Repository Name**: Repository name (e.g., `w3-pms-new`)
-   - **Branch**: Target branch (default: `main`)
+   - **Branch**: Target branch (default: `Primary` - the Spark repository default branch)
    - **GitHub Token**: Personal Access Token with `repo` scope
    - **Auto-Sync Interval**: How often to sync (default: 5 minutes)
 3. Click "Save Configuration"

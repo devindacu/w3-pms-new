@@ -42,6 +42,7 @@ View sync activity:
 3. Enter:
    - Your GitHub username
    - Repository name: `w3-pms-new`
+   - Branch: `Primary` (default Spark repository branch)
    - [Create a GitHub token](https://github.com/settings/tokens/new?scopes=repo&description=W3-PMS-Sync)
 4. Save and enable auto-sync
 5. Done! 🎉

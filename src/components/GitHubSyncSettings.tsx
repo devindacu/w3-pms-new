@@ -39,7 +39,7 @@ export function GitHubSyncSettings({ initialConfig }: GitHubSyncSettingsProps) {
   const defaultConfig: GitHubSyncConfig = {
     owner: initialConfig?.owner || '',
     repo: initialConfig?.repo || '',
-    branch: initialConfig?.branch || 'main',
+    branch: initialConfig?.branch || 'Primary', // Default Spark repository branch
     token: initialConfig?.token || '',
     autoSyncInterval: initialConfig?.autoSyncInterval || 300000,
     enabled: initialConfig?.enabled || false
@@ -60,7 +60,7 @@ export function GitHubSyncSettings({ initialConfig }: GitHubSyncSettingsProps) {
   const [formData, setFormData] = useState({
     owner: config?.owner || '',
     repo: config?.repo || '',
-    branch: config?.branch || 'main',
+    branch: config?.branch || 'Primary', // Default Spark repository branch
     token: config?.token || '',
     autoSyncInterval: ((config?.autoSyncInterval || 300000) / 60000).toString(),
     enabled: config?.enabled || false
@@ -74,7 +74,7 @@ export function GitHubSyncSettings({ initialConfig }: GitHubSyncSettingsProps) {
       setFormData({
         owner: config.owner || '',
         repo: config.repo || '',
-        branch: config.branch || 'main',
+        branch: config.branch || 'Primary', // Default Spark repository branch
         token: config.token || '',
         autoSyncInterval: ((config.autoSyncInterval || 300000) / 60000).toString(),
         enabled: config.enabled || false
@@ -88,7 +88,7 @@ export function GitHubSyncSettings({ initialConfig }: GitHubSyncSettingsProps) {
       const newConfig: GitHubSyncConfig = {
         owner: formData.owner.trim(),
         repo: formData.repo.trim(),
-        branch: formData.branch.trim() || 'main',
+        branch: formData.branch.trim() || 'Primary', // Default Spark repository branch
         token: formData.token.trim(),
         autoSyncInterval: parseInt(formData.autoSyncInterval) * 60000,
         enabled: formData.enabled
