@@ -37,3 +37,8 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["bash", "-c", "npm run server & npx vite preview --host 0.0.0.0 --port 5000"]
+build = ["npm", "run", "build"]
