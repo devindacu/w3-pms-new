@@ -19,7 +19,9 @@ import {
   Package,
   Eye,
   ListDashes,
-  ClipboardText
+  ClipboardText,
+  Stack,
+  Bell
 } from '@phosphor-icons/react'
 import { type Room, type HousekeepingTask, type Employee, type MaintenanceRequest, type LostFoundItem } from '@/lib/types'
 import { getRoomStatusColor } from '@/lib/helpers'
@@ -29,6 +31,7 @@ import { DutyListDialog } from './DutyListDialog'
 import { MaintenanceIntegrationDialog } from './MaintenanceIntegrationDialog'
 import { LostFoundDialog } from './LostFoundDialog'
 import { MobileSimulatorDialog } from './MobileSimulatorDialog'
+import { HousekeepingBatchOperations } from './HousekeepingBatchOperations'
 import { useKV } from '@github/spark/hooks'
 
 interface HousekeepingProps {
@@ -47,6 +50,7 @@ export function Housekeeping({ rooms, setRooms, tasks, setTasks, employees }: Ho
   const [maintenanceDialogOpen, setMaintenanceDialogOpen] = useState(false)
   const [lostFoundDialogOpen, setLostFoundDialogOpen] = useState(false)
   const [mobileSimulatorOpen, setMobileSimulatorOpen] = useState(false)
+  const [batchOperationsOpen, setBatchOperationsOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<HousekeepingTask | undefined>()
   const [selectedRoom, setSelectedRoom] = useState<Room | undefined>()
   const [selectedLostFoundItem, setSelectedLostFoundItem] = useState<LostFoundItem | undefined>()
@@ -200,6 +204,10 @@ export function Housekeeping({ rooms, setRooms, tasks, setTasks, employees }: Ho
           <Button onClick={handleNewTask} className="flex-1 sm:flex-none mobile-optimized-button">
             <Plus size={20} className="mr-2" />
             New Task
+          </Button>
+          <Button variant="outline" onClick={() => setBatchOperationsOpen(true)} className="flex-1 sm:flex-none mobile-optimized-button">
+            <Stack size={20} className="mr-2" />
+            Batch Ops
           </Button>
           <Button variant="outline" onClick={() => setDutyListDialogOpen(true)} className="flex-1 sm:flex-none mobile-optimized-button">
             <ListDashes size={20} className="mr-2" />
@@ -625,6 +633,16 @@ export function Housekeeping({ rooms, setRooms, tasks, setTasks, employees }: Ho
       <MobileSimulatorDialog
         open={mobileSimulatorOpen}
         onOpenChange={setMobileSimulatorOpen}
+        tasks={tasks}
+        setTasks={setTasks}
+        rooms={rooms}
+        setRooms={setRooms}
+        employees={employees}
+      />
+
+      <HousekeepingBatchOperations
+        open={batchOperationsOpen}
+        onOpenChange={setBatchOperationsOpen}
         tasks={tasks}
         setTasks={setTasks}
         rooms={rooms}
