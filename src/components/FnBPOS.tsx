@@ -34,7 +34,10 @@ import {
   Minus,
   Trash,
   X,
-  Check
+  Check,
+  SquaresFour,
+  ListBullets,
+  Image as ImageIcon
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import type { MenuItem, Order, OrderItem, Guest, Room } from '@/lib/types'
@@ -70,6 +73,7 @@ export function FnBPOS({ menuItems, setMenuItems, menuCategories, setMenuCategor
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false)
   const [editingMenuItem, setEditingMenuItem] = useState<MenuItem | undefined>(undefined)
   const [editingCategory, setEditingCategory] = useState<import('@/lib/types').MenuItemCategory | undefined>(undefined)
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   const categories = ['All', ...menuCategories.filter(c => c.isActive).map(c => c.name)]
 
@@ -249,6 +253,22 @@ export function FnBPOS({ menuItems, setMenuItems, menuCategories, setMenuCategor
               className="pl-10"
             />
           </div>
+          <div className="flex gap-2">
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+            >
+              <SquaresFour size={18} />
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+            >
+              <ListBullets size={18} />
+            </Button>
+          </div>
           <Button onClick={() => {
             setEditingMenuItem(undefined)
             setIsMenuItemDialogOpen(true)
@@ -258,7 +278,7 @@ export function FnBPOS({ menuItems, setMenuItems, menuCategories, setMenuCategor
           </Button>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
           {categories.map((category) => (
             <Button
               key={category}
@@ -274,30 +294,89 @@ export function FnBPOS({ menuItems, setMenuItems, menuCategories, setMenuCategor
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {filteredMenuItems.map((item) => (
-              <Card
-                key={item.id}
-                className="p-4 cursor-pointer hover:border-primary transition-colors"
-                onClick={() => addToCart(item)}
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-semibold text-sm line-clamp-1">{item.name}</h4>
-                  <span className="text-lg font-bold text-primary">{formatCurrency(item.price)}</span>
-                </div>
-                {item.description && (
-                  <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{item.description}</p>
-                )}
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Clock size={12} />
-                    {item.preparationTime} min
-                  </span>
-                  <Badge variant="outline" className="text-xs">{item.category}</Badge>
-                </div>
-              </Card>
-            ))}
-          </div>
+          {viewMode === 'grid' ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredMenuItems.map((item) => (
+                <Card
+                  key={item.id}
+                  className="group cursor-pointer hover:shadow-lg hover:border-primary transition-all duration-200 overflow-hidden"
+                  onClick={() => addToCart(item)}
+                >
+                  <div className="relative aspect-[4/3] bg-muted overflow-hidden">
+                    {item.imageUrl ? (
+                      <img 
+                        src={item.imageUrl} 
+                        alt={item.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10">
+                        {getCategoryIcon(item.category)}
+                      </div>
+                    )}
+                    <div className="absolute top-2 right-2">
+                      <Badge className="bg-primary text-primary-foreground font-bold shadow-lg">
+                        {formatCurrency(item.price)}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="p-3">
+                    <h4 className="font-semibold text-sm line-clamp-1 mb-1">{item.name}</h4>
+                    {item.description && (
+                      <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{item.description}</p>
+                    )}
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Clock size={12} />
+                        {item.preparationTime} min
+                      </span>
+                      <Badge variant="outline" className="text-xs">{item.category}</Badge>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredMenuItems.map((item) => (
+                <Card
+                  key={item.id}
+                  className="flex items-center gap-4 p-3 cursor-pointer hover:border-primary hover:shadow-md transition-all duration-200"
+                  onClick={() => addToCart(item)}
+                >
+                  <div className="relative w-20 h-20 rounded-lg bg-muted overflow-hidden flex-shrink-0">
+                    {item.imageUrl ? (
+                      <img 
+                        src={item.imageUrl} 
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10">
+                        {getCategoryIcon(item.category)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <h4 className="font-semibold text-sm">{item.name}</h4>
+                      <span className="text-lg font-bold text-primary whitespace-nowrap">{formatCurrency(item.price)}</span>
+                    </div>
+                    {item.description && (
+                      <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{item.description}</p>
+                    )}
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Clock size={12} />
+                        {item.preparationTime} min
+                      </span>
+                      <Badge variant="outline" className="text-xs">{item.category}</Badge>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
           {filteredMenuItems.length === 0 && (
             <div className="text-center py-12 text-muted-foreground">
               <ForkKnife size={48} className="mx-auto mb-2 opacity-50" />
@@ -635,81 +714,118 @@ export function FnBPOS({ menuItems, setMenuItems, menuCategories, setMenuCategor
           <h2 className="text-2xl font-semibold">Menu Management</h2>
           <p className="text-muted-foreground">Manage your menu items and availability</p>
         </div>
-        <Button onClick={() => {
-          setEditingMenuItem(undefined)
-          setIsMenuItemDialogOpen(true)
-        }}>
-          <Plus size={18} className="mr-2" />
-          Add Menu Item
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setEditingCategory(undefined)
+              setIsCategoryDialogOpen(true)
+            }}
+          >
+            <Plus size={18} className="mr-2" />
+            Add Category
+          </Button>
+          <Button onClick={() => {
+            setEditingMenuItem(undefined)
+            setIsMenuItemDialogOpen(true)
+          }}>
+            <Plus size={18} className="mr-2" />
+            Add Menu Item
+          </Button>
+        </div>
       </div>
 
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Prep Time</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {menuItems.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>
-                  <div>
-                    <p className="font-medium">{item.name}</p>
-                    {item.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-1">{item.description}</p>
-                    )}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {menuItems.map((item) => (
+          <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+            <div className="relative aspect-video bg-muted">
+              {item.imageUrl ? (
+                <img 
+                  src={item.imageUrl} 
+                  alt={item.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10">
+                  <div className="text-muted-foreground/50">
+                    {getCategoryIcon(item.category)}
                   </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline">{item.category}</Badge>
-                </TableCell>
-                <TableCell className="font-semibold">{formatCurrency(item.price)}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">{item.preparationTime} min</TableCell>
-                <TableCell>
-                  {item.available ? (
-                    <Badge className="bg-success text-success-foreground">Available</Badge>
-                  ) : (
-                    <Badge variant="secondary">Unavailable</Badge>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setEditingMenuItem(item)
-                        setIsMenuItemDialogOpen(true)
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setMenuItems((prev) =>
-                          prev.map(i => i.id === item.id ? { ...i, available: !i.available } : i)
-                        )
-                        toast.success(`${item.name} is now ${item.available ? 'unavailable' : 'available'}`)
-                      }}
-                    >
-                      {item.available ? 'Disable' : 'Enable'}
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
+                </div>
+              )}
+              <div className="absolute top-2 right-2">
+                {item.available ? (
+                  <Badge className="bg-success text-success-foreground shadow-lg">Available</Badge>
+                ) : (
+                  <Badge variant="secondary" className="shadow-lg">Unavailable</Badge>
+                )}
+              </div>
+            </div>
+            <div className="p-4 space-y-3">
+              <div>
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <h3 className="font-semibold text-lg">{item.name}</h3>
+                  <span className="text-lg font-bold text-primary whitespace-nowrap">{formatCurrency(item.price)}</span>
+                </div>
+                {item.description && (
+                  <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <Badge variant="outline">{item.category}</Badge>
+                <span className="flex items-center gap-1">
+                  <Clock size={14} />
+                  {item.preparationTime} min
+                </span>
+              </div>
+
+              <Separator />
+
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setEditingMenuItem(item)
+                    setIsMenuItemDialogOpen(true)
+                  }}
+                  className="flex-1"
+                >
+                  Edit
+                </Button>
+                <Button
+                  size="sm"
+                  variant={item.available ? 'destructive' : 'default'}
+                  onClick={() => {
+                    setMenuItems((prev) =>
+                      prev.map(i => i.id === item.id ? { ...i, available: !i.available } : i)
+                    )
+                    toast.success(`${item.name} is now ${item.available ? 'unavailable' : 'available'}`)
+                  }}
+                  className="flex-1"
+                >
+                  {item.available ? 'Disable' : 'Enable'}
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {menuItems.length === 0 && (
+        <Card className="p-12 text-center">
+          <ForkKnife size={64} className="mx-auto mb-4 text-muted-foreground/50" />
+          <h3 className="text-xl font-semibold mb-2">No Menu Items</h3>
+          <p className="text-muted-foreground mb-6">Get started by adding your first menu item</p>
+          <Button onClick={() => {
+            setEditingMenuItem(undefined)
+            setIsMenuItemDialogOpen(true)
+          }}>
+            <Plus size={18} className="mr-2" />
+            Add Menu Item
+          </Button>
+        </Card>
+      )}
     </div>
   )
 
@@ -734,6 +850,10 @@ export function FnBPOS({ menuItems, setMenuItems, menuCategories, setMenuCategor
             <ForkKnife size={18} className="mr-2" />
             Menu Items
           </TabsTrigger>
+          <TabsTrigger value="categories">
+            <SquaresFour size={18} className="mr-2" />
+            Categories
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="pos" className="mt-6">
@@ -746,6 +866,93 @@ export function FnBPOS({ menuItems, setMenuItems, menuCategories, setMenuCategor
 
         <TabsContent value="menu" className="mt-6">
           {renderMenu()}
+        </TabsContent>
+
+        <TabsContent value="categories" className="mt-6">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-semibold">Menu Categories</h2>
+                <p className="text-muted-foreground">Organize your menu items by categories</p>
+              </div>
+              <Button onClick={() => {
+                setEditingCategory(undefined)
+                setIsCategoryDialogOpen(true)
+              }}>
+                <Plus size={18} className="mr-2" />
+                Add Category
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {menuCategories.map((category) => (
+                <Card key={category.id} className="p-6 hover:shadow-lg transition-shadow">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                        {getCategoryIcon(category.name)}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg">{category.name}</h3>
+                        {category.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-1">{category.description}</p>
+                        )}
+                      </div>
+                    </div>
+                    <Badge variant={category.isActive ? 'default' : 'secondary'}>
+                      {category.isActive ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
+                    <span>{menuItems.filter(item => item.category === category.name).length} items</span>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setEditingCategory(category)
+                        setIsCategoryDialogOpen(true)
+                      }}
+                      className="flex-1"
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={category.isActive ? 'destructive' : 'default'}
+                      onClick={() => {
+                        setMenuCategories((prev) =>
+                          prev.map(c => c.id === category.id ? { ...c, isActive: !c.isActive } : c)
+                        )
+                        toast.success(`${category.name} is now ${category.isActive ? 'inactive' : 'active'}`)
+                      }}
+                      className="flex-1"
+                    >
+                      {category.isActive ? 'Disable' : 'Enable'}
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+
+            {menuCategories.length === 0 && (
+              <Card className="p-12 text-center">
+                <SquaresFour size={64} className="mx-auto mb-4 text-muted-foreground/50" />
+                <h3 className="text-xl font-semibold mb-2">No Categories</h3>
+                <p className="text-muted-foreground mb-6">Get started by adding your first category</p>
+                <Button onClick={() => {
+                  setEditingCategory(undefined)
+                  setIsCategoryDialogOpen(true)
+                }}>
+                  <Plus size={18} className="mr-2" />
+                  Add Category
+                </Button>
+              </Card>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
 
