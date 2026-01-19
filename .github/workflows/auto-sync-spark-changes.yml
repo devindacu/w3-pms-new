@@ -1,0 +1,101 @@
+name: Auto-Sync Spark Changes
+
+# This workflow automatically commits and syncs code changes made in Spark
+on:
+  # Run on push to detect and sync changes
+  push:
+    branches:
+      - main
+      - Primary
+      - 'copilot/**'
+  
+  # Run periodically to catch any missed changes
+  schedule:
+    # Every 5 minutes during active hours (9 AM - 9 PM UTC)
+    - cron: '*/5 9-21 * * *'
+    # Every 30 minutes during off hours
+    - cron: '*/30 0-8,22-23 * * *'
+  
+  # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      commit_message:
+        description: 'Custom commit message'
+        required: false
+        default: 'Auto-sync: Spark changes'
+
+jobs:
+  auto-sync:
+    name: Sync Spark Changes
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Configure Git
+        run: |
+          git config --global user.name "Spark Auto-Sync Bot"
+          git config --global user.email "spark-bot@github-actions.noreply.github.com"
+      
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "✅ Changes detected"
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No changes detected"
+          fi
+      
+      - name: Display changed files
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          echo "📝 Changed files:"
+          git status --short
+      
+      - name: Commit changes
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          COMMIT_MSG="${{ github.event.inputs.commit_message }}"
+          if [ -z "$COMMIT_MSG" ]; then
+            TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+            COMMIT_MSG="Auto-sync: Spark changes at $TIMESTAMP"
+          fi
+          
+          git add .
+          git commit -m "$COMMIT_MSG" \
+            -m "Automatically synced from Spark environment" \
+            -m "Changes detected and committed by auto-sync workflow"
+      
+      - name: Push changes
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          git push origin $CURRENT_BRANCH
+          echo "✅ Changes pushed to $CURRENT_BRANCH"
+      
+      - name: Create summary
+        if: always()
+        run: |
+          echo "## 🔄 Auto-Sync Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check_changes.outputs.has_changes }}" == "true" ]; then
+            echo "**Status:** ✅ Changes detected and synced" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Status:** ℹ️ No changes to sync" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
