@@ -3,6 +3,7 @@ import { useKV } from '@github/spark/hooks'
 import { useServerSync } from '@/hooks/use-server-sync'
 import { Toaster, toast } from 'sonner'
 import { useTheme } from '@/hooks/use-theme'
+import { useBrandingTheme } from '@/hooks/use-branding-theme'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -514,6 +515,7 @@ function App() {
       employeesConflicts.length, invoicesConflicts.length, housekeepingConflicts.length])
 
   useTheme()
+  useBrandingTheme(branding || null)
 
   useEffect(() => {
     const handleNavigateToSettings = (event: CustomEvent) => {
@@ -943,8 +945,8 @@ function App() {
       <div className="px-3 py-4 mb-4">
         <div className="flex items-center gap-3">
           <img 
-            src={w3PMSLogo}
-            alt="W3 Hotel PMS" 
+            src={branding?.logo || w3PMSLogo}
+            alt={branding?.hotelName || "W3 Hotel PMS"} 
             className="h-12 w-auto object-contain"
           />
         </div>
@@ -1216,8 +1218,8 @@ function App() {
                 </div>
               </div>
               <img 
-                src={w3PMSLogo}
-                alt="W3 Hotel PMS" 
+                src={branding?.logo || w3PMSLogo}
+                alt={branding?.hotelName || "W3 Hotel PMS"} 
                 className="h-6 sm:h-8 w-auto object-contain flex-shrink-0"
               />
               <div className="flex items-center gap-1 sm:gap-2">
