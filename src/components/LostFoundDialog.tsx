@@ -226,14 +226,14 @@ export function LostFoundDialog({
               <div className="dialog-form-field">
                 <Label className="dialog-form-label">Room (if applicable)</Label>
                 <Select
-                  value={formData.roomId}
-                  onValueChange={(value) => setFormData({ ...formData, roomId: value })}
+                  value={formData.roomId || "none"}
+                  onValueChange={(value) => setFormData({ ...formData, roomId: value === "none" ? "" : value })}
                 >
                   <SelectTrigger className="dialog-form-input">
                     <SelectValue placeholder="Select room..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {rooms.map(room => (
                       <SelectItem key={room.id} value={room.id}>
                         Room {room.roomNumber}

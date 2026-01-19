@@ -165,14 +165,14 @@ export function MaintenanceRequestDialog({
           <div className="dialog-form-field">
             <Label>Room (Optional)</Label>
             <Select
-              value={formData.roomId}
-              onValueChange={(value) => setFormData({ ...formData, roomId: value })}
+              value={formData.roomId || "none"}
+              onValueChange={(value) => setFormData({ ...formData, roomId: value === "none" ? "" : value })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select room" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No specific room</SelectItem>
+                <SelectItem value="none">No specific room</SelectItem>
                 {rooms.map(room => (
                   <SelectItem key={room.id} value={room.id}>
                     Room {room.roomNumber} - {room.roomType}
@@ -204,14 +204,14 @@ export function MaintenanceRequestDialog({
           <div className="dialog-form-field">
             <Label>Assign To</Label>
             <Select
-              value={formData.assignedTo}
-              onValueChange={(value) => setFormData({ ...formData, assignedTo: value })}
+              value={formData.assignedTo || "unassigned"}
+              onValueChange={(value) => setFormData({ ...formData, assignedTo: value === "unassigned" ? "" : value })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select engineer" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Unassigned</SelectItem>
+                <SelectItem value="unassigned">Unassigned</SelectItem>
                 {engineeringStaff.map(emp => (
                   <SelectItem key={emp.id} value={emp.id}>
                     {emp.firstName} {emp.lastName}

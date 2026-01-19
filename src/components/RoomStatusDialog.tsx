@@ -109,11 +109,12 @@ export function RoomStatusDialog({
 
           <div>
             <Label htmlFor="assignedHousekeeper">Assigned Housekeeper</Label>
-            <Select value={assignedHousekeeper} onValueChange={setAssignedHousekeeper}>
+            <Select value={assignedHousekeeper || "none"} onValueChange={(value) => setAssignedHousekeeper(value === "none" ? "" : value)}>
               <SelectTrigger id="assignedHousekeeper">
                 <SelectValue placeholder="Select housekeeper (optional)" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="none">No Assignment</SelectItem>
                 {housekeepers.map(emp => (
                   <SelectItem key={emp.id} value={emp.id}>
                     {emp.firstName} {emp.lastName}
