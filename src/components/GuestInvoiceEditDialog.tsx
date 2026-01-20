@@ -218,6 +218,82 @@ export function GuestInvoiceEditDialog({
               </div>
             </div>
 
+            <Separator />
+
+            <div className="space-y-4">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <Label className="text-base font-semibold flex items-center gap-2">
+                    <CurrencyCircleDollar size={20} className="text-primary" />
+                    Invoice Currency
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Select the currency for this invoice. Amounts will be automatically converted.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Currency</Label>
+                  <Select
+                    value={editedInvoice.currency}
+                    onValueChange={(value) => handleCurrencyChange(value as CurrencyCode)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(currencyConfiguration?.allowedCurrencies || ['USD', 'EUR', 'GBP', 'LKR']).map((code) => {
+                        const currency = CURRENCIES[code]
+                        return currency ? (
+                          <SelectItem key={code} value={code}>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-xs">{currency.symbol}</span>
+                              <span>{currency.code}</span>
+                              <span className="text-muted-foreground text-xs">- {currency.name}</span>
+                            </div>
+                          </SelectItem>
+                        ) : null
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Exchange Rate</Label>
+                  <Input
+                    value={editedInvoice.exchangeRate.toFixed(6)}
+                    disabled
+                    className="font-mono"
+                  />
+                </div>
+
+                {editedInvoice.currency !== originalCurrency && currencyConfiguration?.showOriginalAmount && (
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1">
+                      <Info size={14} />
+                      Original Amount ({originalCurrency})
+                    </Label>
+                    <Input
+                      value={formatCurrencyAmount(originalTotals.grandTotal, originalCurrency)}
+                      disabled
+                      className="font-mono text-muted-foreground"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {editedInvoice.currency !== originalCurrency && (
+                <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    <strong>Note:</strong> This invoice has been converted from {originalCurrency} to {editedInvoice.currency} at rate {editedInvoice.exchangeRate.toFixed(6)}. 
+                    All amounts shown are in {CURRENCIES[editedInvoice.currency as CurrencyCode]?.name || editedInvoice.currency}.
+                  </p>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
               <Label>Guest Address</Label>
               <Textarea
@@ -295,30 +371,38 @@ export function GuestInvoiceEditDialog({
               <div className="w-96 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal:</span>
-                  <span className="font-medium">{formatCurrency(editedInvoice.subtotal)}</span>
+                  <span className="font-medium">
+                    {formatCurrencyAmount(editedInvoice.subtotal, editedInvoice.currency as CurrencyCode)}
+                  </span>
                 </div>
                 {editedInvoice.totalDiscount > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Discount:</span>
-                    <span className="font-medium">-{formatCurrency(editedInvoice.totalDiscount)}</span>
+                    <span className="font-medium">
+                      -{formatCurrencyAmount(editedInvoice.totalDiscount, editedInvoice.currency as CurrencyCode)}
+                    </span>
                   </div>
                 )}
                 {editedInvoice.serviceChargeAmount > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Service Charge:</span>
                     <span className="font-medium">
-                      {formatCurrency(editedInvoice.serviceChargeAmount)}
+                      {formatCurrencyAmount(editedInvoice.serviceChargeAmount, editedInvoice.currency as CurrencyCode)}
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Tax:</span>
-                  <span className="font-medium">{formatCurrency(editedInvoice.totalTax)}</span>
+                  <span className="font-medium">
+                    {formatCurrencyAmount(editedInvoice.totalTax, editedInvoice.currency as CurrencyCode)}
+                  </span>
                 </div>
                 <Separator />
                 <div className="flex justify-between text-lg font-semibold">
                   <span>Grand Total:</span>
-                  <span className="text-primary">{formatCurrency(editedInvoice.grandTotal)}</span>
+                  <span className="text-primary">
+                    {formatCurrencyAmount(editedInvoice.grandTotal, editedInvoice.currency as CurrencyCode)}
+                  </span>
                 </div>
               </div>
             </div>
