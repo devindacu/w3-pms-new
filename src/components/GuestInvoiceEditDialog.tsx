@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useKV } from '@github/spark/hooks'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -7,10 +8,18 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { PencilSimple, Plus, Trash, X } from '@phosphor-icons/react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { PencilSimple, Plus, Trash, X, CurrencyCircleDollar, Info } from '@phosphor-icons/react'
 import type { GuestInvoice, SystemUser, InvoiceLineItem } from '@/lib/types'
 import { formatCurrency } from '@/lib/helpers'
 import { toast } from 'sonner'
+import { type CurrencyCode, type ExchangeRate, type CurrencyConfiguration, CURRENCIES } from '@/lib/currencyTypes'
+import { 
+  formatCurrencyAmount,
+  convertCurrency,
+  roundCurrencyAmount,
+  getLatestExchangeRate
+} from '@/lib/currencyHelpers'
 
 interface GuestInvoiceEditDialogProps {
   open: boolean
@@ -29,6 +38,16 @@ export function GuestInvoiceEditDialog({
 }: GuestInvoiceEditDialogProps) {
   const [editedInvoice, setEditedInvoice] = useState<GuestInvoice>(invoice)
   const [isSaving, setIsSaving] = useState(false)
+  const [originalCurrency] = useState<CurrencyCode>(invoice.currency as CurrencyCode)
+  const [originalTotals] = useState({
+    subtotal: invoice.subtotal,
+    totalTax: invoice.totalTax,
+    serviceChargeAmount: invoice.serviceChargeAmount,
+    grandTotal: invoice.grandTotal
+  })
+  
+  const [currencyConfiguration] = useKV<CurrencyConfiguration | null>('w3-hotel-currency-config', null)
+  const [exchangeRates] = useKV<ExchangeRate[]>('w3-hotel-exchange-rates', [])
 
   const handleLineItemChange = (index: number, field: keyof InvoiceLineItem, value: any) => {
     const updatedLineItems = [...editedInvoice.lineItems]
