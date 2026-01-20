@@ -90,6 +90,53 @@ export function GuestInvoiceEditDialog({
     toast.success('Line item removed')
   }
 
+  const handleCurrencyChange = (newCurrency: CurrencyCode) => {
+    const oldCurrency = editedInvoice.currency as CurrencyCode
+    
+    if (oldCurrency === newCurrency) return
+
+    const conversion = convertCurrency(
+      1,
+      oldCurrency,
+      newCurrency,
+      exchangeRates || []
+    )
+
+    if (!conversion) {
+      toast.error(`No exchange rate found for ${oldCurrency} to ${newCurrency}`)
+      return
+    }
+
+    const roundingMode = currencyConfiguration?.roundingMode || 'round'
+    
+    const convertedLineItems = editedInvoice.lineItems.map(item => ({
+      ...item,
+      unitPrice: roundCurrencyAmount(item.unitPrice * conversion.rate, newCurrency, roundingMode),
+      lineTotal: roundCurrencyAmount(item.lineTotal * conversion.rate, newCurrency, roundingMode),
+      netAmount: roundCurrencyAmount(item.netAmount * conversion.rate, newCurrency, roundingMode),
+      discountAmount: item.discountAmount ? roundCurrencyAmount(item.discountAmount * conversion.rate, newCurrency, roundingMode) : undefined,
+      serviceChargeAmount: roundCurrencyAmount(item.serviceChargeAmount * conversion.rate, newCurrency, roundingMode),
+      totalTax: roundCurrencyAmount(item.totalTax * conversion.rate, newCurrency, roundingMode),
+      lineGrandTotal: roundCurrencyAmount(item.lineGrandTotal * conversion.rate, newCurrency, roundingMode),
+    }))
+
+    setEditedInvoice(prev => ({
+      ...prev,
+      currency: newCurrency,
+      exchangeRate: conversion.rate,
+      lineItems: convertedLineItems,
+      subtotal: roundCurrencyAmount(prev.subtotal * conversion.rate, newCurrency, roundingMode),
+      totalDiscount: roundCurrencyAmount(prev.totalDiscount * conversion.rate, newCurrency, roundingMode),
+      serviceChargeAmount: roundCurrencyAmount(prev.serviceChargeAmount * conversion.rate, newCurrency, roundingMode),
+      totalTax: roundCurrencyAmount(prev.totalTax * conversion.rate, newCurrency, roundingMode),
+      grandTotal: roundCurrencyAmount(prev.grandTotal * conversion.rate, newCurrency, roundingMode),
+      totalPaid: roundCurrencyAmount(prev.totalPaid * conversion.rate, newCurrency, roundingMode),
+      amountDue: roundCurrencyAmount(prev.amountDue * conversion.rate, newCurrency, roundingMode),
+    }))
+
+    toast.success(`Currency changed to ${CURRENCIES[newCurrency].name}`)
+  }
+
   const handleSave = async () => {
     setIsSaving(true)
     try {
