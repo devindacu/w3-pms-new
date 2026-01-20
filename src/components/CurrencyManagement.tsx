@@ -1,0 +1,521 @@
+import React, { useState } from 'react'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { toast } from 'sonner'
+import { 
+  CurrencyDollar, 
+  Plus, 
+  Pencil, 
+  Trash,
+  ArrowsClockwise,
+  CheckCircle,
+  Warning
+} from '@phosphor-icons/react'
+import { 
+  type CurrencyCode, 
+  type ExchangeRate, 
+  type CurrencyConfiguration,
+  CURRENCIES 
+} from '@/lib/currencyTypes'
+import { 
+  formatCurrencyAmount,
+  getActiveCurrencies,
+  updateExchangeRate,
+  getLatestExchangeRate,
+  generateDefaultExchangeRates,
+  calculateCurrencyMargin,
+  applyCurrencyMargin
+} from '@/lib/currencyHelpers'
+import { formatDateTime } from '@/lib/helpers'
+import type { SystemUser } from '@/lib/types'
+
+interface CurrencyManagementProps {
+  configuration: CurrencyConfiguration | null
+  setConfiguration: (config: CurrencyConfiguration) => void
+  exchangeRates: ExchangeRate[]
+  setExchangeRates: (rates: ExchangeRate[]) => void
+  currentUser: SystemUser
+}
+
+export function CurrencyManagement({
+  configuration,
+  setConfiguration,
+  exchangeRates,
+  setExchangeRates,
+  currentUser
+}: CurrencyManagementProps) {
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [selectedFromCurrency, setSelectedFromCurrency] = useState<CurrencyCode>('USD')
+  const [selectedToCurrency, setSelectedToCurrency] = useState<CurrencyCode>('LKR')
+  const [rateValue, setRateValue] = useState('')
+  const [marginPercent, setMarginPercent] = useState('0')
+
+  const defaultConfig: CurrencyConfiguration = configuration || {
+    id: 'currency-config-1',
+    baseCurrency: 'LKR',
+    displayCurrency: 'LKR',
+    allowedCurrencies: ['LKR', 'USD', 'EUR', 'GBP', 'AUD', 'CAD', 'JPY', 'CNY', 'INR'],
+    autoUpdateRates: false,
+    rateUpdateInterval: 3600000,
+    roundingMode: 'round',
+    showOriginalAmount: true,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    updatedBy: currentUser.id
+  }
+
+  const handleConfigUpdate = (updates: Partial<CurrencyConfiguration>) => {
+    const updated: CurrencyConfiguration = {
+      ...defaultConfig,
+      ...updates,
+      updatedAt: Date.now(),
+      updatedBy: currentUser.id
+    }
+    setConfiguration(updated)
+    toast.success('Currency configuration updated')
+  }
+
+  const handleAddExchangeRate = () => {
+    if (!rateValue || parseFloat(rateValue) <= 0) {
+      toast.error('Please enter a valid exchange rate')
+      return
+    }
+
+    const baseRate = parseFloat(rateValue)
+    const margin = parseFloat(marginPercent) || 0
+    const finalRate = margin !== 0 ? applyCurrencyMargin(baseRate, margin) : baseRate
+
+    const updatedRates = updateExchangeRate(
+      exchangeRates,
+      selectedFromCurrency,
+      selectedToCurrency,
+      finalRate,
+      currentUser.id,
+      'manual'
+    )
+
+    setExchangeRates(updatedRates)
+    setEditDialogOpen(false)
+    setRateValue('')
+    setMarginPercent('0')
+    toast.success(`Exchange rate updated: ${selectedFromCurrency} → ${selectedToCurrency}`)
+  }
+
+  const handleGenerateDefaultRates = () => {
+    const defaultRates = generateDefaultExchangeRates(
+      defaultConfig.baseCurrency,
+      currentUser.id
+    )
+    setExchangeRates([...exchangeRates, ...defaultRates])
+    toast.success(`Generated ${defaultRates.length} default exchange rates`)
+  }
+
+  const handleDeleteRate = (rateId: string) => {
+    setExchangeRates(exchangeRates.map(r => 
+      r.id === rateId ? { ...r, isActive: false } : r
+    ))
+    toast.success('Exchange rate deactivated')
+  }
+
+  const handleToggleCurrency = (currencyCode: CurrencyCode) => {
+    const current = defaultConfig.allowedCurrencies || []
+    const updated = current.includes(currencyCode)
+      ? current.filter(c => c !== currencyCode)
+      : [...current, currencyCode]
+    
+    handleConfigUpdate({ allowedCurrencies: updated })
+  }
+
+  const activeRates = exchangeRates.filter(r => r.isActive)
+  const allowedCurrencies = getActiveCurrencies(defaultConfig.allowedCurrencies)
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-semibold mb-2">Multi-Currency Management</h2>
+        <p className="text-muted-foreground">
+          Configure currency settings and exchange rates for international guests
+        </p>
+      </div>
+
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Base Configuration</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="base-currency">Base Currency (Hotel Currency)</Label>
+            <Select
+              value={defaultConfig.baseCurrency}
+              onValueChange={(value) => handleConfigUpdate({ baseCurrency: value as CurrencyCode })}
+            >
+              <SelectTrigger id="base-currency">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(CURRENCIES).map((currency) => (
+                  <SelectItem key={currency.code} value={currency.code}>
+                    {currency.symbol} - {currency.name} ({currency.code})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              The primary currency for your hotel operations
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="display-currency">Default Display Currency</Label>
+            <Select
+              value={defaultConfig.displayCurrency}
+              onValueChange={(value) => handleConfigUpdate({ displayCurrency: value as CurrencyCode })}
+            >
+              <SelectTrigger id="display-currency">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(CURRENCIES).map((currency) => (
+                  <SelectItem key={currency.code} value={currency.code}>
+                    {currency.symbol} - {currency.name} ({currency.code})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Default currency shown to guests
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="rounding-mode">Rounding Mode</Label>
+            <Select
+              value={defaultConfig.roundingMode}
+              onValueChange={(value) => handleConfigUpdate({ roundingMode: value as 'round' | 'floor' | 'ceil' })}
+            >
+              <SelectTrigger id="rounding-mode">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="round">Round (Standard)</SelectItem>
+                <SelectItem value="floor">Floor (Round Down)</SelectItem>
+                <SelectItem value="ceil">Ceil (Round Up)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center justify-between space-x-2 pt-6">
+            <div className="space-y-0.5">
+              <Label htmlFor="show-original">Show Original Amount</Label>
+              <p className="text-xs text-muted-foreground">
+                Display both converted and original amounts
+              </p>
+            </div>
+            <Switch
+              id="show-original"
+              checked={defaultConfig.showOriginalAmount}
+              onCheckedChange={(checked) => handleConfigUpdate({ showOriginalAmount: checked })}
+            />
+          </div>
+        </div>
+      </Card>
+
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Allowed Currencies</h3>
+          <Badge variant="outline">
+            {allowedCurrencies.length} Active
+          </Badge>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {Object.values(CURRENCIES).map((currency) => {
+            const isAllowed = defaultConfig.allowedCurrencies?.includes(currency.code)
+            return (
+              <div
+                key={currency.code}
+                className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                  isAllowed
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:border-primary/50'
+                }`}
+                onClick={() => handleToggleCurrency(currency.code)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{currency.symbol}</span>
+                    <div>
+                      <p className="font-medium text-sm">{currency.code}</p>
+                      <p className="text-xs text-muted-foreground">{currency.name}</p>
+                    </div>
+                  </div>
+                  {isAllowed && (
+                    <CheckCircle size={20} className="text-primary" />
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </Card>
+
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold">Exchange Rates</h3>
+            <p className="text-sm text-muted-foreground">
+              Manage currency conversion rates
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleGenerateDefaultRates}
+            >
+              <ArrowsClockwise size={18} className="mr-2" />
+              Load Defaults
+            </Button>
+            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus size={18} className="mr-2" />
+                  Add Rate
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add Exchange Rate</DialogTitle>
+                  <DialogDescription>
+                    Set the conversion rate between two currencies
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>From Currency</Label>
+                      <Select
+                        value={selectedFromCurrency}
+                        onValueChange={(value) => setSelectedFromCurrency(value as CurrencyCode)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {allowedCurrencies.map((currency) => (
+                            <SelectItem key={currency.code} value={currency.code}>
+                              {currency.symbol} {currency.code}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>To Currency</Label>
+                      <Select
+                        value={selectedToCurrency}
+                        onValueChange={(value) => setSelectedToCurrency(value as CurrencyCode)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {allowedCurrencies.map((currency) => (
+                            <SelectItem key={currency.code} value={currency.code}>
+                              {currency.symbol} {currency.code}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="rate-value">Exchange Rate</Label>
+                    <Input
+                      id="rate-value"
+                      type="number"
+                      step="0.0001"
+                      placeholder="e.g., 325.50"
+                      value={rateValue}
+                      onChange={(e) => setRateValue(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      1 {selectedFromCurrency} = {rateValue || '?'} {selectedToCurrency}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="margin">Margin % (Optional)</Label>
+                    <Input
+                      id="margin"
+                      type="number"
+                      step="0.1"
+                      placeholder="e.g., 2.5"
+                      value={marginPercent}
+                      onChange={(e) => setMarginPercent(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Add a margin for currency exchange services
+                    </p>
+                  </div>
+
+                  {rateValue && parseFloat(marginPercent) !== 0 && (
+                    <div className="p-3 bg-muted rounded-lg">
+                      <p className="text-sm font-medium">Final Rate with Margin:</p>
+                      <p className="text-lg font-semibold">
+                        1 {selectedFromCurrency} = {applyCurrencyMargin(parseFloat(rateValue), parseFloat(marginPercent)).toFixed(4)} {selectedToCurrency}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleAddExchangeRate}>
+                      Add Rate
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+
+        {activeRates.length === 0 ? (
+          <div className="text-center py-12">
+            <CurrencyDollar size={48} className="mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No Exchange Rates</h3>
+            <p className="text-muted-foreground mb-4">
+              Add exchange rates to enable multi-currency support
+            </p>
+            <Button onClick={() => setEditDialogOpen(true)}>
+              <Plus size={18} className="mr-2" />
+              Add First Rate
+            </Button>
+          </div>
+        ) : (
+          <div className="border rounded-lg overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>From</TableHead>
+                  <TableHead>To</TableHead>
+                  <TableHead>Rate</TableHead>
+                  <TableHead>Inverse</TableHead>
+                  <TableHead>Source</TableHead>
+                  <TableHead>Last Updated</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activeRates.map((rate) => {
+                  const fromCurrency = CURRENCIES[rate.fromCurrency]
+                  const toCurrency = CURRENCIES[rate.toCurrency]
+                  return (
+                    <TableRow key={rate.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{fromCurrency.symbol}</span>
+                          <span className="font-medium">{rate.fromCurrency}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{toCurrency.symbol}</span>
+                          <span className="font-medium">{rate.toCurrency}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-mono">{rate.rate.toFixed(4)}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-mono text-muted-foreground">
+                          {rate.inverseRate.toFixed(4)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={
+                          rate.source === 'manual' ? 'default' :
+                          rate.source === 'api' ? 'secondary' : 'outline'
+                        }>
+                          {rate.source}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {formatDateTime(rate.lastUpdated)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedFromCurrency(rate.fromCurrency)
+                              setSelectedToCurrency(rate.toCurrency)
+                              setRateValue(rate.rate.toString())
+                              setEditDialogOpen(true)
+                            }}
+                          >
+                            <Pencil size={16} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteRate(rate.id)}
+                          >
+                            <Trash size={16} className="text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </Card>
+
+      <Card className="p-6 border-amber-500/50 bg-amber-500/5">
+        <div className="flex gap-3">
+          <Warning size={24} className="text-amber-500 flex-shrink-0 mt-1" />
+          <div>
+            <h4 className="font-semibold mb-2">Important Notes</h4>
+            <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+              <li>Exchange rates should be updated regularly for accuracy</li>
+              <li>All transactions are stored in the base currency</li>
+              <li>Guest invoices can display amounts in their preferred currency</li>
+              <li>Historical rates are preserved for audit purposes</li>
+              <li>Consider adding a small margin to cover exchange rate fluctuations</li>
+            </ul>
+          </div>
+        </div>
+      </Card>
+    </div>
+  )
+}

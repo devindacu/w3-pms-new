@@ -406,6 +406,8 @@ function App() {
   const [invoiceSequences, setInvoiceSequences] = useKV<import('@/lib/types').InvoiceNumberSequence[]>('w3-hotel-invoice-sequences', [])
   const [nightAuditLogs, setNightAuditLogs] = useKV<import('@/lib/types').NightAuditLog[]>('w3-hotel-night-audit-logs', [])
   const [mealCombos, setMealCombos] = useKV<import('@/lib/types').MealCombo[]>('w3-hotel-meal-combos', [])
+  const [currencyConfiguration, setCurrencyConfiguration] = useKV<import('@/lib/currencyTypes').CurrencyConfiguration | null>('w3-hotel-currency-config', null)
+  const [exchangeRates, setExchangeRates] = useKV<import('@/lib/currencyTypes').ExchangeRate[]>('w3-hotel-exchange-rates', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
@@ -1749,6 +1751,10 @@ function App() {
               emailAnalytics={emailAnalytics || []}
               campaignAnalytics={campaignAnalytics || []}
               emailRecords={emailRecords || []}
+              currencyConfiguration={currencyConfiguration || null}
+              setCurrencyConfiguration={setCurrencyConfiguration}
+              exchangeRates={exchangeRates || []}
+              setExchangeRates={setExchangeRates}
               currentUser={currentUser}
               activeTab={settingsTab}
             />

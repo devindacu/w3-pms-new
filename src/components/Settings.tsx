@@ -11,12 +11,14 @@ import { TestEmailTemplate } from '@/components/TestEmailTemplate'
 import { BackupManagement } from '@/components/BackupManagement'
 import { GoogleAnalyticsSettings } from '@/components/GoogleAnalyticsSettings'
 import { SyncTestingPanel } from '@/components/SyncTestingPanel'
+import { CurrencyManagement } from '@/components/CurrencyManagement'
 import type { 
   HotelBranding, 
   TaxConfiguration, 
   ServiceChargeConfiguration, 
   SystemUser
 } from '@/lib/types'
+import type { ExchangeRate, CurrencyConfiguration } from '@/lib/currencyTypes'
 import type { EmailTemplate } from '@/lib/invoiceEmailTemplates'
 import { 
   Palette,
@@ -27,7 +29,8 @@ import {
   FrameCorners,
   FloppyDisk,
   Globe,
-  ArrowsClockwise
+  ArrowsClockwise,
+  CurrencyDollar
 } from '@phosphor-icons/react'
 
 interface SettingsProps {
@@ -42,6 +45,10 @@ interface SettingsProps {
   emailAnalytics: any[]
   campaignAnalytics: any[]
   emailRecords: any[]
+  currencyConfiguration: CurrencyConfiguration | null
+  setCurrencyConfiguration: (config: CurrencyConfiguration) => void
+  exchangeRates: ExchangeRate[]
+  setExchangeRates: (rates: ExchangeRate[]) => void
   currentUser: SystemUser
   activeTab?: string
 }
@@ -58,6 +65,10 @@ export function Settings({
   emailAnalytics,
   campaignAnalytics,
   emailRecords,
+  currencyConfiguration,
+  setCurrencyConfiguration,
+  exchangeRates,
+  setExchangeRates,
   currentUser,
   activeTab: initialActiveTab
 }: SettingsProps) {
@@ -71,7 +82,7 @@ export function Settings({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-8 gap-1">
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9 gap-1">
           <TabsTrigger value="branding" className="gap-2">
             <Palette size={18} />
             <span className="hidden sm:inline">Branding</span>
@@ -87,6 +98,10 @@ export function Settings({
           <TabsTrigger value="tax" className="gap-2">
             <Receipt size={18} />
             <span className="hidden sm:inline">Tax & Charges</span>
+          </TabsTrigger>
+          <TabsTrigger value="currency" className="gap-2">
+            <CurrencyDollar size={18} />
+            <span className="hidden sm:inline">Currency</span>
           </TabsTrigger>
           <TabsTrigger value="email-templates" className="gap-2">
             <EnvelopeSimple size={18} />
@@ -136,6 +151,16 @@ export function Settings({
             setTaxes={setTaxes}
             serviceCharge={serviceCharge}
             setServiceCharge={setServiceCharge}
+            currentUser={currentUser}
+          />
+        </TabsContent>
+
+        <TabsContent value="currency" className="mt-6">
+          <CurrencyManagement
+            configuration={currencyConfiguration}
+            setConfiguration={setCurrencyConfiguration}
+            exchangeRates={exchangeRates}
+            setExchangeRates={setExchangeRates}
             currentUser={currentUser}
           />
         </TabsContent>
