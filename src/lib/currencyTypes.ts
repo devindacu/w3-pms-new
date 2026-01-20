@@ -2,32 +2,32 @@ export type CurrencyCode =
   | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY' | 'AUD' | 'CAD' | 'CHF' | 'HKD' | 'SGD'
   | 'SEK' | 'NOK' | 'INR' | 'AED' | 'SAR' | 'QAR' | 'BHD' | 'OMR' | 'JOD' | 'RUB'
   | 'MXN' | 'TRY' | 'EGP' | 'VND' | 'TWD' | 'DKK' | 'PLN' | 'CZK' | 'HUF' | 'ILS'
-  | 'LKR';
 
-export interface Currency {
-  code: CurrencyCode
-  name: string
+
   symbol: string
-  decimalPlaces: number
 }
+export interfa
+  displayCurrenc
+  autoUpdateRates: bool
+ 
 
-export interface CurrencyConfiguration {
-  baseCurrency: CurrencyCode
-  displayCurrency: CurrencyCode
-  allowedCurrencies: CurrencyCode[]
-  autoUpdateRates: boolean
-  rateSource?: string
-  roundingMode: 'round' | 'floor' | 'ceil'
-  showOriginalAmount: boolean
-  updatedAt: number
-  updatedBy?: string
 }
-
-export interface ExchangeRate {
-  id: string
+export interface ExchangeRat
   fromCurrency: CurrencyCode
-  toCurrency: CurrencyCode
   rate: number
+  updatedAt: number
+}
+export const CURRENCIES: Record<CurrencyCo
+  EUR: { code: 'EUR', name: '
+  JPY: { code: 'JPY
+  AUD: { code: 'AUD'
+ 
+
+  NOK: { code: 'NOK', name: 'No
+  AED: { cod
+  QAR: { code: 'QAR', name: 
+  OMR: { code: 'OMR', name
+  RUB: { code:
   effectiveDate: number
   updatedAt: number
   updatedBy?: string
@@ -58,11 +58,10 @@ export const CURRENCIES: Record<CurrencyCode, Currency> = {
   TRY: { code: 'TRY', name: 'Turkish Lira', symbol: '₺', decimalPlaces: 2 },
   EGP: { code: 'EGP', name: 'Egyptian Pound', symbol: '£', decimalPlaces: 2 },
   VND: { code: 'VND', name: 'Vietnamese Dong', symbol: '₫', decimalPlaces: 0 },
-  TWD: { code: 'TWD', name: 'Taiwan Dollar', symbol: 'NT$', decimalPlaces: 2 },
-  DKK: { code: 'DKK', name: 'Danish Krone', symbol: 'kr', decimalPlaces: 2 },
-  PLN: { code: 'PLN', name: 'Polish Zloty', symbol: 'zł', decimalPlaces: 2 },
-  CZK: { code: 'CZK', name: 'Czech Koruna', symbol: 'Kč', decimalPlaces: 2 },
-  HUF: { code: 'HUF', name: 'Hungarian Forint', symbol: 'Ft', decimalPlaces: 0 },
-  ILS: { code: 'ILS', name: 'Israeli Shekel', symbol: '₪', decimalPlaces: 2 },
-  LKR: { code: 'LKR', name: 'Sri Lankan Rupee', symbol: 'Rs', decimalPlaces: 2 },
-}
+
+
+
+
+
+
+
