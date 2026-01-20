@@ -2,35 +2,57 @@ export type CurrencyCode =
   | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY' | 'AUD' | 'CAD' | 'CHF' | 'HKD' | 'SGD'
   | 'SEK' | 'NOK' | 'INR' | 'AED' | 'SAR' | 'QAR' | 'BHD' | 'OMR' | 'JOD' | 'RUB'
   | 'MXN' | 'TRY' | 'EGP' | 'VND' | 'TWD' | 'DKK' | 'PLN' | 'CZK' | 'HUF' | 'ILS'
+  | 'LKR' | 'KRW'
 
-
+export interface Currency {
+  code: CurrencyCode
+  name: string
   symbol: string
+  decimalPlaces: number
+  thousandsSeparator?: string
+  decimalSeparator?: string
+  symbolPosition?: 'before' | 'after'
+  isActive?: boolean
 }
-export interfa
-  displayCurrenc
-  autoUpdateRates: bool
- 
 
+export interface CurrencyConfiguration {
+  id?: string
+  baseCurrency: CurrencyCode
+  displayCurrency: CurrencyCode
+  autoUpdateRates: boolean
+  lastRateUpdate?: number
+  rateSource?: string
+  allowedCurrencies?: CurrencyCode[]
+  roundingMode?: 'up' | 'down' | 'nearest' | 'ceil' | 'floor' | 'round'
+  showOriginalAmount?: boolean
+  updatedAt?: number
+  updatedBy?: string
+  rateUpdateInterval?: number
+  createdAt?: number
 }
-export interface ExchangeRat
+
+export interface ExchangeRate {
+  id: string
   fromCurrency: CurrencyCode
+  toCurrency: CurrencyCode
   rate: number
-  updatedAt: number
-}
-export const CURRENCIES: Record<CurrencyCo
-  EUR: { code: 'EUR', name: '
-  JPY: { code: 'JPY
-  AUD: { code: 'AUD'
- 
-
-  NOK: { code: 'NOK', name: 'No
-  AED: { cod
-  QAR: { code: 'QAR', name: 
-  OMR: { code: 'OMR', name
-  RUB: { code:
+  inverseRate?: number
   effectiveDate: number
   updatedAt: number
   updatedBy?: string
+  source?: string
+  lastUpdated?: number
+  isActive?: boolean
+  validTo?: number
+  validFrom?: number
+}
+
+export interface MultiCurrencyAmount {
+  currency: CurrencyCode
+  amount: number
+  exchangeRate?: number
+  baseCurrencyAmount?: number
+  originalAmount?: number
 }
 
 export const CURRENCIES: Record<CurrencyCode, Currency> = {
@@ -58,6 +80,15 @@ export const CURRENCIES: Record<CurrencyCode, Currency> = {
   TRY: { code: 'TRY', name: 'Turkish Lira', symbol: '₺', decimalPlaces: 2 },
   EGP: { code: 'EGP', name: 'Egyptian Pound', symbol: '£', decimalPlaces: 2 },
   VND: { code: 'VND', name: 'Vietnamese Dong', symbol: '₫', decimalPlaces: 0 },
+  TWD: { code: 'TWD', name: 'Taiwan Dollar', symbol: 'NT$', decimalPlaces: 2 },
+  DKK: { code: 'DKK', name: 'Danish Krone', symbol: 'kr', decimalPlaces: 2 },
+  PLN: { code: 'PLN', name: 'Polish Zloty', symbol: 'zł', decimalPlaces: 2 },
+  CZK: { code: 'CZK', name: 'Czech Koruna', symbol: 'Kč', decimalPlaces: 2 },
+  HUF: { code: 'HUF', name: 'Hungarian Forint', symbol: 'Ft', decimalPlaces: 0 },
+  ILS: { code: 'ILS', name: 'Israeli Shekel', symbol: '₪', decimalPlaces: 2 },
+  LKR: { code: 'LKR', name: 'Sri Lankan Rupee', symbol: 'Rs', decimalPlaces: 2 },
+  KRW: { code: 'KRW', name: 'South Korean Won', symbol: '₩', decimalPlaces: 0 },
+}
 
 
 
