@@ -1,14 +1,14 @@
 export type CurrencyCode = 
+  | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY' | 'AUD' | 'CAD' | 'CHF' | 'HKD' | 'SGD'
   | 'SEK' | 'NOK' | 'INR' | 'AED' | 'SAR' | 'QAR' | 'BHD' | 'OMR' | 'JOD' | 'RUB'
-
-  code: CurrencyCode
+  | 'MXN' | 'TRY' | 'EGP' | 'VND' | 'TWD' | 'DKK' | 'PLN' | 'CZK' | 'HUF' | 'ILS'
 
 export interface Currency {
   code: CurrencyCode
   name: string
   symbol: string
   decimalPlaces: number
- 
+}
 
 export interface CurrencyConfiguration {
   baseCurrency: CurrencyCode
@@ -22,15 +22,14 @@ export interface CurrencyConfiguration {
   updatedBy?: string
 }
 
-  USD: { code: 'USD', name: 'US
+export interface ExchangeRate {
   id: string
-  JPY: { code: 'JPY', name: 
+  fromCurrency: CurrencyCode
   toCurrency: CurrencyCode
-  CAD: { code:
+  rate: number
   effectiveDate: number
-  SGD: { code: '
   updatedAt: number
-  INR: { code: 'INR'
+  updatedBy?: string
 }
 
 export const CURRENCIES: Record<CurrencyCode, Currency> = {
