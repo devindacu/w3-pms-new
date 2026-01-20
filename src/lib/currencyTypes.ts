@@ -1,7 +1,7 @@
 export type CurrencyCode = 
   | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY' | 'AUD' | 'CAD' | 'CHF' | 'HKD' | 'SGD'
   | 'SEK' | 'NOK' | 'INR' | 'AED' | 'SAR' | 'QAR' | 'BHD' | 'OMR' | 'JOD' | 'RUB'
-  | 'MXN' | 'TRY' | 'EGP' | 'VND' | 'TWD' | 'DKK' | 'PLN' | 'CZK' | 'HUF' | 'ILS'
+  | 'MXN' | 'TRY' | 'EGP' | 'VND' | 'TWD' | 'DKK' | 'PLN' | 'CZK' | 'HUF' | 'ILS';
 
 export interface Currency {
   code: CurrencyCode
