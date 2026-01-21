@@ -48,6 +48,7 @@ import { ServerSyncStatusIndicator } from '@/components/ServerSyncStatusIndicato
 import { ServerSyncConflictDialog } from '@/components/ServerSyncConflictDialog'
 import { DashboardFilters, type DashboardFilters as DashboardFiltersType } from '@/components/DashboardFilters'
 import { applyDashboardFilters, type FilteredDashboardData } from '@/lib/filterHelpers'
+import { generateDefaultExchangeRates } from '@/lib/currencyHelpers'
 import { 
   type Room, 
   type Guest, 
@@ -559,7 +560,6 @@ function App() {
     }
 
     if (!exchangeRates || exchangeRates.length === 0) {
-      const { generateDefaultExchangeRates } = require('@/lib/currencyHelpers')
       const defaultRates = generateDefaultExchangeRates('LKR', currentUser?.id || 'system')
       setExchangeRates(defaultRates)
     }
