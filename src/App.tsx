@@ -541,6 +541,31 @@ function App() {
   }, [])
 
   useEffect(() => {
+    if (!currencyConfiguration) {
+      const defaultCurrencyConfig: import('@/lib/currencyTypes').CurrencyConfiguration = {
+        id: 'currency-config-default',
+        baseCurrency: 'LKR',
+        displayCurrency: 'LKR',
+        allowedCurrencies: ['LKR', 'USD', 'EUR', 'GBP', 'AUD', 'CAD', 'JPY', 'CNY', 'INR'],
+        autoUpdateRates: false,
+        rateUpdateInterval: 3600000,
+        roundingMode: 'round',
+        showOriginalAmount: true,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        updatedBy: currentUser?.id || 'system'
+      }
+      setCurrencyConfiguration(defaultCurrencyConfig)
+    }
+
+    if (!exchangeRates || exchangeRates.length === 0) {
+      const { generateDefaultExchangeRates } = require('@/lib/currencyHelpers')
+      const defaultRates = generateDefaultExchangeRates('LKR', currentUser?.id || 'system')
+      setExchangeRates(defaultRates)
+    }
+  }, [])
+
+  useEffect(() => {
     const hasAnyData = (rooms || []).length > 0 || 
                        (guests || []).length > 0 || 
                        (reservations || []).length > 0 || 

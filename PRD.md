@@ -116,6 +116,17 @@ Chart animations should enhance comprehension without causing distraction or del
   - Larger touch targets for interactive elements (44px minimum)
   - Simplified tooltips with essential information only
 
+## System Configuration
+
+### Currency Settings
+- **Default Base Currency**: Sri Lankan Rupee (LKR)
+- **Currency Symbol**: Rs
+- **Decimal Places**: 2
+- **Automatic Initialization**: System automatically initializes LKR as base currency with default exchange rates on first load
+- **Multi-Currency Support**: Supports 32 international currencies including USD, EUR, GBP, JPY, CNY, AUD, CAD, INR, etc.
+- **Exchange Rate Management**: Pre-configured exchange rates with LKR as base, updatable through Settings > Currency Management
+- **Display Format**: All monetary values throughout the system display in LKR by default with proper formatting (e.g., Rs 50,000.00)
+
 ## Previous Features (Context)
 
 ### Google Analytics Integration
