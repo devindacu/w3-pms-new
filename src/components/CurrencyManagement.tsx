@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Select,
   SelectContent,
@@ -36,7 +37,11 @@ import {
   Trash,
   ArrowsClockwise,
   CheckCircle,
-  Warning
+  Warning,
+  TrendUp,
+  Clock,
+  Calculator,
+  Copy
 } from '@phosphor-icons/react'
 import { 
   type CurrencyCode, 
@@ -73,11 +78,14 @@ export function CurrencyManagement({
 }: CurrencyManagementProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [bulkEditDialogOpen, setBulkEditDialogOpen] = useState(false)
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false)
   const [selectedFromCurrency, setSelectedFromCurrency] = useState<CurrencyCode>('USD')
   const [selectedToCurrency, setSelectedToCurrency] = useState<CurrencyCode>('LKR')
   const [rateValue, setRateValue] = useState('')
   const [marginPercent, setMarginPercent] = useState('0')
   const [bulkRates, setBulkRates] = useState<Record<string, string>>({})
+  const [selectedHistoryCurrencyPair, setSelectedHistoryCurrencyPair] = useState<{ from: CurrencyCode, to: CurrencyCode } | null>(null)
+  const [quickPreset, setQuickPreset] = useState<'market' | 'competitive' | 'premium'>('market')
 
   const defaultConfig: CurrencyConfiguration = configuration || {
     id: 'currency-config-1',
@@ -205,12 +213,49 @@ export function CurrencyManagement({
     }))
   }
 
+  const handleApplyPreset = (preset: 'market' | 'competitive' | 'premium') => {
+    setQuickPreset(preset)
+    const margin = preset === 'market' ? 0 : preset === 'competitive' ? 1.5 : 3.0
+    setMarginPercent(margin.toString())
+  }
+
+  const handleCopyFromCurrency = (sourceCurrency: CurrencyCode) => {
+    const rate = getLatestExchangeRate(exchangeRates, sourceCurrency, selectedToCurrency)
+    if (rate) {
+      setRateValue(rate.rate.toString())
+      toast.success(`Copied rate from ${sourceCurrency}`)
+    } else {
+      toast.error(`No rate found for ${sourceCurrency} → ${selectedToCurrency}`)
+    }
+  }
+
+  const handleViewHistory = (fromCurrency: CurrencyCode, toCurrency: CurrencyCode) => {
+    setSelectedHistoryCurrencyPair({ from: fromCurrency, to: toCurrency })
+    setHistoryDialogOpen(true)
+  }
+
+  const getRateHistory = (fromCurrency: CurrencyCode, toCurrency: CurrencyCode) => {
+    return exchangeRates
+      .filter(r => r.fromCurrency === fromCurrency && r.toCurrency === toCurrency)
+      .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
+      .slice(0, 10)
+  }
+
+  const calculateRateChange = (currentRate: number, previousRate: number): { percent: number; direction: 'up' | 'down' | 'stable' } => {
+    if (!previousRate) return { percent: 0, direction: 'stable' }
+    const change = ((currentRate - previousRate) / previousRate) * 100
+    return {
+      percent: Math.abs(change),
+      direction: change > 0.01 ? 'up' : change < -0.01 ? 'down' : 'stable'
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-semibold mb-2">Multi-Currency Management</h2>
         <p className="text-muted-foreground">
-          Configure currency settings and exchange rates for international guests
+          Configure custom exchange rates and currency settings for international guests
         </p>
       </div>
 
@@ -424,15 +469,51 @@ export function CurrencyManagement({
                     </p>
                   </div>
 
+                  <div className="space-y-3">
+                    <Label>Quick Margin Presets</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button
+                        type="button"
+                        variant={quickPreset === 'market' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handleApplyPreset('market')}
+                      >
+                        <Calculator size={16} className="mr-2" />
+                        Market (0%)
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={quickPreset === 'competitive' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handleApplyPreset('competitive')}
+                      >
+                        <TrendUp size={16} className="mr-2" />
+                        Competitive (1.5%)
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={quickPreset === 'premium' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handleApplyPreset('premium')}
+                      >
+                        <TrendUp size={16} className="mr-2" />
+                        Premium (3%)
+                      </Button>
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="margin">Margin % (Optional)</Label>
+                    <Label htmlFor="margin">Custom Margin % (Optional)</Label>
                     <Input
                       id="margin"
                       type="number"
                       step="0.1"
                       placeholder="e.g., 2.5"
                       value={marginPercent}
-                      onChange={(e) => setMarginPercent(e.target.value)}
+                      onChange={(e) => {
+                        setMarginPercent(e.target.value)
+                        setQuickPreset('market')
+                      }}
                     />
                     <p className="text-xs text-muted-foreground">
                       Add a margin for currency exchange services
@@ -440,8 +521,8 @@ export function CurrencyManagement({
                   </div>
 
                   {rateValue && parseFloat(marginPercent) !== 0 && (
-                    <div className="p-3 bg-muted rounded-lg">
-                      <p className="text-sm font-medium">Final Rate with Margin:</p>
+                    <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                      <p className="text-sm font-medium text-primary mb-1">Final Rate with Margin:</p>
                       <p className="text-lg font-semibold">
                         1 {selectedFromCurrency} = {applyCurrencyMargin(parseFloat(rateValue), parseFloat(marginPercent)).toFixed(4)} {selectedToCurrency}
                       </p>
@@ -526,7 +607,7 @@ export function CurrencyManagement({
                         {formatDateTime(rate.lastUpdated)}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -536,13 +617,34 @@ export function CurrencyManagement({
                               setRateValue(rate.rate.toString())
                               setEditDialogOpen(true)
                             }}
+                            title="Edit rate"
                           >
                             <Pencil size={16} />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => handleViewHistory(rate.fromCurrency, rate.toCurrency)}
+                            title="View history"
+                          >
+                            <Clock size={16} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              navigator.clipboard.writeText(rate.rate.toString())
+                              toast.success('Rate copied to clipboard')
+                            }}
+                            title="Copy rate"
+                          >
+                            <Copy size={16} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleDeleteRate(rate.id)}
+                            title="Deactivate rate"
                           >
                             <Trash size={16} className="text-destructive" />
                           </Button>
@@ -643,6 +745,102 @@ export function CurrencyManagement({
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Exchange Rate History</DialogTitle>
+            <DialogDescription>
+              {selectedHistoryCurrencyPair && (
+                <>Historical rates for {CURRENCIES[selectedHistoryCurrencyPair.from].symbol} {selectedHistoryCurrencyPair.from} → {CURRENCIES[selectedHistoryCurrencyPair.to].symbol} {selectedHistoryCurrencyPair.to}</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedHistoryCurrencyPair && (
+            <div className="space-y-4 py-4">
+              {(() => {
+                const history = getRateHistory(selectedHistoryCurrencyPair.from, selectedHistoryCurrencyPair.to)
+                if (history.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Clock size={48} className="mx-auto mb-3 opacity-50" />
+                      <p>No history available for this currency pair</p>
+                    </div>
+                  )
+                }
+                
+                return (
+                  <div className="space-y-3">
+                    {history.map((rate, index) => {
+                      const previousRate = history[index + 1]
+                      const change = previousRate ? calculateRateChange(rate.rate, previousRate.rate) : null
+                      const isActive = rate.isActive
+                      
+                      return (
+                        <div
+                          key={rate.id}
+                          className={`p-4 rounded-lg border ${isActive ? 'border-primary bg-primary/5' : 'border-border bg-muted/30'}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <span className="font-mono text-2xl font-semibold">
+                                  {rate.rate.toFixed(4)}
+                                </span>
+                                {isActive && (
+                                  <Badge variant="default">Current</Badge>
+                                )}
+                                {change && (
+                                  <Badge variant={
+                                    change.direction === 'up' ? 'default' :
+                                    change.direction === 'down' ? 'destructive' : 'outline'
+                                  }>
+                                    {change.direction === 'up' && <TrendUp size={14} className="mr-1" />}
+                                    {change.direction === 'down' && <TrendUp size={14} className="mr-1 rotate-180" />}
+                                    {change.percent.toFixed(2)}%
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Clock size={14} />
+                                  {formatDateTime(rate.updatedAt || rate.effectiveDate)}
+                                </span>
+                                <Badge variant="outline" className="text-xs">
+                                  {rate.source}
+                                </Badge>
+                                {rate.updatedBy && (
+                                  <span>Updated by: {rate.updatedBy}</span>
+                                )}
+                              </div>
+                            </div>
+                            {isActive && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedFromCurrency(rate.fromCurrency)
+                                  setSelectedToCurrency(rate.toCurrency)
+                                  setRateValue(rate.rate.toString())
+                                  setHistoryDialogOpen(false)
+                                  setEditDialogOpen(true)
+                                }}
+                              >
+                                <Pencil size={14} className="mr-2" />
+                                Update
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })()}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
