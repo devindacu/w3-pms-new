@@ -2,7 +2,7 @@ export type CurrencyCode =
   | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY' | 'AUD' | 'CAD' | 'CHF' | 'HKD' | 'SGD'
   | 'SEK' | 'NOK' | 'INR' | 'AED' | 'SAR' | 'QAR' | 'BHD' | 'OMR' | 'JOD' | 'RUB'
   | 'MXN' | 'TRY' | 'EGP' | 'VND' | 'TWD' | 'DKK' | 'PLN' | 'CZK' | 'HUF' | 'ILS'
-  | 'LKR' | 'KRW'
+  | 'LKR' | 'KRW' | 'NZD' | 'THB' | 'MYR' | 'IDR' | 'PHP'
 
 export interface Currency {
   code: CurrencyCode
@@ -53,6 +53,8 @@ export interface MultiCurrencyAmount {
   exchangeRate?: number
   baseCurrencyAmount?: number
   originalAmount?: number
+  originalCurrency?: CurrencyCode
+  convertedAt?: number
 }
 
 export const CURRENCIES: Record<CurrencyCode, Currency> = {

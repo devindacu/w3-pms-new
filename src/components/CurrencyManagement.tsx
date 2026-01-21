@@ -846,6 +846,3 @@ export function CurrencyManagement({
     </div>
   )
 }
-    </div>
-  )
-}

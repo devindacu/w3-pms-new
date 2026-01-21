@@ -31,11 +31,11 @@ export function formatCurrencyAmount(
 
   const formattedInteger = integerPart.replace(
     /\B(?=(\d{3})+(?!\d))/g,
-    currency.thousandsSeparator
+    currency.thousandsSeparator || ','
   )
 
   let result = decimalPart
-    ? `${formattedInteger}${currency.decimalSeparator}${decimalPart}`
+    ? `${formattedInteger}${currency.decimalSeparator || '.'}${decimalPart}`
     : formattedInteger
 
   if (currency.symbolPosition === 'before') {
@@ -92,7 +92,7 @@ export function convertCurrency(
       (!rate.validTo || rate.validTo > Date.now())
   )
 
-  if (inverseRate) {
+  if (inverseRate && inverseRate.inverseRate) {
     return {
       amount: amount * inverseRate.inverseRate,
       rate: inverseRate.inverseRate,
