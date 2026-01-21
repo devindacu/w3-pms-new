@@ -72,10 +72,12 @@ export function CurrencyManagement({
   currentUser
 }: CurrencyManagementProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [bulkEditDialogOpen, setBulkEditDialogOpen] = useState(false)
   const [selectedFromCurrency, setSelectedFromCurrency] = useState<CurrencyCode>('USD')
   const [selectedToCurrency, setSelectedToCurrency] = useState<CurrencyCode>('LKR')
   const [rateValue, setRateValue] = useState('')
   const [marginPercent, setMarginPercent] = useState('0')
+  const [bulkRates, setBulkRates] = useState<Record<string, string>>({})
 
   const defaultConfig: CurrencyConfiguration = configuration || {
     id: 'currency-config-1',
@@ -155,6 +157,53 @@ export function CurrencyManagement({
 
   const activeRates = exchangeRates.filter(r => r.isActive)
   const allowedCurrencies = getActiveCurrencies(defaultConfig.allowedCurrencies)
+
+  const handleBulkEditOpen = () => {
+    const baseCurrency = defaultConfig.baseCurrency
+    const rates: Record<string, string> = {}
+    
+    allowedCurrencies.forEach(currency => {
+      if (currency.code !== baseCurrency) {
+        const existingRate = getLatestExchangeRate(exchangeRates, baseCurrency, currency.code)
+        rates[currency.code] = existingRate ? existingRate.rate.toString() : ''
+      }
+    })
+    
+    setBulkRates(rates)
+    setBulkEditDialogOpen(true)
+  }
+
+  const handleBulkSave = () => {
+    let updatedCount = 0
+    const baseCurrency = defaultConfig.baseCurrency
+    let updatedRates = exchangeRates
+    
+    Object.entries(bulkRates).forEach(([currencyCode, rateStr]) => {
+      const rate = parseFloat(rateStr)
+      if (rate && rate > 0) {
+        updatedRates = updateExchangeRate(
+          updatedRates,
+          baseCurrency,
+          currencyCode as CurrencyCode,
+          rate,
+          currentUser.id,
+          'manual'
+        )
+        updatedCount++
+      }
+    })
+    
+    setExchangeRates(updatedRates)
+    setBulkEditDialogOpen(false)
+    toast.success(`Updated ${updatedCount} exchange rates`)
+  }
+
+  const handleQuickSetRate = (currencyCode: CurrencyCode, rate: string) => {
+    setBulkRates(prev => ({
+      ...prev,
+      [currencyCode]: rate
+    }))
+  }
 
   return (
     <div className="space-y-6">
@@ -298,6 +347,13 @@ export function CurrencyManagement({
             >
               <ArrowsClockwise size={18} className="mr-2" />
               Load Defaults
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleBulkEditOpen}
+            >
+              <Pencil size={18} className="mr-2" />
+              Bulk Edit
             </Button>
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
               <DialogTrigger asChild>
@@ -455,7 +511,7 @@ export function CurrencyManagement({
                       </TableCell>
                       <TableCell>
                         <span className="font-mono text-muted-foreground">
-                          {rate.inverseRate.toFixed(4)}
+                          {rate.inverseRate ? rate.inverseRate.toFixed(4) : (1 / rate.rate).toFixed(4)}
                         </span>
                       </TableCell>
                       <TableCell>
@@ -516,6 +572,79 @@ export function CurrencyManagement({
           </div>
         </div>
       </Card>
+
+      <Dialog open={bulkEditDialogOpen} onOpenChange={setBulkEditDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Bulk Edit Exchange Rates</DialogTitle>
+            <DialogDescription>
+              Configure exchange rates for all allowed currencies from {defaultConfig.baseCurrency}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-sm font-medium mb-1">Base Currency: {CURRENCIES[defaultConfig.baseCurrency].symbol} {defaultConfig.baseCurrency}</p>
+              <p className="text-xs text-muted-foreground">
+                Set the exchange rate from {defaultConfig.baseCurrency} to each currency below
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {allowedCurrencies.map((currency) => {
+                if (currency.code === defaultConfig.baseCurrency) return null
+                
+                const currentRate = getLatestExchangeRate(
+                  exchangeRates,
+                  defaultConfig.baseCurrency,
+                  currency.code
+                )
+
+                return (
+                  <div key={currency.code} className="p-4 border rounded-lg space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{currency.symbol}</span>
+                        <div>
+                          <p className="font-medium">{currency.code}</p>
+                          <p className="text-xs text-muted-foreground">{currency.name}</p>
+                        </div>
+                      </div>
+                      {currentRate && (
+                        <Badge variant="outline" className="text-xs">
+                          Current: {currentRate.rate.toFixed(4)}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">
+                        1 {defaultConfig.baseCurrency} = ? {currency.code}
+                      </Label>
+                      <Input
+                        type="number"
+                        step="0.0001"
+                        placeholder={`e.g., ${currentRate ? currentRate.rate.toFixed(4) : '0.0000'}`}
+                        value={bulkRates[currency.code] || ''}
+                        onChange={(e) => handleQuickSetRate(currency.code, e.target.value)}
+                        className="font-mono"
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => setBulkEditDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleBulkSave}>
+                <CheckCircle size={18} className="mr-2" />
+                Save All Rates
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
