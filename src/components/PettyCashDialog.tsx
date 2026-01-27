@@ -15,6 +15,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import { Plus, Wallet, ArrowDown, ArrowUp, Download } from '@phosphor-icons/react'
 import { formatCurrency, formatDate } from '@/lib/helpers'
 import { toast } from 'sonner'
@@ -197,9 +199,18 @@ export function PettyCashDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Wallet size={24} />
-            Petty Cash Management
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Wallet size={24} />
+              Petty Cash Management
+            </div>
+            <PrintButton
+              elementId="petty-cash-print"
+              options={{
+                title: 'Petty Cash Report',
+                filename: `petty-cash-${formatDate(Date.now()).replace(/\//g, '-')}.pdf`
+              }}
+            />
           </DialogTitle>
         </DialogHeader>
 
@@ -436,6 +447,129 @@ export function PettyCashDialog({
               </div>
             </div>
           </ScrollArea>
+        </div>
+
+        <div className="hidden">
+          <A4PrintWrapper id="petty-cash-print" title={`Petty Cash Report - ${formatDate(Date.now())}`}>
+            <div className="space-y-6">
+              <div className="border-b pb-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-xl font-semibold">Petty Cash Summary</h2>
+                    <p className="text-sm text-gray-600">Report Date: {formatDate(Date.now())}</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-600">Current Balance</div>
+                    <div className="text-2xl font-bold">{formatCurrency(currentBalance)}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Account Summary</h3>
+                <table className="w-full border-collapse mb-4">
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="py-2 px-3">Float Amount</td>
+                      <td className="py-2 px-3 text-right font-semibold">{formatCurrency(floatAmount)}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-2 px-3">Current Balance</td>
+                      <td className="py-2 px-3 text-right font-semibold text-blue-600">{formatCurrency(currentBalance)}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-2 px-3">Total Disbursed</td>
+                      <td className="py-2 px-3 text-right font-semibold text-red-600">{formatCurrency(totalDisbursed)}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-2 px-3">Total Replenished</td>
+                      <td className="py-2 px-3 text-right font-semibold text-green-600">{formatCurrency(totalReplenished)}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-2 px-3">Total Transactions</td>
+                      <td className="py-2 px-3 text-right font-semibold">{transactions.length}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Transaction History</h3>
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b bg-gray-50">
+                      <th className="text-left py-2 px-2">Transaction #</th>
+                      <th className="text-left py-2 px-2">Date</th>
+                      <th className="text-left py-2 px-2">Type</th>
+                      <th className="text-left py-2 px-2">Category</th>
+                      <th className="text-left py-2 px-2">Description</th>
+                      <th className="text-right py-2 px-2">Amount</th>
+                      <th className="text-left py-2 px-2">Received By</th>
+                      <th className="text-left py-2 px-2">Receipt No</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactions.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="py-4 text-center text-gray-500">No transactions recorded</td>
+                      </tr>
+                    ) : (
+                      transactions.map((txn) => (
+                        <tr key={txn.id} className="border-b">
+                          <td className="py-2 px-2">{txn.transactionNumber}</td>
+                          <td className="py-2 px-2">{formatDate(txn.date)}</td>
+                          <td className="py-2 px-2 capitalize">{txn.type}</td>
+                          <td className="py-2 px-2">{txn.category}</td>
+                          <td className="py-2 px-2">{txn.description}</td>
+                          <td className="py-2 px-2 text-right font-semibold">
+                            {txn.type === 'disbursement' ? '-' : '+'}
+                            {formatCurrency(txn.amount)}
+                          </td>
+                          <td className="py-2 px-2">{txn.receivedBy || '-'}</td>
+                          <td className="py-2 px-2">{txn.receiptNumber || '-'}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {transactions.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Category Breakdown</h3>
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b bg-gray-50">
+                        <th className="text-left py-2 px-3">Category</th>
+                        <th className="text-right py-2 px-3">Total Amount</th>
+                        <th className="text-right py-2 px-3">Count</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(
+                        transactions
+                          .filter(t => t.type === 'disbursement')
+                          .reduce((acc, txn) => {
+                            if (!acc[txn.category]) {
+                              acc[txn.category] = { total: 0, count: 0 }
+                            }
+                            acc[txn.category].total += txn.amount
+                            acc[txn.category].count += 1
+                            return acc
+                          }, {} as Record<string, { total: number; count: number }>)
+                      ).map(([category, data]) => (
+                        <tr key={category} className="border-b">
+                          <td className="py-2 px-3">{category}</td>
+                          <td className="py-2 px-3 text-right font-semibold">{formatCurrency(data.total)}</td>
+                          <td className="py-2 px-3 text-right">{data.count}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </A4PrintWrapper>
         </div>
       </DialogContent>
     </Dialog>

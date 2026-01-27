@@ -8,6 +8,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import {
   Receipt,
   FileText,
@@ -330,7 +332,16 @@ export function InvoiceMatchingDialog({
               <ArrowsLeftRight size={24} />
               Invoice Matching - {invoice.invoiceNumber}
             </DialogTitle>
-            {matchingResult && getStatusBadge(matchingResult.matchStatus)}
+            <div className="flex items-center gap-2">
+              {matchingResult && getStatusBadge(matchingResult.matchStatus)}
+              <PrintButton
+                elementId="invoice-matching-print"
+                options={{
+                  title: 'Invoice Matching Report',
+                  filename: `invoice-matching-${invoice.invoiceNumber}-${formatDate(Date.now()).replace(/\//g, '-')}.pdf`
+                }}
+              />
+            </div>
           </div>
         </DialogHeader>
 
@@ -650,6 +661,165 @@ export function InvoiceMatchingDialog({
             </Button>
           )}
         </DialogFooter>
+
+        <div className="hidden">
+          <A4PrintWrapper id="invoice-matching-print" title={`Invoice Matching Report - ${invoice.invoiceNumber}`}>
+            <div className="space-y-6">
+              <div className="border-b pb-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-xl font-semibold">Invoice Matching Analysis</h2>
+                    <p className="text-sm text-gray-600">Generated: {formatDate(Date.now())}</p>
+                  </div>
+                  {matchingResult && (
+                    <div className="text-right">
+                      <div className="text-sm text-gray-600">Match Status</div>
+                      <div className="text-lg font-bold">{matchingResult.matchStatus.replace(/-/g, ' ').toUpperCase()}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Document Summary</h3>
+                <table className="w-full border-collapse mb-4">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 px-3">Document Type</th>
+                      <th className="text-left py-2 px-3">Number</th>
+                      <th className="text-left py-2 px-3">Date</th>
+                      <th className="text-right py-2 px-3">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="py-2 px-3">Invoice</td>
+                      <td className="py-2 px-3">{invoice.invoiceNumber}</td>
+                      <td className="py-2 px-3">{formatDate(invoice.invoiceDate)}</td>
+                      <td className="py-2 px-3 text-right font-semibold">{formatCurrency(invoice.total)}</td>
+                    </tr>
+                    {selectedPO && (
+                      <tr className="border-b">
+                        <td className="py-2 px-3">Purchase Order</td>
+                        <td className="py-2 px-3">{selectedPO.poNumber}</td>
+                        <td className="py-2 px-3">{formatDate(selectedPO.createdAt)}</td>
+                        <td className="py-2 px-3 text-right font-semibold">{formatCurrency(selectedPO.total)}</td>
+                      </tr>
+                    )}
+                    {selectedGRN && (
+                      <tr className="border-b">
+                        <td className="py-2 px-3">GRN</td>
+                        <td className="py-2 px-3">{selectedGRN.grnNumber}</td>
+                        <td className="py-2 px-3">{formatDate(selectedGRN.receivedAt)}</td>
+                        <td className="py-2 px-3 text-right">{selectedGRN.items.length} items</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {matchingResult && (
+                <>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Matching Statistics</h3>
+                    <table className="w-full border-collapse mb-4">
+                      <tbody>
+                        <tr className="border-b">
+                          <td className="py-2 px-3">Items Matched</td>
+                          <td className="py-2 px-3 text-right font-semibold text-green-600">{matchingResult.itemsMatched}</td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3">Items Mismatched</td>
+                          <td className="py-2 px-3 text-right font-semibold text-red-600">{matchingResult.itemsMismatched}</td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3">Overall Variance</td>
+                          <td className="py-2 px-3 text-right font-semibold">{formatCurrency(Math.abs(matchingResult.overallVariance))}</td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3">Variance Percentage</td>
+                          <td className="py-2 px-3 text-right font-semibold">{matchingResult.variancePercentage.toFixed(2)}%</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {matchingResult.quantityVariances.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">Quantity Variances</h3>
+                      <table className="w-full border-collapse mb-4">
+                        <thead>
+                          <tr className="border-b bg-gray-50">
+                            <th className="text-left py-2 px-3">Item</th>
+                            <th className="text-right py-2 px-3">PO Qty</th>
+                            <th className="text-right py-2 px-3">GRN Qty</th>
+                            <th className="text-right py-2 px-3">Invoice Qty</th>
+                            <th className="text-right py-2 px-3">Variance</th>
+                            <th className="text-right py-2 px-3">%</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {matchingResult.quantityVariances.map((v, idx) => (
+                            <tr key={idx} className="border-b">
+                              <td className="py-2 px-3">{v.itemName}</td>
+                              <td className="py-2 px-3 text-right">{v.poValue}</td>
+                              <td className="py-2 px-3 text-right">{v.grnValue || '-'}</td>
+                              <td className="py-2 px-3 text-right">{v.invoiceValue}</td>
+                              <td className="py-2 px-3 text-right font-semibold">{v.variance > 0 ? '+' : ''}{v.variance}</td>
+                              <td className="py-2 px-3 text-right">{v.variancePercentage.toFixed(2)}%</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {matchingResult.priceVariances.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">Price Variances</h3>
+                      <table className="w-full border-collapse mb-4">
+                        <thead>
+                          <tr className="border-b bg-gray-50">
+                            <th className="text-left py-2 px-3">Item</th>
+                            <th className="text-right py-2 px-3">PO Price</th>
+                            <th className="text-right py-2 px-3">Invoice Price</th>
+                            <th className="text-right py-2 px-3">Variance</th>
+                            <th className="text-right py-2 px-3">%</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {matchingResult.priceVariances.map((v, idx) => (
+                            <tr key={idx} className="border-b">
+                              <td className="py-2 px-3">{v.itemName}</td>
+                              <td className="py-2 px-3 text-right">{formatCurrency(v.poValue || 0)}</td>
+                              <td className="py-2 px-3 text-right">{formatCurrency(v.invoiceValue || 0)}</td>
+                              <td className="py-2 px-3 text-right font-semibold">{formatCurrency(Math.abs(v.variance))}</td>
+                              <td className="py-2 px-3 text-right">{v.variancePercentage.toFixed(2)}%</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {matchingResult.recommendations.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">Recommendations</h3>
+                      <div className="space-y-2">
+                        {matchingResult.recommendations.map((rec, idx) => (
+                          <div key={idx} className="border-l-4 border-gray-300 pl-3 py-2">
+                            <p className="font-medium">{rec.message}</p>
+                            <p className="text-sm text-gray-600">Priority: {rec.priority}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </A4PrintWrapper>
+        </div>
       </DialogContent>
     </Dialog>
   )

@@ -26,6 +26,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { format, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import {
   MagnifyingGlass,
   Download,
@@ -398,10 +400,19 @@ export function PaymentTracking({ payments, invoices, onUpdatePayment, onUpdateI
           </h2>
           <p className="text-muted-foreground mt-1">Monitor and track all payment transactions</p>
         </div>
-        <Button onClick={handleExport} disabled={filteredPayments.length === 0}>
-          <Download size={20} className="mr-2" />
-          Export CSV
-        </Button>
+        <div className="flex gap-2">
+          <PrintButton
+            elementId="payment-tracking-print"
+            options={{
+              title: 'Payment Tracking Report',
+              filename: `payment-tracking-${format(Date.now(), 'yyyy-MM-dd')}.pdf`
+            }}
+          />
+          <Button onClick={handleExport} disabled={filteredPayments.length === 0}>
+            <Download size={20} className="mr-2" />
+            Export CSV
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -535,6 +546,129 @@ export function PaymentTracking({ payments, invoices, onUpdatePayment, onUpdateI
           onRefund={handleRefundProcessed}
         />
       )}
+
+      <div className="hidden">
+        <A4PrintWrapper id="payment-tracking-print" title={`Payment Tracking Report - ${format(Date.now(), 'MMM dd, yyyy')}`}>
+          <div className="space-y-6">
+            <div className="border-b pb-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-semibold">Payment Tracking Summary</h2>
+                  <p className="text-sm text-gray-600">Generated: {format(Date.now(), 'MMM dd, yyyy HH:mm')}</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm text-gray-600">Total Payments</div>
+                  <div className="text-2xl font-bold">{formatCurrency(stats.total)}</div>
+                  <div className="text-sm text-gray-600">{stats.count} transactions</div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Summary Statistics</h3>
+              <table className="w-full border-collapse mb-4">
+                <tbody>
+                  <tr className="border-b">
+                    <td className="py-2 px-3">Total Payments</td>
+                    <td className="py-2 px-3 text-right font-semibold">{formatCurrency(stats.total)}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2 px-3">Reconciled Payments</td>
+                    <td className="py-2 px-3 text-right font-semibold text-green-600">{formatCurrency(stats.reconciled)}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2 px-3">Pending Reconciliation</td>
+                    <td className="py-2 px-3 text-right font-semibold text-yellow-600">{formatCurrency(stats.pending)}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2 px-3">Transaction Count</td>
+                    <td className="py-2 px-3 text-right font-semibold">{stats.count}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2 px-3">Reconciled Count</td>
+                    <td className="py-2 px-3 text-right">{stats.reconciledCount}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2 px-3">Pending Count</td>
+                    <td className="py-2 px-3 text-right">{stats.pendingCount}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Payment Method Breakdown</h3>
+              <table className="w-full border-collapse mb-4">
+                <thead>
+                  <tr className="border-b bg-gray-50">
+                    <th className="text-left py-2 px-3">Payment Method</th>
+                    <th className="text-right py-2 px-3">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b">
+                    <td className="py-2 px-3">Cash</td>
+                    <td className="py-2 px-3 text-right">{formatCurrency(methodBreakdown.cash)}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2 px-3">Card</td>
+                    <td className="py-2 px-3 text-right">{formatCurrency(methodBreakdown.card)}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2 px-3">Bank Transfer</td>
+                    <td className="py-2 px-3 text-right">{formatCurrency(methodBreakdown['bank-transfer'])}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2 px-3">Mobile Payment</td>
+                    <td className="py-2 px-3 text-right">{formatCurrency(methodBreakdown['mobile-payment'])}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2 px-3">Credit</td>
+                    <td className="py-2 px-3 text-right">{formatCurrency(methodBreakdown.credit)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Payment Transactions</h3>
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="border-b bg-gray-50">
+                    <th className="text-left py-2 px-2">Payment #</th>
+                    <th className="text-left py-2 px-2">Date</th>
+                    <th className="text-left py-2 px-2">Method</th>
+                    <th className="text-right py-2 px-2">Amount</th>
+                    <th className="text-left py-2 px-2">Invoice #</th>
+                    <th className="text-left py-2 px-2">Guest</th>
+                    <th className="text-left py-2 px-2">Reference</th>
+                    <th className="text-left py-2 px-2">Status</th>
+                    <th className="text-center py-2 px-2">Reconciled</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredPayments.map((payment) => {
+                    const invoice = getInvoiceDetails(payment.invoiceId)
+                    return (
+                      <tr key={payment.id} className="border-b">
+                        <td className="py-2 px-2">{payment.paymentNumber}</td>
+                        <td className="py-2 px-2">{format(payment.processedAt, 'MMM dd, yyyy')}</td>
+                        <td className="py-2 px-2 capitalize">{payment.method.split('-').join(' ')}</td>
+                        <td className="py-2 px-2 text-right font-semibold">{formatCurrency(payment.amount)}</td>
+                        <td className="py-2 px-2">{invoice?.invoiceNumber || '-'}</td>
+                        <td className="py-2 px-2">{invoice?.guestName || '-'}</td>
+                        <td className="py-2 px-2">{payment.reference || '-'}</td>
+                        <td className="py-2 px-2 capitalize">{payment.status}</td>
+                        <td className="py-2 px-2 text-center">{payment.reconciled ? '✓' : '-'}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </A4PrintWrapper>
+      </div>
     </div>
   )
 }
