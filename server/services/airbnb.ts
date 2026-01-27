@@ -12,21 +12,21 @@ export class AirbnbService extends ChannelManagerService {
 
   async fetchBookings(startDate: Date, endDate: Date): Promise<BookingData[]> {
     try {
-      // Airbnb Host API endpoint
+      // Airbnb Host API endpoint with query parameters
       const endpoint = this.config.endpoint || 'https://api.airbnb.com/v2/host/reservations';
+      const params = new URLSearchParams({
+        listing_id: this.config.propertyId,
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0]
+      });
       
-      const response = await fetch(endpoint, {
+      const response = await fetch(`${endpoint}?${params.toString()}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'X-Airbnb-API-Key': this.config.apiKey || '',
           'Authorization': `Bearer ${this.config.apiSecret || ''}`
-        },
-        body: JSON.stringify({
-          listing_id: this.config.propertyId,
-          start_date: startDate.toISOString().split('T')[0],
-          end_date: endDate.toISOString().split('T')[0]
-        })
+        }
       });
 
       if (!response.ok) {

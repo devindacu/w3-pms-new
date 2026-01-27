@@ -3,7 +3,7 @@ import * as schema from '../../shared/schema';
 import { eq } from 'drizzle-orm';
 import { createWriteStream, createReadStream } from 'fs';
 import { promisify } from 'util';
-import { pipeline } from 'stream';
+import { pipeline, Readable } from 'stream';
 import { createGzip, createGunzip } from 'zlib';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -68,8 +68,9 @@ export class BackupService {
       
       if (options.compress) {
         const gzip = createGzip();
+        const readable = Readable.from(Buffer.from(jsonData));
         await pipelineAsync(
-          Buffer.from(jsonData),
+          readable,
           gzip,
           createWriteStream(filePath)
         );
@@ -104,18 +105,15 @@ export class BackupService {
 
       // Read and decompress if needed
       if (filePath.endsWith('.gz')) {
-        const gunzip = createGunzip();
         const chunks: Buffer[] = [];
+        const gunzip = createGunzip();
         
-        await pipelineAsync(
-          createReadStream(filePath),
-          gunzip,
-          async function* (source) {
-            for await (const chunk of source) {
-              chunks.push(chunk);
-            }
-          }
-        );
+        const stream = createReadStream(filePath);
+        stream.pipe(gunzip);
+        
+        for await (const chunk of gunzip) {
+          chunks.push(chunk);
+        }
         
         jsonData = Buffer.concat(chunks).toString();
       } else {

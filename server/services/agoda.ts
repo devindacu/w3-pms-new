@@ -12,20 +12,20 @@ export class AgodaService extends ChannelManagerService {
 
   async fetchBookings(startDate: Date, endDate: Date): Promise<BookingData[]> {
     try {
-      // Agoda YCS API endpoint
+      // Agoda YCS API endpoint with query parameters
       const endpoint = this.config.endpoint || 'https://ycs.agoda.com/api/v1/bookings';
+      const params = new URLSearchParams({
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0]
+      });
       
-      const response = await fetch(endpoint, {
+      const response = await fetch(`${endpoint}?${params.toString()}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'X-API-Key': this.config.apiKey || '',
           'X-Hotel-Id': this.config.hotelId || this.config.propertyId
-        },
-        body: JSON.stringify({
-          start_date: startDate.toISOString().split('T')[0],
-          end_date: endDate.toISOString().split('T')[0]
-        })
+        }
       });
 
       if (!response.ok) {

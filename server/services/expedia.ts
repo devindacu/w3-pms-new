@@ -12,21 +12,21 @@ export class ExpediaService extends ChannelManagerService {
 
   async fetchBookings(startDate: Date, endDate: Date): Promise<BookingData[]> {
     try {
-      // Expedia EPC API endpoint
+      // Expedia EPC API endpoint with query parameters
       const endpoint = this.config.endpoint || 'https://services.expediapartnercentral.com/reservations/v3';
+      const params = new URLSearchParams({
+        hotelId: this.config.hotelId || this.config.propertyId,
+        from: startDate.toISOString().split('T')[0],
+        to: endDate.toISOString().split('T')[0]
+      });
       
-      const response = await fetch(endpoint, {
+      const response = await fetch(`${endpoint}?${params.toString()}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.config.apiKey}`,
           'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          hotelId: this.config.hotelId || this.config.propertyId,
-          from: startDate.toISOString().split('T')[0],
-          to: endDate.toISOString().split('T')[0]
-        })
+        }
       });
 
       if (!response.ok) {
