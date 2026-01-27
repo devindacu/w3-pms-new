@@ -737,6 +737,200 @@ app.get('/api/recipes', async (req, res) => {
   }
 });
 
+// Channel Manager APIs
+import { BookingComService } from './services/bookingCom';
+import { AgodaService } from './services/agoda';
+import { ExpediaService } from './services/expedia';
+import { AirbnbService } from './services/airbnb';
+import { BackupService } from './services/backup';
+import { DataSyncService } from './services/dataSync';
+
+const backupService = new BackupService();
+const dataSyncService = new DataSyncService();
+
+// Start auto-sync
+dataSyncService.startAutoSync(30000); // Every 30 seconds
+
+// Get channel bookings
+app.get('/api/channel-bookings', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.channelBookings);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch channel bookings' });
+  }
+});
+
+// Sync bookings from a specific channel
+app.post('/api/channels/:id/sync-bookings', async (req, res) => {
+  try {
+    const channelId = parseInt(req.params.id);
+    const { startDate, endDate, channelName, config } = req.body;
+
+    let service;
+    switch (channelName.toLowerCase()) {
+      case 'booking.com':
+        service = new BookingComService(config);
+        break;
+      case 'agoda':
+        service = new AgodaService(config);
+        break;
+      case 'expedia':
+        service = new ExpediaService(config);
+        break;
+      case 'airbnb':
+        service = new AirbnbService(config);
+        break;
+      default:
+        return res.status(400).json({ error: 'Unknown channel' });
+    }
+
+    const bookings = await service.fetchBookings(new Date(startDate), new Date(endDate));
+    const result = await service.syncBookingsToDatabase(bookings, channelId);
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to sync bookings', details: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// Sync availability to channel
+app.post('/api/channels/:id/sync-availability', async (req, res) => {
+  try {
+    const { channelName, config, roomType, date, available } = req.body;
+
+    let service;
+    switch (channelName.toLowerCase()) {
+      case 'booking.com':
+        service = new BookingComService(config);
+        break;
+      case 'agoda':
+        service = new AgodaService(config);
+        break;
+      case 'expedia':
+        service = new ExpediaService(config);
+        break;
+      case 'airbnb':
+        service = new AirbnbService(config);
+        break;
+      default:
+        return res.status(400).json({ error: 'Unknown channel' });
+    }
+
+    const success = await service.syncAvailability(roomType, new Date(date), available);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to sync availability' });
+  }
+});
+
+// Sync rates to channel
+app.post('/api/channels/:id/sync-rates', async (req, res) => {
+  try {
+    const { channelName, config, roomType, date, rate } = req.body;
+
+    let service;
+    switch (channelName.toLowerCase()) {
+      case 'booking.com':
+        service = new BookingComService(config);
+        break;
+      case 'agoda':
+        service = new AgodaService(config);
+        break;
+      case 'expedia':
+        service = new ExpediaService(config);
+        break;
+      case 'airbnb':
+        service = new AirbnbService(config);
+        break;
+      default:
+        return res.status(400).json({ error: 'Unknown channel' });
+    }
+
+    const success = await service.syncRates(roomType, new Date(date), rate);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to sync rates' });
+  }
+});
+
+// Get channel sync logs
+app.get('/api/channel-sync-logs', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.channelSyncLogs);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch sync logs' });
+  }
+});
+
+// Backup APIs
+app.post('/api/backup/create', async (req, res) => {
+  try {
+    const { createdBy, options } = req.body;
+    const filePath = await backupService.createFullBackup(createdBy || 'system', options || {});
+    res.json({ success: true, filePath });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create backup', details: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+app.get('/api/backup/list', async (req, res) => {
+  try {
+    const backups = await backupService.listBackups();
+    res.json(backups);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to list backups' });
+  }
+});
+
+app.post('/api/backup/restore', async (req, res) => {
+  try {
+    const { filePath, options } = req.body;
+    await backupService.restoreFromBackup(filePath, options || {});
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to restore backup', details: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+app.delete('/api/backup/:id', async (req, res) => {
+  try {
+    await backupService.deleteBackup(parseInt(req.params.id));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete backup' });
+  }
+});
+
+// Data Sync APIs
+app.post('/api/sync/queue', async (req, res) => {
+  try {
+    await dataSyncService.queueSync(req.body);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to queue sync' });
+  }
+});
+
+app.get('/api/sync/status', async (req, res) => {
+  try {
+    const status = await dataSyncService.getSyncQueueStatus();
+    res.json(status);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get sync status' });
+  }
+});
+
+app.post('/api/sync/process', async (req, res) => {
+  try {
+    await dataSyncService.processSyncQueue();
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to process sync queue' });
+  }
+});
+
 const PORT = 3001;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`API Server running on http://localhost:${PORT}`);
