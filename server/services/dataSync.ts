@@ -235,8 +235,10 @@ export class DataSyncService {
 
   /**
    * Start automatic sync processing
+   * @param intervalMs - Interval in milliseconds (default: 60000 = 1 minute)
+   *                     Note: 30 seconds may be too aggressive for production
    */
-  startAutoSync(intervalMs: number = 30000): void {
+  startAutoSync(intervalMs: number = 60000): void {
     if (this.processingInterval) {
       this.stopAutoSync();
     }

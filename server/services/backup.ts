@@ -25,7 +25,7 @@ export interface RestoreOptions {
 export class BackupService {
   private backupDir: string;
 
-  constructor(backupDir: string = '/tmp/backups') {
+  constructor(backupDir: string = process.env.BACKUP_DIR || '/var/lib/hotel-pms/backups') {
     this.backupDir = backupDir;
   }
 

@@ -149,14 +149,20 @@ export class BookingComService extends ChannelManagerService {
   }
 
   private parseBookingsFromXML(xmlData: string): BookingData[] {
-    // Simplified XML parsing - in production, use a proper XML parser like fast-xml-parser
+    // NOTE: This is a simplified placeholder implementation
+    // TODO: In production, use a proper XML parser like fast-xml-parser
+    // Example: npm install fast-xml-parser
+    // import { XMLParser } from 'fast-xml-parser';
+    // const parser = new XMLParser();
+    // const result = parser.parse(xmlData);
+    
     const bookings: BookingData[] = [];
     
-    // Mock implementation - replace with actual XML parsing
-    // This is a placeholder that demonstrates the structure
+    // Placeholder implementation for demonstration
+    // Replace this with actual XML parsing in production
     try {
-      // In production: const parser = new XMLParser(); const result = parser.parse(xmlData);
       console.log('Parsing Booking.com XML response');
+      console.warn('WARNING: Using placeholder XML parser - implement proper parsing before production use');
       
       // Example mock booking for demonstration
       if (xmlData.includes('reservation')) {

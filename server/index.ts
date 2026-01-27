@@ -748,8 +748,9 @@ import { DataSyncService } from './services/dataSync';
 const backupService = new BackupService();
 const dataSyncService = new DataSyncService();
 
-// Start auto-sync
-dataSyncService.startAutoSync(30000); // Every 30 seconds
+// Start auto-sync with 1 minute interval (configurable via environment)
+const syncInterval = parseInt(process.env.SYNC_INTERVAL_MS || '60000');
+dataSyncService.startAutoSync(syncInterval);
 
 // Get channel bookings
 app.get('/api/channel-bookings', async (req, res) => {
