@@ -272,10 +272,6 @@ export function InvoiceViewer({ invoice, hotelInfo, currentUser, onClose }: Invo
               }}
               variant="outline"
             />
-            <Button variant="outline" onClick={handlePrint}>
-              <Printer size={18} className="mr-2" />
-              Print
-            </Button>
             <Button variant="outline" onClick={handleDownloadPDF}>
               <Download size={18} className="mr-2" />
               Download
