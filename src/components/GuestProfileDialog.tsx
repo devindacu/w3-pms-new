@@ -380,7 +380,7 @@ export function GuestProfileDialog({ open, onOpenChange, profile, onSave }: Gues
         <DialogHeader className="px-6 pt-6 pb-4">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl">{profile ? 'Edit Guest Profile' : 'Add Guest Profile'}</DialogTitle>
-            {profile && <PrintButton targetId="guest-profile-print" />}
+            {profile && <PrintButton elementId="guest-profile-print" />}
           </div>
         </DialogHeader>
 

@@ -162,7 +162,7 @@ export function GuestBookingHistoryView({ profile, bookingHistory }: GuestBookin
   return (
     <div className="space-y-6">
       <div className="flex justify-end mb-4">
-        <PrintButton targetId="guest-booking-history-print" />
+        <PrintButton elementId="guest-booking-history-print" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

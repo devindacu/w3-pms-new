@@ -173,7 +173,7 @@ export function GuestInvoiceEditDialog({
           <div className="flex items-center justify-between">
             <DialogTitle>Edit Invoice - {invoice.invoiceNumber}</DialogTitle>
             <div className="flex items-center gap-2">
-              <PrintButton targetId="guest-invoice-edit-print" />
+              <PrintButton elementId="guest-invoice-edit-print" />
               <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
                 <X size={18} />
               </Button>

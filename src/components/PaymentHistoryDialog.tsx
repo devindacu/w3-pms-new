@@ -113,7 +113,7 @@ export function PaymentHistoryDialog({
               Payment History
             </DialogTitle>
             <div className="flex items-center gap-2">
-              <PrintButton targetId="payment-history-print" />
+              <PrintButton elementId="payment-history-print" />
               <Button variant="ghost" size="icon" onClick={onClose}>
                 <X size={20} />
               </Button>
