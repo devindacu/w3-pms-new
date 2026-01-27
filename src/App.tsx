@@ -565,6 +565,26 @@ function App() {
     }
   }, [])
 
+  // Load branding from database on app initialization
+  useEffect(() => {
+    const loadBranding = async () => {
+      try {
+        const response = await fetch('/api/branding');
+        if (response.ok) {
+          const savedBranding = await response.json();
+          if (savedBranding) {
+            setBranding(savedBranding);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load branding from database:', error);
+        // If branding fails to load, use local storage or defaults
+      }
+    };
+    
+    loadBranding();
+  }, [])
+
   useEffect(() => {
     const hasAnyData = (rooms || []).length > 0 || 
                        (guests || []).length > 0 || 

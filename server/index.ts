@@ -257,6 +257,52 @@ app.delete('/api/system-settings/:key', async (req, res) => {
   }
 });
 
+// Branding endpoints
+app.get('/api/branding', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.systemSettings).where(eq(schema.systemSettings.key, 'branding'));
+    if (result.length > 0 && result[0].value) {
+      res.json(JSON.parse(result[0].value));
+    } else {
+      res.json(null);
+    }
+  } catch (error) {
+    console.error('Failed to fetch branding:', error);
+    res.status(500).json({ error: 'Failed to fetch branding' });
+  }
+});
+
+app.post('/api/branding', async (req, res) => {
+  try {
+    const brandingData = req.body;
+    const value = JSON.stringify(brandingData);
+    
+    try {
+      const result = await db.insert(schema.systemSettings).values({
+        key: 'branding',
+        value,
+        category: 'branding',
+        description: 'Hotel branding and customization settings'
+      }).returning();
+      res.json(JSON.parse(result[0].value));
+    } catch (insertError: any) {
+      const errorStr = JSON.stringify(insertError);
+      if (insertError.cause?.code === '23505' || errorStr.includes('duplicate') || errorStr.includes('unique')) {
+        const result = await db.update(schema.systemSettings)
+          .set({ value, updatedAt: new Date() })
+          .where(eq(schema.systemSettings.key, 'branding'))
+          .returning();
+        res.json(JSON.parse(result[0].value));
+      } else {
+        throw insertError;
+      }
+    }
+  } catch (error: any) {
+    console.error('Failed to save branding:', error);
+    res.status(500).json({ error: 'Failed to save branding', details: error.message });
+  }
+});
+
 app.get('/api/system-versions', async (req, res) => {
   try {
     const result = await db.select().from(schema.systemVersions);
