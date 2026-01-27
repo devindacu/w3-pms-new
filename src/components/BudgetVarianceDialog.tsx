@@ -265,7 +265,7 @@ export function BudgetVarianceDialog({
               elementId="budget-variance-print"
               options={{
                 title: `Budget Variance Analysis - ${getPeriodLabel()}`,
-                filename: `budget-variance-${Date.now()}.pdf`
+                filename: `budget-variance-${getPeriodLabel().replace(/\s/g, '-')}.pdf`
               }}
               variant="outline"
               size="sm"
@@ -489,7 +489,7 @@ export function BudgetVarianceDialog({
                         <td className="p-2 text-right">{formatCurrency(item.budgeted)}</td>
                         <td className="p-2 text-right">{formatCurrency(item.actual)}</td>
                         <td className="p-2 text-right">{formatCurrency(Math.abs(item.variance))}</td>
-                        <td className="p-2 text-right">{formatPercent(Math.abs(item.variancePercent) / 100)}</td>
+                        <td className="p-2 text-right">{formatPercent(Math.abs(item.variancePercent))}</td>
                         <td className="p-2 text-center">{item.status}</td>
                       </tr>
                     ))}

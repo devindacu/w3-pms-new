@@ -195,7 +195,7 @@ export function CostCenterReportDialog({
               elementId="cost-center-report-print"
               options={{
                 title: 'Cost Center Performance Report',
-                filename: `cost-center-report-${Date.now()}.pdf`
+                filename: `cost-center-report-${formatDate(Date.now()).replace(/\//g, '-')}.pdf`
               }}
               variant="outline"
               size="sm"

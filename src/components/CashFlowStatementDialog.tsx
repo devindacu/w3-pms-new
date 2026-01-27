@@ -463,7 +463,7 @@ export function CashFlowStatementDialog({
               elementId="cash-flow-print"
               options={{
                 title: `Cash Flow Statement - ${formatDate(getPeriodDates().startDate)} to ${formatDate(getPeriodDates().endDate)}`,
-                filename: `cash-flow-${Date.now()}.pdf`
+                filename: `cash-flow-${formatDate(getPeriodDates().startDate).replace(/\//g, '-')}-to-${formatDate(getPeriodDates().endDate).replace(/\//g, '-')}.pdf`
               }}
               variant="outline"
               size="sm"

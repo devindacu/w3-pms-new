@@ -161,7 +161,7 @@ export function ProfitCenterReportDialog({
               elementId="profit-center-report-print"
               options={{
                 title: 'Profit Center Performance Report',
-                filename: `profit-center-report-${Date.now()}.pdf`
+                filename: `profit-center-report-${formatDate(Date.now()).replace(/\//g, '-')}.pdf`
               }}
               variant="outline"
               size="sm"

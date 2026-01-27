@@ -378,7 +378,7 @@ export function DepartmentalPLDialog({
               elementId="departmental-pl-print"
               options={{
                 title: `Departmental P&L Report - ${formatDate(getPeriodDates().startDate)} to ${formatDate(getPeriodDates().endDate)}`,
-                filename: `departmental-pl-${Date.now()}.pdf`
+                filename: `departmental-pl-${formatDate(getPeriodDates().startDate).replace(/\//g, '-')}-to-${formatDate(getPeriodDates().endDate).replace(/\//g, '-')}.pdf`
               }}
               variant="outline"
               size="sm"
