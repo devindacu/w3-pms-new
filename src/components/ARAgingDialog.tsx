@@ -142,8 +142,8 @@ export function ARAgingDialog({ open, onOpenChange, invoices }: ARAgingDialogPro
             <PrintButton
               elementId="ar-aging-print"
               options={{
-                title: `AR Aging Report - ${formatDate(Date.now())}`,
-                filename: `ar-aging-${Date.now()}.pdf`
+                title: 'AR Aging Report',
+                filename: `ar-aging-${formatDate(Date.now()).replace(/\//g, '-')}.pdf`
               }}
               variant="outline"
               size="sm"

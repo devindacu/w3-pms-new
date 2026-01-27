@@ -186,8 +186,8 @@ export function APAgingDialog({ open, onOpenChange, invoices }: APAgingDialogPro
             <PrintButton
               elementId="ap-aging-print"
               options={{
-                title: `AP Aging Report - ${formatDate(Date.now())}`,
-                filename: `ap-aging-${Date.now()}.pdf`
+                title: 'AP Aging Report',
+                filename: `ap-aging-${formatDate(Date.now()).replace(/\//g, '-')}.pdf`
               }}
               variant="outline"
               size="sm"

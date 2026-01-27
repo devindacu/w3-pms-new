@@ -191,21 +191,15 @@ export function CostCenterReportDialog({
                 Detailed budget vs actual analysis across all departments
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <PrintButton
-                elementId="cost-center-report-print"
-                options={{
-                  title: 'Cost Center Performance Report',
-                  filename: `cost-center-report-${Date.now()}.pdf`
-                }}
-                variant="outline"
-                size="sm"
-              />
-              <Button onClick={exportReport} size="sm" variant="outline">
-                <Download size={16} className="mr-2" />
-                Export PDF
-              </Button>
-            </div>
+            <PrintButton
+              elementId="cost-center-report-print"
+              options={{
+                title: 'Cost Center Performance Report',
+                filename: `cost-center-report-${Date.now()}.pdf`
+              }}
+              variant="outline"
+              size="sm"
+            />
           </div>
         </DialogHeader>
 

@@ -157,21 +157,15 @@ export function ProfitCenterReportDialog({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Profit Center Performance Report</DialogTitle>
-            <div className="flex items-center gap-2">
-              <PrintButton
-                elementId="profit-center-report-print"
-                options={{
-                  title: 'Profit Center Performance Report',
-                  filename: `profit-center-report-${Date.now()}.pdf`
-                }}
-                variant="outline"
-                size="sm"
-              />
-              <Button onClick={exportReport} size="sm" variant="outline">
-                <Download size={16} className="mr-2" />
-                Export PDF
-              </Button>
-            </div>
+            <PrintButton
+              elementId="profit-center-report-print"
+              options={{
+                title: 'Profit Center Performance Report',
+                filename: `profit-center-report-${Date.now()}.pdf`
+              }}
+              variant="outline"
+              size="sm"
+            />
           </div>
         </DialogHeader>
 

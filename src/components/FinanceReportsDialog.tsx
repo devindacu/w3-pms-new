@@ -336,8 +336,8 @@ export function FinanceReportsDialog({
             <PrintButton
               elementId="finance-reports-print"
               options={{
-                title: 'Finance Reports',
-                filename: `finance-reports-${Date.now()}.pdf`
+                title: `Finance Reports - ${reportTypes.find(t => t.value === reportType)?.label}`,
+                filename: `finance-report-${reportType}-${dateRanges.find(r => r.value === dateRange)?.label.replace(/\s/g, '-')}.pdf`
               }}
               variant="outline"
               size="sm"

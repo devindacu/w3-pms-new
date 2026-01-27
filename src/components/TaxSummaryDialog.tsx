@@ -272,7 +272,7 @@ export function TaxSummaryDialog({
               elementId="tax-summary-print"
               options={{
                 title: `Tax Summary - ${formatDate(taxAnalysis.period.start)} to ${formatDate(taxAnalysis.period.end)}`,
-                filename: `tax-summary-${Date.now()}.pdf`
+                filename: `tax-summary-${formatDate(taxAnalysis.period.start).replace(/\//g, '-')}-to-${formatDate(taxAnalysis.period.end).replace(/\//g, '-')}.pdf`
               }}
               variant="outline"
               size="sm"
