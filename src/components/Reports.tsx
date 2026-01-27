@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { toast } from 'sonner'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import {
   FileText,
   Download,
@@ -338,6 +340,7 @@ export function Reports({
           <p className="text-muted-foreground mt-1">Generate comprehensive reports for all aspects of your hotel operations</p>
         </div>
         <div className="flex items-center gap-3">
+          <PrintButton elementId="reports-print" />
           <Button variant="outline">
             <CalendarBlank size={20} className="mr-2" />
             Schedule Reports
@@ -851,6 +854,149 @@ export function Reports({
           onCancel={() => setCustomizingTemplate(null)}
         />
       )}
+
+      <div className="hidden">
+        <A4PrintWrapper
+          id="reports-print"
+          title="Reports Overview"
+        >
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Report Statistics</h2>
+              <table className="w-full text-sm border-collapse">
+                <tbody>
+                  <tr className="border-b">
+                    <td className="py-2 font-medium">Total Templates:</td>
+                    <td className="py-2">{reportTemplates.length}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2 font-medium">Custom Reports:</td>
+                    <td className="py-2">{(customReports || []).length}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2 font-medium">Active Schedules:</td>
+                    <td className="py-2">{(reportSchedules || []).filter(s => s.status === 'active').length}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2 font-medium">Department Reports:</td>
+                    <td className="py-2">{departments.filter(d => d.id !== 'all' && d.count > 0).length}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Reports by Category</h3>
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2">Category</th>
+                    <th className="text-right py-2">Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {categories.filter(c => c.id !== 'all').map((category) => (
+                    <tr key={category.id} className="border-b">
+                      <td className="py-2 capitalize">{category.name}</td>
+                      <td className="py-2 text-right">{category.count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Reports by Period</h3>
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2">Period</th>
+                    <th className="text-right py-2">Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {periods.filter(p => p.id !== 'all').map((period) => (
+                    <tr key={period.id} className="border-b">
+                      <td className="py-2 capitalize">{period.name}</td>
+                      <td className="py-2 text-right">{period.count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Reports by Department</h3>
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2">Department</th>
+                    <th className="text-right py-2">Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {departments.filter(d => d.id !== 'all' && d.count > 0).map((dept) => (
+                    <tr key={dept.id} className="border-b">
+                      <td className="py-2">{dept.name}</td>
+                      <td className="py-2 text-right">{dept.count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {(customReports || []).length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Custom Reports</h3>
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2">Report Name</th>
+                      <th className="text-right py-2">Metrics</th>
+                      <th className="text-right py-2">Created</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(customReports || []).map((report) => (
+                      <tr key={report.id} className="border-b">
+                        <td className="py-2">{report.name}</td>
+                        <td className="py-2 text-right">{report.metrics.length}</td>
+                        <td className="py-2 text-right">{formatDate(report.createdAt)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {(reportSchedules || []).length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Scheduled Reports</h3>
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2">Schedule Name</th>
+                      <th className="text-left py-2">Frequency</th>
+                      <th className="text-left py-2">Status</th>
+                      <th className="text-right py-2">Runs</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(reportSchedules || []).map((schedule) => (
+                      <tr key={schedule.id} className="border-b">
+                        <td className="py-2">{schedule.name}</td>
+                        <td className="py-2 capitalize">{schedule.frequency}</td>
+                        <td className="py-2 capitalize">{schedule.status}</td>
+                        <td className="py-2 text-right">{schedule.runCount}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </A4PrintWrapper>
+      </div>
     </div>
   )
 }

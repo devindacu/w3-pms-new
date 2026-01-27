@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { toast } from 'sonner'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import {
   X,
   Download,
@@ -350,6 +352,7 @@ export function ReportTemplatePreview({
                 <p className="text-sm text-muted-foreground mt-1">{template.description}</p>
               </div>
               <div className="flex items-center gap-2">
+                <PrintButton elementId="report-template-preview-print" />
                 {isEditable && (
                   <>
                     <Button variant="outline" size="sm" onClick={handleAddSection}>
@@ -605,6 +608,91 @@ export function ReportTemplatePreview({
               </Card>
             </div>
           </div>
+        </div>
+
+        <div className="hidden">
+          <A4PrintWrapper
+            id="report-template-preview-print"
+            title={template.name}
+          >
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold mb-2">{template.name}</h2>
+                <p className="text-muted-foreground">{template.description}</p>
+                <div className="flex items-center gap-4 mt-3">
+                  <p className="text-sm"><strong>Category:</strong> {template.category}</p>
+                  <p className="text-sm"><strong>Layout:</strong> {layout}</p>
+                  <p className="text-sm"><strong>Generated:</strong> {formatDate(previewData?.generatedAt || Date.now())}</p>
+                </div>
+                {previewData?.dateRange && (
+                  <p className="text-sm mt-1">
+                    <strong>Period:</strong> {formatDate(previewData.dateRange.from)} - {formatDate(previewData.dateRange.to)}
+                  </p>
+                )}
+              </div>
+
+              {sections.sort((a, b) => a.position - b.position).map((section) => (
+                <div key={section.id}>
+                  <h3 className="text-lg font-semibold mb-3">{section.title}</h3>
+                  
+                  {section.metrics.length > 0 ? (
+                    <table className="w-full text-sm border-collapse">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-2">Metric</th>
+                          <th className="text-right py-2">Value</th>
+                          <th className="text-right py-2">Category</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {section.metrics.map((metricId) => {
+                          const metric = getMetricById(metricId)
+                          if (!metric) return null
+
+                          const value = getMetricValue(metricId)
+                          const formattedValue = formatMetricValue(metricId, value)
+
+                          return (
+                            <tr key={metricId} className="border-b">
+                              <td className="py-2">{metric.name}</td>
+                              <td className="py-2 text-right font-semibold">{formattedValue}</td>
+                              <td className="py-2 text-right capitalize">{metric.category}</td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <p className="text-muted-foreground text-sm">No metrics configured</p>
+                  )}
+                </div>
+              ))}
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Report Summary</h3>
+                <table className="w-full text-sm border-collapse">
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="py-2 font-medium">Total Sections:</td>
+                      <td className="py-2">{sections.length}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-2 font-medium">Total Metrics:</td>
+                      <td className="py-2">{sections.reduce((sum, s) => sum + s.metrics.length, 0)}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-2 font-medium">Available Metrics:</td>
+                      <td className="py-2">{template.availableMetrics.length}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-2 font-medium">Customizable:</td>
+                      <td className="py-2">{template.isCustomizable ? 'Yes' : 'No'}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </A4PrintWrapper>
         </div>
       </DialogContent>
     </Dialog>

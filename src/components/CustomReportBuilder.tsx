@@ -10,6 +10,8 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { toast } from 'sonner'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import {
   Plus,
   Trash,
@@ -298,6 +300,7 @@ export function CustomReportBuilder({ onClose, existingReport, onSave }: CustomR
           />
         </div>
         <div className="flex items-center gap-2">
+          <PrintButton elementId="custom-report-builder-print" />
           {existingReport && (
             <Button variant="outline" onClick={handleDuplicateReport}>
               <Copy size={20} className="mr-2" />
@@ -724,6 +727,148 @@ export function CustomReportBuilder({ onClose, existingReport, onSave }: CustomR
             </div>
           </Card>
         </div>
+      </div>
+
+      <div className="hidden">
+        <A4PrintWrapper
+          id="custom-report-builder-print"
+          title="Custom Report Configuration"
+        >
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold mb-2">{reportName || 'Untitled Report'}</h2>
+              {reportDescription && (
+                <p className="text-muted-foreground">{reportDescription}</p>
+              )}
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Report Summary</h3>
+              <table className="w-full text-sm border-collapse">
+                <tbody>
+                  <tr className="border-b">
+                    <td className="py-2 font-medium">Selected Metrics:</td>
+                    <td className="py-2">{selectedMetrics.length}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2 font-medium">Selected Dimensions:</td>
+                    <td className="py-2">{selectedDimensions.length}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2 font-medium">Filters Applied:</td>
+                    <td className="py-2">{filters.length}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2 font-medium">Visualizations:</td>
+                    <td className="py-2">{visualizations.length}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {selectedMetrics.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Selected Metrics</h3>
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2">Metric Name</th>
+                      <th className="text-left py-2">Category</th>
+                      <th className="text-left py-2">Aggregation</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedMetrics.map((metric) => (
+                      <tr key={metric.id} className="border-b">
+                        <td className="py-2">{metric.name}</td>
+                        <td className="py-2 capitalize">{metric.category}</td>
+                        <td className="py-2 capitalize">{metric.aggregation}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {selectedDimensions.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Selected Dimensions</h3>
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2">Dimension Name</th>
+                      <th className="text-left py-2">Category</th>
+                      <th className="text-left py-2">Data Type</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedDimensions.map((dimension) => (
+                      <tr key={dimension.id} className="border-b">
+                        <td className="py-2">{dimension.name}</td>
+                        <td className="py-2 capitalize">{dimension.category}</td>
+                        <td className="py-2 capitalize">{dimension.dataType}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {filters.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Applied Filters</h3>
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2">Dimension</th>
+                      <th className="text-left py-2">Operator</th>
+                      <th className="text-left py-2">Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filters.map((filter) => {
+                      const dimension = selectedDimensions.find(d => d.id === filter.dimensionId)
+                      return (
+                        <tr key={filter.id} className="border-b">
+                          <td className="py-2">{dimension?.name || 'Unknown'}</td>
+                          <td className="py-2 capitalize">{filter.operator.replace('_', ' ')}</td>
+                          <td className="py-2">{String(filter.value)}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {visualizations.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Configured Visualizations</h3>
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2">Title</th>
+                      <th className="text-left py-2">Chart Type</th>
+                      <th className="text-left py-2">Metric</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visualizations.map((viz) => {
+                      const metric = selectedMetrics.find(m => m.id === viz.metricId)
+                      return (
+                        <tr key={viz.id} className="border-b">
+                          <td className="py-2">{viz.title}</td>
+                          <td className="py-2 capitalize">{viz.chartType}</td>
+                          <td className="py-2">{metric?.name || 'Unknown'}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </A4PrintWrapper>
       </div>
     </div>
   )
