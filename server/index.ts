@@ -35,6 +35,24 @@ app.put('/api/guests/:id', async (req, res) => {
   }
 });
 
+app.patch('/api/guests/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.guests).set(req.body).where(eq(schema.guests.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to patch guest' });
+  }
+});
+
+app.delete('/api/guests/:id', async (req, res) => {
+  try {
+    await db.delete(schema.guests).where(eq(schema.guests.id, parseInt(req.params.id)));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete guest' });
+  }
+});
+
 app.get('/api/rooms', async (req, res) => {
   try {
     const result = await db.select().from(schema.rooms);
@@ -62,6 +80,24 @@ app.put('/api/rooms/:id', async (req, res) => {
   }
 });
 
+app.patch('/api/rooms/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.rooms).set(req.body).where(eq(schema.rooms.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to patch room' });
+  }
+});
+
+app.delete('/api/rooms/:id', async (req, res) => {
+  try {
+    await db.delete(schema.rooms).where(eq(schema.rooms.id, parseInt(req.params.id)));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete room' });
+  }
+});
+
 app.get('/api/reservations', async (req, res) => {
   try {
     const result = await db.select().from(schema.reservations);
@@ -80,12 +116,75 @@ app.post('/api/reservations', async (req, res) => {
   }
 });
 
+app.put('/api/reservations/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.reservations).set(req.body).where(eq(schema.reservations.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update reservation' });
+  }
+});
+
+app.patch('/api/reservations/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.reservations).set(req.body).where(eq(schema.reservations.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to patch reservation' });
+  }
+});
+
+app.delete('/api/reservations/:id', async (req, res) => {
+  try {
+    await db.delete(schema.reservations).where(eq(schema.reservations.id, parseInt(req.params.id)));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete reservation' });
+  }
+});
+
 app.get('/api/folios', async (req, res) => {
   try {
     const result = await db.select().from(schema.folios);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch folios' });
+  }
+});
+
+app.post('/api/folios', async (req, res) => {
+  try {
+    const result = await db.insert(schema.folios).values(req.body).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create folio' });
+  }
+});
+
+app.put('/api/folios/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.folios).set(req.body).where(eq(schema.folios.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update folio' });
+  }
+});
+
+app.patch('/api/folios/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.folios).set(req.body).where(eq(schema.folios.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to patch folio' });
+  }
+});
+
+app.delete('/api/folios/:id', async (req, res) => {
+  try {
+    await db.delete(schema.folios).where(eq(schema.folios.id, parseInt(req.params.id)));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete folio' });
   }
 });
 
@@ -98,12 +197,84 @@ app.get('/api/inventory', async (req, res) => {
   }
 });
 
+app.post('/api/inventory', async (req, res) => {
+  try {
+    const result = await db.insert(schema.inventoryItems).values(req.body).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create inventory item' });
+  }
+});
+
+app.put('/api/inventory/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.inventoryItems).set(req.body).where(eq(schema.inventoryItems.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update inventory item' });
+  }
+});
+
+app.patch('/api/inventory/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.inventoryItems).set(req.body).where(eq(schema.inventoryItems.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to patch inventory item' });
+  }
+});
+
+app.delete('/api/inventory/:id', async (req, res) => {
+  try {
+    await db.delete(schema.inventoryItems).where(eq(schema.inventoryItems.id, parseInt(req.params.id)));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete inventory item' });
+  }
+});
+
 app.get('/api/housekeeping-tasks', async (req, res) => {
   try {
     const result = await db.select().from(schema.housekeepingTasks);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch tasks' });
+  }
+});
+
+app.post('/api/housekeeping-tasks', async (req, res) => {
+  try {
+    const result = await db.insert(schema.housekeepingTasks).values(req.body).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create housekeeping task' });
+  }
+});
+
+app.put('/api/housekeeping-tasks/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.housekeepingTasks).set(req.body).where(eq(schema.housekeepingTasks.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update housekeeping task' });
+  }
+});
+
+app.patch('/api/housekeeping-tasks/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.housekeepingTasks).set(req.body).where(eq(schema.housekeepingTasks.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to patch housekeeping task' });
+  }
+});
+
+app.delete('/api/housekeeping-tasks/:id', async (req, res) => {
+  try {
+    await db.delete(schema.housekeepingTasks).where(eq(schema.housekeepingTasks.id, parseInt(req.params.id)));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete housekeeping task' });
   }
 });
 
@@ -116,12 +287,84 @@ app.get('/api/menu-items', async (req, res) => {
   }
 });
 
+app.post('/api/menu-items', async (req, res) => {
+  try {
+    const result = await db.insert(schema.menuItems).values(req.body).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create menu item' });
+  }
+});
+
+app.put('/api/menu-items/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.menuItems).set(req.body).where(eq(schema.menuItems.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update menu item' });
+  }
+});
+
+app.patch('/api/menu-items/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.menuItems).set(req.body).where(eq(schema.menuItems.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to patch menu item' });
+  }
+});
+
+app.delete('/api/menu-items/:id', async (req, res) => {
+  try {
+    await db.delete(schema.menuItems).where(eq(schema.menuItems.id, parseInt(req.params.id)));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete menu item' });
+  }
+});
+
 app.get('/api/orders', async (req, res) => {
   try {
     const result = await db.select().from(schema.orders);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch orders' });
+  }
+});
+
+app.post('/api/orders', async (req, res) => {
+  try {
+    const result = await db.insert(schema.orders).values(req.body).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create order' });
+  }
+});
+
+app.put('/api/orders/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.orders).set(req.body).where(eq(schema.orders.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update order' });
+  }
+});
+
+app.patch('/api/orders/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.orders).set(req.body).where(eq(schema.orders.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to patch order' });
+  }
+});
+
+app.delete('/api/orders/:id', async (req, res) => {
+  try {
+    await db.delete(schema.orders).where(eq(schema.orders.id, parseInt(req.params.id)));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete order' });
   }
 });
 
@@ -134,12 +377,84 @@ app.get('/api/suppliers', async (req, res) => {
   }
 });
 
+app.post('/api/suppliers', async (req, res) => {
+  try {
+    const result = await db.insert(schema.suppliers).values(req.body).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create supplier' });
+  }
+});
+
+app.put('/api/suppliers/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.suppliers).set(req.body).where(eq(schema.suppliers.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update supplier' });
+  }
+});
+
+app.patch('/api/suppliers/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.suppliers).set(req.body).where(eq(schema.suppliers.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to patch supplier' });
+  }
+});
+
+app.delete('/api/suppliers/:id', async (req, res) => {
+  try {
+    await db.delete(schema.suppliers).where(eq(schema.suppliers.id, parseInt(req.params.id)));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete supplier' });
+  }
+});
+
 app.get('/api/employees', async (req, res) => {
   try {
     const result = await db.select().from(schema.employees);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch employees' });
+  }
+});
+
+app.post('/api/employees', async (req, res) => {
+  try {
+    const result = await db.insert(schema.employees).values(req.body).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create employee' });
+  }
+});
+
+app.put('/api/employees/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.employees).set(req.body).where(eq(schema.employees.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update employee' });
+  }
+});
+
+app.patch('/api/employees/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.employees).set(req.body).where(eq(schema.employees.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to patch employee' });
+  }
+});
+
+app.delete('/api/employees/:id', async (req, res) => {
+  try {
+    await db.delete(schema.employees).where(eq(schema.employees.id, parseInt(req.params.id)));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete employee' });
   }
 });
 
@@ -203,6 +518,42 @@ app.get('/api/maintenance-requests', async (req, res) => {
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch maintenance requests' });
+  }
+});
+
+app.post('/api/maintenance-requests', async (req, res) => {
+  try {
+    const result = await db.insert(schema.maintenanceRequests).values(req.body).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create maintenance request' });
+  }
+});
+
+app.put('/api/maintenance-requests/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.maintenanceRequests).set(req.body).where(eq(schema.maintenanceRequests.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update maintenance request' });
+  }
+});
+
+app.patch('/api/maintenance-requests/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.maintenanceRequests).set(req.body).where(eq(schema.maintenanceRequests.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to patch maintenance request' });
+  }
+});
+
+app.delete('/api/maintenance-requests/:id', async (req, res) => {
+  try {
+    await db.delete(schema.maintenanceRequests).where(eq(schema.maintenanceRequests.id, parseInt(req.params.id)));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete maintenance request' });
   }
 });
 
