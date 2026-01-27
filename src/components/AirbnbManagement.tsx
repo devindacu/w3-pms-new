@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useAirbnbAPI, type AirbnbConfig, type ListingData, type PricingRules } from '@/hooks/use-airbnb-api';
+import { PrintButton } from '@/components/PrintButton';
+import { A4PrintWrapper } from '@/components/A4PrintWrapper';
 import { Home, Image, MessageCircle, Star, DollarSign, Calendar, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -190,10 +192,25 @@ export function AirbnbManagement() {
           <h2 className="text-2xl font-bold">Airbnb Management</h2>
           <p className="text-muted-foreground">Manage your listing, messaging, pricing, and more</p>
         </div>
-        <Badge variant="outline" className="gap-1">
-          <Home className="h-3 w-3" />
-          Airbnb API
-        </Badge>
+        <div className="flex gap-2 items-center">
+          <Badge variant="outline" className="gap-1">
+            <Home className="h-3 w-3" />
+            Airbnb API
+          </Badge>
+          <PrintButton
+            elementId="airbnb-report"
+            options={{
+              title: 'Airbnb Listing Management Report',
+              filename: `airbnb-report-${Date.now()}.pdf`,
+              includeHeader: true,
+              headerText: 'Airbnb Listing Management',
+              includeFooter: true,
+              footerText: `Generated on ${new Date().toLocaleDateString()}`
+            }}
+            variant="outline"
+            size="sm"
+          />
+        </div>
       </div>
 
       {/* API Configuration */}
@@ -517,6 +534,111 @@ export function AirbnbManagement() {
           <p className="text-destructive text-sm">{error}</p>
         </Card>
       )}
+
+      {/* Printable Summary Report */}
+      <div className="hidden">
+        <A4PrintWrapper
+          id="airbnb-report"
+          title="Airbnb Listing Management Report"
+          headerContent={
+            <div className="text-sm">
+              <p>Listing ID: {config.propertyId || 'Not configured'}</p>
+              <p>Report Date: {new Date().toLocaleDateString()}</p>
+            </div>
+          }
+          footerContent={
+            <div className="text-xs text-center text-muted-foreground">
+              Airbnb Management Console - Confidential
+            </div>
+          }
+        >
+          <div className="space-y-6">
+            <section>
+              <h2 className="text-lg font-semibold mb-4">Listing Information</h2>
+              <table className="w-full border-collapse">
+                <tbody>
+                  <tr>
+                    <td className="border p-2 font-medium">Listing Name</td>
+                    <td className="border p-2">{listingData.name || 'N/A'}</td>
+                  </tr>
+                  <tr>
+                    <td className="border p-2 font-medium">Description</td>
+                    <td className="border p-2">{listingData.description || 'N/A'}</td>
+                  </tr>
+                  <tr>
+                    <td className="border p-2 font-medium">Property Type</td>
+                    <td className="border p-2">{listingData.propertyType}</td>
+                  </tr>
+                  <tr>
+                    <td className="border p-2 font-medium">Room Type</td>
+                    <td className="border p-2">{listingData.roomType}</td>
+                  </tr>
+                  <tr>
+                    <td className="border p-2 font-medium">Accommodates</td>
+                    <td className="border p-2">{listingData.accommodates} guests</td>
+                  </tr>
+                  <tr>
+                    <td className="border p-2 font-medium">Bedrooms</td>
+                    <td className="border p-2">{listingData.bedrooms}</td>
+                  </tr>
+                  <tr>
+                    <td className="border p-2 font-medium">Beds</td>
+                    <td className="border p-2">{listingData.beds}</td>
+                  </tr>
+                  <tr>
+                    <td className="border p-2 font-medium">Bathrooms</td>
+                    <td className="border p-2">{listingData.bathrooms}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-semibold mb-4">Pricing Information</h2>
+              <table className="w-full border-collapse">
+                <tbody>
+                  <tr>
+                    <td className="border p-2 font-medium">Base Price</td>
+                    <td className="border p-2">${pricingRules.basePrice}/night</td>
+                  </tr>
+                  <tr>
+                    <td className="border p-2 font-medium">Weekend Price</td>
+                    <td className="border p-2">${pricingRules.weekendPrice || 'N/A'}/night</td>
+                  </tr>
+                  <tr>
+                    <td className="border p-2 font-medium">Cleaning Fee</td>
+                    <td className="border p-2">${pricingRules.cleaningFee || 'N/A'}</td>
+                  </tr>
+                  <tr>
+                    <td className="border p-2 font-medium">Extra Person Fee</td>
+                    <td className="border p-2">${pricingRules.extraPersonFee || 'N/A'}/person</td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-semibold mb-4">Statistics</h2>
+              <table className="w-full border-collapse">
+                <tbody>
+                  <tr>
+                    <td className="border p-2 font-medium">Total Messages</td>
+                    <td className="border p-2">{messages.length}</td>
+                  </tr>
+                  <tr>
+                    <td className="border p-2 font-medium">Total Reviews</td>
+                    <td className="border p-2">{reviews.length}</td>
+                  </tr>
+                  <tr>
+                    <td className="border p-2 font-medium">Calendar Days</td>
+                    <td className="border p-2">{calendar.length}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+          </div>
+        </A4PrintWrapper>
+      </div>
     </div>
   );
 }

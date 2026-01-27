@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useBookingComAPI, type BookingComConfig, type PropertyData, type RoomTypeData, type PhotoData } from '@/hooks/use-booking-com-api';
+import { PrintButton } from '@/components/PrintButton';
+import { A4PrintWrapper } from '@/components/A4PrintWrapper';
 import { Building, Image, Star, DollarSign, FileText, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -120,10 +122,25 @@ export function BookingComManagement() {
           <h2 className="text-2xl font-bold">Booking.com Management</h2>
           <p className="text-muted-foreground">Manage your property, rooms, photos, and more</p>
         </div>
-        <Badge variant="outline" className="gap-1">
-          <Building className="h-3 w-3" />
-          Booking.com API
-        </Badge>
+        <div className="flex gap-2 items-center">
+          <Badge variant="outline" className="gap-1">
+            <Building className="h-3 w-3" />
+            Booking.com API
+          </Badge>
+          <PrintButton
+            elementId="booking-com-report"
+            options={{
+              title: 'Booking.com Management Report',
+              filename: `booking-com-report-${Date.now()}.pdf`,
+              includeHeader: true,
+              headerText: 'Booking.com Property Management',
+              includeFooter: true,
+              footerText: `Generated on ${new Date().toLocaleDateString()}`
+            }}
+            variant="outline"
+            size="sm"
+          />
+        </div>
       </div>
 
       {/* API Configuration */}
@@ -336,6 +353,79 @@ export function BookingComManagement() {
           <p className="text-destructive text-sm">{error}</p>
         </Card>
       )}
+
+      {/* Printable Summary Report */}
+      <div className="hidden">
+        <A4PrintWrapper
+          id="booking-com-report"
+          title="Booking.com Property Management Report"
+          headerContent={
+            <div className="text-sm">
+              <p>Property ID: {config.propertyId || 'Not configured'}</p>
+              <p>Report Date: {new Date().toLocaleDateString()}</p>
+            </div>
+          }
+          footerContent={
+            <div className="text-xs text-center text-muted-foreground">
+              Booking.com Management Console - Confidential
+            </div>
+          }
+        >
+          <div className="space-y-6">
+            <section>
+              <h2 className="text-lg font-semibold mb-4">Property Information</h2>
+              <table className="w-full border-collapse">
+                <tbody>
+                  <tr>
+                    <td className="border p-2 font-medium">Property Name</td>
+                    <td className="border p-2">{propertyData.name || 'N/A'}</td>
+                  </tr>
+                  <tr>
+                    <td className="border p-2 font-medium">Address</td>
+                    <td className="border p-2">{propertyData.address || 'N/A'}</td>
+                  </tr>
+                  <tr>
+                    <td className="border p-2 font-medium">City</td>
+                    <td className="border p-2">{propertyData.city || 'N/A'}</td>
+                  </tr>
+                  <tr>
+                    <td className="border p-2 font-medium">Country</td>
+                    <td className="border p-2">{propertyData.country || 'N/A'}</td>
+                  </tr>
+                  <tr>
+                    <td className="border p-2 font-medium">Phone</td>
+                    <td className="border p-2">{propertyData.phone || 'N/A'}</td>
+                  </tr>
+                  <tr>
+                    <td className="border p-2 font-medium">Email</td>
+                    <td className="border p-2">{propertyData.email || 'N/A'}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-semibold mb-4">Statistics</h2>
+              <table className="w-full border-collapse">
+                <tbody>
+                  <tr>
+                    <td className="border p-2 font-medium">Total Payments</td>
+                    <td className="border p-2">{payments.length}</td>
+                  </tr>
+                  <tr>
+                    <td className="border p-2 font-medium">Total Reviews</td>
+                    <td className="border p-2">{reviews.length}</td>
+                  </tr>
+                  <tr>
+                    <td className="border p-2 font-medium">Room Types</td>
+                    <td className="border p-2">{roomTypes.length}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+          </div>
+        </A4PrintWrapper>
+      </div>
     </div>
   );
 }
