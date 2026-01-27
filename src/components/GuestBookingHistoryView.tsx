@@ -22,6 +22,8 @@ import {
 } from '@phosphor-icons/react'
 import type { GuestBookingHistory, GuestProfile } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/helpers'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 
 interface GuestBookingHistoryViewProps {
   profile: GuestProfile
@@ -159,6 +161,10 @@ export function GuestBookingHistoryView({ profile, bookingHistory }: GuestBookin
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end mb-4">
+        <PrintButton targetId="guest-booking-history-print" />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 border-l-4 border-l-primary">
           <div className="flex items-center justify-between mb-2">
@@ -490,6 +496,134 @@ export function GuestBookingHistoryView({ profile, bookingHistory }: GuestBookin
           )}
         </TabsContent>
       </Tabs>
+
+      <div className="hidden">
+        <A4PrintWrapper 
+          id="guest-booking-history-print" 
+          title={`Guest Booking History - ${profile.firstName} ${profile.lastName}`}
+        >
+          <div className="space-y-6">
+            <div className="text-center border-b pb-4">
+              <h1 className="text-2xl font-bold mb-2">Guest Booking History</h1>
+              <p className="text-lg">{profile.firstName} {profile.lastName}</p>
+              {profile.email && <p className="text-sm text-gray-600">{profile.email}</p>}
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-3 text-sm uppercase text-gray-600">Summary Statistics</h3>
+              <div className="grid grid-cols-4 gap-4">
+                <div className="border p-3">
+                  <p className="text-xs text-gray-600 mb-1">Total Stays</p>
+                  <p className="text-2xl font-bold">{stats.totalStays}</p>
+                  <p className="text-xs text-gray-500">{stats.totalNights} nights</p>
+                </div>
+                <div className="border p-3">
+                  <p className="text-xs text-gray-600 mb-1">Total Spent</p>
+                  <p className="text-2xl font-bold">{formatCurrency(stats.totalSpent)}</p>
+                  <p className="text-xs text-gray-500">Avg: {formatCurrency(stats.avgSpendPerStay)}</p>
+                </div>
+                <div className="border p-3">
+                  <p className="text-xs text-gray-600 mb-1">Average Rating</p>
+                  <p className="text-2xl font-bold">{stats.avgRating.toFixed(1)}/5</p>
+                  <p className="text-xs text-gray-500">{stats.totalComplaints} complaints</p>
+                </div>
+                <div className="border p-3">
+                  <p className="text-xs text-gray-600 mb-1">Preferred Room</p>
+                  <p className="text-lg font-bold capitalize">{stats.mostBookedRoomType.replace('-', ' ')}</p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-3 text-sm uppercase text-gray-600">Booking History</h3>
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b-2 border-gray-300">
+                    <th className="text-left py-2">Date</th>
+                    <th className="text-left py-2">Room</th>
+                    <th className="text-center py-2">Guests</th>
+                    <th className="text-center py-2">Nights</th>
+                    <th className="text-right py-2">Total</th>
+                    <th className="text-right py-2">Paid</th>
+                    <th className="text-center py-2">Status</th>
+                    <th className="text-center py-2">Rating</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedHistory.map((booking) => (
+                    <tr key={booking.id} className="border-b border-gray-200">
+                      <td className="py-2">
+                        <div>{formatDate(booking.checkInDate)}</div>
+                        <div className="text-xs text-gray-500">{formatDate(booking.checkOutDate)}</div>
+                      </td>
+                      <td className="py-2">
+                        <div className="capitalize">{booking.roomType.replace('-', ' ')}</div>
+                        {booking.roomNumber && <div className="text-xs text-gray-500">Room {booking.roomNumber}</div>}
+                      </td>
+                      <td className="text-center py-2">{booking.adults}A{booking.children > 0 && `, ${booking.children}C`}</td>
+                      <td className="text-center py-2">{booking.nights}</td>
+                      <td className="text-right py-2">{formatCurrency(booking.totalAmount)}</td>
+                      <td className="text-right py-2">{formatCurrency(booking.amountPaid)}</td>
+                      <td className="text-center py-2 capitalize">{booking.status.replace('-', ' ')}</td>
+                      <td className="text-center py-2">{booking.rating ? `${booking.rating}/5` : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {preferences.length > 0 && (
+              <div>
+                <h3 className="font-semibold mb-3 text-sm uppercase text-gray-600">Guest Preferences</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {preferences.map((pref, idx) => (
+                    <div key={idx} className="border p-3">
+                      <h4 className="font-semibold text-sm mb-2">{pref.category}</h4>
+                      <div className="space-y-1">
+                        {pref.items.map((item, itemIdx) => (
+                          <div key={itemIdx} className="flex justify-between text-xs">
+                            <span className="capitalize">{item.label}</span>
+                            <span className="text-gray-600">{item.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div>
+              <h3 className="font-semibold mb-3 text-sm uppercase text-gray-600">Spending Analysis</h3>
+              <table className="w-full text-sm">
+                <tbody>
+                  <tr className="border-b border-gray-200">
+                    <td className="py-2 font-medium">Room Revenue</td>
+                    <td className="py-2 text-right">{formatCurrency(stats.totalSpent - stats.totalFnBSpend - stats.totalExtraServicesSpend)}</td>
+                    <td className="py-2 text-right text-xs text-gray-600">
+                      {((stats.totalSpent - stats.totalFnBSpend - stats.totalExtraServicesSpend) / stats.totalSpent * 100).toFixed(1)}%
+                    </td>
+                  </tr>
+                  <tr className="border-b border-gray-200">
+                    <td className="py-2 font-medium">F&B Revenue</td>
+                    <td className="py-2 text-right">{formatCurrency(stats.totalFnBSpend)}</td>
+                    <td className="py-2 text-right text-xs text-gray-600">
+                      {(stats.totalFnBSpend / stats.totalSpent * 100).toFixed(1)}%
+                    </td>
+                  </tr>
+                  <tr className="border-b border-gray-200">
+                    <td className="py-2 font-medium">Extra Services</td>
+                    <td className="py-2 text-right">{formatCurrency(stats.totalExtraServicesSpend)}</td>
+                    <td className="py-2 text-right text-xs text-gray-600">
+                      {(stats.totalExtraServicesSpend / stats.totalSpent * 100).toFixed(1)}%
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </A4PrintWrapper>
+      </div>
     </div>
   )
 }

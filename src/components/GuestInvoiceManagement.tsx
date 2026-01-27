@@ -35,6 +35,8 @@ import { GuestInvoiceEditDialog } from './GuestInvoiceEditDialog'
 import { InvoiceDownloadDialog } from './InvoiceDownloadDialog'
 import { InvoiceShareDialog } from './InvoiceShareDialog'
 import { BatchInvoiceOperations } from './BatchInvoiceOperations'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 
 interface GuestInvoiceManagementProps {
   invoices: GuestInvoice[]
@@ -210,12 +212,21 @@ export function GuestInvoiceManagement({ invoices, setInvoices, currentUser }: G
             View, edit, download, and share guest invoices
           </p>
         </div>
-        {selectedInvoices.size > 0 && (
-          <Button onClick={() => setBatchOperationsOpen(true)} className="gap-2">
-            <Sparkle size={20} />
-            Batch Operations ({selectedInvoices.size})
-          </Button>
-        )}
+        <div className="flex gap-2">
+          <PrintButton
+            elementId="guest-invoice-management-print"
+            options={{
+              title: 'Guest Invoices Report',
+              filename: `guest-invoices-${Date.now()}.pdf`
+            }}
+          />
+          {selectedInvoices.size > 0 && (
+            <Button onClick={() => setBatchOperationsOpen(true)} className="gap-2">
+              <Sparkle size={20} />
+              Batch Operations ({selectedInvoices.size})
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -465,6 +476,61 @@ export function GuestInvoiceManagement({ invoices, setInvoices, currentUser }: G
         currentUser={currentUser}
         onUpdate={handleBatchUpdate}
       />
+
+      {/* Hidden print section */}
+      <div className="hidden">
+        <A4PrintWrapper id="guest-invoice-management-print" title="Guest Invoices Report">
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div>
+                <div className="text-sm text-muted-foreground">Total Invoices</div>
+                <div className="text-xl font-semibold">{stats.total}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Total Revenue</div>
+                <div className="text-xl font-semibold">{formatCurrency(stats.totalRevenue)}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Posted Invoices</div>
+                <div className="text-xl font-semibold">{stats.posted}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Outstanding</div>
+                <div className="text-xl font-semibold">{formatCurrency(stats.totalOutstanding)}</div>
+              </div>
+            </div>
+
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b-2 border-primary">
+                  <th className="p-2 text-left">Invoice #</th>
+                  <th className="p-2 text-left">Guest</th>
+                  <th className="p-2 text-left">Room</th>
+                  <th className="p-2 text-left">Date</th>
+                  <th className="p-2 text-left">Status</th>
+                  <th className="p-2 text-right">Amount</th>
+                  <th className="p-2 text-right">Paid</th>
+                  <th className="p-2 text-right">Due</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredInvoices.map((invoice) => (
+                  <tr key={invoice.id} className="border-b">
+                    <td className="p-2">{invoice.invoiceNumber}</td>
+                    <td className="p-2">{invoice.guestName}</td>
+                    <td className="p-2">{invoice.roomNumber || '-'}</td>
+                    <td className="p-2">{formatDate(invoice.invoiceDate)}</td>
+                    <td className="p-2">{invoice.status}</td>
+                    <td className="p-2 text-right">{formatCurrency(invoice.grandTotal)}</td>
+                    <td className="p-2 text-right">{formatCurrency(invoice.totalPaid)}</td>
+                    <td className="p-2 text-right">{formatCurrency(invoice.amountDue)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </A4PrintWrapper>
+      </div>
     </div>
   )
 }

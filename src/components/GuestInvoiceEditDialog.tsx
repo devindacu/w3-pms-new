@@ -20,6 +20,8 @@ import {
   roundCurrencyAmount,
   getLatestExchangeRate
 } from '@/lib/currencyHelpers'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 
 interface GuestInvoiceEditDialogProps {
   open: boolean
@@ -170,9 +172,12 @@ export function GuestInvoiceEditDialog({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Edit Invoice - {invoice.invoiceNumber}</DialogTitle>
-            <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
-              <X size={18} />
-            </Button>
+            <div className="flex items-center gap-2">
+              <PrintButton targetId="guest-invoice-edit-print" />
+              <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
+                <X size={18} />
+              </Button>
+            </div>
           </div>
         </DialogHeader>
 
@@ -443,6 +448,155 @@ export function GuestInvoiceEditDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      <div className="hidden">
+        <A4PrintWrapper 
+          id="guest-invoice-edit-print" 
+          title={`Invoice ${invoice.invoiceNumber} - Edit View`}
+        >
+          <div className="space-y-6">
+            <div className="text-center border-b pb-4">
+              <h1 className="text-2xl font-bold mb-2">Guest Invoice - Edit View</h1>
+              <p className="text-lg font-semibold">{invoice.invoiceNumber}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <h3 className="font-semibold mb-2 text-sm uppercase text-gray-600">Guest Information</h3>
+                <table className="w-full text-sm">
+                  <tbody>
+                    <tr>
+                      <td className="py-1 font-medium">Name:</td>
+                      <td className="py-1">{editedInvoice.guestName}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1 font-medium">Email:</td>
+                      <td className="py-1">{editedInvoice.guestEmail || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1 font-medium">Phone:</td>
+                      <td className="py-1">{editedInvoice.guestPhone || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1 font-medium">Room:</td>
+                      <td className="py-1">{editedInvoice.roomNumber || 'N/A'}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2 text-sm uppercase text-gray-600">Invoice Details</h3>
+                <table className="w-full text-sm">
+                  <tbody>
+                    <tr>
+                      <td className="py-1 font-medium">Currency:</td>
+                      <td className="py-1">{editedInvoice.currency}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1 font-medium">Exchange Rate:</td>
+                      <td className="py-1">{editedInvoice.exchangeRate.toFixed(6)}</td>
+                    </tr>
+                    {editedInvoice.currency !== originalCurrency && (
+                      <tr>
+                        <td className="py-1 font-medium">Original Currency:</td>
+                        <td className="py-1">{originalCurrency}</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {editedInvoice.guestAddress && (
+              <div>
+                <h3 className="font-semibold mb-2 text-sm uppercase text-gray-600">Guest Address</h3>
+                <p className="text-sm">{editedInvoice.guestAddress}</p>
+              </div>
+            )}
+
+            <div>
+              <h3 className="font-semibold mb-3 text-sm uppercase text-gray-600">Line Items</h3>
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b-2 border-gray-300">
+                    <th className="text-left py-2">Description</th>
+                    <th className="text-right py-2">Quantity</th>
+                    <th className="text-right py-2">Unit Price</th>
+                    <th className="text-right py-2">Line Total</th>
+                    <th className="text-right py-2">Tax</th>
+                    <th className="text-right py-2">Service Charge</th>
+                    <th className="text-right py-2">Grand Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {editedInvoice.lineItems.map((item, index) => (
+                    <tr key={item.id} className="border-b border-gray-200">
+                      <td className="py-2">{item.description}</td>
+                      <td className="text-right py-2">{item.quantity}</td>
+                      <td className="text-right py-2">{formatCurrencyAmount(item.unitPrice, editedInvoice.currency as CurrencyCode)}</td>
+                      <td className="text-right py-2">{formatCurrencyAmount(item.lineTotal, editedInvoice.currency as CurrencyCode)}</td>
+                      <td className="text-right py-2">{formatCurrencyAmount(item.totalTax, editedInvoice.currency as CurrencyCode)}</td>
+                      <td className="text-right py-2">{formatCurrencyAmount(item.serviceChargeAmount, editedInvoice.currency as CurrencyCode)}</td>
+                      <td className="text-right py-2 font-medium">{formatCurrencyAmount(item.lineGrandTotal, editedInvoice.currency as CurrencyCode)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex justify-end">
+              <div className="w-64">
+                <table className="w-full text-sm">
+                  <tbody>
+                    <tr className="border-b border-gray-200">
+                      <td className="py-2 font-medium">Subtotal:</td>
+                      <td className="py-2 text-right">{formatCurrencyAmount(editedInvoice.subtotal, editedInvoice.currency as CurrencyCode)}</td>
+                    </tr>
+                    {editedInvoice.totalDiscount > 0 && (
+                      <tr className="border-b border-gray-200">
+                        <td className="py-2 font-medium">Discount:</td>
+                        <td className="py-2 text-right">-{formatCurrencyAmount(editedInvoice.totalDiscount, editedInvoice.currency as CurrencyCode)}</td>
+                      </tr>
+                    )}
+                    {editedInvoice.serviceChargeAmount > 0 && (
+                      <tr className="border-b border-gray-200">
+                        <td className="py-2 font-medium">Service Charge:</td>
+                        <td className="py-2 text-right">{formatCurrencyAmount(editedInvoice.serviceChargeAmount, editedInvoice.currency as CurrencyCode)}</td>
+                      </tr>
+                    )}
+                    <tr className="border-b border-gray-200">
+                      <td className="py-2 font-medium">Tax:</td>
+                      <td className="py-2 text-right">{formatCurrencyAmount(editedInvoice.totalTax, editedInvoice.currency as CurrencyCode)}</td>
+                    </tr>
+                    <tr className="border-t-2 border-gray-300">
+                      <td className="py-2 text-lg font-bold">Grand Total:</td>
+                      <td className="py-2 text-right text-lg font-bold">{formatCurrencyAmount(editedInvoice.grandTotal, editedInvoice.currency as CurrencyCode)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {(editedInvoice.paymentInstructions || editedInvoice.specialInstructions) && (
+              <div className="grid grid-cols-2 gap-6 border-t pt-4">
+                {editedInvoice.paymentInstructions && (
+                  <div>
+                    <h3 className="font-semibold mb-2 text-sm uppercase text-gray-600">Payment Instructions</h3>
+                    <p className="text-sm whitespace-pre-wrap">{editedInvoice.paymentInstructions}</p>
+                  </div>
+                )}
+                {editedInvoice.specialInstructions && (
+                  <div>
+                    <h3 className="font-semibold mb-2 text-sm uppercase text-gray-600">Special Instructions</h3>
+                    <p className="text-sm whitespace-pre-wrap">{editedInvoice.specialInstructions}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </A4PrintWrapper>
+      </div>
     </Dialog>
   )
 }
