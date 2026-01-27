@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import { FileText, Printer } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { type KitchenConsumptionLog, type Recipe, type Order, type DailyConsumptionReport, type RecipeConsumptionSummary, type IngredientUsageSummary } from '@/lib/types'
@@ -131,7 +133,24 @@ export function DailyReportDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>Daily Consumption Report</DialogTitle>
+          <DialogTitle className="flex items-center justify-between">
+            <span>Daily Consumption Report</span>
+            {report && (
+              <PrintButton
+                elementId="daily-report-printable"
+                options={{
+                  title: `Daily Consumption Report - ${reportDate}`,
+                  filename: `daily-report-${reportDate}.pdf`,
+                  includeHeader: true,
+                  headerText: `Daily Consumption Report`,
+                  includeFooter: true,
+                  footerText: `Generated on ${new Date().toLocaleDateString()}`
+                }}
+                variant="outline"
+                size="sm"
+              />
+            )}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -248,17 +267,115 @@ export function DailyReportDialog({
           )}
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t">
+        <div className="flex justify-end gap-3 pt-4 border-t no-print">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>
-          {report && (
-            <Button onClick={() => toast.success('Print functionality would be implemented here')}>
-              <Printer size={20} className="mr-2" />
-              Print Report
-            </Button>
-          )}
         </div>
+
+        {/* Hidden printable content */}
+        {report && (
+          <div className="hidden">
+            <A4PrintWrapper
+              id="daily-report-printable"
+              title={`Daily Consumption Report`}
+              headerContent={
+                <div className="text-sm">
+                  <p><strong>Report Date:</strong> {reportDate}</p>
+                  <p><strong>Generated:</strong> {new Date().toLocaleDateString()}</p>
+                </div>
+              }
+            >
+              <div className="space-y-6">
+                <section>
+                  <h2 className="text-lg font-semibold mb-4">Summary</h2>
+                  <table className="w-full border-collapse">
+                    <tbody>
+                      <tr>
+                        <td className="border p-2 font-medium">Total Portions Produced</td>
+                        <td className="border p-2 text-right font-bold">{report.totalPortions}</td>
+                      </tr>
+                      <tr>
+                        <td className="border p-2 font-medium">Total Recipes</td>
+                        <td className="border p-2 text-right font-bold">{report.totalRecipesProduced}</td>
+                      </tr>
+                      <tr>
+                        <td className="border p-2 font-medium">Total Revenue</td>
+                        <td className="border p-2 text-right font-bold text-green-600">{formatCurrency(report.totalRevenue)}</td>
+                      </tr>
+                      <tr>
+                        <td className="border p-2 font-medium">Total Cost</td>
+                        <td className="border p-2 text-right font-bold text-red-600">{formatCurrency(report.totalCost)}</td>
+                      </tr>
+                      <tr className="bg-gray-100">
+                        <td className="border p-2 font-bold">Gross Profit</td>
+                        <td className="border p-2 text-right font-bold">{formatCurrency(report.grossProfit)} ({report.profitMargin.toFixed(1)}%)</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </section>
+
+                <section className="page-break">
+                  <h2 className="text-lg font-semibold mb-4">Recipe Breakdown</h2>
+                  <table className="w-full border-collapse text-sm">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="border p-2 text-left">Recipe Name</th>
+                        <th className="border p-2 text-right">Portions</th>
+                        <th className="border p-2 text-right">Avg Cost</th>
+                        <th className="border p-2 text-right">Total Cost</th>
+                        <th className="border p-2 text-right">Revenue</th>
+                        <th className="border p-2 text-right">Profit</th>
+                        <th className="border p-2 text-right">Margin %</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {report.recipeBreakdown.map((recipe) => (
+                        <tr key={recipe.recipeId}>
+                          <td className="border p-2">{recipe.recipeName}</td>
+                          <td className="border p-2 text-right">{recipe.portionsProduced}</td>
+                          <td className="border p-2 text-right">{formatCurrency(recipe.averageCostPerPortion)}</td>
+                          <td className="border p-2 text-right">{formatCurrency(recipe.totalCost)}</td>
+                          <td className="border p-2 text-right">{formatCurrency(recipe.totalRevenue)}</td>
+                          <td className="border p-2 text-right">{formatCurrency(recipe.profit)}</td>
+                          <td className="border p-2 text-right">{recipe.profitMargin.toFixed(1)}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </section>
+
+                <section className="page-break">
+                  <h2 className="text-lg font-semibold mb-4">Ingredient Usage</h2>
+                  <table className="w-full border-collapse text-sm">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="border p-2 text-left">Ingredient</th>
+                        <th className="border p-2 text-left">Used In</th>
+                        <th className="border p-2 text-right">Quantity</th>
+                        <th className="border p-2 text-right">Unit</th>
+                        <th className="border p-2 text-right">Total Cost</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {report.ingredientUsage
+                        .sort((a, b) => b.totalCost - a.totalCost)
+                        .map((ing, idx) => (
+                          <tr key={idx}>
+                            <td className="border p-2">{ing.itemName}</td>
+                            <td className="border p-2 text-xs">{ing.recipes.join(', ')}</td>
+                            <td className="border p-2 text-right">{ing.totalUsed.toFixed(2)}</td>
+                            <td className="border p-2 text-right">{ing.unit}</td>
+                            <td className="border p-2 text-right font-semibold">{formatCurrency(ing.totalCost)}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </section>
+              </div>
+            </A4PrintWrapper>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )

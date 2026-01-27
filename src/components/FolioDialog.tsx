@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import { toast } from 'sonner'
 import { type Folio, type Reservation, type Guest, type Department, type FolioExtraService, type ExtraService, type ExtraServiceCategory } from '@/lib/types'
 import { formatDateTime, formatCurrency, generateId } from '@/lib/helpers'
@@ -137,16 +139,33 @@ export function FolioDialog({
   }
 
   const handlePrint = () => {
-    toast.info('Folio printing functionality would be implemented here')
+    // Print functionality is handled by PrintButton component
   }
+
+  const folioId = `FOLIO-${currentFolio.id.slice(0, 8).toUpperCase()}`
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Receipt size={24} />
-            Guest Folio
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Receipt size={24} />
+              Guest Folio
+            </div>
+            <PrintButton
+              elementId="folio-printable"
+              options={{
+                title: `Guest Folio - ${folioId}`,
+                filename: `folio-${folioId}.pdf`,
+                includeHeader: true,
+                headerText: `Hotel Management System - Folio ${folioId}`,
+                includeFooter: true,
+                footerText: `Generated on ${new Date().toLocaleDateString()}`
+              }}
+              variant="outline"
+              size="sm"
+            />
           </DialogTitle>
         </DialogHeader>
 
@@ -365,15 +384,139 @@ export function FolioDialog({
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={handlePrint}>
-            <Receipt size={16} className="mr-2" />
-            Print Folio
-          </Button>
+        <DialogFooter className="no-print">
           <Button onClick={() => onOpenChange(false)}>
             Close
           </Button>
         </DialogFooter>
+
+        {/* Hidden printable content */}
+        <div className="hidden">
+          <A4PrintWrapper
+            id="folio-printable"
+            title={`Guest Folio - ${folioId}`}
+            headerContent={
+              <div className="text-sm">
+                <p><strong>Guest:</strong> {guest ? `${guest.firstName} ${guest.lastName}` : 'Unknown Guest'}</p>
+                <p><strong>Folio Number:</strong> {folioId}</p>
+                <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
+              </div>
+            }
+          >
+            <div className="space-y-6">
+              <section>
+                <h2 className="text-lg font-semibold mb-4">Charges</h2>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border p-2 text-left">Description</th>
+                      <th className="border p-2 text-left">Department</th>
+                      <th className="border p-2 text-right">Unit Price</th>
+                      <th className="border p-2 text-right">Qty</th>
+                      <th className="border p-2 text-right">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentFolio.charges.map(charge => (
+                      <tr key={charge.id}>
+                        <td className="border p-2">{charge.description}</td>
+                        <td className="border p-2">{charge.department}</td>
+                        <td className="border p-2 text-right">{formatCurrency(charge.amount)}</td>
+                        <td className="border p-2 text-right">{charge.quantity}</td>
+                        <td className="border p-2 text-right font-semibold">{formatCurrency(charge.amount * charge.quantity)}</td>
+                      </tr>
+                    ))}
+                    <tr className="bg-gray-50">
+                      <td colSpan={4} className="border p-2 text-right font-semibold">Total Charges:</td>
+                      <td className="border p-2 text-right font-bold">{formatCurrency(totalCharges)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+
+              {folioServices.length > 0 && (
+                <section>
+                  <h2 className="text-lg font-semibold mb-4">Extra Services</h2>
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="border p-2 text-left">Service</th>
+                        <th className="border p-2 text-left">Category</th>
+                        <th className="border p-2 text-right">Unit Price</th>
+                        <th className="border p-2 text-right">Qty</th>
+                        <th className="border p-2 text-right">Tax</th>
+                        <th className="border p-2 text-right">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {folioServices.map(service => (
+                        <tr key={service.id}>
+                          <td className="border p-2">{service.serviceName}</td>
+                          <td className="border p-2">{service.categoryName}</td>
+                          <td className="border p-2 text-right">{formatCurrency(service.unitPrice)}</td>
+                          <td className="border p-2 text-right">{service.quantity}</td>
+                          <td className="border p-2 text-right">{formatCurrency(service.taxAmount)}</td>
+                          <td className="border p-2 text-right font-semibold">{formatCurrency(service.totalAmount)}</td>
+                        </tr>
+                      ))}
+                      <tr className="bg-gray-50">
+                        <td colSpan={5} className="border p-2 text-right font-semibold">Total Extra Services:</td>
+                        <td className="border p-2 text-right font-bold">{formatCurrency(extraServicesTotal)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </section>
+              )}
+
+              <section>
+                <h2 className="text-lg font-semibold mb-4">Payments</h2>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border p-2 text-left">Date</th>
+                      <th className="border p-2 text-left">Method</th>
+                      <th className="border p-2 text-right">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentFolio.payments.map(payment => (
+                      <tr key={payment.id}>
+                        <td className="border p-2">{formatDateTime(payment.timestamp)}</td>
+                        <td className="border p-2 capitalize">{payment.method.replace('-', ' ')}</td>
+                        <td className="border p-2 text-right font-semibold">{formatCurrency(payment.amount)}</td>
+                      </tr>
+                    ))}
+                    <tr className="bg-gray-50">
+                      <td colSpan={2} className="border p-2 text-right font-semibold">Total Payments:</td>
+                      <td className="border p-2 text-right font-bold">{formatCurrency(totalPayments)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+
+              <section className="mt-6 p-4 bg-gray-100 border-2 border-gray-300">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-lg">
+                    <span className="font-semibold">Total Charges:</span>
+                    <span>{formatCurrency(totalCharges + extraServicesTotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-lg">
+                    <span className="font-semibold">Total Payments:</span>
+                    <span>{formatCurrency(totalPayments)}</span>
+                  </div>
+                  <div className="border-t-2 border-gray-400 pt-2 mt-2">
+                    <div className="flex justify-between text-xl font-bold">
+                      <span>Balance Due:</span>
+                      <span className={balance > 0 ? 'text-red-600' : 'text-green-600'}>
+                        {formatCurrency(balance)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </A4PrintWrapper>
+        </div>
       </DialogContent>
 
       {extraServices.length > 0 && setFolioExtraServices && (
