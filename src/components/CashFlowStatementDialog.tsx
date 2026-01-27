@@ -13,6 +13,8 @@ import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import { Download, Printer, ArrowDown, ArrowUp, TrendUp, TrendDown, CalendarBlank } from '@phosphor-icons/react'
 import { formatCurrency, formatDate } from '@/lib/helpers'
 import {
@@ -452,9 +454,20 @@ export function CashFlowStatementDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <TrendUp size={24} className="text-primary" />
-            Cash Flow Statement
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <TrendUp size={24} className="text-primary" />
+              Cash Flow Statement
+            </div>
+            <PrintButton
+              elementId="cash-flow-print"
+              options={{
+                title: `Cash Flow Statement - ${formatDate(getPeriodDates().startDate)} to ${formatDate(getPeriodDates().endDate)}`,
+                filename: `cash-flow-${formatDate(getPeriodDates().startDate).replace(/\//g, '-')}-to-${formatDate(getPeriodDates().endDate).replace(/\//g, '-')}.pdf`
+              }}
+              variant="outline"
+              size="sm"
+            />
           </DialogTitle>
         </DialogHeader>
 
@@ -715,6 +728,101 @@ export function CashFlowStatementDialog({
               </Card>
             </div>
           </ScrollArea>
+        </div>
+
+        <div className="hidden">
+          <A4PrintWrapper id="cash-flow-print" title={`Cash Flow Statement - ${formatDate(getPeriodDates().startDate)} to ${formatDate(getPeriodDates().endDate)}`}>
+            <div className="space-y-6">
+              <div className="border-b pb-4">
+                <h2 className="text-xl font-semibold">Cash Flow Summary</h2>
+                <p className="text-sm text-gray-600">
+                  Period: {formatDate(getPeriodDates().startDate)} to {formatDate(getPeriodDates().endDate)}
+                </p>
+                <div className="grid grid-cols-3 gap-4 mt-4">
+                  <div>
+                    <div className="text-sm text-gray-600">Operating Activities</div>
+                    <div className="text-lg font-semibold">{formatCurrency(cashFlowData.operating.total)}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Investing Activities</div>
+                    <div className="text-lg font-semibold">{formatCurrency(cashFlowData.investing.total)}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Financing Activities</div>
+                    <div className="text-lg font-semibold">{formatCurrency(cashFlowData.financing.total)}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Cash Flow Statement</h3>
+                <table className="w-full">
+                  <tbody>
+                    <tr className="border-b font-semibold bg-gray-50">
+                      <td colSpan={2} className="p-2">Operating Activities</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 pl-4">Net Income</td>
+                      <td className="p-2 text-right">{formatCurrency(cashFlowData.operating.netIncome)}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 pl-4">Adjustments</td>
+                      <td className="p-2 text-right">{formatCurrency(
+                        cashFlowData.operating.adjustments.depreciation +
+                        cashFlowData.operating.adjustments.amortization +
+                        cashFlowData.operating.adjustments.gainLoss
+                      )}</td>
+                    </tr>
+                    <tr className="border-b font-semibold">
+                      <td className="p-2">Net Cash from Operating Activities</td>
+                      <td className="p-2 text-right">{formatCurrency(cashFlowData.operating.total)}</td>
+                    </tr>
+
+                    <tr className="border-b font-semibold bg-gray-50">
+                      <td colSpan={2} className="p-2">Investing Activities</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 pl-4">Property & Equipment Purchase</td>
+                      <td className="p-2 text-right">{formatCurrency(cashFlowData.investing.propertyPurchase + cashFlowData.investing.equipmentPurchase)}</td>
+                    </tr>
+                    <tr className="border-b font-semibold">
+                      <td className="p-2">Net Cash from Investing Activities</td>
+                      <td className="p-2 text-right">{formatCurrency(cashFlowData.investing.total)}</td>
+                    </tr>
+
+                    <tr className="border-b font-semibold bg-gray-50">
+                      <td colSpan={2} className="p-2">Financing Activities</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 pl-4">Loan Proceeds</td>
+                      <td className="p-2 text-right">{formatCurrency(cashFlowData.financing.loanProceeds)}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 pl-4">Loan Repayments</td>
+                      <td className="p-2 text-right">{formatCurrency(cashFlowData.financing.loanRepayment)}</td>
+                    </tr>
+                    <tr className="border-b font-semibold">
+                      <td className="p-2">Net Cash from Financing Activities</td>
+                      <td className="p-2 text-right">{formatCurrency(cashFlowData.financing.total)}</td>
+                    </tr>
+
+                    <tr className="border-t-2 font-bold">
+                      <td className="p-2">Net Increase (Decrease) in Cash</td>
+                      <td className="p-2 text-right">{formatCurrency(cashFlowData.netCashFlow)}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2">Cash at Beginning of Period</td>
+                      <td className="p-2 text-right">{formatCurrency(cashFlowData.beginningCash)}</td>
+                    </tr>
+                    <tr className="border-t-2 font-bold bg-gray-100">
+                      <td className="p-2">Cash at End of Period</td>
+                      <td className="p-2 text-right text-lg">{formatCurrency(cashFlowData.endingCash)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </A4PrintWrapper>
         </div>
       </DialogContent>
     </Dialog>

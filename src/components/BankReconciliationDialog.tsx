@@ -12,6 +12,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
 import { toast } from 'sonner'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import { 
   Bank, 
   Check, 
@@ -704,9 +706,20 @@ export function BankReconciliationDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Bank size={24} />
-            {reconciliation ? 'Edit' : 'New'} Bank Reconciliation
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Bank size={24} />
+              {reconciliation ? 'Edit' : 'New'} Bank Reconciliation
+            </div>
+            {selectedAccount && (
+              <PrintButton
+                elementId="bank-reconciliation-print"
+                options={{
+                  title: 'Bank Reconciliation Report',
+                  filename: `bank-reconciliation-${formatDate(Date.now()).replace(/\//g, '-')}.pdf`
+                }}
+              />
+            )}
           </DialogTitle>
         </DialogHeader>
 
@@ -1073,6 +1086,166 @@ export function BankReconciliationDialog({
             </Button>
           </div>
         </DialogFooter>
+
+        <div className="hidden">
+          <A4PrintWrapper id="bank-reconciliation-print" title={`Bank Reconciliation Report - ${formatDate(Date.now())}`}>
+            <div className="space-y-6">
+              <div className="border-b pb-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-xl font-semibold">Bank Reconciliation</h2>
+                    <p className="text-sm text-gray-600">Report Date: {formatDate(Date.now())}</p>
+                    {selectedAccount && (
+                      <p className="text-sm text-gray-600">
+                        Account: {bankAccounts.find(a => a.id === selectedAccount)?.accountName}
+                      </p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-600">Statement Date</div>
+                    <div className="text-lg font-bold">{formatDate(statementDate)}</div>
+                    <div className="text-sm text-gray-600 mt-2">Statement Balance</div>
+                    <div className="text-xl font-bold">{formatCurrency(parseFloat(statementBalance) || 0)}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Reconciliation Summary</h3>
+                <table className="w-full border-collapse mb-4">
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="py-2 px-3">Statement Balance</td>
+                      <td className="py-2 px-3 text-right font-semibold">{formatCurrency(parseFloat(statementBalance) || 0)}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-2 px-3">Book Balance</td>
+                      <td className="py-2 px-3 text-right font-semibold">{formatCurrency(calculateBookBalance())}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-2 px-3">Difference</td>
+                      <td className={`py-2 px-3 text-right font-semibold ${calculateDifference() === 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatCurrency(Math.abs(calculateDifference()))}
+                      </td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-2 px-3">Matched Transactions</td>
+                      <td className="py-2 px-3 text-right">{matchedPairs.length}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-2 px-3">Unmatched Bank Transactions</td>
+                      <td className="py-2 px-3 text-right">{unmatchedBankList.length}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-2 px-3">Unmatched GL Entries</td>
+                      <td className="py-2 px-3 text-right">{unmatchedGLList.length}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {matchedPairs.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Matched Transactions</h3>
+                  <table className="w-full border-collapse text-sm mb-4">
+                    <thead>
+                      <tr className="border-b bg-gray-50">
+                        <th className="text-left py-2 px-2">Bank Date</th>
+                        <th className="text-left py-2 px-2">Bank Description</th>
+                        <th className="text-right py-2 px-2">Bank Amount</th>
+                        <th className="text-left py-2 px-2">GL Date</th>
+                        <th className="text-left py-2 px-2">GL Description</th>
+                        <th className="text-right py-2 px-2">GL Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {matchedPairs.map((pair) => {
+                        const bankTxn = bankTransactions.find(b => b.id === pair.bankTransactionId)
+                        const glEntry = glEntries.find(g => g.id === pair.glEntryId)
+                        if (!bankTxn || !glEntry) return null
+                        
+                        return (
+                          <tr key={pair.id} className="border-b">
+                            <td className="py-2 px-2">{formatDate(bankTxn.transactionDate)}</td>
+                            <td className="py-2 px-2">{bankTxn.description}</td>
+                            <td className="py-2 px-2 text-right font-semibold">
+                              {formatCurrency(bankTxn.debit || bankTxn.credit)}
+                            </td>
+                            <td className="py-2 px-2">{formatDate(glEntry.transactionDate)}</td>
+                            <td className="py-2 px-2">{glEntry.description}</td>
+                            <td className="py-2 px-2 text-right font-semibold">
+                              {formatCurrency(glEntry.debit || glEntry.credit || 0)}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {unmatchedBankList.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Unmatched Bank Transactions</h3>
+                  <table className="w-full border-collapse text-sm mb-4">
+                    <thead>
+                      <tr className="border-b bg-gray-50">
+                        <th className="text-left py-2 px-2">Date</th>
+                        <th className="text-left py-2 px-2">Reference</th>
+                        <th className="text-left py-2 px-2">Description</th>
+                        <th className="text-right py-2 px-2">Debit</th>
+                        <th className="text-right py-2 px-2">Credit</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {unmatchedBankList.map((txn) => (
+                        <tr key={txn.id} className="border-b">
+                          <td className="py-2 px-2">{formatDate(txn.transactionDate)}</td>
+                          <td className="py-2 px-2">{txn.reference || '-'}</td>
+                          <td className="py-2 px-2">{txn.description}</td>
+                          <td className="py-2 px-2 text-right font-semibold">
+                            {txn.debit ? formatCurrency(txn.debit) : '-'}
+                          </td>
+                          <td className="py-2 px-2 text-right font-semibold">
+                            {txn.credit ? formatCurrency(txn.credit) : '-'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {unmatchedGLList.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Unmatched GL Entries</h3>
+                  <table className="w-full border-collapse text-sm mb-4">
+                    <thead>
+                      <tr className="border-b bg-gray-50">
+                        <th className="text-left py-2 px-2">Date</th>
+                        <th className="text-left py-2 px-2">Journal Entry</th>
+                        <th className="text-left py-2 px-2">Description</th>
+                        <th className="text-right py-2 px-2">Debit</th>
+                        <th className="text-right py-2 px-2">Credit</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {unmatchedGLList.map((entry) => (
+                        <tr key={entry.id} className="border-b">
+                          <td className="py-2 px-2">{formatDate(entry.transactionDate)}</td>
+                          <td className="py-2 px-2">{entry.journalEntryNumber}</td>
+                          <td className="py-2 px-2">{entry.description}</td>
+                          <td className="py-2 px-2 text-right">{entry.debit ? formatCurrency(entry.debit) : '-'}</td>
+                          <td className="py-2 px-2 text-right">{entry.credit ? formatCurrency(entry.credit) : '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </A4PrintWrapper>
+        </div>
       </DialogContent>
 
       <BankStatementImport

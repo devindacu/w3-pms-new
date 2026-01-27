@@ -32,6 +32,8 @@ import {
   FileCsv,
   CaretDown
 } from '@phosphor-icons/react'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import {
   type Requisition,
   type PurchaseOrder,
@@ -1303,9 +1305,20 @@ export function Procurement({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-4xl font-semibold">Procurement & Invoices</h1>
-        <p className="text-muted-foreground mt-1">Manage requisitions, purchase orders, goods receipt, and invoice scanning</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-semibold">Procurement & Invoices</h1>
+          <p className="text-muted-foreground mt-1">Manage requisitions, purchase orders, goods receipt, and invoice scanning</p>
+        </div>
+        <PrintButton
+          elementId="procurement-printable"
+          options={{
+            title: 'Procurement Report',
+            filename: `procurement-report-${new Date().toISOString().split('T')[0]}.pdf`
+          }}
+          variant="outline"
+          size="default"
+        />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -1444,6 +1457,108 @@ export function Procurement({
         onApprove={handleBulkApprove}
         currentUser={currentUser}
       />
+
+      {/* Hidden printable content */}
+      <div className="hidden">
+        <A4PrintWrapper
+          id="procurement-printable"
+          title="Procurement Report"
+          headerContent={
+            <div className="text-sm">
+              <p><strong>Generated:</strong> {formatDate(Date.now())}</p>
+              <p><strong>Total Active POs:</strong> {stats.activePOs}</p>
+              <p><strong>Total PO Value:</strong> {formatCurrency(stats.totalPOValue)}</p>
+            </div>
+          }
+        >
+          <div className="space-y-6">
+            <section>
+              <h2 className="text-lg font-semibold mb-4">Procurement Summary</h2>
+              <table className="w-full border-collapse mb-6">
+                <tbody>
+                  <tr className="border-b">
+                    <td className="p-2 font-semibold">Pending Requisitions</td>
+                    <td className="p-2 text-right">{stats.pendingRequisitions}</td>
+                    <td className="p-2 font-semibold">Approved Requisitions</td>
+                    <td className="p-2 text-right">{stats.approvedRequisitions}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="p-2 font-semibold">Active POs</td>
+                    <td className="p-2 text-right">{stats.activePOs}</td>
+                    <td className="p-2 font-semibold">Pending Deliveries</td>
+                    <td className="p-2 text-right">{stats.pendingDeliveries}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="p-2 font-semibold">Total PO Value</td>
+                    <td className="p-2 text-right">{formatCurrency(stats.totalPOValue)}</td>
+                    <td className="p-2 font-semibold">Monthly Spend</td>
+                    <td className="p-2 text-right">{formatCurrency(stats.monthlySpend)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-semibold mb-4">Recent Requisitions</h2>
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border p-2 text-left">Number</th>
+                    <th className="border p-2 text-left">Department</th>
+                    <th className="border p-2 text-left">Requested By</th>
+                    <th className="border p-2 text-right">Items</th>
+                    <th className="border p-2 text-left">Status</th>
+                    <th className="border p-2 text-left">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {requisitions.slice(0, 10).map((req) => (
+                    <tr key={req.id}>
+                      <td className="border p-2 font-mono text-xs">{req.requisitionNumber}</td>
+                      <td className="border p-2 capitalize">{req.department}</td>
+                      <td className="border p-2">{req.requestedBy}</td>
+                      <td className="border p-2 text-right">{req.items.length}</td>
+                      <td className="border p-2 capitalize">{req.status.replace('-', ' ')}</td>
+                      <td className="border p-2">{formatDate(req.createdAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-semibold mb-4">Active Purchase Orders</h2>
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border p-2 text-left">PO Number</th>
+                    <th className="border p-2 text-left">Supplier</th>
+                    <th className="border p-2 text-right">Items</th>
+                    <th className="border p-2 text-right">Total</th>
+                    <th className="border p-2 text-left">Status</th>
+                    <th className="border p-2 text-left">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {purchaseOrders.filter(po => ['approved', 'ordered'].includes(po.status)).slice(0, 10).map((po) => {
+                    const supplier = suppliers.find(s => s.id === po.supplierId)
+                    return (
+                      <tr key={po.id}>
+                        <td className="border p-2 font-mono text-xs">{po.poNumber}</td>
+                        <td className="border p-2">{supplier?.name || 'N/A'}</td>
+                        <td className="border p-2 text-right">{po.items.length}</td>
+                        <td className="border p-2 text-right font-semibold">{formatCurrency(po.total)}</td>
+                        <td className="border p-2 capitalize">{po.status}</td>
+                        <td className="border p-2">{formatDate(po.createdAt)}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </section>
+          </div>
+        </A4PrintWrapper>
+      </div>
     </div>
   )
 }

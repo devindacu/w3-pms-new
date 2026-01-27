@@ -42,6 +42,8 @@ import type {
 } from '@/lib/types'
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/helpers'
 import { InvoiceViewerA4 } from '@/components/InvoiceViewerA4'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 
 interface GuestInvoicingProps {
   invoices: GuestInvoice[]
@@ -174,6 +176,13 @@ export function GuestInvoicing({
           </p>
         </div>
         <div className="flex gap-2">
+          <PrintButton
+            elementId="guest-invoicing-print"
+            options={{
+              title: 'Guest Invoicing Report',
+              filename: `guest-invoicing-${Date.now()}.pdf`
+            }}
+          />
           <Button onClick={handleNightAudit} variant="outline">
             <Moon size={20} className="mr-2" />
             Night Audit
@@ -475,6 +484,67 @@ export function GuestInvoicing({
           currentUser={currentUser}
         />
       )}
+
+      {/* Hidden print section */}
+      <div className="hidden">
+        <A4PrintWrapper id="guest-invoicing-print" title="Guest Invoicing Report">
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div>
+                <div className="text-sm text-muted-foreground">Draft Invoices</div>
+                <div className="text-xl font-semibold">{stats.totalDraft}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Interim Bills</div>
+                <div className="text-xl font-semibold">{stats.totalInterim}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Final Invoices</div>
+                <div className="text-xl font-semibold">{stats.totalFinal}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Posted to GL</div>
+                <div className="text-xl font-semibold">{stats.totalPosted}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Total Revenue</div>
+                <div className="text-xl font-semibold">{formatCurrency(stats.totalRevenue)}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Outstanding</div>
+                <div className="text-xl font-semibold">{formatCurrency(stats.totalOutstanding)}</div>
+              </div>
+            </div>
+
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b-2 border-primary">
+                  <th className="p-2 text-left">Invoice #</th>
+                  <th className="p-2 text-left">Guest</th>
+                  <th className="p-2 text-left">Room</th>
+                  <th className="p-2 text-left">Date</th>
+                  <th className="p-2 text-left">Status</th>
+                  <th className="p-2 text-right">Total</th>
+                  <th className="p-2 text-right">Due</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredInvoices.map((invoice) => (
+                  <tr key={invoice.id} className="border-b">
+                    <td className="p-2">{invoice.invoiceNumber}</td>
+                    <td className="p-2">{invoice.guestName}</td>
+                    <td className="p-2">{invoice.roomNumber || '-'}</td>
+                    <td className="p-2">{formatDate(invoice.invoiceDate)}</td>
+                    <td className="p-2">{invoice.status}</td>
+                    <td className="p-2 text-right">{formatCurrency(invoice.grandTotal)}</td>
+                    <td className="p-2 text-right">{formatCurrency(invoice.amountDue)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </A4PrintWrapper>
+      </div>
     </div>
   )
 }

@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import { 
   Download, 
   FilePdf, 
@@ -326,9 +328,20 @@ export function FinanceReportsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Download size={24} />
-            Export Finance Reports
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Download size={24} />
+              Export Finance Reports
+            </div>
+            <PrintButton
+              elementId="finance-reports-print"
+              options={{
+                title: `Finance Reports - ${reportTypes.find(t => t.value === reportType)?.label}`,
+                filename: `finance-report-${reportType}-${dateRanges.find(r => r.value === dateRange)?.label.replace(/\s/g, '-')}.pdf`
+              }}
+              variant="outline"
+              size="sm"
+            />
           </DialogTitle>
         </DialogHeader>
 
@@ -422,6 +435,52 @@ export function FinanceReportsDialog({
               Export Report
             </Button>
           </div>
+        </div>
+
+        <div className="hidden">
+          <A4PrintWrapper id="finance-reports-print" title="Finance Reports">
+            <div className="space-y-6">
+              <div className="border-b pb-4">
+                <h2 className="text-xl font-semibold">Export Summary</h2>
+                <div className="mt-4 space-y-2">
+                  <div className="flex justify-between">
+                    <span>Report Type:</span>
+                    <span className="font-medium">{reportTypes.find(t => t.value === reportType)?.label}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Date Range:</span>
+                    <span className="font-medium">{dateRanges.find(r => r.value === dateRange)?.label}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Export Format:</span>
+                    <span className="font-medium">{exportFormat.toUpperCase()}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Available Report Types</h3>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="p-2 text-left">Report Type</th>
+                      <th className="p-2 text-left">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reportTypes.map((type) => (
+                      <tr key={type.value} className="border-b">
+                        <td className="p-2">{type.label}</td>
+                        <td className="p-2 text-sm text-gray-600">
+                          {type.value === reportType ? '✓ Selected' : ''}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </A4PrintWrapper>
         </div>
       </DialogContent>
     </Dialog>

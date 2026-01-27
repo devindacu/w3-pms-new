@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import {
   ChartBar,
   TrendUp,
@@ -208,9 +210,20 @@ export function VarianceReportDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <ChartBar size={24} />
-            Variance Report - {report.reportNumber}
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <ChartBar size={24} />
+              Variance Report - {report.reportNumber}
+            </div>
+            <PrintButton
+              elementId="variance-report-print"
+              options={{
+                title: `Variance Report - ${report.reportNumber}`,
+                filename: `variance-report-${report.reportNumber}.pdf`
+              }}
+              variant="outline"
+              size="sm"
+            />
           </DialogTitle>
         </DialogHeader>
 
@@ -423,6 +436,84 @@ export function VarianceReportDialog({
             </TabsContent>
           </ScrollArea>
         </Tabs>
+
+        <div className="hidden">
+          <A4PrintWrapper id="variance-report-print" title={`Variance Report - ${report.reportNumber}`}>
+            <div className="space-y-6">
+              <div className="border-b pb-4">
+                <h2 className="text-xl font-semibold">Summary</h2>
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <div className="text-sm text-gray-600">Report Number</div>
+                    <div className="font-semibold">{report.reportNumber}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Period</div>
+                    <div className="font-semibold">{formatDate(report.period.from)} - {formatDate(report.period.to)}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Total Variances</div>
+                    <div className="text-lg font-semibold">{report.totalVariances}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Total Amount</div>
+                    <div className="text-lg font-semibold">{formatCurrency(report.totalVarianceAmount)}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Top Variances</h3>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="p-2 text-left">Invoice #</th>
+                      <th className="p-2 text-left">Supplier</th>
+                      <th className="p-2 text-right">Variance Amount</th>
+                      <th className="p-2 text-right">Variance %</th>
+                      <th className="p-2 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {report.topVariances.map((variance) => (
+                      <tr key={variance.invoiceNumber} className="border-b">
+                        <td className="p-2">{variance.invoiceNumber}</td>
+                        <td className="p-2">{variance.supplierName}</td>
+                        <td className="p-2 text-right">{formatCurrency(variance.varianceAmount)}</td>
+                        <td className="p-2 text-right">{formatPercent(variance.variancePercentage / 100)}</td>
+                        <td className="p-2 text-center">{variance.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Variances by Supplier</h3>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="p-2 text-left">Supplier</th>
+                      <th className="p-2 text-right">Count</th>
+                      <th className="p-2 text-right">Total Amount</th>
+                      <th className="p-2 text-right">% of Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {report.variancesBySupplier.map((variance) => (
+                      <tr key={variance.supplierName} className="border-b">
+                        <td className="p-2">{variance.supplierName}</td>
+                        <td className="p-2 text-right">{variance.count}</td>
+                        <td className="p-2 text-right">{formatCurrency(variance.totalAmount)}</td>
+                        <td className="p-2 text-right">{formatPercent(variance.percentage / 100)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </A4PrintWrapper>
+        </div>
 
         <div className="flex justify-end gap-2 mt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>

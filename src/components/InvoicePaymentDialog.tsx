@@ -11,6 +11,8 @@ import { toast } from 'sonner'
 import { type Invoice, type Payment, type PaymentMethod } from '@/lib/types'
 import { formatCurrency, formatDate, generateNumber } from '@/lib/helpers'
 import { CreditCard, Money, Bank, DeviceMobile, Receipt } from '@phosphor-icons/react'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 
 interface InvoicePaymentDialogProps {
   open: boolean
@@ -152,7 +154,18 @@ export function InvoicePaymentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Record Payment for Invoice</DialogTitle>
+          <DialogTitle className="flex items-center justify-between">
+            <span>Record Payment for Invoice</span>
+            <PrintButton
+              elementId="invoice-payment-print"
+              options={{
+                title: `Payment Receipt - ${invoice.invoiceNumber}`,
+                filename: `payment-${invoice.invoiceNumber}.pdf`
+              }}
+              variant="outline"
+              size="sm"
+            />
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -464,6 +477,177 @@ export function InvoicePaymentDialog({
             Record Payment
           </Button>
         </DialogFooter>
+
+        {/* Hidden print section */}
+        <div className="hidden">
+          <A4PrintWrapper
+            id="invoice-payment-print"
+            title={`Payment Receipt - ${invoice.invoiceNumber}`}
+            headerContent={
+              <div className="text-sm">
+                <p><strong>Invoice:</strong> {invoice.invoiceNumber}</p>
+                <p><strong>Supplier:</strong> {invoice.supplierName}</p>
+                <p><strong>Date:</strong> {formatDate(Date.now())}</p>
+              </div>
+            }
+          >
+            <div className="space-y-6">
+              {/* Invoice Summary */}
+              <section>
+                <h2 className="text-lg font-semibold mb-4">Invoice Summary</h2>
+                <table className="w-full border-collapse">
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Invoice Number</td>
+                      <td className="p-2">{invoice.invoiceNumber}</td>
+                      <td className="p-2 font-semibold">Invoice Date</td>
+                      <td className="p-2">{formatDate(invoice.invoiceDate)}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Supplier</td>
+                      <td className="p-2">{invoice.supplierName}</td>
+                      <td className="p-2 font-semibold">Status</td>
+                      <td className="p-2 capitalize">{invoice.status.replace('-', ' ')}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Invoice Total</td>
+                      <td className="p-2 font-semibold">{formatCurrency(invoice.total)}</td>
+                      <td className="p-2 font-semibold">Amount Paid</td>
+                      <td className="p-2 text-green-600">{formatCurrency(invoice.amountPaid)}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Outstanding Balance</td>
+                      <td className="p-2 font-bold text-red-600">{formatCurrency(invoice.balance)}</td>
+                      <td className="p-2"></td>
+                      <td className="p-2"></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+
+              {/* Payment Details */}
+              <section>
+                <h2 className="text-lg font-semibold mb-4">Payment Details</h2>
+                <table className="w-full border-collapse">
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Payment Method</td>
+                      <td className="p-2 capitalize">{paymentMethod.replace('-', ' ')}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Payment Amount</td>
+                      <td className="p-2 font-bold text-lg">{formatCurrency(paymentAmount)}</td>
+                    </tr>
+                    {processingFee > 0 && (
+                      <tr className="border-b">
+                        <td className="p-2 font-semibold">Processing Fee</td>
+                        <td className="p-2">{formatCurrency(processingFee)}</td>
+                      </tr>
+                    )}
+                    {reference && (
+                      <tr className="border-b">
+                        <td className="p-2 font-semibold">Reference</td>
+                        <td className="p-2">{reference}</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </section>
+
+              {/* Card Details */}
+              {paymentMethod === 'card' && cardLast4 && (
+                <section>
+                  <h2 className="text-lg font-semibold mb-4">Card Payment Details</h2>
+                  <table className="w-full border-collapse">
+                    <tbody>
+                      {cardType && (
+                        <tr className="border-b">
+                          <td className="p-2 font-semibold">Card Type</td>
+                          <td className="p-2 capitalize">{cardType}</td>
+                        </tr>
+                      )}
+                      <tr className="border-b">
+                        <td className="p-2 font-semibold">Card Last 4 Digits</td>
+                        <td className="p-2">**** **** **** {cardLast4}</td>
+                      </tr>
+                      {authorizationCode && (
+                        <tr className="border-b">
+                          <td className="p-2 font-semibold">Authorization Code</td>
+                          <td className="p-2">{authorizationCode}</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </section>
+              )}
+
+              {/* Bank Transfer Details */}
+              {paymentMethod === 'bank-transfer' && (
+                <section>
+                  <h2 className="text-lg font-semibold mb-4">Bank Transfer Details</h2>
+                  <table className="w-full border-collapse">
+                    <tbody>
+                      {bankName && (
+                        <tr className="border-b">
+                          <td className="p-2 font-semibold">Bank Name</td>
+                          <td className="p-2">{bankName}</td>
+                        </tr>
+                      )}
+                      {reference && (
+                        <tr className="border-b">
+                          <td className="p-2 font-semibold">Transfer Reference</td>
+                          <td className="p-2">{reference}</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </section>
+              )}
+
+              {/* Payment Summary */}
+              {paymentAmount > 0 && (
+                <section>
+                  <h2 className="text-lg font-semibold mb-4">Payment Summary</h2>
+                  <div className="bg-gray-50 p-4 rounded border">
+                    <table className="w-full">
+                      <tbody>
+                        <tr className="border-b">
+                          <td className="p-2">Payment Amount:</td>
+                          <td className="p-2 text-right font-semibold">{formatCurrency(paymentAmount)}</td>
+                        </tr>
+                        {processingFee > 0 && (
+                          <tr className="border-b">
+                            <td className="p-2">Processing Fee:</td>
+                            <td className="p-2 text-right font-semibold">{formatCurrency(processingFee)}</td>
+                          </tr>
+                        )}
+                        <tr className="border-b-2 border-black">
+                          <td className="p-2 font-bold">New Outstanding Balance:</td>
+                          <td className="p-2 text-right font-bold text-lg">{formatCurrency(invoice.balance - paymentAmount)}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    {invoice.balance - paymentAmount === 0 && (
+                      <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-center">
+                        <p className="font-semibold text-green-800">Invoice will be marked as PAID</p>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {/* Notes */}
+              {notes && (
+                <section>
+                  <h2 className="text-lg font-semibold mb-4">Payment Notes</h2>
+                  <div className="bg-gray-50 p-3 rounded border">
+                    <p className="text-sm whitespace-pre-line">{notes}</p>
+                  </div>
+                </section>
+              )}
+            </div>
+          </A4PrintWrapper>
+        </div>
       </DialogContent>
     </Dialog>
   )

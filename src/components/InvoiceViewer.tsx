@@ -22,6 +22,8 @@ import type { GuestInvoice, SystemUser } from '@/lib/types'
 import { formatCurrency } from '@/lib/helpers'
 import { formatInvoiceForEmail } from '@/lib/invoiceHelpers'
 import { toast } from 'sonner'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 
 interface InvoiceViewerProps {
   invoice: GuestInvoice
@@ -262,10 +264,14 @@ export function InvoiceViewer({ invoice, hotelInfo, currentUser, onClose }: Invo
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handlePrint}>
-              <Printer size={18} className="mr-2" />
-              Print
-            </Button>
+            <PrintButton
+              elementId="invoice-viewer-print"
+              options={{
+                title: `Invoice ${invoice.invoiceNumber}`,
+                filename: `invoice-${invoice.invoiceNumber}.pdf`
+              }}
+              variant="outline"
+            />
             <Button variant="outline" onClick={handleDownloadPDF}>
               <Download size={18} className="mr-2" />
               Download
@@ -605,6 +611,242 @@ export function InvoiceViewer({ invoice, hotelInfo, currentUser, onClose }: Invo
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Hidden print section */}
+      <div className="hidden">
+        <A4PrintWrapper
+          id="invoice-viewer-print"
+          title={`Invoice ${invoice.invoiceNumber}`}
+          headerContent={
+            <div className="text-sm">
+              <p><strong>Guest:</strong> {invoice.guestName}</p>
+              <p><strong>Date:</strong> {new Date(invoice.invoiceDate).toLocaleDateString()}</p>
+              <p><strong>Status:</strong> {invoice.status.toUpperCase()}</p>
+            </div>
+          }
+        >
+          <div className="space-y-6">
+            {/* Invoice Header */}
+            <section>
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h2 className="text-xl font-bold">{hotelInfo.name}</h2>
+                  <p className="text-sm">{hotelInfo.address}</p>
+                  <p className="text-sm">Phone: {hotelInfo.phone}</p>
+                  <p className="text-sm">Email: {hotelInfo.email}</p>
+                  {hotelInfo.website && <p className="text-sm">Web: {hotelInfo.website}</p>}
+                  {hotelInfo.taxRegistrationNumber && (
+                    <p className="text-sm mt-1">Tax Reg: {hotelInfo.taxRegistrationNumber}</p>
+                  )}
+                </div>
+                <div className="text-right">
+                  <h2 className="text-2xl font-bold">INVOICE</h2>
+                  <p className="text-sm"><strong>Invoice #:</strong> {invoice.invoiceNumber}</p>
+                  <p className="text-sm"><strong>Date:</strong> {new Date(invoice.invoiceDate).toLocaleDateString()}</p>
+                  {invoice.dueDate && (
+                    <p className="text-sm"><strong>Due Date:</strong> {new Date(invoice.dueDate).toLocaleDateString()}</p>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* Bill To */}
+            <section>
+              <h3 className="text-base font-semibold mb-2">BILL TO</h3>
+              <div className="bg-gray-50 p-3 rounded">
+                <p className="font-semibold">{invoice.guestName}</p>
+                {invoice.companyName && <p className="text-sm">{invoice.companyName}</p>}
+                {invoice.guestAddress && <p className="text-sm">{invoice.guestAddress}</p>}
+                {invoice.guestEmail && <p className="text-sm">Email: {invoice.guestEmail}</p>}
+                {invoice.guestPhone && <p className="text-sm">Phone: {invoice.guestPhone}</p>}
+                {invoice.companyGSTNumber && <p className="text-sm mt-1">GST: {invoice.companyGSTNumber}</p>}
+              </div>
+            </section>
+
+            {/* Stay Details */}
+            {invoice.roomNumber && (
+              <section>
+                <h3 className="text-base font-semibold mb-2">STAY DETAILS</h3>
+                <table className="w-full border-collapse">
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Room Number</td>
+                      <td className="p-2">{invoice.roomNumber}</td>
+                      {invoice.checkInDate && (
+                        <>
+                          <td className="p-2 font-semibold">Check In</td>
+                          <td className="p-2">{new Date(invoice.checkInDate).toLocaleDateString()}</td>
+                        </>
+                      )}
+                    </tr>
+                    {invoice.checkOutDate && (
+                      <tr className="border-b">
+                        <td className="p-2 font-semibold">Check Out</td>
+                        <td className="p-2">{new Date(invoice.checkOutDate).toLocaleDateString()}</td>
+                        <td className="p-2"></td>
+                        <td className="p-2"></td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </section>
+            )}
+
+            {/* Line Items */}
+            <section>
+              <h3 className="text-base font-semibold mb-2">CHARGES</h3>
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border p-2 text-left">Date</th>
+                    <th className="border p-2 text-left">Description</th>
+                    <th className="border p-2 text-center">Qty</th>
+                    <th className="border p-2 text-right">Unit Price</th>
+                    <th className="border p-2 text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoice.lineItems.map((item) => (
+                    <tr key={item.id}>
+                      <td className="border p-2 text-sm">{new Date(item.date).toLocaleDateString()}</td>
+                      <td className="border p-2">
+                        <div className="font-medium">{item.description}</div>
+                        {item.notes && <div className="text-xs text-gray-600">{item.notes}</div>}
+                      </td>
+                      <td className="border p-2 text-center">{item.quantity}</td>
+                      <td className="border p-2 text-right">{formatCurrency(item.unitPrice)}</td>
+                      <td className="border p-2 text-right font-semibold">{formatCurrency(item.lineTotal)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+
+            {/* Tax Breakdown */}
+            {invoice.taxLines && invoice.taxLines.length > 0 && (
+              <section>
+                <h3 className="text-base font-semibold mb-2">TAX BREAKDOWN</h3>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border p-2 text-left">Tax Type</th>
+                      <th className="border p-2 text-right">Rate</th>
+                      <th className="border p-2 text-right">Taxable Amount</th>
+                      <th className="border p-2 text-right">Tax Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {invoice.taxLines.map((tax, idx) => (
+                      <tr key={idx}>
+                        <td className="border p-2">{tax.taxName}</td>
+                        <td className="border p-2 text-right">{tax.taxRate}%</td>
+                        <td className="border p-2 text-right">{formatCurrency(tax.taxableAmount)}</td>
+                        <td className="border p-2 text-right font-semibold">{formatCurrency(tax.taxAmount)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </section>
+            )}
+
+            {/* Summary */}
+            <section>
+              <div className="flex justify-end">
+                <table className="w-80 border-collapse">
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="p-2">Subtotal:</td>
+                      <td className="p-2 text-right font-semibold">{formatCurrency(invoice.subtotal)}</td>
+                    </tr>
+                    {invoice.totalDiscount > 0 && (
+                      <tr className="border-b">
+                        <td className="p-2">Discount:</td>
+                        <td className="p-2 text-right text-red-600">-{formatCurrency(invoice.totalDiscount)}</td>
+                      </tr>
+                    )}
+                    {invoice.serviceChargeAmount > 0 && (
+                      <tr className="border-b">
+                        <td className="p-2">Service Charge ({invoice.serviceChargeRate}%):</td>
+                        <td className="p-2 text-right font-semibold">{formatCurrency(invoice.serviceChargeAmount)}</td>
+                      </tr>
+                    )}
+                    {invoice.totalTax > 0 && (
+                      <tr className="border-b">
+                        <td className="p-2">Total Tax:</td>
+                        <td className="p-2 text-right font-semibold">{formatCurrency(invoice.totalTax)}</td>
+                      </tr>
+                    )}
+                    <tr className="border-b-2 border-black">
+                      <td className="p-2 font-bold">GRAND TOTAL:</td>
+                      <td className="p-2 text-right font-bold text-lg">{formatCurrency(invoice.grandTotal)}</td>
+                    </tr>
+                    {invoice.totalPaid > 0 && (
+                      <>
+                        <tr className="border-b">
+                          <td className="p-2">Amount Paid:</td>
+                          <td className="p-2 text-right text-green-600">-{formatCurrency(invoice.totalPaid)}</td>
+                        </tr>
+                        <tr className="border-b-2 border-black">
+                          <td className="p-2 font-bold">AMOUNT DUE:</td>
+                          <td className="p-2 text-right font-bold text-lg text-red-600">{formatCurrency(invoice.amountDue)}</td>
+                        </tr>
+                      </>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* Payments */}
+            {invoice.payments && invoice.payments.length > 0 && (
+              <section>
+                <h3 className="text-base font-semibold mb-2">PAYMENTS RECEIVED</h3>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border p-2 text-left">Date</th>
+                      <th className="border p-2 text-left">Payment Method</th>
+                      <th className="border p-2 text-left">Reference</th>
+                      <th className="border p-2 text-right">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {invoice.payments.map((payment) => (
+                      <tr key={payment.id}>
+                        <td className="border p-2 text-sm">{new Date(payment.paymentDate).toLocaleDateString()}</td>
+                        <td className="border p-2 text-sm capitalize">{payment.paymentType.replace('-', ' ')}</td>
+                        <td className="border p-2 text-sm">{payment.reference || '-'}</td>
+                        <td className="border p-2 text-right font-semibold">{formatCurrency(payment.amount)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </section>
+            )}
+
+            {/* Terms and Conditions */}
+            {(invoice.termsAndConditions || invoice.paymentInstructions) && (
+              <section className="text-sm">
+                {invoice.paymentInstructions && (
+                  <div className="mb-3">
+                    <h4 className="font-semibold mb-1">Payment Instructions:</h4>
+                    <p className="text-xs whitespace-pre-line">{invoice.paymentInstructions}</p>
+                  </div>
+                )}
+                {invoice.termsAndConditions && (
+                  <div>
+                    <h4 className="font-semibold mb-1">Terms & Conditions:</h4>
+                    <p className="text-xs whitespace-pre-line">{invoice.termsAndConditions}</p>
+                  </div>
+                )}
+                {invoice.legalDisclaimer && (
+                  <p className="text-xs italic mt-3">{invoice.legalDisclaimer}</p>
+                )}
+              </section>
+            )}
+          </div>
+        </A4PrintWrapper>
+      </div>
     </>
   )
 }

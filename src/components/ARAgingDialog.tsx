@@ -3,6 +3,8 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import { Download, Receipt, Calendar } from '@phosphor-icons/react'
 import { formatCurrency, formatDate } from '@/lib/helpers'
 import { toast } from 'sonner'
@@ -132,9 +134,20 @@ export function ARAgingDialog({ open, onOpenChange, invoices }: ARAgingDialogPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Receipt size={24} />
-            Accounts Receivable Aging Report
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Receipt size={24} />
+              Accounts Receivable Aging Report
+            </div>
+            <PrintButton
+              elementId="ar-aging-print"
+              options={{
+                title: 'AR Aging Report',
+                filename: `ar-aging-${formatDate(Date.now()).replace(/\//g, '-')}.pdf`
+              }}
+              variant="outline"
+              size="sm"
+            />
           </DialogTitle>
         </DialogHeader>
 
@@ -207,6 +220,75 @@ export function ARAgingDialog({ open, onOpenChange, invoices }: ARAgingDialogPro
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="hidden">
+          <A4PrintWrapper id="ar-aging-print" title={`AR Aging Report - ${formatDate(Date.now())}`}>
+            <div className="space-y-6">
+              <div className="border-b pb-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-xl font-semibold">Summary</h2>
+                    <p className="text-sm text-gray-600">As of {formatDate(Date.now())}</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-600">Total AR</div>
+                    <div className="text-2xl font-bold">{formatCurrency(totalAR)}</div>
+                  </div>
+                </div>
+              </div>
+
+              {agingBuckets.map((bucket) => {
+                const percentage = totalAR > 0 ? (bucket.amount / totalAR) * 100 : 0
+                return (
+                  <div key={bucket.label} className="border-b pb-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <div>
+                        <h3 className="font-semibold text-lg">{bucket.label}</h3>
+                        <p className="text-sm text-gray-600">{bucket.days}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xl font-bold">{formatCurrency(bucket.amount)}</div>
+                        <div className="text-sm text-gray-600">{bucket.count} invoices ({percentage.toFixed(1)}%)</div>
+                      </div>
+                    </div>
+
+                    {bucket.invoices.length > 0 && (
+                      <table className="w-full border-collapse mt-3">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="p-2 text-left">Invoice #</th>
+                            <th className="p-2 text-left">Guest</th>
+                            <th className="p-2 text-left">Date</th>
+                            <th className="p-2 text-right">Amount</th>
+                            <th className="p-2 text-right">Balance</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {bucket.invoices.slice(0, 10).map((invoice) => (
+                            <tr key={invoice.id} className="border-b text-sm">
+                              <td className="p-2">{invoice.invoiceNumber}</td>
+                              <td className="p-2">{invoice.guestName}</td>
+                              <td className="p-2">{formatDate(invoice.invoiceDate)}</td>
+                              <td className="p-2 text-right">{formatCurrency(invoice.grandTotal)}</td>
+                              <td className="p-2 text-right">{formatCurrency(invoice.amountDue)}</td>
+                            </tr>
+                          ))}
+                          {bucket.invoices.length > 10 && (
+                            <tr>
+                              <td colSpan={5} className="p-2 text-center text-sm text-gray-600">
+                                +{bucket.invoices.length - 10} more invoices
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </A4PrintWrapper>
         </div>
       </DialogContent>
     </Dialog>

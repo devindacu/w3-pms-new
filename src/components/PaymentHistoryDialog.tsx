@@ -28,6 +28,8 @@ import {
 import type { GuestInvoice, Payment, PaymentMethod } from '@/lib/types'
 import { formatCurrency } from '@/lib/helpers'
 import { toast } from 'sonner'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 
 interface PaymentHistoryDialogProps {
   open: boolean
@@ -110,9 +112,12 @@ export function PaymentHistoryDialog({
               <Receipt size={24} className="text-primary" />
               Payment History
             </DialogTitle>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X size={20} />
-            </Button>
+            <div className="flex items-center gap-2">
+              <PrintButton elementId="payment-history-print" />
+              <Button variant="ghost" size="icon" onClick={onClose}>
+                <X size={20} />
+              </Button>
+            </div>
           </div>
         </DialogHeader>
 
@@ -323,6 +328,135 @@ export function PaymentHistoryDialog({
           </Button>
         </div>
       </DialogContent>
+
+      <div className="hidden">
+        <A4PrintWrapper 
+          id="payment-history-print" 
+          title={`Payment History - Invoice ${invoice.invoiceNumber}`}
+        >
+          <div className="space-y-6">
+            <div className="text-center border-b pb-4">
+              <h1 className="text-2xl font-bold mb-2">Payment History</h1>
+              <p className="text-lg">Invoice: {invoice.invoiceNumber}</p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-2 text-sm uppercase text-gray-600">Invoice Summary</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <table className="w-full text-sm">
+                  <tbody>
+                    <tr>
+                      <td className="py-1 font-medium w-1/2">Guest Name:</td>
+                      <td className="py-1">{invoice.guestName}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1 font-medium">Invoice Number:</td>
+                      <td className="py-1">{invoice.invoiceNumber}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1 font-medium">Invoice Date:</td>
+                      <td className="py-1">{format(invoice.invoiceDate, 'MMM dd, yyyy')}</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <table className="w-full text-sm">
+                  <tbody>
+                    <tr>
+                      <td className="py-1 font-medium w-1/2">Grand Total:</td>
+                      <td className="py-1 text-right font-bold">{formatCurrency(invoice.grandTotal)}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1 font-medium">Total Paid:</td>
+                      <td className="py-1 text-right font-bold">{formatCurrency(invoice.totalPaid)}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1 font-medium">Amount Due:</td>
+                      <td className="py-1 text-right font-bold">{formatCurrency(invoice.amountDue)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {invoicePayments.length > 0 && (
+              <div>
+                <h3 className="font-semibold mb-3 text-sm uppercase text-gray-600">Payment Transactions ({invoicePayments.length})</h3>
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b-2 border-gray-300">
+                      <th className="text-left py-2">Payment #</th>
+                      <th className="text-left py-2">Date & Time</th>
+                      <th className="text-left py-2">Method</th>
+                      <th className="text-right py-2">Amount</th>
+                      <th className="text-left py-2">Reference</th>
+                      <th className="text-center py-2">Status</th>
+                      <th className="text-center py-2">Reconciled</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {invoicePayments.sort((a, b) => b.processedAt - a.processedAt).map((payment) => (
+                      <tr key={payment.id} className="border-b border-gray-200">
+                        <td className="py-2 font-mono">{payment.paymentNumber}</td>
+                        <td className="py-2">
+                          <div>{format(payment.processedAt, 'MMM dd, yyyy')}</div>
+                          <div className="text-xs text-gray-500">{format(payment.processedAt, 'HH:mm:ss')}</div>
+                        </td>
+                        <td className="py-2 capitalize">{payment.method.split('-').join(' ')}</td>
+                        <td className="py-2 text-right font-bold">{formatCurrency(payment.amount)}</td>
+                        <td className="py-2 font-mono text-xs">{payment.reference || '—'}</td>
+                        <td className="py-2 text-center capitalize">{payment.status}</td>
+                        <td className="py-2 text-center">{payment.reconciled ? 'Yes' : 'Pending'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t-2 border-gray-300 font-bold">
+                      <td colSpan={3} className="py-2">Total Paid:</td>
+                      <td className="py-2 text-right">{formatCurrency(totalPaidFromPayments)}</td>
+                      <td colSpan={3}></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
+
+            {invoice.payments && invoice.payments.length > 0 && (
+              <div>
+                <h3 className="font-semibold mb-3 text-sm uppercase text-gray-600">Invoice Payment Records</h3>
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b-2 border-gray-300">
+                      <th className="text-left py-2">Date</th>
+                      <th className="text-left py-2">Type</th>
+                      <th className="text-right py-2">Amount</th>
+                      <th className="text-left py-2">Reference</th>
+                      <th className="text-left py-2">Received By</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {invoice.payments.sort((a, b) => b.paymentDate - a.paymentDate).map((payment) => (
+                      <tr key={payment.id} className="border-b border-gray-200">
+                        <td className="py-2">{format(payment.paymentDate, 'MMM dd, yyyy HH:mm')}</td>
+                        <td className="py-2">{payment.paymentType}</td>
+                        <td className="py-2 text-right font-bold">{formatCurrency(payment.amount)}</td>
+                        <td className="py-2 font-mono text-xs">{payment.reference || '—'}</td>
+                        <td className="py-2">{payment.receivedBy}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {invoicePayments.length === 0 && (!invoice.payments || invoice.payments.length === 0) && (
+              <div className="text-center py-8 text-gray-500">
+                <p>No payment transactions have been recorded for this invoice.</p>
+              </div>
+            )}
+          </div>
+        </A4PrintWrapper>
+      </div>
     </Dialog>
   )
 }

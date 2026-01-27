@@ -47,6 +47,8 @@ import {
   validateInvoice
 } from '@/lib/invoiceHelpers'
 import { toast } from 'sonner'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 
 interface InvoiceManagementDialogProps {
   open: boolean
@@ -375,9 +377,20 @@ export function InvoiceManagementDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {invoice ? 'Edit Invoice' : 'Create New Invoice'}
-            {invoice && <Badge className="ml-2">{invoice.invoiceNumber}</Badge>}
+          <DialogTitle className="flex items-center justify-between">
+            <div>
+              {invoice ? 'Edit Invoice' : 'Create New Invoice'}
+              {invoice && <Badge className="ml-2">{invoice.invoiceNumber}</Badge>}
+            </div>
+            <PrintButton
+              elementId="invoice-management-print"
+              options={{
+                title: `Invoice Management - ${invoice?.invoiceNumber || 'Draft'}`,
+                filename: `invoice-management-${invoice?.invoiceNumber || 'draft'}.pdf`
+              }}
+              variant="outline"
+              size="sm"
+            />
           </DialogTitle>
           <DialogDescription>
             Create and manage guest invoices with different types and configurations
@@ -889,6 +902,210 @@ export function InvoiceManagementDialog({
             {invoice ? 'Update Invoice' : 'Create Invoice'}
           </Button>
         </DialogFooter>
+
+        {/* Hidden print section */}
+        <div className="hidden">
+          <A4PrintWrapper
+            id="invoice-management-print"
+            title={`Invoice Management - ${invoice?.invoiceNumber || 'Draft'}`}
+            headerContent={
+              <div className="text-sm">
+                <p><strong>Type:</strong> {invoiceType.replace('-', ' ').toUpperCase()}</p>
+                <p><strong>Status:</strong> {status.toUpperCase()}</p>
+                <p><strong>Guest:</strong> {guests.find(g => g.id === selectedGuestId)?.firstName || 'N/A'} {guests.find(g => g.id === selectedGuestId)?.lastName || ''}</p>
+              </div>
+            }
+          >
+            <div className="space-y-6">
+              {/* Invoice Details */}
+              <section>
+                <h2 className="text-lg font-semibold mb-4">Invoice Details</h2>
+                <table className="w-full border-collapse">
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Invoice Type</td>
+                      <td className="p-2 capitalize">{invoiceType.replace('-', ' ')}</td>
+                      <td className="p-2 font-semibold">Status</td>
+                      <td className="p-2 capitalize">{status}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Guest</td>
+                      <td className="p-2">
+                        {guests.find(g => g.id === selectedGuestId)?.firstName || 'N/A'} {guests.find(g => g.id === selectedGuestId)?.lastName || ''}
+                      </td>
+                      <td className="p-2 font-semibold">Due Date</td>
+                      <td className="p-2">{dueDate ? new Date(dueDate).toLocaleDateString() : 'N/A'}</td>
+                    </tr>
+                    {companyName && (
+                      <tr className="border-b">
+                        <td className="p-2 font-semibold">Company</td>
+                        <td className="p-2">{companyName}</td>
+                        <td className="p-2 font-semibold">GST Number</td>
+                        <td className="p-2">{companyGSTNumber || 'N/A'}</td>
+                      </tr>
+                    )}
+                    {isGroupMaster && (
+                      <tr className="border-b">
+                        <td className="p-2 font-semibold" colSpan={2}>Group Master Invoice</td>
+                        <td className="p-2" colSpan={2}>Yes</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </section>
+
+              {/* Line Items */}
+              <section>
+                <h2 className="text-lg font-semibold mb-4">Line Items ({lineItems.length})</h2>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border p-2 text-left">Date</th>
+                      <th className="border p-2 text-left">Description</th>
+                      <th className="border p-2 text-left">Department</th>
+                      <th className="border p-2 text-right">Qty</th>
+                      <th className="border p-2 text-right">Unit Price</th>
+                      <th className="border p-2 text-right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lineItems.length > 0 ? (
+                      lineItems.map((item) => (
+                        <tr key={item.id}>
+                          <td className="border p-2 text-sm">{formatDate(item.date)}</td>
+                          <td className="border p-2">
+                            <div className="font-medium">{item.description}</div>
+                            {item.notes && <div className="text-xs text-gray-600">{item.notes}</div>}
+                          </td>
+                          <td className="border p-2 text-sm capitalize">{item.department.replace('-', ' ')}</td>
+                          <td className="border p-2 text-right">{item.quantity} {item.unit}</td>
+                          <td className="border p-2 text-right">{formatCurrency(item.unitPrice)}</td>
+                          <td className="border p-2 text-right font-semibold">{formatCurrency(item.lineGrandTotal)}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td className="border p-2 text-center text-gray-500" colSpan={6}>No line items</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </section>
+
+              {/* Discounts */}
+              {discounts.length > 0 && (
+                <section>
+                  <h2 className="text-lg font-semibold mb-4">Discounts ({discounts.length})</h2>
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="border p-2 text-left">Description</th>
+                        <th className="border p-2 text-left">Type</th>
+                        <th className="border p-2 text-right">Value</th>
+                        <th className="border p-2 text-right">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {discounts.map((discount) => (
+                        <tr key={discount.id}>
+                          <td className="border p-2">{discount.description}</td>
+                          <td className="border p-2 capitalize">{discount.type}</td>
+                          <td className="border p-2 text-right">
+                            {discount.type === 'percentage' ? `${discount.value}%` : formatCurrency(discount.value)}
+                          </td>
+                          <td className="border p-2 text-right font-semibold text-red-600">-{formatCurrency(discount.amount)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </section>
+              )}
+
+              {/* Summary */}
+              <section>
+                <h2 className="text-lg font-semibold mb-4">Invoice Summary</h2>
+                <div className="flex justify-end">
+                  <table className="w-96 border-collapse">
+                    <tbody>
+                      <tr className="border-b">
+                        <td className="p-2">Subtotal:</td>
+                        <td className="p-2 text-right font-semibold">{formatCurrency(totals.subtotal)}</td>
+                      </tr>
+                      {totals.totalDiscount > 0 && (
+                        <tr className="border-b">
+                          <td className="p-2">Total Discount:</td>
+                          <td className="p-2 text-right text-red-600">-{formatCurrency(totals.totalDiscount)}</td>
+                        </tr>
+                      )}
+                      {totals.serviceChargeAmount > 0 && (
+                        <tr className="border-b">
+                          <td className="p-2">Service Charge ({serviceChargeConfig.rate}%):</td>
+                          <td className="p-2 text-right font-semibold">{formatCurrency(totals.serviceChargeAmount)}</td>
+                        </tr>
+                      )}
+                      {totals.totalTax > 0 && (
+                        <tr className="border-b">
+                          <td className="p-2">Total Tax:</td>
+                          <td className="p-2 text-right font-semibold">{formatCurrency(totals.totalTax)}</td>
+                        </tr>
+                      )}
+                      <tr className="border-b-2 border-black">
+                        <td className="p-2 font-bold">Grand Total:</td>
+                        <td className="p-2 text-right font-bold text-lg">{formatCurrency(totals.grandTotal)}</td>
+                      </tr>
+                      {invoice && invoice.totalPaid > 0 && (
+                        <>
+                          <tr className="border-b">
+                            <td className="p-2">Amount Paid:</td>
+                            <td className="p-2 text-right text-green-600">-{formatCurrency(invoice.totalPaid)}</td>
+                          </tr>
+                          <tr className="border-b-2 border-black">
+                            <td className="p-2 font-bold">Amount Due:</td>
+                            <td className="p-2 text-right font-bold text-lg text-red-600">
+                              {formatCurrency(totals.grandTotal - invoice.totalPaid)}
+                            </td>
+                          </tr>
+                        </>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {isTaxExempt && (
+                  <div className="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200">
+                    <div className="flex items-start gap-2">
+                      <p className="font-semibold">Tax Exempt Invoice</p>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{taxExemptionReason}</p>
+                  </div>
+                )}
+              </section>
+
+              {/* Notes */}
+              {(internalNotes || specialInstructions) && (
+                <section>
+                  <h2 className="text-lg font-semibold mb-4">Notes</h2>
+                  {specialInstructions && (
+                    <div className="mb-3">
+                      <h4 className="font-semibold text-sm mb-1">Special Instructions:</h4>
+                      <div className="bg-gray-50 p-3 rounded border">
+                        <p className="text-sm whitespace-pre-line">{specialInstructions}</p>
+                      </div>
+                    </div>
+                  )}
+                  {internalNotes && (
+                    <div>
+                      <h4 className="font-semibold text-sm mb-1">Internal Notes:</h4>
+                      <div className="bg-gray-50 p-3 rounded border">
+                        <p className="text-sm whitespace-pre-line">{internalNotes}</p>
+                      </div>
+                    </div>
+                  )}
+                </section>
+              )}
+            </div>
+          </A4PrintWrapper>
+        </div>
       </DialogContent>
     </Dialog>
   )

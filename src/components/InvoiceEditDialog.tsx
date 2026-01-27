@@ -13,6 +13,8 @@ import {
 } from '@/components/ui/select'
 import { Plus, Trash } from '@phosphor-icons/react'
 import type { GuestInvoice, GuestInvoiceType, SystemUser, HotelBranding, InvoiceLineItem, Department } from '@/lib/types'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 
 interface InvoiceEditDialogProps {
   open: boolean
@@ -198,7 +200,18 @@ export function InvoiceEditDialog({ open, onOpenChange, invoice, onSave, brandin
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{invoice ? 'Edit Invoice' : 'Create New Invoice'}</DialogTitle>
+          <DialogTitle className="flex items-center justify-between">
+            <span>{invoice ? 'Edit Invoice' : 'Create New Invoice'}</span>
+            <PrintButton
+              elementId="invoice-edit-print"
+              options={{
+                title: `Invoice Edit - ${formData.guestName || 'Draft'}`,
+                filename: `invoice-edit-${formData.guestName?.replace(/\s/g, '-') || 'draft'}.pdf`
+              }}
+              variant="outline"
+              size="sm"
+            />
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -367,6 +380,114 @@ export function InvoiceEditDialog({ open, onOpenChange, invoice, onSave, brandin
               {invoice ? 'Update Invoice' : 'Create Invoice'}
             </Button>
           </div>
+        </div>
+
+        {/* Hidden print section */}
+        <div className="hidden">
+          <A4PrintWrapper
+            id="invoice-edit-print"
+            title={`Invoice Edit - ${formData.guestName || 'Draft'}`}
+            headerContent={
+              <div className="text-sm">
+                <p><strong>Type:</strong> {formData.invoiceType?.replace('-', ' ').toUpperCase() || 'N/A'}</p>
+                <p><strong>Guest:</strong> {formData.guestName || 'N/A'}</p>
+                <p><strong>Date:</strong> {formData.invoiceDate ? new Date(formData.invoiceDate).toLocaleDateString() : 'N/A'}</p>
+              </div>
+            }
+          >
+            <div className="space-y-6">
+              {/* Invoice Details */}
+              <section>
+                <h2 className="text-lg font-semibold mb-4">Invoice Details</h2>
+                <table className="w-full border-collapse mb-6">
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Invoice Type</td>
+                      <td className="p-2 capitalize">{formData.invoiceType?.replace('-', ' ') || 'N/A'}</td>
+                      <td className="p-2 font-semibold">Invoice Date</td>
+                      <td className="p-2">{formData.invoiceDate ? new Date(formData.invoiceDate).toLocaleDateString() : 'N/A'}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Guest Name</td>
+                      <td className="p-2">{formData.guestName || 'N/A'}</td>
+                      <td className="p-2 font-semibold">Email</td>
+                      <td className="p-2">{formData.guestEmail || 'N/A'}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Phone</td>
+                      <td className="p-2">{formData.guestPhone || 'N/A'}</td>
+                      <td className="p-2 font-semibold">Company</td>
+                      <td className="p-2">{formData.companyName || 'N/A'}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+
+              {/* Line Items */}
+              <section>
+                <h2 className="text-lg font-semibold mb-4">Line Items</h2>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border p-2 text-left">Description</th>
+                      <th className="border p-2 text-right">Quantity</th>
+                      <th className="border p-2 text-right">Unit Price</th>
+                      <th className="border p-2 text-right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lineItems.length > 0 ? (
+                      lineItems.map((item, idx) => (
+                        <tr key={item.id || idx}>
+                          <td className="border p-2">{item.description || 'N/A'}</td>
+                          <td className="border p-2 text-right">{item.quantity || 0}</td>
+                          <td className="border p-2 text-right">{branding?.currencySymbol || 'LKR'} {(item.unitPrice || 0).toFixed(2)}</td>
+                          <td className="border p-2 text-right font-semibold">{branding?.currencySymbol || 'LKR'} {(item.lineTotal || 0).toFixed(2)}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td className="border p-2 text-center text-gray-500" colSpan={4}>No line items</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </section>
+
+              {/* Totals */}
+              <section>
+                <h2 className="text-lg font-semibold mb-4">Summary</h2>
+                <div className="flex justify-end">
+                  <table className="w-80 border-collapse">
+                    <tbody>
+                      <tr className="border-b">
+                        <td className="p-2">Subtotal:</td>
+                        <td className="p-2 text-right font-semibold">{branding?.currencySymbol || 'LKR'} {calculateTotals().subtotal.toFixed(2)}</td>
+                      </tr>
+                      <tr className="border-b-2 border-black">
+                        <td className="p-2 font-bold">Grand Total:</td>
+                        <td className="p-2 text-right font-bold text-lg">{branding?.currencySymbol || 'LKR'} {calculateTotals().grandTotal.toFixed(2)}</td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="p-2">Amount Due:</td>
+                        <td className="p-2 text-right font-semibold">{branding?.currencySymbol || 'LKR'} {calculateTotals().amountDue.toFixed(2)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+              {/* Notes */}
+              {formData.internalNotes && (
+                <section>
+                  <h2 className="text-lg font-semibold mb-4">Internal Notes</h2>
+                  <div className="bg-gray-50 p-3 rounded border">
+                    <p className="text-sm whitespace-pre-line">{formData.internalNotes}</p>
+                  </div>
+                </section>
+              )}
+            </div>
+          </A4PrintWrapper>
         </div>
       </DialogContent>
     </Dialog>

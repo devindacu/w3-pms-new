@@ -4,6 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import {
   Printer,
   Download,
@@ -43,11 +45,6 @@ export function GuestInvoiceViewDialog({
 }: GuestInvoiceViewDialogProps) {
   const contentRef = useRef<HTMLDivElement>(null)
 
-  const handlePrint = () => {
-    window.print()
-    toast.success('Invoice sent to printer')
-  }
-
   const getStatusBadge = () => {
     const config = {
       draft: { variant: 'secondary' as const, icon: <Clock size={14} />, label: 'Draft' },
@@ -71,10 +68,19 @@ export function GuestInvoiceViewDialog({
           <div className="flex items-center justify-between">
             <DialogTitle>Invoice Details</DialogTitle>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handlePrint}>
-                <Printer size={16} className="mr-1" />
-                Print
-              </Button>
+              <PrintButton
+                elementId="guest-invoice-printable"
+                options={{
+                  title: `Invoice ${invoice.invoiceNumber}`,
+                  filename: `invoice-${invoice.invoiceNumber}.pdf`,
+                  includeHeader: true,
+                  headerText: hotelInfo.name,
+                  includeFooter: true,
+                  footerText: `Invoice ${invoice.invoiceNumber} - Generated on ${new Date().toLocaleDateString()}`
+                }}
+                variant="outline"
+                size="sm"
+              />
               <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
                 <X size={18} />
               </Button>

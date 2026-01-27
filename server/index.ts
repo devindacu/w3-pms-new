@@ -737,6 +737,388 @@ app.get('/api/recipes', async (req, res) => {
   }
 });
 
+// Channel Manager APIs
+import { BookingComService } from './services/bookingCom';
+import { AgodaService } from './services/agoda';
+import { ExpediaService } from './services/expedia';
+import { AirbnbService } from './services/airbnb';
+import { BackupService } from './services/backup';
+import { DataSyncService } from './services/dataSync';
+
+const backupService = new BackupService();
+const dataSyncService = new DataSyncService();
+
+// Start auto-sync with 1 minute interval (configurable via environment)
+const syncInterval = parseInt(process.env.SYNC_INTERVAL_MS || '60000');
+dataSyncService.startAutoSync(syncInterval);
+
+// Get channel bookings
+app.get('/api/channel-bookings', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.channelBookings);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch channel bookings' });
+  }
+});
+
+// Sync bookings from a specific channel
+app.post('/api/channels/:id/sync-bookings', async (req, res) => {
+  try {
+    const channelId = parseInt(req.params.id);
+    const { startDate, endDate, channelName, config } = req.body;
+
+    let service;
+    switch (channelName.toLowerCase()) {
+      case 'booking.com':
+        service = new BookingComService(config);
+        break;
+      case 'agoda':
+        service = new AgodaService(config);
+        break;
+      case 'expedia':
+        service = new ExpediaService(config);
+        break;
+      case 'airbnb':
+        service = new AirbnbService(config);
+        break;
+      default:
+        return res.status(400).json({ error: 'Unknown channel' });
+    }
+
+    const bookings = await service.fetchBookings(new Date(startDate), new Date(endDate));
+    const result = await service.syncBookingsToDatabase(bookings, channelId);
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to sync bookings', details: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// Sync availability to channel
+app.post('/api/channels/:id/sync-availability', async (req, res) => {
+  try {
+    const { channelName, config, roomType, date, available } = req.body;
+
+    let service;
+    switch (channelName.toLowerCase()) {
+      case 'booking.com':
+        service = new BookingComService(config);
+        break;
+      case 'agoda':
+        service = new AgodaService(config);
+        break;
+      case 'expedia':
+        service = new ExpediaService(config);
+        break;
+      case 'airbnb':
+        service = new AirbnbService(config);
+        break;
+      default:
+        return res.status(400).json({ error: 'Unknown channel' });
+    }
+
+    const success = await service.syncAvailability(roomType, new Date(date), available);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to sync availability' });
+  }
+});
+
+// Sync rates to channel
+app.post('/api/channels/:id/sync-rates', async (req, res) => {
+  try {
+    const { channelName, config, roomType, date, rate } = req.body;
+
+    let service;
+    switch (channelName.toLowerCase()) {
+      case 'booking.com':
+        service = new BookingComService(config);
+        break;
+      case 'agoda':
+        service = new AgodaService(config);
+        break;
+      case 'expedia':
+        service = new ExpediaService(config);
+        break;
+      case 'airbnb':
+        service = new AirbnbService(config);
+        break;
+      default:
+        return res.status(400).json({ error: 'Unknown channel' });
+    }
+
+    const success = await service.syncRates(roomType, new Date(date), rate);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to sync rates' });
+  }
+});
+
+// Get channel sync logs
+app.get('/api/channel-sync-logs', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.channelSyncLogs);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch sync logs' });
+  }
+});
+
+// ============ Extended Booking.com API Endpoints ============
+
+// Update property details
+app.post('/api/channels/booking-com/property', async (req, res) => {
+  try {
+    const { config, propertyData } = req.body;
+    const service = new BookingComService(config);
+    const success = await service.updateProperty(propertyData);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update property' });
+  }
+});
+
+// Update room types
+app.post('/api/channels/booking-com/rooms', async (req, res) => {
+  try {
+    const { config, roomTypes } = req.body;
+    const service = new BookingComService(config);
+    const success = await service.updateRoomTypes(roomTypes);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update room types' });
+  }
+});
+
+// Upload photo
+app.post('/api/channels/booking-com/photos', async (req, res) => {
+  try {
+    const { config, photoData } = req.body;
+    const service = new BookingComService(config);
+    const success = await service.uploadPhoto(photoData);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to upload photo' });
+  }
+});
+
+// Update facilities
+app.post('/api/channels/booking-com/facilities', async (req, res) => {
+  try {
+    const { config, facilities } = req.body;
+    const service = new BookingComService(config);
+    const success = await service.updateFacilities(facilities);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update facilities' });
+  }
+});
+
+// Get payments
+app.post('/api/channels/booking-com/payments', async (req, res) => {
+  try {
+    const { config, startDate, endDate } = req.body;
+    const service = new BookingComService(config);
+    const payments = await service.getPayments(new Date(startDate), new Date(endDate));
+    res.json(payments);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch payments' });
+  }
+});
+
+// Get reviews
+app.get('/api/channels/booking-com/reviews', async (req, res) => {
+  try {
+    const { config, startDate, endDate } = req.query as any;
+    const service = new BookingComService(JSON.parse(config));
+    const reviews = await service.getReviews(
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined
+    );
+    res.json(reviews);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch reviews' });
+  }
+});
+
+// ============ Extended Airbnb API Endpoints ============
+
+// Update listing
+app.post('/api/channels/airbnb/listing', async (req, res) => {
+  try {
+    const { config, listingData } = req.body;
+    const service = new AirbnbService(config);
+    const success = await service.updateListing(listingData);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update listing' });
+  }
+});
+
+// Upload listing photo
+app.post('/api/channels/airbnb/photos', async (req, res) => {
+  try {
+    const { config, photoUrl, caption } = req.body;
+    const service = new AirbnbService(config);
+    const success = await service.uploadListingPhoto(photoUrl, caption);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to upload photo' });
+  }
+});
+
+// Send message to guest
+app.post('/api/channels/airbnb/messages', async (req, res) => {
+  try {
+    const { config, reservationId, message } = req.body;
+    const service = new AirbnbService(config);
+    const success = await service.sendMessage(reservationId, message);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to send message' });
+  }
+});
+
+// Get messages for reservation
+app.get('/api/channels/airbnb/messages/:reservationId', async (req, res) => {
+  try {
+    const { config } = req.query as any;
+    const service = new AirbnbService(JSON.parse(config));
+    const messages = await service.getMessages(req.params.reservationId);
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+});
+
+// Get reviews
+app.get('/api/channels/airbnb/reviews', async (req, res) => {
+  try {
+    const { config } = req.query as any;
+    const service = new AirbnbService(JSON.parse(config));
+    const reviews = await service.getReviews();
+    res.json(reviews);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch reviews' });
+  }
+});
+
+// Respond to review
+app.post('/api/channels/airbnb/reviews/:reviewId/response', async (req, res) => {
+  try {
+    const { config, response } = req.body;
+    const service = new AirbnbService(config);
+    const success = await service.respondToReview(req.params.reviewId, response);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to respond to review' });
+  }
+});
+
+// Update pricing rules
+app.post('/api/channels/airbnb/pricing', async (req, res) => {
+  try {
+    const { config, pricingRules } = req.body;
+    const service = new AirbnbService(config);
+    const success = await service.updatePricingRules(pricingRules);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update pricing rules' });
+  }
+});
+
+// Get calendar
+app.get('/api/channels/airbnb/calendar', async (req, res) => {
+  try {
+    const { config, startDate, endDate } = req.query as any;
+    const service = new AirbnbService(JSON.parse(config));
+    const calendar = await service.getCalendar(new Date(startDate), new Date(endDate));
+    res.json(calendar);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch calendar' });
+  }
+});
+
+// Get analytics
+app.get('/api/channels/airbnb/analytics', async (req, res) => {
+  try {
+    const { config, startDate, endDate } = req.query as any;
+    const service = new AirbnbService(JSON.parse(config));
+    const analytics = await service.getAnalytics(new Date(startDate), new Date(endDate));
+    res.json(analytics);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch analytics' });
+  }
+});
+
+// Backup APIs
+app.post('/api/backup/create', async (req, res) => {
+  try {
+    const { createdBy, options } = req.body;
+    const filePath = await backupService.createFullBackup(createdBy || 'system', options || {});
+    res.json({ success: true, filePath });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create backup', details: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+app.get('/api/backup/list', async (req, res) => {
+  try {
+    const backups = await backupService.listBackups();
+    res.json(backups);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to list backups' });
+  }
+});
+
+app.post('/api/backup/restore', async (req, res) => {
+  try {
+    const { filePath, options } = req.body;
+    await backupService.restoreFromBackup(filePath, options || {});
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to restore backup', details: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+app.delete('/api/backup/:id', async (req, res) => {
+  try {
+    await backupService.deleteBackup(parseInt(req.params.id));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete backup' });
+  }
+});
+
+// Data Sync APIs
+app.post('/api/sync/queue', async (req, res) => {
+  try {
+    await dataSyncService.queueSync(req.body);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to queue sync' });
+  }
+});
+
+app.get('/api/sync/status', async (req, res) => {
+  try {
+    const status = await dataSyncService.getSyncQueueStatus();
+    res.json(status);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get sync status' });
+  }
+});
+
+app.post('/api/sync/process', async (req, res) => {
+  try {
+    await dataSyncService.processSyncQueue();
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to process sync queue' });
+  }
+});
+
 const PORT = 3001;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`API Server running on http://localhost:${PORT}`);

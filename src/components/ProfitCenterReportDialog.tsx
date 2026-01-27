@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import { Download, TrendUp, TrendDown, ArrowUp, ArrowDown } from '@phosphor-icons/react'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, ComposedChart, Area } from 'recharts'
 import { type ProfitCenter, type CostCenter, type Expense, type ProfitCenterReport } from '@/lib/types'
@@ -155,10 +157,15 @@ export function ProfitCenterReportDialog({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Profit Center Performance Report</DialogTitle>
-            <Button onClick={exportReport} size="sm" variant="outline">
-              <Download size={16} className="mr-2" />
-              Export PDF
-            </Button>
+            <PrintButton
+              elementId="profit-center-report-print"
+              options={{
+                title: 'Profit Center Performance Report',
+                filename: `profit-center-report-${formatDate(Date.now()).replace(/\//g, '-')}.pdf`
+              }}
+              variant="outline"
+              size="sm"
+            />
           </div>
         </DialogHeader>
 
@@ -472,6 +479,95 @@ export function ProfitCenterReportDialog({
               </Card>
             )}
           </div>
+        </div>
+
+        <div className="hidden">
+          <A4PrintWrapper id="profit-center-report-print" title="Profit Center Performance Report">
+            <div className="space-y-6">
+              {selectedProfitCenter ? (
+                <>
+                  <div className="border-b pb-4">
+                    <h2 className="text-xl font-semibold">{selectedProfitCenter.name}</h2>
+                    <p className="text-sm text-gray-600">{selectedProfitCenter.code}</p>
+                    <div className="grid grid-cols-2 gap-4 mt-4">
+                      <div>
+                        <div className="text-sm text-gray-600">Revenue</div>
+                        <div className="text-lg font-semibold">{formatCurrency(revenue)}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-600">Total Costs</div>
+                        <div className="text-lg font-semibold">{formatCurrency(costs)}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-600">Net Profit</div>
+                        <div className="text-lg font-semibold">{formatCurrency(profit)}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-600">Profit Margin</div>
+                        <div className="text-lg font-semibold">{margin.toFixed(1)}%</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Performance Comparison</h3>
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="p-2 text-left">Profit Center</th>
+                          <th className="p-2 text-right">Revenue</th>
+                          <th className="p-2 text-right">Costs</th>
+                          <th className="p-2 text-right">Profit</th>
+                          <th className="p-2 text-right">Margin %</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {profitCenterComparison.map((pc) => (
+                          <tr key={pc.name} className="border-b">
+                            <td className="p-2">{pc.name} - {pc.fullName}</td>
+                            <td className="p-2 text-right">{formatCurrency(pc.revenue)}</td>
+                            <td className="p-2 text-right">{formatCurrency(pc.costs)}</td>
+                            <td className="p-2 text-right">{formatCurrency(pc.profit)}</td>
+                            <td className="p-2 text-right">{pc.margin.toFixed(1)}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Associated Cost Centers</h3>
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="p-2 text-left">Code</th>
+                          <th className="p-2 text-left">Name</th>
+                          <th className="p-2 text-left">Type</th>
+                          <th className="p-2 text-right">Actual Cost</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {costCenters
+                          .filter(cc => selectedProfitCenter.costCenterIds.includes(cc.id))
+                          .map((cc) => (
+                            <tr key={cc.id} className="border-b">
+                              <td className="p-2">{cc.code}</td>
+                              <td className="p-2">{cc.name}</td>
+                              <td className="p-2">{cc.type}</td>
+                              <td className="p-2 text-right">{formatCurrency(cc.actualCost || 0)}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center text-gray-600 py-8">
+                  Please select a profit center to view the report
+                </div>
+              )}
+            </div>
+          </A4PrintWrapper>
         </div>
       </DialogContent>
     </Dialog>

@@ -58,6 +58,8 @@ import { DepartmentUsageDialog } from '@/components/DepartmentUsageDialog'
 import { FoodManagement } from '@/components/FoodManagement'
 import { AmenitiesManagement } from '@/components/AmenitiesManagement'
 import { GeneralProductsManagement } from '@/components/GeneralProductsManagement'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 
 type InventorySource = 'all' | 'food' | 'amenities' | 'construction' | 'general'
 type StockLevel = 'all' | 'in-stock' | 'low-stock' | 'out-of-stock' | 'expiring'
@@ -373,6 +375,15 @@ export function InventoryManagement({
           <p className="text-muted-foreground mt-1">Unified real-time stock tracking and management across all departments</p>
         </div>
         <div className="flex gap-2">
+          <PrintButton
+            elementId="inventory-printable"
+            options={{
+              title: 'Inventory Management Report',
+              filename: `inventory-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`
+            }}
+            variant="outline"
+            size="default"
+          />
           <Button onClick={handleExport} variant="outline">
             <Download size={20} className="mr-2" />
             Export
@@ -648,6 +659,81 @@ export function InventoryManagement({
           />
         </TabsContent>
       </Tabs>
+
+      {/* Hidden printable content */}
+      <div className="hidden">
+        <A4PrintWrapper
+          id="inventory-printable"
+          title="Inventory Management Report"
+          headerContent={
+            <div className="text-sm">
+              <p><strong>Generated:</strong> {format(new Date(), 'PPP')}</p>
+              <p><strong>Total Items:</strong> {filteredInventory.length}</p>
+              <p><strong>Total Value:</strong> {formatCurrency(metrics.totalValue)}</p>
+            </div>
+          }
+        >
+          <div className="space-y-6">
+            <section>
+              <h2 className="text-lg font-semibold mb-4">Inventory Summary</h2>
+              <table className="w-full border-collapse mb-6">
+                <tbody>
+                  <tr className="border-b">
+                    <td className="p-2 font-semibold">Total Items</td>
+                    <td className="p-2 text-right">{metrics.totalItems}</td>
+                    <td className="p-2 font-semibold">Total Value</td>
+                    <td className="p-2 text-right">{formatCurrency(metrics.totalValue)}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="p-2 font-semibold">In Stock</td>
+                    <td className="p-2 text-right">{metrics.inStock}</td>
+                    <td className="p-2 font-semibold">Low Stock</td>
+                    <td className="p-2 text-right">{metrics.lowStock}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="p-2 font-semibold">Out of Stock</td>
+                    <td className="p-2 text-right">{metrics.outOfStock}</td>
+                    <td className="p-2 font-semibold">Expiring Soon</td>
+                    <td className="p-2 text-right">{metrics.expiring}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-semibold mb-4">Inventory Items</h2>
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border p-2 text-left">Product ID</th>
+                    <th className="border p-2 text-left">Name</th>
+                    <th className="border p-2 text-left">Category</th>
+                    <th className="border p-2 text-right">Stock</th>
+                    <th className="border p-2 text-right">Unit Cost</th>
+                    <th className="border p-2 text-right">Total Value</th>
+                    <th className="border p-2 text-left">Status</th>
+                    <th className="border p-2 text-left">Location</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredInventory.map((item) => (
+                    <tr key={item.id}>
+                      <td className="border p-2 font-mono text-xs">{item.productId}</td>
+                      <td className="border p-2">{item.name}</td>
+                      <td className="border p-2 capitalize text-sm">{item.category.replace('-', ' ')}</td>
+                      <td className="border p-2 text-right">{item.currentStock} {item.unit}</td>
+                      <td className="border p-2 text-right">{formatCurrency(item.unitCost)}</td>
+                      <td className="border p-2 text-right font-semibold">{formatCurrency(item.totalValue)}</td>
+                      <td className="border p-2 capitalize text-sm">{item.stockStatus.replace('-', ' ')}</td>
+                      <td className="border p-2 text-sm">{item.storeLocation}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+          </div>
+        </A4PrintWrapper>
+      </div>
     </div>
   )
 }

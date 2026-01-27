@@ -315,3 +315,66 @@ export const auditLogs = pgTable('audit_logs', {
   changedAt: timestamp('changed_at').defaultNow(),
   ipAddress: varchar('ip_address', { length: 50 }),
 });
+
+export const channelBookings = pgTable('channel_bookings', {
+  id: serial('id').primaryKey(),
+  channelId: integer('channel_id').references(() => channels.id),
+  reservationId: integer('reservation_id').references(() => reservations.id),
+  externalBookingId: varchar('external_booking_id', { length: 100 }),
+  channelName: varchar('channel_name', { length: 50 }).notNull(),
+  guestName: varchar('guest_name', { length: 200 }),
+  guestEmail: varchar('guest_email', { length: 255 }),
+  roomType: varchar('room_type', { length: 100 }),
+  checkIn: date('check_in').notNull(),
+  checkOut: date('check_out').notNull(),
+  totalAmount: decimal('total_amount', { precision: 12, scale: 2 }),
+  commission: decimal('commission', { precision: 12, scale: 2 }),
+  status: varchar('status', { length: 50 }).default('confirmed'),
+  syncStatus: varchar('sync_status', { length: 50 }).default('synced'),
+  rawData: text('raw_data'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const channelSyncLogs = pgTable('channel_sync_logs', {
+  id: serial('id').primaryKey(),
+  channelId: integer('channel_id').references(() => channels.id),
+  channelName: varchar('channel_name', { length: 50 }).notNull(),
+  syncType: varchar('sync_type', { length: 50 }).notNull(),
+  status: varchar('status', { length: 20 }).notNull(),
+  recordsProcessed: integer('records_processed').default(0),
+  recordsSuccess: integer('records_success').default(0),
+  recordsFailed: integer('records_failed').default(0),
+  errorMessage: text('error_message'),
+  startedAt: timestamp('started_at').defaultNow(),
+  completedAt: timestamp('completed_at'),
+  duration: integer('duration'),
+});
+
+export const systemBackups = pgTable('system_backups', {
+  id: serial('id').primaryKey(),
+  backupType: varchar('backup_type', { length: 50 }).notNull(),
+  fileName: varchar('file_name', { length: 255 }).notNull(),
+  fileSize: integer('file_size'),
+  status: varchar('status', { length: 20 }).notNull(),
+  tablesIncluded: text('tables_included'),
+  recordCount: integer('record_count'),
+  location: text('location'),
+  createdBy: varchar('created_by', { length: 100 }),
+  createdAt: timestamp('created_at').defaultNow(),
+  completedAt: timestamp('completed_at'),
+  errorMessage: text('error_message'),
+});
+
+export const dataSyncQueue = pgTable('data_sync_queue', {
+  id: serial('id').primaryKey(),
+  entityType: varchar('entity_type', { length: 50 }).notNull(),
+  entityId: integer('entity_id').notNull(),
+  operation: varchar('operation', { length: 20 }).notNull(),
+  data: text('data'),
+  status: varchar('status', { length: 20 }).default('pending'),
+  retryCount: integer('retry_count').default(0),
+  lastError: text('last_error'),
+  createdAt: timestamp('created_at').defaultNow(),
+  processedAt: timestamp('processed_at'),
+});

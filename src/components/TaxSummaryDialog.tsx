@@ -13,6 +13,8 @@ import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import { Download, Receipt, Calendar } from '@phosphor-icons/react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
 import { formatCurrency, formatDate } from '@/lib/helpers'
@@ -261,9 +263,20 @@ export function TaxSummaryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Receipt size={24} />
-            Tax Summary Report
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Receipt size={24} />
+              Tax Summary Report
+            </div>
+            <PrintButton
+              elementId="tax-summary-print"
+              options={{
+                title: `Tax Summary - ${formatDate(taxAnalysis.period.start)} to ${formatDate(taxAnalysis.period.end)}`,
+                filename: `tax-summary-${formatDate(taxAnalysis.period.start).replace(/\//g, '-')}-to-${formatDate(taxAnalysis.period.end).replace(/\//g, '-')}.pdf`
+              }}
+              variant="outline"
+              size="sm"
+            />
           </DialogTitle>
         </DialogHeader>
 
@@ -505,6 +518,113 @@ export function TaxSummaryDialog({
               </Card>
             </div>
           </ScrollArea>
+        </div>
+
+        <div className="hidden">
+          <A4PrintWrapper id="tax-summary-print" title={`Tax Summary - ${formatDate(taxAnalysis.period.start)} to ${formatDate(taxAnalysis.period.end)}`}>
+            <div className="space-y-6">
+              <div className="border-b pb-4">
+                <h2 className="text-xl font-semibold">Summary</h2>
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <div className="text-sm text-gray-600">Tax Collected (Output)</div>
+                    <div className="text-lg font-semibold">{formatCurrency(taxAnalysis.totalTaxCollected)}</div>
+                    <div className="text-xs text-gray-600">{taxAnalysis.invoiceCount} invoices</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Tax Paid (Input)</div>
+                    <div className="text-lg font-semibold">{formatCurrency(taxAnalysis.totalTaxPaid)}</div>
+                    <div className="text-xs text-gray-600">{taxAnalysis.purchaseCount} purchases</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Net Tax Liability</div>
+                    <div className="text-lg font-semibold">{formatCurrency(taxAnalysis.netTaxLiability)}</div>
+                    <div className="text-xs text-gray-600">{taxAnalysis.netTaxLiability >= 0 ? 'Payable' : 'Refundable'}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Effective Tax Rate</div>
+                    <div className="text-lg font-semibold">
+                      {taxAnalysis.taxCollected.reduce((sum, t) => sum + t.baseAmount, 0) > 0
+                        ? ((taxAnalysis.totalTaxCollected / taxAnalysis.taxCollected.reduce((sum, t) => sum + t.baseAmount, 0)) * 100).toFixed(2)
+                        : '0.00'}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Tax Collected (Output Tax)</h3>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="p-2 text-left">Tax Type</th>
+                      <th className="p-2 text-right">Rate</th>
+                      <th className="p-2 text-right">Base Amount</th>
+                      <th className="p-2 text-right">Tax Amount</th>
+                      <th className="p-2 text-right">Transactions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {taxAnalysis.taxCollected.map((tax) => (
+                      <tr key={tax.taxName} className="border-b">
+                        <td className="p-2">{tax.taxName}</td>
+                        <td className="p-2 text-right">{tax.taxRate > 0 ? `${tax.taxRate}%` : 'N/A'}</td>
+                        <td className="p-2 text-right">{formatCurrency(tax.baseAmount)}</td>
+                        <td className="p-2 text-right">{formatCurrency(tax.taxAmount)}</td>
+                        <td className="p-2 text-right">{tax.transactionCount}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Tax Paid (Input Tax)</h3>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="p-2 text-left">Tax Type</th>
+                      <th className="p-2 text-right">Rate</th>
+                      <th className="p-2 text-right">Base Amount</th>
+                      <th className="p-2 text-right">Tax Amount</th>
+                      <th className="p-2 text-right">Transactions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {taxAnalysis.taxPaid.map((tax) => (
+                      <tr key={tax.taxName} className="border-b">
+                        <td className="p-2">{tax.taxName}</td>
+                        <td className="p-2 text-right">{tax.taxRate > 0 ? `${tax.taxRate}%` : 'N/A'}</td>
+                        <td className="p-2 text-right">{formatCurrency(tax.baseAmount)}</td>
+                        <td className="p-2 text-right">{formatCurrency(tax.taxAmount)}</td>
+                        <td className="p-2 text-right">{tax.transactionCount}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="border-t pt-4">
+                <h3 className="text-lg font-semibold mb-3">Tax Reconciliation</h3>
+                <table className="w-full">
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="p-2">Output Tax (Collected)</td>
+                      <td className="p-2 text-right font-semibold">{formatCurrency(taxAnalysis.totalTaxCollected)}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2">Input Tax (Paid)</td>
+                      <td className="p-2 text-right font-semibold">({formatCurrency(taxAnalysis.totalTaxPaid)})</td>
+                    </tr>
+                    <tr className="border-t-2">
+                      <td className="p-2 font-bold">Net Tax {taxAnalysis.netTaxLiability >= 0 ? 'Payable' : 'Refundable'}</td>
+                      <td className="p-2 text-right font-bold text-lg">{formatCurrency(Math.abs(taxAnalysis.netTaxLiability))}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </A4PrintWrapper>
         </div>
       </DialogContent>
     </Dialog>

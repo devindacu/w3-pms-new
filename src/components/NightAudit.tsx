@@ -49,6 +49,8 @@ import {
   TrendDown,
   Users
 } from '@phosphor-icons/react'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import { 
   NightAuditLog,
   NightAuditOperation,
@@ -546,15 +548,26 @@ export function NightAudit({
             Daily reconciliation and automated posting
           </p>
         </div>
-        <Button 
-          onClick={() => setShowConfirmDialog(true)} 
-          size="lg"
-          disabled={isRunning}
-          className="gap-2"
-        >
-          <PlayCircle size={20} weight="fill" />
-          Run Night Audit
-        </Button>
+        <div className="flex gap-2">
+          <PrintButton
+            elementId="night-audit-printable"
+            options={{
+              title: 'Night Audit Report',
+              filename: `night-audit-${new Date().toISOString().split('T')[0]}.pdf`
+            }}
+            variant="outline"
+            size="default"
+          />
+          <Button 
+            onClick={() => setShowConfirmDialog(true)} 
+            size="lg"
+            disabled={isRunning}
+            className="gap-2"
+          >
+            <PlayCircle size={20} weight="fill" />
+            Run Night Audit
+          </Button>
+        </div>
       </div>
 
       {lastAudit && (
@@ -1096,6 +1109,121 @@ export function NightAudit({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Hidden printable content */}
+      <div className="hidden">
+        <A4PrintWrapper
+          id="night-audit-printable"
+          title="Night Audit Report"
+          headerContent={
+            <div className="text-sm">
+              <p><strong>Audit Date:</strong> {lastAudit ? formatDate(lastAudit.auditDate) : formatDate(Date.now())}</p>
+              <p><strong>Generated:</strong> {formatDate(Date.now())} {formatTime(Date.now())}</p>
+              <p><strong>Status:</strong> {lastAudit?.status || 'No audit run yet'}</p>
+            </div>
+          }
+        >
+          <div className="space-y-6">
+            {lastAudit && (
+              <>
+                <section>
+                  <h2 className="text-lg font-semibold mb-4">Audit Summary</h2>
+                  <table className="w-full border-collapse mb-6">
+                    <tbody>
+                      <tr className="border-b">
+                        <td className="p-2 font-semibold">Room Charges Posted</td>
+                        <td className="p-2 text-right">{lastAudit.roomChargesPosted}</td>
+                        <td className="p-2 font-semibold">Invoices Generated</td>
+                        <td className="p-2 text-right">{lastAudit.invoicesGenerated}</td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="p-2 font-semibold">Payments Reconciled</td>
+                        <td className="p-2 text-right">{lastAudit.paymentsReconciled}</td>
+                        <td className="p-2 font-semibold">Total Revenue</td>
+                        <td className="p-2 text-right">{formatCurrency(lastAudit.totalRevenue)}</td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="p-2 font-semibold">Occupancy</td>
+                        <td className="p-2 text-right">{lastAudit.occupancyPercentage?.toFixed(1)}%</td>
+                        <td className="p-2 font-semibold">ADR</td>
+                        <td className="p-2 text-right">{formatCurrency(lastAudit.averageDailyRate || 0)}</td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="p-2 font-semibold">RevPAR</td>
+                        <td className="p-2 text-right">{formatCurrency(lastAudit.revPAR || 0)}</td>
+                        <td className="p-2 font-semibold">Status</td>
+                        <td className="p-2 text-right capitalize">{lastAudit.status}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </section>
+
+                {lastAudit.errors.length > 0 && (
+                  <section>
+                    <h2 className="text-lg font-semibold mb-4 text-red-600">Errors</h2>
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="border p-2 text-left">Message</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {lastAudit.errors.map((error, idx) => (
+                          <tr key={idx}>
+                            <td className="border p-2 text-sm">{error}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </section>
+                )}
+
+                {lastAudit.warnings.length > 0 && (
+                  <section>
+                    <h2 className="text-lg font-semibold mb-4 text-amber-600">Warnings</h2>
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="border p-2 text-left">Message</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {lastAudit.warnings.map((warning, idx) => (
+                          <tr key={idx}>
+                            <td className="border p-2 text-sm">{warning}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </section>
+                )}
+
+                <section>
+                  <h2 className="text-lg font-semibold mb-4">Operations Performed</h2>
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="border p-2 text-left">Operation</th>
+                        <th className="border p-2 text-left">Status</th>
+                        <th className="border p-2 text-left">Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {lastAudit.operations.map((operation, idx) => (
+                        <tr key={idx}>
+                          <td className="border p-2">{operation.operation}</td>
+                          <td className="border p-2 capitalize">{operation.status}</td>
+                          <td className="border p-2">{formatTime(operation.timestamp)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </section>
+              </>
+            )}
+          </div>
+        </A4PrintWrapper>
+      </div>
     </div>
   )
 }

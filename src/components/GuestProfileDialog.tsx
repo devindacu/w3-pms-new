@@ -18,6 +18,8 @@ import { Plus, X, User, MapPin, FileText, CreditCard, Star, Phone, Envelope, Clo
 import { toast } from 'sonner'
 import { formatCurrency } from '@/lib/helpers'
 import { GuestBookingHistoryView } from '@/components/GuestBookingHistoryView'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 
 interface GuestProfileDialogProps {
   open: boolean
@@ -376,7 +378,10 @@ export function GuestProfileDialog({ open, onOpenChange, profile, onSave }: Gues
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] p-0">
         <DialogHeader className="px-6 pt-6 pb-4">
-          <DialogTitle className="text-2xl">{profile ? 'Edit Guest Profile' : 'Add Guest Profile'}</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-2xl">{profile ? 'Edit Guest Profile' : 'Add Guest Profile'}</DialogTitle>
+            {profile && <PrintButton elementId="guest-profile-print" />}
+          </div>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
@@ -1432,6 +1437,252 @@ export function GuestProfileDialog({ open, onOpenChange, profile, onSave }: Gues
           </Button>
         </div>
       </DialogContent>
+
+      {profile && (
+        <div className="hidden">
+          <A4PrintWrapper 
+            id="guest-profile-print" 
+            title={`Guest Profile - ${profile.firstName} ${profile.lastName}`}
+          >
+            <div className="space-y-6">
+              <div className="text-center border-b pb-4">
+                <h1 className="text-2xl font-bold mb-2">Guest Profile</h1>
+                <p className="text-lg">{profile.firstName} {profile.lastName}</p>
+                {profile.loyaltyInfo && (
+                  <Badge className="mt-2 capitalize">{profile.loyaltyInfo.tier}</Badge>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <h3 className="font-semibold mb-2 text-sm uppercase text-gray-600">Personal Information</h3>
+                  <table className="w-full text-sm">
+                    <tbody>
+                      {profile.salutation && (
+                        <tr>
+                          <td className="py-1 font-medium w-1/3">Salutation:</td>
+                          <td className="py-1">{profile.salutation}</td>
+                        </tr>
+                      )}
+                      <tr>
+                        <td className="py-1 font-medium">Name:</td>
+                        <td className="py-1">{profile.firstName} {profile.lastName}</td>
+                      </tr>
+                      {profile.dateOfBirth && (
+                        <tr>
+                          <td className="py-1 font-medium">Date of Birth:</td>
+                          <td className="py-1">{new Date(profile.dateOfBirth).toLocaleDateString()}</td>
+                        </tr>
+                      )}
+                      {profile.nationality && (
+                        <tr>
+                          <td className="py-1 font-medium">Nationality:</td>
+                          <td className="py-1">{profile.nationality}</td>
+                        </tr>
+                      )}
+                      {profile.companyName && (
+                        <tr>
+                          <td className="py-1 font-medium">Company:</td>
+                          <td className="py-1">{profile.companyName}</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-2 text-sm uppercase text-gray-600">Contact Information</h3>
+                  <table className="w-full text-sm">
+                    <tbody>
+                      <tr>
+                        <td className="py-1 font-medium w-1/3">Phone:</td>
+                        <td className="py-1">{profile.phone}</td>
+                      </tr>
+                      {profile.email && (
+                        <tr>
+                          <td className="py-1 font-medium">Email:</td>
+                          <td className="py-1">{profile.email}</td>
+                        </tr>
+                      )}
+                      {profile.alternatePhone && (
+                        <tr>
+                          <td className="py-1 font-medium">Alt. Phone:</td>
+                          <td className="py-1">{profile.alternatePhone}</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {(profile.idType || profile.idNumber || profile.passportNumber) && (
+                <div>
+                  <h3 className="font-semibold mb-2 text-sm uppercase text-gray-600">Identity Documents</h3>
+                  <table className="w-full text-sm">
+                    <tbody>
+                      {profile.idType && (
+                        <tr>
+                          <td className="py-1 font-medium w-1/4">Document Type:</td>
+                          <td className="py-1">{profile.idType}</td>
+                        </tr>
+                      )}
+                      {profile.idNumber && (
+                        <tr>
+                          <td className="py-1 font-medium">ID Number:</td>
+                          <td className="py-1">{profile.idNumber}</td>
+                        </tr>
+                      )}
+                      {profile.passportNumber && (
+                        <tr>
+                          <td className="py-1 font-medium">Passport:</td>
+                          <td className="py-1">{profile.passportNumber}</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {(profile.address || profile.city || profile.state || profile.country || profile.postalCode) && (
+                <div>
+                  <h3 className="font-semibold mb-2 text-sm uppercase text-gray-600">Address</h3>
+                  <p className="text-sm">
+                    {[profile.address, profile.city, profile.state, profile.country, profile.postalCode]
+                      .filter(Boolean)
+                      .join(', ')}
+                  </p>
+                </div>
+              )}
+
+              {profile.segments && profile.segments.length > 0 && (
+                <div>
+                  <h3 className="font-semibold mb-2 text-sm uppercase text-gray-600">Guest Segments</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.segments.map((seg, idx) => (
+                      <span key={idx} className="inline-block px-2 py-1 bg-gray-200 text-xs capitalize rounded">
+                        {seg}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {profile.communicationPreference && profile.communicationPreference.length > 0 && (
+                <div>
+                  <h3 className="font-semibold mb-2 text-sm uppercase text-gray-600">Communication Preferences</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.communicationPreference.map((pref, idx) => (
+                      <span key={idx} className="inline-block px-2 py-1 bg-gray-200 text-xs capitalize rounded">
+                        {pref}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {profile.loyaltyInfo && (
+                <div>
+                  <h3 className="font-semibold mb-2 text-sm uppercase text-gray-600">Loyalty Program</h3>
+                  <table className="w-full text-sm">
+                    <tbody>
+                      <tr>
+                        <td className="py-1 font-medium w-1/4">Tier:</td>
+                        <td className="py-1 capitalize">{profile.loyaltyInfo.tier}</td>
+                      </tr>
+                      <tr>
+                        <td className="py-1 font-medium">Points:</td>
+                        <td className="py-1">{profile.loyaltyInfo.points}</td>
+                      </tr>
+                      <tr>
+                        <td className="py-1 font-medium">Lifetime Points:</td>
+                        <td className="py-1">{profile.loyaltyInfo.lifetimePoints}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {profile.preferences && (
+                <div>
+                  <h3 className="font-semibold mb-3 text-sm uppercase text-gray-600">Room Preferences</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    {profile.preferences.roomType && (
+                      <div>
+                        <span className="font-medium">Room Type: </span>
+                        <span className="capitalize">{profile.preferences.roomType.replace('-', ' ')}</span>
+                      </div>
+                    )}
+                    {profile.preferences.bedType && (
+                      <div>
+                        <span className="font-medium">Bed Type: </span>
+                        <span className="capitalize">{profile.preferences.bedType.replace('-', ' ')}</span>
+                      </div>
+                    )}
+                    {profile.preferences.view && (
+                      <div>
+                        <span className="font-medium">View: </span>
+                        <span className="capitalize">{profile.preferences.view}</span>
+                      </div>
+                    )}
+                    {profile.preferences.floor && (
+                      <div>
+                        <span className="font-medium">Floor: </span>
+                        <span>{profile.preferences.floor}</span>
+                      </div>
+                    )}
+                    {profile.preferences.smoking !== undefined && (
+                      <div>
+                        <span className="font-medium">Smoking: </span>
+                        <span>{profile.preferences.smoking ? 'Yes' : 'No'}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {((profile.dietaryRestrictions && profile.dietaryRestrictions.length > 0) || 
+                (profile.allergies && profile.allergies.length > 0) || 
+                (profile.specialRequests && profile.specialRequests.length > 0)) && (
+                <div>
+                  <h3 className="font-semibold mb-3 text-sm uppercase text-gray-600">Special Requirements</h3>
+                  {profile.dietaryRestrictions && profile.dietaryRestrictions.length > 0 && (
+                    <div className="mb-2">
+                      <span className="font-medium text-sm">Dietary Restrictions: </span>
+                      <span className="text-sm">{profile.dietaryRestrictions.join(', ')}</span>
+                    </div>
+                  )}
+                  {profile.allergies && profile.allergies.length > 0 && (
+                    <div className="mb-2">
+                      <span className="font-medium text-sm">Allergies: </span>
+                      <span className="text-sm text-red-600">{profile.allergies.join(', ')}</span>
+                    </div>
+                  )}
+                  {profile.specialRequests && profile.specialRequests.length > 0 && (
+                    <div>
+                      <span className="font-medium text-sm">Special Requests: </span>
+                      <span className="text-sm">{profile.specialRequests.join(', ')}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {profile.vipNotes && (
+                <div>
+                  <h3 className="font-semibold mb-2 text-sm uppercase text-gray-600">VIP Notes</h3>
+                  <p className="text-sm whitespace-pre-wrap">{profile.vipNotes}</p>
+                </div>
+              )}
+
+              {profile.notes && (
+                <div>
+                  <h3 className="font-semibold mb-2 text-sm uppercase text-gray-600">Additional Notes</h3>
+                  <p className="text-sm whitespace-pre-wrap">{profile.notes}</p>
+                </div>
+              )}
+            </div>
+          </A4PrintWrapper>
+        </div>
+      )}
     </Dialog>
   )
 }
