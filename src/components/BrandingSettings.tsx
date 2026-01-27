@@ -95,13 +95,37 @@ export function BrandingSettings({ branding, setBranding, currentUser }: Brandin
     }
   }, [branding])
 
-  const handleSave = () => {
-    setBranding(() => ({
-      ...formData,
-      updatedAt: Date.now(),
-      updatedBy: currentUser.userId
-    }))
-    toast.success('Branding settings saved successfully')
+  const handleSave = async () => {
+    try {
+      const updatedBranding = {
+        ...formData,
+        updatedAt: Date.now(),
+        updatedBy: currentUser.userId
+      };
+
+      // Save to database
+      const response = await fetch('/api/branding', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedBranding),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save branding to database');
+      }
+
+      const savedBranding = await response.json();
+      
+      // Update local state
+      setBranding(() => savedBranding);
+      
+      toast.success('Branding settings saved successfully to database');
+    } catch (error) {
+      console.error('Error saving branding:', error);
+      toast.error('Failed to save branding settings. Please try again.');
+    }
   }
 
   const handleReset = () => {
