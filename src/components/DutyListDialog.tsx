@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Printer, FileArrowDown, Calendar, User } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { type HousekeepingTask, type Room, type Employee } from '@/lib/types'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 
 interface DutyListDialogProps {
   open: boolean
@@ -257,9 +259,20 @@ export function DutyListDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="dialog-content-wrapper max-w-6xl">
         <DialogHeader className="dialog-header-fixed">
-          <DialogTitle className="flex items-center gap-2 mobile-heading-responsive">
-            <Calendar className="text-primary" size={24} />
-            Housekeeping Duty List
+          <DialogTitle className="flex items-center justify-between gap-2 mobile-heading-responsive">
+            <div className="flex items-center gap-2">
+              <Calendar className="text-primary" size={24} />
+              Housekeeping Duty List
+            </div>
+            <PrintButton
+              elementId="duty-list-printable"
+              options={{
+                title: 'Housekeeping Duty List',
+                filename: `duty-list-${new Date().toISOString().split('T')[0]}.pdf`
+              }}
+              variant="outline"
+              size="sm"
+            />
           </DialogTitle>
         </DialogHeader>
 
@@ -499,6 +512,100 @@ export function DutyListDialog({
               </Tabs>
             </div>
           </div>
+        </div>
+
+        {/* Hidden printable content */}
+        <div className="hidden">
+          <A4PrintWrapper
+            id="duty-list-printable"
+            title="Housekeeping Duty List"
+            headerContent={
+              <div className="text-sm">
+                <p><strong>Date:</strong> {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <p><strong>Total Tasks:</strong> {filteredTasks.length}</p>
+                <p><strong>Employees:</strong> {tasksByEmployee.length}</p>
+              </div>
+            }
+          >
+            <div className="space-y-6">
+              {tasksByEmployee.map(item => (
+                <section key={item.employee.id}>
+                  <h2 className="text-lg font-semibold mb-4">
+                    {item.employee.firstName} {item.employee.lastName} - {item.tasks.length} {item.tasks.length === 1 ? 'Task' : 'Tasks'}
+                  </h2>
+                  <table className="w-full border-collapse mb-6">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="border p-2 text-left">Room</th>
+                        <th className="border p-2 text-left">Floor</th>
+                        <th className="border p-2 text-left">Type</th>
+                        <th className="border p-2 text-left">Task</th>
+                        <th className="border p-2 text-left">Priority</th>
+                        <th className="border p-2 text-left">Status</th>
+                        <th className="border p-2 text-left">Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {item.tasks.map((task, idx) => {
+                        const room = item.rooms[idx]
+                        return (
+                          <tr key={task.id}>
+                            <td className="border p-2 font-semibold">{room?.roomNumber || 'N/A'}</td>
+                            <td className="border p-2">{room?.floor || 'N/A'}</td>
+                            <td className="border p-2 capitalize text-sm">{room?.roomType || 'N/A'}</td>
+                            <td className="border p-2 capitalize text-sm">{task.taskType.replace('-', ' ')}</td>
+                            <td className="border p-2 capitalize">{task.priority}</td>
+                            <td className="border p-2 capitalize">{task.status}</td>
+                            <td className="border p-2 text-sm">{task.notes || '-'}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                  <div className="text-sm text-right mb-6">
+                    Signature: _____________________________
+                  </div>
+                </section>
+              ))}
+
+              {unassignedTasks.length > 0 && (
+                <section>
+                  <h2 className="text-lg font-semibold mb-4">
+                    Unassigned Tasks - {unassignedTasks.length}
+                  </h2>
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="border p-2 text-left">Room</th>
+                        <th className="border p-2 text-left">Floor</th>
+                        <th className="border p-2 text-left">Type</th>
+                        <th className="border p-2 text-left">Task</th>
+                        <th className="border p-2 text-left">Priority</th>
+                        <th className="border p-2 text-left">Status</th>
+                        <th className="border p-2 text-left">Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {unassignedTasks.map(task => {
+                        const room = rooms.find(r => r.id === task.roomId)
+                        return (
+                          <tr key={task.id}>
+                            <td className="border p-2 font-semibold">{room?.roomNumber || 'N/A'}</td>
+                            <td className="border p-2">{room?.floor || 'N/A'}</td>
+                            <td className="border p-2 capitalize text-sm">{room?.roomType || 'N/A'}</td>
+                            <td className="border p-2 capitalize text-sm">{task.taskType.replace('-', ' ')}</td>
+                            <td className="border p-2 capitalize">{task.priority}</td>
+                            <td className="border p-2 capitalize">{task.status}</td>
+                            <td className="border p-2 text-sm">{task.notes || '-'}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </section>
+              )}
+            </div>
+          </A4PrintWrapper>
         </div>
       </DialogContent>
     </Dialog>

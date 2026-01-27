@@ -12,6 +12,8 @@ import { toast } from 'sonner'
 import { Plus, Trash, Calendar, Upload, X } from '@phosphor-icons/react'
 import { type Invoice, type InvoiceItem, type Supplier, type PurchaseOrder, type GoodsReceivedNote, InvoiceStatus } from '@/lib/types'
 import { formatCurrency, formatDate, generateNumber } from '@/lib/helpers'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 
 interface SupplierInvoiceDialogProps {
   open: boolean
@@ -277,8 +279,17 @@ export function SupplierInvoiceDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {invoice ? 'Edit Supplier Invoice' : 'Create Supplier Invoice'}
+          <DialogTitle className="flex items-center justify-between">
+            <span>{invoice ? 'Edit Supplier Invoice' : 'Create Supplier Invoice'}</span>
+            <PrintButton
+              elementId="supplier-invoice-printable"
+              options={{
+                title: `Supplier Invoice - ${invoiceNumber}`,
+                filename: `supplier-invoice-${invoiceNumber}.pdf`
+              }}
+              variant="outline"
+              size="sm"
+            />
           </DialogTitle>
         </DialogHeader>
 
@@ -577,6 +588,96 @@ export function SupplierInvoiceDialog({
             {invoice ? 'Update Invoice' : 'Create Invoice'}
           </Button>
         </DialogFooter>
+
+        {/* Hidden printable content */}
+        <div className="hidden">
+          <A4PrintWrapper
+            id="supplier-invoice-printable"
+            title={`Supplier Invoice - ${invoiceNumber}`}
+            headerContent={
+              <div className="text-sm">
+                <p><strong>Supplier:</strong> {selectedSupplier?.name || 'N/A'}</p>
+                <p><strong>Invoice Date:</strong> {invoiceDate ? formatDate(new Date(invoiceDate).getTime()) : 'N/A'}</p>
+                <p><strong>Status:</strong> {status.replace('-', ' ').toUpperCase()}</p>
+              </div>
+            }
+          >
+            <div className="space-y-6">
+              <section>
+                <h2 className="text-lg font-semibold mb-4">Invoice Details</h2>
+                <table className="w-full border-collapse mb-6">
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Invoice Number</td>
+                      <td className="p-2">{invoiceNumber}</td>
+                      <td className="p-2 font-semibold">Invoice Date</td>
+                      <td className="p-2">{invoiceDate ? formatDate(new Date(invoiceDate).getTime()) : 'N/A'}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Supplier</td>
+                      <td className="p-2">{selectedSupplier?.name || 'N/A'}</td>
+                      <td className="p-2 font-semibold">Due Date</td>
+                      <td className="p-2">{dueDate ? formatDate(new Date(dueDate).getTime()) : 'N/A'}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Status</td>
+                      <td className="p-2 capitalize">{status.replace('-', ' ')}</td>
+                      <td className="p-2 font-semibold">PO Number</td>
+                      <td className="p-2">{purchaseOrderId || 'N/A'}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+
+              <section>
+                <h2 className="text-lg font-semibold mb-4">Line Items</h2>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border p-2 text-left">Item</th>
+                      <th className="border p-2 text-left">Description</th>
+                      <th className="border p-2 text-right">Quantity</th>
+                      <th className="border p-2 text-right">Unit Price</th>
+                      <th className="border p-2 text-right">Tax</th>
+                      <th className="border p-2 text-right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((item) => (
+                      <tr key={item.id}>
+                        <td className="border p-2">{item.itemName}</td>
+                        <td className="border p-2 text-sm">{item.description}</td>
+                        <td className="border p-2 text-right">{item.quantity} {item.unit}</td>
+                        <td className="border p-2 text-right">{formatCurrency(item.unitPrice)}</td>
+                        <td className="border p-2 text-right">{formatCurrency(item.taxAmount)}</td>
+                        <td className="border p-2 text-right font-semibold">{formatCurrency(item.total)}</td>
+                      </tr>
+                    ))}
+                    <tr className="bg-gray-50">
+                      <td colSpan={5} className="border p-2 text-right font-semibold">Subtotal:</td>
+                      <td className="border p-2 text-right font-bold">{formatCurrency(calculateSubtotal())}</td>
+                    </tr>
+                    <tr className="bg-gray-50">
+                      <td colSpan={5} className="border p-2 text-right font-semibold">Tax (8%):</td>
+                      <td className="border p-2 text-right font-bold">{formatCurrency(calculateTax())}</td>
+                    </tr>
+                    <tr className="bg-gray-100">
+                      <td colSpan={5} className="border p-2 text-right font-bold text-lg">Total:</td>
+                      <td className="border p-2 text-right font-bold text-lg">{formatCurrency(calculateTotal())}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+
+              {notes && (
+                <section>
+                  <h2 className="text-lg font-semibold mb-2">Notes</h2>
+                  <p className="text-sm border p-3 rounded bg-gray-50">{notes}</p>
+                </section>
+              )}
+            </div>
+          </A4PrintWrapper>
+        </div>
       </DialogContent>
     </Dialog>
   )

@@ -32,6 +32,8 @@ import { MaintenanceIntegrationDialog } from './MaintenanceIntegrationDialog'
 import { LostFoundDialog } from './LostFoundDialog'
 import { MobileSimulatorDialog } from './MobileSimulatorDialog'
 import { HousekeepingBatchOperations } from './HousekeepingBatchOperations'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import { useKV } from '@github/spark/hooks'
 
 interface HousekeepingProps {
@@ -201,6 +203,16 @@ export function Housekeeping({ rooms, setRooms, tasks, setTasks, employees }: Ho
           <p className="text-muted-foreground mt-1 mobile-text-responsive">Room status tracking, task management, and more</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <PrintButton
+            elementId="housekeeping-printable"
+            options={{
+              title: 'Housekeeping Report',
+              filename: `housekeeping-report-${new Date().toISOString().split('T')[0]}.pdf`
+            }}
+            variant="outline"
+            size="default"
+            className="flex-1 sm:flex-none mobile-optimized-button"
+          />
           <Button onClick={handleNewTask} className="flex-1 sm:flex-none mobile-optimized-button">
             <Plus size={20} className="mr-2" />
             New Task
@@ -649,6 +661,103 @@ export function Housekeeping({ rooms, setRooms, tasks, setTasks, employees }: Ho
         setRooms={setRooms}
         employees={employees}
       />
+
+      {/* Hidden printable content */}
+      <div className="hidden">
+        <A4PrintWrapper
+          id="housekeeping-printable"
+          title="Housekeeping Report"
+          headerContent={
+            <div className="text-sm">
+              <p><strong>Generated:</strong> {new Date().toLocaleDateString()}</p>
+              <p><strong>Total Tasks:</strong> {safeTasks.length}</p>
+              <p><strong>Clean Rooms:</strong> {cleanRooms.length} / {safeRooms.length}</p>
+            </div>
+          }
+        >
+          <div className="space-y-6">
+            <section>
+              <h2 className="text-lg font-semibold mb-4">Task Summary</h2>
+              <table className="w-full border-collapse mb-6">
+                <tbody>
+                  <tr className="border-b">
+                    <td className="p-2 font-semibold">Pending Tasks</td>
+                    <td className="p-2 text-right">{pendingTasks.length}</td>
+                    <td className="p-2 font-semibold">In Progress</td>
+                    <td className="p-2 text-right">{inProgressTasks.length}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="p-2 font-semibold">Completed Today</td>
+                    <td className="p-2 text-right">{completedToday.length}</td>
+                    <td className="p-2 font-semibold">Inspected Rooms</td>
+                    <td className="p-2 text-right">{inspectedRooms}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="p-2 font-semibold">Clean Rooms</td>
+                    <td className="p-2 text-right">{cleanRooms.length}</td>
+                    <td className="p-2 font-semibold">Maintenance Rooms</td>
+                    <td className="p-2 text-right">{maintenanceRooms.length}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-semibold mb-4">Active Tasks</h2>
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border p-2 text-left">Room</th>
+                    <th className="border p-2 text-left">Task Type</th>
+                    <th className="border p-2 text-left">Assigned To</th>
+                    <th className="border p-2 text-left">Priority</th>
+                    <th className="border p-2 text-left">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTasks.filter(t => t.status !== 'completed' && t.status !== 'inspected').map((task) => {
+                    const room = safeRooms.find(r => r.id === task.roomId)
+                    const employee = safeEmployees.find(e => e.id === task.assignedTo)
+                    return (
+                      <tr key={task.id}>
+                        <td className="border p-2">{room?.roomNumber || 'N/A'}</td>
+                        <td className="border p-2 capitalize">{task.taskType.replace('-', ' ')}</td>
+                        <td className="border p-2">{employee ? `${employee.firstName} ${employee.lastName}` : 'Unassigned'}</td>
+                        <td className="border p-2 capitalize">{task.priority}</td>
+                        <td className="border p-2 capitalize">{task.status}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-semibold mb-4">Room Status</h2>
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border p-2 text-left">Room Number</th>
+                    <th className="border p-2 text-left">Type</th>
+                    <th className="border p-2 text-left">Floor</th>
+                    <th className="border p-2 text-left">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {safeRooms.map((room) => (
+                    <tr key={room.id}>
+                      <td className="border p-2 font-semibold">{room.roomNumber}</td>
+                      <td className="border p-2 capitalize">{room.roomType}</td>
+                      <td className="border p-2">{room.floor}</td>
+                      <td className="border p-2 capitalize">{room.status.replace('-', ' ')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+          </div>
+        </A4PrintWrapper>
+      </div>
     </div>
   )
 }

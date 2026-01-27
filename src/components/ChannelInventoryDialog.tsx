@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { ChannelInventory, OTAConnection, Room, RoomType, OTAChannel } from '@/lib/types'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 
 interface ChannelInventoryDialogProps {
   open: boolean
@@ -53,7 +55,18 @@ export function ChannelInventoryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Allocate Channel Inventory</DialogTitle>
+          <DialogTitle className="flex items-center justify-between">
+            <span>Allocate Channel Inventory</span>
+            <PrintButton
+              elementId="channel-inventory-printable"
+              options={{
+                title: 'Channel Inventory Allocation',
+                filename: `channel-inventory-${selectedDate}.pdf`
+              }}
+              variant="outline"
+              size="sm"
+            />
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -122,6 +135,75 @@ export function ChannelInventoryDialog({
             Save Allocation
           </Button>
         </DialogFooter>
+
+        {/* Hidden printable content */}
+        <div className="hidden">
+          <A4PrintWrapper
+            id="channel-inventory-printable"
+            title="Channel Inventory Allocation"
+            headerContent={
+              <div className="text-sm">
+                <p><strong>Date:</strong> {new Date(selectedDate).toLocaleDateString()}</p>
+                <p><strong>Room Type:</strong> {selectedRoomType}</p>
+                <p><strong>Total Rooms:</strong> {totalRooms}</p>
+              </div>
+            }
+          >
+            <div className="space-y-6">
+              <section>
+                <h2 className="text-lg font-semibold mb-4">Allocation Summary</h2>
+                <table className="w-full border-collapse mb-6">
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Date</td>
+                      <td className="p-2">{new Date(selectedDate).toLocaleDateString()}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Room Type</td>
+                      <td className="p-2 capitalize">{selectedRoomType}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Total Rooms</td>
+                      <td className="p-2">{totalRooms}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Allocated Rooms</td>
+                      <td className="p-2">{allocatedTotal}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Available Rooms</td>
+                      <td className="p-2">{totalRooms - allocatedTotal}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+
+              <section>
+                <h2 className="text-lg font-semibold mb-4">Channel Allocations</h2>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border p-2 text-left">Channel</th>
+                      <th className="border p-2 text-right">Allocated Rooms</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {connections.map((conn) => (
+                      <tr key={conn.id}>
+                        <td className="border p-2">{conn.name}</td>
+                        <td className="border p-2 text-right font-semibold">{allocations[conn.channel] || 0}</td>
+                      </tr>
+                    ))}
+                    <tr className="bg-gray-50">
+                      <td className="border p-2 text-right font-semibold">Total:</td>
+                      <td className="border p-2 text-right font-bold">{allocatedTotal}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+            </div>
+          </A4PrintWrapper>
+        </div>
       </DialogContent>
     </Dialog>
   )

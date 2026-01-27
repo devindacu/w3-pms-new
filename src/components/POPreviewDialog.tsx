@@ -22,6 +22,8 @@ import {
 import { toast } from 'sonner'
 import { type PurchaseOrder, type Supplier, type POAuditEntry } from '@/lib/types'
 import { formatCurrency, formatDate, formatDateTime, generateId } from '@/lib/helpers'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 
 interface POPreviewDialogProps {
   open: boolean
@@ -257,9 +259,20 @@ export function POPreviewDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <Eye size={24} className="text-primary" />
-            Purchase Order Preview
+          <DialogTitle className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Eye size={24} className="text-primary" />
+              Purchase Order Preview
+            </div>
+            <PrintButton
+              elementId="po-preview-printable"
+              options={{
+                title: `Purchase Order - ${purchaseOrder.poNumber}`,
+                filename: `po-${purchaseOrder.poNumber}.pdf`
+              }}
+              variant="outline"
+              size="sm"
+            />
           </DialogTitle>
         </DialogHeader>
 
@@ -598,6 +611,94 @@ export function POPreviewDialog({
             </Button>
           )}
         </DialogFooter>
+
+        {/* Hidden printable content */}
+        <div className="hidden">
+          <A4PrintWrapper
+            id="po-preview-printable"
+            title={`Purchase Order - ${purchaseOrder.poNumber}`}
+            headerContent={
+              <div className="text-sm">
+                <p><strong>Supplier:</strong> {supplier.name}</p>
+                <p><strong>PO Date:</strong> {formatDate(purchaseOrder.createdAt)}</p>
+                <p><strong>Status:</strong> {purchaseOrder.status.toUpperCase()}</p>
+              </div>
+            }
+          >
+            <div className="space-y-6">
+              <section>
+                <h2 className="text-lg font-semibold mb-4">Purchase Order Details</h2>
+                <table className="w-full border-collapse mb-6">
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">PO Number</td>
+                      <td className="p-2">{purchaseOrder.poNumber}</td>
+                      <td className="p-2 font-semibold">Date</td>
+                      <td className="p-2">{formatDate(purchaseOrder.createdAt)}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Supplier</td>
+                      <td className="p-2">{supplier.name}</td>
+                      <td className="p-2 font-semibold">Payment Terms</td>
+                      <td className="p-2">{supplier.paymentTerms}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 font-semibold">Created By</td>
+                      <td className="p-2">{purchaseOrder.createdBy}</td>
+                      <td className="p-2 font-semibold">Expected Delivery</td>
+                      <td className="p-2">{purchaseOrder.expectedDelivery ? formatDate(purchaseOrder.expectedDelivery) : 'N/A'}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+
+              <section>
+                <h2 className="text-lg font-semibold mb-4">Items</h2>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border p-2 text-left">#</th>
+                      <th className="border p-2 text-left">Item</th>
+                      <th className="border p-2 text-right">Quantity</th>
+                      <th className="border p-2 text-right">Unit Price</th>
+                      <th className="border p-2 text-right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {purchaseOrder.items.map((item, idx) => (
+                      <tr key={item.id}>
+                        <td className="border p-2">{idx + 1}</td>
+                        <td className="border p-2">{item.itemName}</td>
+                        <td className="border p-2 text-right">{item.quantity} {item.unit}</td>
+                        <td className="border p-2 text-right">{formatCurrency(item.unitPrice)}</td>
+                        <td className="border p-2 text-right font-semibold">{formatCurrency(item.total)}</td>
+                      </tr>
+                    ))}
+                    <tr className="bg-gray-50">
+                      <td colSpan={4} className="border p-2 text-right font-semibold">Subtotal:</td>
+                      <td className="border p-2 text-right font-bold">{formatCurrency(purchaseOrder.subtotal)}</td>
+                    </tr>
+                    <tr className="bg-gray-50">
+                      <td colSpan={4} className="border p-2 text-right font-semibold">Tax ({purchaseOrder.taxRate}%):</td>
+                      <td className="border p-2 text-right font-bold">{formatCurrency(purchaseOrder.tax)}</td>
+                    </tr>
+                    <tr className="bg-gray-100">
+                      <td colSpan={4} className="border p-2 text-right font-bold text-lg">Total:</td>
+                      <td className="border p-2 text-right font-bold text-lg">{formatCurrency(purchaseOrder.total)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+
+              {purchaseOrder.notes && (
+                <section>
+                  <h2 className="text-lg font-semibold mb-2">Notes</h2>
+                  <p className="text-sm border p-3 rounded bg-gray-50">{purchaseOrder.notes}</p>
+                </section>
+              )}
+            </div>
+          </A4PrintWrapper>
+        </div>
       </DialogContent>
     </Dialog>
   )
