@@ -166,4 +166,274 @@ export class AirbnbService extends ChannelManagerService {
     };
     return statusMap[airbnbStatus] || airbnbStatus.toLowerCase();
   }
+
+  // ============ Extended Airbnb API Services ============
+
+  /**
+   * Listing Management API - Create or update listing details
+   */
+  async updateListing(listingData: any): Promise<boolean> {
+    try {
+      const endpoint = this.config.endpoint || `https://api.airbnb.com/v2/host/listings/${this.config.propertyId}`;
+      
+      const response = await fetch(endpoint, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Airbnb-API-Key': this.config.apiKey || '',
+          'Authorization': `Bearer ${this.config.apiSecret || ''}`
+        },
+        body: JSON.stringify({
+          name: listingData.name,
+          description: listingData.description,
+          property_type: listingData.propertyType,
+          room_type: listingData.roomType,
+          accommodates: listingData.accommodates,
+          bedrooms: listingData.bedrooms,
+          beds: listingData.beds,
+          bathrooms: listingData.bathrooms,
+          amenities: listingData.amenities || []
+        })
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error('Error updating listing on Airbnb:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Photos API - Upload listing photos
+   */
+  async uploadListingPhoto(photoUrl: string, caption?: string): Promise<boolean> {
+    try {
+      const endpoint = this.config.endpoint || `https://api.airbnb.com/v2/host/listings/${this.config.propertyId}/photos`;
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Airbnb-API-Key': this.config.apiKey || '',
+          'Authorization': `Bearer ${this.config.apiSecret || ''}`
+        },
+        body: JSON.stringify({
+          photo_url: photoUrl,
+          caption: caption || ''
+        })
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error('Error uploading photo to Airbnb:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Messaging API - Send message to guest
+   */
+  async sendMessage(reservationId: string, message: string): Promise<boolean> {
+    try {
+      const endpoint = this.config.endpoint || `https://api.airbnb.com/v2/host/threads/${reservationId}/messages`;
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Airbnb-API-Key': this.config.apiKey || '',
+          'Authorization': `Bearer ${this.config.apiSecret || ''}`
+        },
+        body: JSON.stringify({
+          message: message
+        })
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error('Error sending message on Airbnb:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Messaging API - Get messages for a reservation
+   */
+  async getMessages(reservationId: string): Promise<any[]> {
+    try {
+      const endpoint = this.config.endpoint || `https://api.airbnb.com/v2/host/threads/${reservationId}/messages`;
+      
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Airbnb-API-Key': this.config.apiKey || '',
+          'Authorization': `Bearer ${this.config.apiSecret || ''}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Airbnb API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.messages || [];
+    } catch (error) {
+      console.error('Error fetching messages from Airbnb:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Reviews API - Get reviews for the listing
+   */
+  async getReviews(): Promise<any[]> {
+    try {
+      const endpoint = this.config.endpoint || `https://api.airbnb.com/v2/host/listings/${this.config.propertyId}/reviews`;
+      
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Airbnb-API-Key': this.config.apiKey || '',
+          'Authorization': `Bearer ${this.config.apiSecret || ''}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Airbnb API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.reviews || [];
+    } catch (error) {
+      console.error('Error fetching reviews from Airbnb:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Reviews API - Respond to a review
+   */
+  async respondToReview(reviewId: string, response: string): Promise<boolean> {
+    try {
+      const endpoint = this.config.endpoint || `https://api.airbnb.com/v2/host/reviews/${reviewId}/response`;
+      
+      const result = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Airbnb-API-Key': this.config.apiKey || '',
+          'Authorization': `Bearer ${this.config.apiSecret || ''}`
+        },
+        body: JSON.stringify({
+          response: response
+        })
+      });
+
+      return result.ok;
+    } catch (error) {
+      console.error('Error responding to review on Airbnb:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Pricing Rules API - Update pricing rules
+   */
+  async updatePricingRules(pricingRules: any): Promise<boolean> {
+    try {
+      const endpoint = this.config.endpoint || `https://api.airbnb.com/v2/host/listings/${this.config.propertyId}/pricing-rules`;
+      
+      const response = await fetch(endpoint, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Airbnb-API-Key': this.config.apiKey || '',
+          'Authorization': `Bearer ${this.config.apiSecret || ''}`
+        },
+        body: JSON.stringify({
+          base_price: pricingRules.basePrice,
+          weekend_price: pricingRules.weekendPrice,
+          monthly_discount: pricingRules.monthlyDiscount,
+          weekly_discount: pricingRules.weeklyDiscount,
+          cleaning_fee: pricingRules.cleaningFee,
+          extra_person_fee: pricingRules.extraPersonFee
+        })
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error('Error updating pricing rules on Airbnb:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Calendar API - Get availability calendar
+   */
+  async getCalendar(startDate: Date, endDate: Date): Promise<any[]> {
+    try {
+      const params = new URLSearchParams({
+        listing_id: this.config.propertyId,
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0]
+      });
+
+      const endpoint = this.config.endpoint || `https://api.airbnb.com/v2/host/calendar?${params.toString()}`;
+      
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Airbnb-API-Key': this.config.apiKey || '',
+          'Authorization': `Bearer ${this.config.apiSecret || ''}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Airbnb API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.calendar || [];
+    } catch (error) {
+      console.error('Error fetching calendar from Airbnb:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Analytics API - Get listing performance data
+   */
+  async getAnalytics(startDate: Date, endDate: Date): Promise<any> {
+    try {
+      const params = new URLSearchParams({
+        listing_id: this.config.propertyId,
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0]
+      });
+
+      const endpoint = this.config.endpoint || `https://api.airbnb.com/v2/host/analytics?${params.toString()}`;
+      
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Airbnb-API-Key': this.config.apiKey || '',
+          'Authorization': `Bearer ${this.config.apiSecret || ''}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Airbnb API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching analytics from Airbnb:', error);
+      return null;
+    }
+  }
 }

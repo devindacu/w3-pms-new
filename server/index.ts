@@ -865,6 +865,193 @@ app.get('/api/channel-sync-logs', async (req, res) => {
   }
 });
 
+// ============ Extended Booking.com API Endpoints ============
+
+// Update property details
+app.post('/api/channels/booking-com/property', async (req, res) => {
+  try {
+    const { config, propertyData } = req.body;
+    const service = new BookingComService(config);
+    const success = await service.updateProperty(propertyData);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update property' });
+  }
+});
+
+// Update room types
+app.post('/api/channels/booking-com/rooms', async (req, res) => {
+  try {
+    const { config, roomTypes } = req.body;
+    const service = new BookingComService(config);
+    const success = await service.updateRoomTypes(roomTypes);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update room types' });
+  }
+});
+
+// Upload photo
+app.post('/api/channels/booking-com/photos', async (req, res) => {
+  try {
+    const { config, photoData } = req.body;
+    const service = new BookingComService(config);
+    const success = await service.uploadPhoto(photoData);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to upload photo' });
+  }
+});
+
+// Update facilities
+app.post('/api/channels/booking-com/facilities', async (req, res) => {
+  try {
+    const { config, facilities } = req.body;
+    const service = new BookingComService(config);
+    const success = await service.updateFacilities(facilities);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update facilities' });
+  }
+});
+
+// Get payments
+app.post('/api/channels/booking-com/payments', async (req, res) => {
+  try {
+    const { config, startDate, endDate } = req.body;
+    const service = new BookingComService(config);
+    const payments = await service.getPayments(new Date(startDate), new Date(endDate));
+    res.json(payments);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch payments' });
+  }
+});
+
+// Get reviews
+app.get('/api/channels/booking-com/reviews', async (req, res) => {
+  try {
+    const { config, startDate, endDate } = req.query as any;
+    const service = new BookingComService(JSON.parse(config));
+    const reviews = await service.getReviews(
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined
+    );
+    res.json(reviews);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch reviews' });
+  }
+});
+
+// ============ Extended Airbnb API Endpoints ============
+
+// Update listing
+app.post('/api/channels/airbnb/listing', async (req, res) => {
+  try {
+    const { config, listingData } = req.body;
+    const service = new AirbnbService(config);
+    const success = await service.updateListing(listingData);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update listing' });
+  }
+});
+
+// Upload listing photo
+app.post('/api/channels/airbnb/photos', async (req, res) => {
+  try {
+    const { config, photoUrl, caption } = req.body;
+    const service = new AirbnbService(config);
+    const success = await service.uploadListingPhoto(photoUrl, caption);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to upload photo' });
+  }
+});
+
+// Send message to guest
+app.post('/api/channels/airbnb/messages', async (req, res) => {
+  try {
+    const { config, reservationId, message } = req.body;
+    const service = new AirbnbService(config);
+    const success = await service.sendMessage(reservationId, message);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to send message' });
+  }
+});
+
+// Get messages for reservation
+app.get('/api/channels/airbnb/messages/:reservationId', async (req, res) => {
+  try {
+    const { config } = req.query as any;
+    const service = new AirbnbService(JSON.parse(config));
+    const messages = await service.getMessages(req.params.reservationId);
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+});
+
+// Get reviews
+app.get('/api/channels/airbnb/reviews', async (req, res) => {
+  try {
+    const { config } = req.query as any;
+    const service = new AirbnbService(JSON.parse(config));
+    const reviews = await service.getReviews();
+    res.json(reviews);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch reviews' });
+  }
+});
+
+// Respond to review
+app.post('/api/channels/airbnb/reviews/:reviewId/response', async (req, res) => {
+  try {
+    const { config, response } = req.body;
+    const service = new AirbnbService(config);
+    const success = await service.respondToReview(req.params.reviewId, response);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to respond to review' });
+  }
+});
+
+// Update pricing rules
+app.post('/api/channels/airbnb/pricing', async (req, res) => {
+  try {
+    const { config, pricingRules } = req.body;
+    const service = new AirbnbService(config);
+    const success = await service.updatePricingRules(pricingRules);
+    res.json({ success });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update pricing rules' });
+  }
+});
+
+// Get calendar
+app.get('/api/channels/airbnb/calendar', async (req, res) => {
+  try {
+    const { config, startDate, endDate } = req.query as any;
+    const service = new AirbnbService(JSON.parse(config));
+    const calendar = await service.getCalendar(new Date(startDate), new Date(endDate));
+    res.json(calendar);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch calendar' });
+  }
+});
+
+// Get analytics
+app.get('/api/channels/airbnb/analytics', async (req, res) => {
+  try {
+    const { config, startDate, endDate } = req.query as any;
+    const service = new AirbnbService(JSON.parse(config));
+    const analytics = await service.getAnalytics(new Date(startDate), new Date(endDate));
+    res.json(analytics);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch analytics' });
+  }
+});
+
 // Backup APIs
 app.post('/api/backup/create', async (req, res) => {
   try {
