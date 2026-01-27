@@ -15,6 +15,8 @@ import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import {
   Download,
   CalendarBlank,
@@ -367,9 +369,20 @@ export function DepartmentalPLDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-7xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="text-2xl flex items-center gap-2">
-            <TrendUp size={28} weight="duotone" className="text-primary" />
-            Departmental P&L Report
+          <DialogTitle className="flex items-center justify-between text-2xl">
+            <div className="flex items-center gap-2">
+              <TrendUp size={28} weight="duotone" className="text-primary" />
+              Departmental P&L Report
+            </div>
+            <PrintButton
+              elementId="departmental-pl-print"
+              options={{
+                title: `Departmental P&L Report - ${formatDate(getPeriodDates().startDate)} to ${formatDate(getPeriodDates().endDate)}`,
+                filename: `departmental-pl-${Date.now()}.pdf`
+              }}
+              variant="outline"
+              size="sm"
+            />
           </DialogTitle>
         </DialogHeader>
 
@@ -680,6 +693,73 @@ export function DepartmentalPLDialog({
               </ScrollArea>
             </TabsContent>
           </Tabs>
+        </div>
+
+        <div className="hidden">
+          <A4PrintWrapper id="departmental-pl-print" title={`Departmental P&L Report - ${formatDate(getPeriodDates().startDate)} to ${formatDate(getPeriodDates().endDate)}`}>
+            <div className="space-y-6">
+              <div className="border-b pb-4">
+                <h2 className="text-xl font-semibold">Consolidated P&L Summary</h2>
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <div className="text-sm text-gray-600">Total Revenue</div>
+                    <div className="text-lg font-semibold">{formatCurrency(consolidatedPL.revenue)}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Gross Profit</div>
+                    <div className="text-lg font-semibold">{formatCurrency(consolidatedPL.grossProfit)}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Operating Income</div>
+                    <div className="text-lg font-semibold">{formatCurrency(consolidatedPL.operatingIncome)}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Net Income</div>
+                    <div className="text-lg font-semibold">{formatCurrency(consolidatedPL.netIncome)}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Department Breakdown</h3>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="p-2 text-left">Department</th>
+                      <th className="p-2 text-right">Revenue</th>
+                      <th className="p-2 text-right">Cost of Sales</th>
+                      <th className="p-2 text-right">Gross Profit</th>
+                      <th className="p-2 text-right">Operating Expenses</th>
+                      <th className="p-2 text-right">Net Income</th>
+                      <th className="p-2 text-right">Net Margin</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {departmentResults.map((dept) => (
+                      <tr key={dept.department} className="border-b">
+                        <td className="p-2">{DEPARTMENT_LABELS[dept.department]}</td>
+                        <td className="p-2 text-right">{formatCurrency(dept.revenue)}</td>
+                        <td className="p-2 text-right">{formatCurrency(dept.costOfSales)}</td>
+                        <td className="p-2 text-right">{formatCurrency(dept.grossProfit)}</td>
+                        <td className="p-2 text-right">{formatCurrency(dept.operatingExpenses)}</td>
+                        <td className="p-2 text-right">{formatCurrency(dept.netIncome)}</td>
+                        <td className="p-2 text-right">{formatPercent(dept.netProfitMargin / 100)}</td>
+                      </tr>
+                    ))}
+                    <tr className="border-t-2 font-bold">
+                      <td className="p-2">TOTAL</td>
+                      <td className="p-2 text-right">{formatCurrency(consolidatedPL.revenue)}</td>
+                      <td className="p-2 text-right">{formatCurrency(consolidatedPL.costOfSales)}</td>
+                      <td className="p-2 text-right">{formatCurrency(consolidatedPL.grossProfit)}</td>
+                      <td className="p-2 text-right">{formatCurrency(consolidatedPL.operatingExpenses)}</td>
+                      <td className="p-2 text-right">{formatCurrency(consolidatedPL.netIncome)}</td>
+                      <td className="p-2 text-right">{formatPercent(netProfitMargin / 100)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </A4PrintWrapper>
         </div>
       </DialogContent>
     </Dialog>

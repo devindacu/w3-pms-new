@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import { Download, TrendUp, TrendDown, ChartBar, ListChecks, Calendar, Warning } from '@phosphor-icons/react'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, ComposedChart, Area } from 'recharts'
 import { type CostCenter, type Expense, type Budget, type CostCenterReport, type Department, type ExpenseCategory } from '@/lib/types'
@@ -190,6 +192,15 @@ export function CostCenterReportDialog({
               </p>
             </div>
             <div className="flex items-center gap-2">
+              <PrintButton
+                elementId="cost-center-report-print"
+                options={{
+                  title: 'Cost Center Performance Report',
+                  filename: `cost-center-report-${Date.now()}.pdf`
+                }}
+                variant="outline"
+                size="sm"
+              />
               <Button onClick={exportReport} size="sm" variant="outline">
                 <Download size={16} className="mr-2" />
                 Export PDF
@@ -639,6 +650,63 @@ export function CostCenterReportDialog({
             </Tabs>
           </div>
         </ScrollArea>
+
+        <div className="hidden">
+          <A4PrintWrapper id="cost-center-report-print" title="Cost Center Performance Report">
+            <div className="space-y-6">
+              <div className="border-b pb-4">
+                <h2 className="text-xl font-semibold">Summary</h2>
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <div className="text-sm text-gray-600">Budgeted Amount</div>
+                    <div className="text-lg font-semibold">{formatCurrency(totalBudget)}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Actual Spent</div>
+                    <div className="text-lg font-semibold">{formatCurrency(totalActual)}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Variance</div>
+                    <div className="text-lg font-semibold">{formatCurrency(Math.abs(variance))}</div>
+                    <div className="text-xs text-gray-600">{variance >= 0 ? 'Under Budget' : 'Over Budget'}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Budget Efficiency</div>
+                    <div className="text-lg font-semibold">{Math.abs(variancePercentage).toFixed(1)}%</div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">All Cost Centers</h3>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="p-2 text-left">Cost Center</th>
+                      <th className="p-2 text-left">Department</th>
+                      <th className="p-2 text-right">Budget</th>
+                      <th className="p-2 text-right">Actual</th>
+                      <th className="p-2 text-right">Variance</th>
+                      <th className="p-2 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allCostCentersData.map((cc) => (
+                      <tr key={cc.id} className="border-b">
+                        <td className="p-2">{cc.code} - {cc.name}</td>
+                        <td className="p-2">{cc.department}</td>
+                        <td className="p-2 text-right">{formatCurrency(cc.budgetedAmount)}</td>
+                        <td className="p-2 text-right">{formatCurrency(cc.actualAmount)}</td>
+                        <td className="p-2 text-right">{formatCurrency(Math.abs(cc.variance))}</td>
+                        <td className="p-2 text-center">{cc.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </A4PrintWrapper>
+        </div>
       </DialogContent>
     </Dialog>
   )

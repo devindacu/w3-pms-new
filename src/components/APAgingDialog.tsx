@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import { Download, FileText, Calendar } from '@phosphor-icons/react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { formatCurrency, formatDate } from '@/lib/helpers'
@@ -176,9 +178,20 @@ export function APAgingDialog({ open, onOpenChange, invoices }: APAgingDialogPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Calendar size={24} />
-            Accounts Payable Aging Report
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Calendar size={24} />
+              Accounts Payable Aging Report
+            </div>
+            <PrintButton
+              elementId="ap-aging-print"
+              options={{
+                title: `AP Aging Report - ${formatDate(Date.now())}`,
+                filename: `ap-aging-${Date.now()}.pdf`
+              }}
+              variant="outline"
+              size="sm"
+            />
           </DialogTitle>
         </DialogHeader>
 
@@ -336,6 +349,77 @@ export function APAgingDialog({ open, onOpenChange, invoices }: APAgingDialogPro
               </Tabs>
             </div>
           </ScrollArea>
+        </div>
+
+        <div className="hidden">
+          <A4PrintWrapper id="ap-aging-print" title={`AP Aging Report - ${formatDate(Date.now())}`}>
+            <div className="space-y-6">
+              <div className="border-b pb-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-xl font-semibold">Summary</h2>
+                    <p className="text-sm text-gray-600">Report Date: {formatDate(Date.now())}</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-600">Total Payables</div>
+                    <div className="text-2xl font-bold">{formatCurrency(agingAnalysis.totalPayables)}</div>
+                    <div className="text-sm text-gray-600">{agingAnalysis.totalInvoices} invoices</div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Aging Breakdown</h3>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="p-2 text-left">Period</th>
+                      <th className="p-2 text-right">Count</th>
+                      <th className="p-2 text-right">Amount</th>
+                      <th className="p-2 text-right">% of Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {agingAnalysis.buckets.map((bucket) => {
+                      const percentage = agingAnalysis.totalPayables > 0
+                        ? (bucket.amount / agingAnalysis.totalPayables) * 100
+                        : 0
+                      return (
+                        <tr key={bucket.label} className="border-b">
+                          <td className="p-2">{bucket.label}</td>
+                          <td className="p-2 text-right">{bucket.count}</td>
+                          <td className="p-2 text-right">{formatCurrency(bucket.amount)}</td>
+                          <td className="p-2 text-right">{percentage.toFixed(1)}%</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Top Suppliers by Outstanding Amount</h3>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="p-2 text-left">Supplier</th>
+                      <th className="p-2 text-right">Invoices</th>
+                      <th className="p-2 text-right">Total Due</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {agingAnalysis.supplierAging.slice(0, 10).map((supplier) => (
+                      <tr key={supplier.supplierName} className="border-b">
+                        <td className="p-2">{supplier.supplierName}</td>
+                        <td className="p-2 text-right">{supplier.invoices.length}</td>
+                        <td className="p-2 text-right">{formatCurrency(supplier.totalDue)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </A4PrintWrapper>
         </div>
       </DialogContent>
     </Dialog>

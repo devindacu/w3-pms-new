@@ -19,6 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { PrintButton } from '@/components/PrintButton'
+import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import {
   TrendUp,
   TrendDown,
@@ -254,9 +256,20 @@ export function BudgetVarianceDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <TrendUp size={24} />
-            Budget Variance Analysis
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <TrendUp size={24} />
+              Budget Variance Analysis
+            </div>
+            <PrintButton
+              elementId="budget-variance-print"
+              options={{
+                title: `Budget Variance Analysis - ${getPeriodLabel()}`,
+                filename: `budget-variance-${Date.now()}.pdf`
+              }}
+              variant="outline"
+              size="sm"
+            />
           </DialogTitle>
         </DialogHeader>
 
@@ -427,6 +440,64 @@ export function BudgetVarianceDialog({
               </div>
             </ScrollArea>
           </Card>
+        </div>
+
+        <div className="hidden">
+          <A4PrintWrapper id="budget-variance-print" title={`Budget Variance Analysis - ${getPeriodLabel()}`}>
+            <div className="space-y-6">
+              <div className="border-b pb-4">
+                <h2 className="text-xl font-semibold">Summary</h2>
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <div className="text-sm text-gray-600">Total Budgeted</div>
+                    <div className="text-lg font-semibold">{formatCurrency(summary.totalBudgeted)}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Total Actual</div>
+                    <div className="text-lg font-semibold">{formatCurrency(summary.totalActual)}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Variance</div>
+                    <div className="text-lg font-semibold">{formatCurrency(Math.abs(summary.totalVariance))}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Status</div>
+                    <div className="text-sm">
+                      Favorable: {summary.favorableCount}, Unfavorable: {summary.unfavorableCount}, On Track: {summary.onTrackCount}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Category Breakdown</h3>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="p-2 text-left">Category</th>
+                      <th className="p-2 text-right">Budgeted</th>
+                      <th className="p-2 text-right">Actual</th>
+                      <th className="p-2 text-right">Variance</th>
+                      <th className="p-2 text-right">Variance %</th>
+                      <th className="p-2 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {varianceAnalysis.map((item) => (
+                      <tr key={item.category} className="border-b">
+                        <td className="p-2">{item.category}</td>
+                        <td className="p-2 text-right">{formatCurrency(item.budgeted)}</td>
+                        <td className="p-2 text-right">{formatCurrency(item.actual)}</td>
+                        <td className="p-2 text-right">{formatCurrency(Math.abs(item.variance))}</td>
+                        <td className="p-2 text-right">{formatPercent(Math.abs(item.variancePercent) / 100)}</td>
+                        <td className="p-2 text-center">{item.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </A4PrintWrapper>
         </div>
       </DialogContent>
     </Dialog>
