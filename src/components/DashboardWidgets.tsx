@@ -1129,6 +1129,169 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
           </Card>
         )
 
+      case 'goal-tracking':
+        const goals = [
+          { 
+            name: 'Occupancy Target', 
+            current: metrics.occupancy.rate, 
+            target: 85, 
+            color: 'text-accent',
+            bgColor: 'bg-accent'
+          },
+          { 
+            name: 'Revenue Target', 
+            current: (metrics.revenue.today / 100000) * 100, 
+            target: 100, 
+            color: 'text-primary',
+            bgColor: 'bg-primary'
+          },
+          { 
+            name: 'Guest Satisfaction', 
+            current: (metrics.guests.averageSatisfaction / 5) * 100, 
+            target: 90, 
+            color: 'text-success',
+            bgColor: 'bg-success'
+          },
+          { 
+            name: 'Cost Control', 
+            current: 75, 
+            target: 80, 
+            color: 'text-warning',
+            bgColor: 'bg-warning'
+          }
+        ]
+
+        return (
+          <Card className="p-6 h-full">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h3 className="text-base font-semibold">Goal Progress</h3>
+              <TrendUp size={18} className="text-muted-foreground" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {goals.map((goal, index) => {
+                const percentage = Math.min((goal.current / goal.target) * 100, 100)
+                const achieved = goal.current >= goal.target
+                
+                return (
+                  <div key={index} className="flex flex-col items-center justify-center p-4 rounded-lg bg-muted/30">
+                    <div className="relative w-20 h-20 mb-3">
+                      <svg className="transform -rotate-90 w-20 h-20">
+                        <circle
+                          cx="40"
+                          cy="40"
+                          r="32"
+                          stroke="currentColor"
+                          strokeWidth="6"
+                          fill="none"
+                          className="text-muted"
+                        />
+                        <circle
+                          cx="40"
+                          cy="40"
+                          r="32"
+                          stroke="currentColor"
+                          strokeWidth="6"
+                          fill="none"
+                          strokeDasharray={`${2 * Math.PI * 32}`}
+                          strokeDashoffset={`${2 * Math.PI * 32 * (1 - percentage / 100)}`}
+                          className={goal.color}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className={`text-lg font-bold ${goal.color}`}>
+                          {Math.round(percentage)}%
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-xs font-medium text-center mb-1">{goal.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {goal.current.toFixed(0)} / {goal.target}
+                      {achieved && <span className="ml-1 text-success">✓</span>}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+          </Card>
+        )
+
+      case 'quick-actions':
+        const quickActions = [
+          { label: 'New Reservation', icon: Bed, action: () => onNavigate?.('frontoffice') },
+          { label: 'New Guest', icon: Users, action: () => onNavigate?.('frontoffice') },
+          { label: 'Purchase Order', icon: Package, action: () => onNavigate?.('procurement') },
+          { label: 'Create Invoice', icon: CurrencyDollar, action: () => onNavigate?.('finance') },
+          { label: 'New Requisition', icon: ChartBar, action: () => onNavigate?.('procurement') },
+          { label: 'Log Feedback', icon: Heart, action: () => onNavigate?.('crm') }
+        ]
+
+        return (
+          <Card className="p-6 h-full">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h3 className="text-base font-semibold">Quick Actions</h3>
+              <Package size={18} className="text-muted-foreground" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {quickActions.map((action, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/10 hover:border-primary transition-all"
+                  onClick={action.action}
+                >
+                  <action.icon size={20} />
+                  <span className="text-xs font-medium text-center">{action.label}</span>
+                </Button>
+              ))}
+            </div>
+          </Card>
+        )
+
+      case 'team-performance':
+        const topPerformers = [
+          { name: 'Sarah Johnson', role: 'Front Desk', score: 98, tasks: 45 },
+          { name: 'Mike Chen', role: 'Housekeeping', score: 95, tasks: 52 },
+          { name: 'Emma Davis', role: 'F&B', score: 92, tasks: 38 },
+          { name: 'James Wilson', role: 'Kitchen', score: 90, tasks: 41 }
+        ]
+
+        return (
+          <Card className="p-6 h-full">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h3 className="text-base font-semibold">Top Performers</h3>
+              <Star size={18} className="text-muted-foreground" />
+            </div>
+            <div className="space-y-3">
+              {topPerformers.map((performer, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-all">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary font-bold text-sm shrink-0">
+                    #{index + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{performer.name}</p>
+                    <p className="text-xs text-muted-foreground">{performer.role}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-sm font-bold text-success">{performer.score}%</p>
+                    <p className="text-xs text-muted-foreground">{performer.tasks} tasks</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {onNavigate && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full mt-4"
+                onClick={() => onNavigate('hr')}
+              >
+                View All Staff
+              </Button>
+            )}
+          </Card>
+        )
+
       default:
         return (
           <Card className="p-6 h-full">
