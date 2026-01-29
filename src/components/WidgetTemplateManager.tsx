@@ -1,18 +1,42 @@
 import React, { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, S
+import { Separator } from '@/components/ui/se
+import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Download, Upload, Eye, Star, Layout } from '@phosphor-icons/react'
-import type { DashboardLayout, DashboardWidget, SystemRole } from '@/lib/types'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
+import {
+  Plus,
+  Star,
+  Sparkle
+  Uploa
+} from '
+  Dash
+  UserRole,
+  Widge
+  Dashbo
+import { g
+interface W
+  name: s
+  author: st
+  isDefault: boolean
+  widgets: Da
+  category: 'operation
+  usage: numb
+  UserRole,
+  RoleWidgetPreset,
+  WidgetSize,
+  DashboardLayout,
+  DashboardWidget
+} from '@/lib/types'
+import { getRoleWidgetPresets, getAvailableWidgets } from '@/lib/widgetConfig'
 
 interface WidgetTemplate {
   id: string
@@ -21,13 +45,13 @@ interface WidgetTemplate {
   author: string
   isPublic: boolean
   isDefault: boolean
-  targetRoles: SystemRole[]
+  targetRoles: (SystemRole | UserRole)[]
   widgets: DashboardWidget[]
-  columns: number
-  category: 'executive' | 'operational' | 'departmental' | 'analytical' | 'custom'
+  columns: 1 | 2 | 3 | 4
+  category: 'operational' | 'executive' | 'departmental' | 'analytical' | 'custom'
   tags: string[]
-  rating: number
   usage: number
+  rating: number
   createdAt: number
   updatedAt: number
 }
@@ -35,105 +59,288 @@ interface WidgetTemplate {
 interface WidgetTemplateManagerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  currentRole: SystemRole
-  currentLayout?: DashboardLayout | null
+  currentRole: SystemRole | UserRole
+  currentLayout: DashboardLayout | null
   onApplyTemplate: (layout: DashboardLayout) => void
-  onSaveAsTemplate?: (template: WidgetTemplate) => void
-}
+  'crm-summary': 'CRM Summary',
+ 
 
-const CATEGORY_LABELS: Record<WidgetTemplate['category'], string> = {
+  'channel-sync-status': 'Channel Sync Status',
+  'booking-source': 'Booking Sou
+}
+const CATEGORY_LABELS = {
   executive: 'Executive',
-  operational: 'Operational',
-  departmental: 'Departmental',
   analytical: 'Analytical',
-  custom: 'Custom'
 }
-
-const CATEGORY_DESCRIPTIONS: Record<WidgetTemplate['category'], string> = {
-  executive: 'High-level overview templates for senior management',
-  operational: 'Day-to-day operations and task management',
-  departmental: 'Department-specific dashboards',
-  analytical: 'Data-driven templates with charts and insights',
-  custom: 'Custom templates created by users'
+const CATEGORY_DESCRIPTIONS = {
+  executive: 'High-level overview templates f
+  analytical: 'Data-driven temp
 }
-
-const DEFAULT_TEMPLATES: WidgetTemplate[] = [
-  {
-    id: 'template-executive-1',
-    name: 'Executive Dashboard',
-    description: 'Comprehensive overview for senior management with key performance indicators, revenue trends, and strategic metrics',
-    author: 'System',
-    isPublic: true,
-    isDefault: true,
-    targetRoles: ['admin', 'procurement-manager'],
-    widgets: [
-      { id: 'w1', type: 'revenue-today', title: "Today's Revenue", size: 'small', position: 0, isVisible: true, refreshInterval: 60000 },
-      { id: 'w2', type: 'occupancy', title: 'Occupancy Rate', size: 'small', position: 1, isVisible: true, refreshInterval: 60000 },
-      { id: 'w3', type: 'financial-summary', title: 'Financial Summary', size: 'large', position: 2, isVisible: true, refreshInterval: 60000 },
-      { id: 'w4', type: 'revenue-chart', title: 'Revenue Trends', size: 'large', position: 3, isVisible: true, refreshInterval: 60000 }
-    ],
-    columns: 2,
-    category: 'executive',
-    tags: ['executive', 'revenue', 'kpi', 'management'],
-    rating: 4.8,
-    usage: 145,
-    createdAt: Date.now() - 86400000 * 30,
-    updatedAt: Date.now() - 86400000 * 5
-  },
-  {
-    id: 'template-frontoffice-1',
-    name: 'Front Office Operations',
-    description: 'Daily operations dashboard for front desk staff with arrivals, departures, room status, and guest management',
-    author: 'System',
-    isPublic: true,
-    isDefault: false,
-    targetRoles: ['admin', 'department-head'],
-    widgets: [
-      { id: 'w1', type: 'arrivals-departures', title: 'Arrivals & Departures', size: 'large', position: 0, isVisible: true, refreshInterval: 60000 },
-      { id: 'w2', type: 'room-status', title: 'Room Status', size: 'large', position: 1, isVisible: true, refreshInterval: 60000 },
-      { id: 'w3', type: 'housekeeping', title: 'Housekeeping', size: 'small', position: 2, isVisible: true, refreshInterval: 60000 },
-      { id: 'w4', type: 'occupancy', title: 'Occupancy', size: 'small', position: 3, isVisible: true, refreshInterval: 60000 }
-    ],
-    columns: 2,
-    category: 'operational',
-    tags: ['front-office', 'operations', 'daily', 'guest-service'],
-    rating: 4.6,
-    usage: 98,
-    createdAt: Date.now() - 86400000 * 25,
-    updatedAt: Date.now() - 86400000 * 3
-  }
-]
-
 export function WidgetTemplateManager({
-  open,
   onOpenChange,
-  currentRole,
   currentLayout,
-  onApplyTemplate,
   onSaveAsTemplate
-}: WidgetTemplateManagerProps) {
-  const [selectedTemplate, setSelectedTemplate] = useState<WidgetTemplate | null>(null)
-  const [previewTemplate, setPreviewTemplate] = useState<WidgetTemplate | null>(null)
-  const [templateName, setTemplateName] = useState('')
-  const [templateDescription, setTemplateDescription] = useState('')
-  const [templateCategory, setTemplateCategory] = useState<WidgetTemplate['category']>('custom')
-  const [templateTags, setTemplateTags] = useState('')
+  const [selectedTemplate, setSelectedTemplate] = use
+  const [templateName, setTemplateName] = u
+  const [templateCategory, setTemplateCateg
+  const [templateIsPublic, setTemplateIsPubli
+
+  const availableWidgets = getAvailableWidgets(
+  const sampleTemplates: WidgetTemplate[] =
+      id: 'tpl-exec-1',
+      description: 'Comprehensive o
+      isPublic: true,
+      targetRoles: ['admin', 'manager'],
+        { id: 'w1', type: 'revenue-to
+        { id: 'w3', type: 'financial-
+        { id: 'w5', type: 'department-
+ 
+
+      usage: 156,
+      createdAt: Date.now() -
+    },
+      id: 'tpl-ops-1',
+      description: 'Real-ti
+      isPublic: tr
+ 
+
+        { id: 'w3', type: 'hous
+        { id: 'w5', type: 'guest-feedback', title: 'Guest Feedback', size: 'medi
+      ],
+      category: 'operational',
+      usage: 243,
+      createdAt: Date.now() - 60 * 24 * 60 * 60 * 100
+ 
+
+      description: 'Comprehensive Food 
+      i
+      targetRol
+        { id: 
+        { id: 'w
+        { id: 'w5'
+      columns: 2,
+      tags: ['fnb', 'kitchen', '
+      rating: 4.7,
+      updatedAt: Date.now() - 10 * 24 * 60 * 60 * 1000
+    {
+      name: 'Business Intelligence',
+      author: 'System',
+      isDefault: false,
   const [templateIsPublic, setTemplateIsPublic] = useState(false)
+  const [previewTemplate, setPreviewTemplate] = useState<WidgetTemplate | null>(null)
+
+  const rolePreset = getRoleWidgetPresets(currentRole)
+  const availableWidgets = getAvailableWidgets()
+
+  const sampleTemplates: WidgetTemplate[] = [
+    {
+      id: 'tpl-exec-1',
+      name: 'Executive Dashboard',
+      description: 'Comprehensive overview for senior management with key performance indicators, revenue trends, and strategic metrics',
+      author: 'System',
+      isPublic: true,
+      isDefault: true,
+      targetRoles: ['admin', 'manager'],
+      widgets: [
+        { id: 'w1', type: 'revenue-today', title: 'Revenue Today', size: 'small', position: 0, isVisible: true },
+        { id: 'w2', type: 'occupancy', title: 'Occupancy Rate', size: 'small', position: 1, isVisible: true },
+        { id: 'w3', type: 'financial-summary', title: 'Financial Summary', size: 'large', position: 2, isVisible: true },
+        { id: 'w4', type: 'revenue-chart', title: 'Revenue Trends', size: 'large', position: 3, isVisible: true },
+        { id: 'w5', type: 'department-performance', title: 'Department Performance', size: 'large', position: 4, isVisible: true },
+        { id: 'w6', type: 'channel-performance', title: 'Channel Performance', size: 'large', position: 5, isVisible: true }
+      ],
+      columns: 3,
+      category: 'executive',
+      tags: ['executive', 'management', 'kpi', 'revenue'],
+      usage: 156,
+      rating: 4.8,
+      createdAt: Date.now() - 90 * 24 * 60 * 60 * 1000,
+      updatedAt: Date.now() - 30 * 24 * 60 * 60 * 1000
+    },
+    {
+      id: 'tpl-ops-1',
+      name: 'Operations Command Center',
+      description: 'Real-time operations dashboard for front desk and management with focus on daily tasks and guest services',
+      author: 'System',
+      isPublic: true,
+      isDefault: false,
+      targetRoles: ['front-desk', 'manager'],
+      widgets: [
+        { id: 'w1', type: 'arrivals-departures', title: 'Arrivals & Departures', size: 'large', position: 0, isVisible: true },
+        { id: 'w2', type: 'room-status', title: 'Room Status', size: 'large', position: 1, isVisible: true },
+        { id: 'w3', type: 'housekeeping', title: 'Housekeeping', size: 'small', position: 2, isVisible: true },
+        { id: 'w4', type: 'occupancy', title: 'Occupancy', size: 'small', position: 3, isVisible: true },
+        { id: 'w5', type: 'guest-feedback', title: 'Guest Feedback', size: 'medium', position: 4, isVisible: true },
+        { id: 'w6', type: 'pending-approvals', title: 'Pending Tasks', size: 'medium', position: 5, isVisible: true }
+      ],
+      columns: 2,
+      category: 'operational',
+      tags: ['operations', 'front-desk', 'daily', 'guest-services'],
+      usage: 243,
+      rating: 4.9,
+      createdAt: Date.now() - 60 * 24 * 60 * 60 * 1000,
+      updatedAt: Date.now() - 15 * 24 * 60 * 60 * 1000
+    },
+    {
+      id: 'tpl-fnb-1',
+      name: 'F&B Excellence',
+      description: 'Comprehensive Food & Beverage dashboard for kitchen operations, inventory management, and service quality',
+      author: 'System',
+      isPublic: true,
+      isDefault: false,
+      targetRoles: ['chef', 'waiter'],
+      widgets: [
+        { id: 'w1', type: 'kitchen-operations', title: 'Kitchen Operations', size: 'large', position: 0, isVisible: true },
+        { id: 'w2', type: 'fnb-performance', title: 'F&B Performance', size: 'medium', position: 1, isVisible: true },
+        { id: 'w3', type: 'food-inventory', title: 'Food Inventory', size: 'small', position: 2, isVisible: true },
+        { id: 'w4', type: 'low-stock', title: 'Low Stock Alert', size: 'large', position: 3, isVisible: true },
+        { id: 'w5', type: 'guest-feedback', title: 'Guest Feedback', size: 'medium', position: 4, isVisible: true }
+      ],
+      columns: 2,
+      category: 'departmental',
+      tags: ['fnb', 'kitchen', 'food', 'service'],
+      usage: 89,
+      rating: 4.7,
+      createdAt: Date.now() - 45 * 24 * 60 * 60 * 1000,
+      updatedAt: Date.now() - 10 * 24 * 60 * 60 * 1000
+    },
+    {
+      id: 'tpl-analytics-1',
+      name: 'Business Intelligence',
+      description: 'Advanced analytics dashboard with charts, trends, and comparative metrics for data-driven decision making',
+      author: 'System',
+      isPublic: true,
+      isDefault: false,
+      targetRoles: ['admin', 'manager', 'accountant'],
+      widgets: [
+        { id: 'w1', type: 'revenue-chart', title: 'Revenue Analysis', size: 'large', position: 0, isVisible: true },
+        { id: 'w2', type: 'occupancy-chart', title: 'Occupancy Trends', size: 'large', position: 1, isVisible: true },
+        { id: 'w3', type: 'period-comparison', title: 'Period Comparison', size: 'large', position: 2, isVisible: true },
+        { id: 'w4', type: 'channel-performance', title: 'Channel Analytics', size: 'large', position: 3, isVisible: true },
+        { id: 'w5', type: 'financial-summary', title: 'Financial Overview', size: 'large', position: 4, isVisible: true },
+        { id: 'w6', type: 'department-performance', title: 'Department Metrics', size: 'large', position: 5, isVisible: true }
+      ],
+      columns: 2,
+      category: 'analytical',
+      tags: ['analytics', 'charts', 'trends', 'metrics'],
+      usage: 124,
+      rating: 4.6,
+      createdAt: Date.now() - 30 * 24 * 60 * 60 * 1000,
+      updatedAt: Date.now() - 5 * 24 * 60 * 60 * 1000
+    },
+    {
+      id: 'tpl-housekeeping-1',
+      name: 'Housekeeping Central',
+      description: 'Streamlined dashboard for housekeeping team with room status, task assignments, and inventory tracking',
+      author: 'System',
+      isPublic: true,
+      isDefault: false,
+      targetRoles: ['housekeeper'],
+      widgets: [
+        { id: 'w1', type: 'housekeeping', title: 'Tasks Today', size: 'medium', position: 0, isVisible: true },
+        { id: 'w2', type: 'room-status', title: 'Room Status', size: 'large', position: 1, isVisible: true },
+        { id: 'w3', type: 'amenities-stock', title: 'Amenities Stock', size: 'small', position: 2, isVisible: true },
+        { id: 'w4', type: 'occupancy', title: 'Occupancy', size: 'small', position: 3, isVisible: true },
+        { id: 'w5', type: 'arrivals-departures', title: 'Arrivals & Departures', size: 'medium', position: 4, isVisible: true },
+        { id: 'w6', type: 'low-stock', title: 'Low Stock Items', size: 'large', position: 5, isVisible: true }
+      ],
+      columns: 2,
+      category: 'departmental',
+      tags: ['housekeeping', 'rooms', 'cleaning', 'amenities'],
+      usage: 67,
+      rating: 4.5,
+      createdAt: Date.now() - 40 * 24 * 60 * 60 * 1000,
+      updatedAt: Date.now() - 8 * 24 * 60 * 60 * 1000
+    },
+    {
+      id: 'tpl-finance-1',
+      name: 'Financial Control Center',
+      description: 'Complete financial overview with revenue tracking, expense monitoring, and approval workflows',
+      author: 'System',
+      isPublic: true,
+      isDefault: false,
+      targetRoles: ['accountant', 'accounts', 'admin'],
+      widgets: [
+        { id: 'w1', type: 'revenue-today', title: 'Today\'s Revenue', size: 'small', position: 0, isVisible: true },
+        { id: 'w2', type: 'financial-summary', title: 'Financial Summary', size: 'large', position: 1, isVisible: true },
+        { id: 'w3', type: 'pending-approvals', title: 'Pending Approvals', size: 'medium', position: 2, isVisible: true },
+        { id: 'w4', type: 'revenue-chart', title: 'Revenue Trends', size: 'large', position: 3, isVisible: true },
+        { id: 'w5', type: 'channel-performance', title: 'Channel Revenue', size: 'large', position: 4, isVisible: true },
+        { id: 'w6', type: 'department-performance', title: 'Department P&L', size: 'large', position: 5, isVisible: true }
+      ],
+      columns: 2,
+      category: 'departmental',
+      tags: ['finance', 'accounting', 'revenue', 'expenses'],
+      usage: 98,
+      rating: 4.7,
+      createdAt: Date.now() - 35 * 24 * 60 * 60 * 1000,
+      updatedAt: Date.now() - 7 * 24 * 60 * 60 * 1000
+    },
+    {
+      id: 'tpl-maintenance-1',
+      name: 'Maintenance & Engineering',
+      description: 'Engineering dashboard focused on maintenance requests, construction projects, and asset management',
+      author: 'System',
+      isPublic: true,
+      isDefault: false,
+      targetRoles: ['engineer'],
+      widgets: [
+        { id: 'w1', type: 'maintenance-status', title: 'Maintenance Requests', size: 'large', position: 0, isVisible: true },
+        { id: 'w2', type: 'maintenance-construction', title: 'Projects', size: 'medium', position: 1, isVisible: true },
+        { id: 'w3', type: 'room-status', title: 'Room Status', size: 'large', position: 2, isVisible: true },
+        { id: 'w4', type: 'low-stock', title: 'Materials Stock', size: 'medium', position: 3, isVisible: true },
+        { id: 'w5', type: 'pending-approvals', title: 'Pending Approvals', size: 'medium', position: 4, isVisible: true },
+        { id: 'w6', type: 'occupancy', title: 'Occupancy', size: 'small', position: 5, isVisible: true }
+      ],
+      columns: 2,
+      category: 'departmental',
+      tags: ['maintenance', 'engineering', 'construction', 'assets'],
+      usage: 45,
+      rating: 4.4,
+      createdAt: Date.now() - 50 * 24 * 60 * 60 * 1000,
+      updatedAt: Date.now() - 12 * 24 * 60 * 60 * 1000
+    },
+    {
+      id: 'tpl-inventory-1',
+      name: 'Inventory Master',
+      description: 'Comprehensive inventory management dashboard for procurement and stock control across all categories',
+      author: 'System',
+      isPublic: true,
+      isDefault: false,
+      targetRoles: ['procurement-manager', 'storekeeper'],
+      widgets: [
+        { id: 'w1', type: 'low-stock', title: 'Low Stock Alert', size: 'large', position: 0, isVisible: true },
+        { id: 'w2', type: 'food-inventory', title: 'Food Inventory', size: 'small', position: 1, isVisible: true },
+        { id: 'w3', type: 'amenities-stock', title: 'Amenities Stock', size: 'small', position: 2, isVisible: true },
+        { id: 'w4', type: 'maintenance-construction', title: 'Materials', size: 'small', position: 3, isVisible: true },
+        { id: 'w5', type: 'pending-approvals', title: 'Purchase Orders', size: 'medium', position: 4, isVisible: true },
+        { id: 'w6', type: 'occupancy', title: 'Occupancy', size: 'small', position: 5, isVisible: true }
+      ],
+      columns: 2,
+      category: 'departmental',
+      tags: ['inventory', 'procurement', 'stock', 'purchasing'],
+      usage: 76,
+      rating: 4.6,
+      createdAt: Date.now() - 55 * 24 * 60 * 60 * 1000,
+      updatedAt: Date.now() - 9 * 24 * 60 * 60 * 1000
+    }
+  ]
 
   const handleApplyTemplate = (template: WidgetTemplate) => {
     const newLayout: DashboardLayout = {
       id: `layout-${Date.now()}`,
-      userId: currentLayout?.userId || 'current-user',
+      userId: currentLayout?.userId,
       userRole: currentRole,
       name: template.name,
+      description: template.description,
       isDefault: false,
       isShared: false,
-      widgets: template.widgets.map((widget, index) => ({
-        ...widget,
+      widgets: template.widgets.map((w, index) => ({
+        ...w,
         id: `widget-${Date.now()}-${index}`,
         position: index
       })),
-      columns: (Math.min(Math.max(template.columns, 1), 4) as 1 | 2 | 3 | 4),
+      columns: template.columns,
       createdAt: Date.now(),
       updatedAt: Date.now(),
       createdBy: currentLayout?.createdBy || 'current-user'
@@ -145,177 +352,119 @@ export function WidgetTemplateManager({
   }
 
   const handleSaveCurrentAsTemplate = () => {
-    if (!currentLayout) {
-      toast.error('No current layout to save')
-      return
-    }
-
-    if (!onSaveAsTemplate) {
-      toast.error('Save template function not available')
-      return
-    }
-
-    if (!templateName.trim()) {
-      toast.error('Please enter a template name')
+    if (!currentLayout || !templateName.trim()) {
+      toast.error('Please provide a template name')
       return
     }
 
     const newTemplate: WidgetTemplate = {
-      id: `template-custom-${Date.now()}`,
+      id: `tpl-custom-${Date.now()}`,
       name: templateName.trim(),
       description: templateDescription.trim() || 'Custom dashboard template',
-      author: currentLayout.createdBy || 'current-user',
+      author: currentLayout.createdBy,
       isPublic: templateIsPublic,
       isDefault: false,
       targetRoles: [currentRole],
       widgets: currentLayout.widgets,
       columns: currentLayout.columns,
       category: templateCategory,
-      tags: templateTags.split(',').map(tag => tag.trim()).filter(Boolean),
-      rating: 0,
+      tags: templateTags.split(',').map(t => t.trim()).filter(Boolean),
       usage: 0,
+      rating: 0,
       createdAt: Date.now(),
       updatedAt: Date.now()
     }
 
     onSaveAsTemplate(newTemplate)
     toast.success(`Template "${newTemplate.name}" saved successfully`)
+    setShowCreateDialog(false)
     setTemplateName('')
     setTemplateDescription('')
     setTemplateTags('')
+    setTemplateCategory('custom')
     setTemplateIsPublic(false)
   }
 
-  const allTemplates = DEFAULT_TEMPLATES
-  const roleRelevantTemplates = allTemplates.filter(t => t.targetRoles.includes(currentRole))
+  const roleRelevantTemplates = sampleTemplates.filter(t =>
+    t.targetRoles.includes(currentRole)
+  )
+
+  const allTemplates = sampleTemplates
 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-w-7xl max-h-[90vh] p-0">
+          <DialogHeader className="dialog-header-fixed">
             <DialogTitle className="flex items-center gap-2">
-              <Layout size={24} />
-              Dashboard Templates
+              <Layout size={24} className="text-primary" />
+              Widget Templates
             </DialogTitle>
-            <p className="text-sm text-muted-foreground">
-              Choose from pre-built templates or create your own
-            </p>
+            <DialogDescription>
+              Choose from pre-built templates or create your own custom dashboard layout
+            </DialogDescription>
           </DialogHeader>
 
-          <Tabs defaultValue="recommended">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="recommended">Recommended</TabsTrigger>
-              <TabsTrigger value="all">All Templates</TabsTrigger>
-              <TabsTrigger value="create">Create New</TabsTrigger>
-            </TabsList>
+          <div className="dialog-body-scrollable">
+            <Tabs defaultValue="recommended" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="recommended">
+                  <Star size={16} className="mr-2" />
+                  Recommended
+                </TabsTrigger>
+                <TabsTrigger value="all">
+                  <Layout size={16} className="mr-2" />
+                  All Templates
+                </TabsTrigger>
+                <TabsTrigger value="role">
+                  <Users size={16} className="mr-2" />
+                  My Role
+                </TabsTrigger>
+                <TabsTrigger value="create">
+                  <Plus size={16} className="mr-2" />
+                  Create New
+                </TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="recommended" className="mt-4">
-              <div>
-                <div>
-                  <h3 className="text-sm font-semibold mb-1">Templates for {currentRole}</h3>
-                  <p className="text-xs text-muted-foreground">Curated dashboard layouts designed for your role</p>
-                </div>
-
-                <div className="space-y-3 mt-4">
-                  {roleRelevantTemplates.length === 0 ? (
-                    <Card className="p-8 text-center">
-                      <p className="text-muted-foreground">No recommended templates for your role. Check the "All Templates" tab.</p>
-                    </Card>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {roleRelevantTemplates.map((template) => (
-                        <Card key={template.id} className="p-4 hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary">
-                          <div className="space-y-3">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <h4 className="font-semibold">{template.name}</h4>
-                                  {template.isDefault && (
-                                    <Badge variant="default" className="text-xs">Default</Badge>
-                                  )}
-                                </div>
-                                <p className="text-sm text-muted-foreground mt-1">{template.description}</p>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-                              <Badge variant="outline">{CATEGORY_LABELS[template.category]}</Badge>
-                              <Separator orientation="vertical" className="h-4" />
-                              <span>{template.widgets.length} widgets</span>
-                              <Separator orientation="vertical" className="h-4" />
-                              <span>{template.columns} columns</span>
-                            </div>
-
-                            <div className="flex flex-wrap gap-1">
-                              {template.tags.slice(0, 4).map((tag) => (
-                                <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
-                              ))}
-                            </div>
-
-                            <div className="flex items-center justify-between pt-2 border-t">
-                              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1">
-                                  <Star size={14} weight="fill" className="text-yellow-500" />
-                                  {template.rating.toFixed(1)}
-                                </span>
-                                <span>{template.usage} uses</span>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setPreviewTemplate(template)}
-                                >
-                                  <Eye size={16} className="mr-1" />
-                                  Preview
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleApplyTemplate(template)}
-                                >
-                                  <Download size={16} className="mr-1" />
-                                  Apply
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="all" className="space-y-4 mt-4">
-              {Object.entries(
-                allTemplates.reduce((acc, template) => {
-                  if (!acc[template.category]) {
-                    acc[template.category] = []
-                  }
-                  acc[template.category].push(template)
-                  return acc
-                }, {} as Record<string, WidgetTemplate[]>)
-              ).map(([category, templates]) => (
-                <div key={category} className="space-y-3">
-                  <div>
-                    <h3 className="text-lg font-semibold">{CATEGORY_LABELS[category as WidgetTemplate['category']]}</h3>
-                    <p className="text-sm text-muted-foreground">{CATEGORY_DESCRIPTIONS[category as WidgetTemplate['category']]}</p>
+              <TabsContent value="recommended" className="space-y-4 mt-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">Recommended for {currentRole}</h3>
+                    <Badge variant="secondary">{roleRelevantTemplates.length} templates</Badge>
                   </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {templates.map((template) => (
-                      <Card key={template.id} className="p-4 hover:shadow-lg transition-shadow">
+                    {roleRelevantTemplates.map((template) => (
+                      <Card key={template.id} className="p-4 hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary">
                         <div className="space-y-3">
-                          <div>
-                            <h4 className="font-semibold">{template.name}</h4>
-                            <p className="text-sm text-muted-foreground mt-1">{template.description}</p>
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-semibold">{template.name}</h4>
+                                {template.isDefault && (
+                                  <Badge variant="default" className="text-xs">Default</Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground mt-1">{template.description}</p>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2 text-sm">
+
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Badge variant="outline">{CATEGORY_LABELS[template.category]}</Badge>
+                            <Separator orientation="vertical" className="h-4" />
                             <span>{template.widgets.length} widgets</span>
                             <Separator orientation="vertical" className="h-4" />
                             <span>{template.columns} columns</span>
                           </div>
+
+                          <div className="flex flex-wrap gap-1">
+                            {template.tags.slice(0, 4).map((tag) => (
+                              <Badge key={tag} variant="secondary" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+
                           <div className="flex items-center justify-between pt-2 border-t">
                             <div className="flex items-center gap-3 text-xs text-muted-foreground">
                               <span className="flex items-center gap-1">
@@ -347,150 +496,341 @@ export function WidgetTemplateManager({
                     ))}
                   </div>
                 </div>
-              ))}
-            </TabsContent>
+              </TabsContent>
 
-            <TabsContent value="create" className="mt-4">
-              <Card className="p-6">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-semibold">Save Current Layout as Template</h3>
-                    <p className="text-sm text-muted-foreground">Create a reusable template from your current dashboard configuration</p>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="template-name">Template Name *</Label>
-                    <Input
-                      id="template-name"
-                      placeholder="e.g., My Custom Dashboard"
-                      value={templateName}
-                      onChange={(e) => setTemplateName(e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="template-description">Description</Label>
-                    <Textarea
-                      id="template-description"
-                      placeholder="Describe what this template is for..."
-                      value={templateDescription}
-                      onChange={(e) => setTemplateDescription(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <TabsContent value="all" className="space-y-4 mt-4">
+                {Object.entries(
+                  allTemplates.reduce((acc, template) => {
+                    if (!acc[template.category]) {
+                      acc[template.category] = []
+                    }
+                    acc[template.category].push(template)
+                    return acc
+                  }, {} as Record<string, WidgetTemplate[]>)
+                ).map(([category, templates]) => (
+                  <div key={category} className="space-y-3">
                     <div>
-                      <Label htmlFor="template-category">Category</Label>
-                      <Select value={templateCategory} onValueChange={(value) => setTemplateCategory(value as WidgetTemplate['category'])}>
-                        <SelectTrigger id="template-category">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-                            <SelectItem key={key} value={key}>{label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                          <div>
+                            <div className="space-y-1">
+                          
 
-                    <div>
-                      <Label htmlFor="template-tags">Tags (comma-separated)</Label>
-                      <Input
-                        id="template-tags"
-                        placeholder="e.g., operations, daily, reports"
-                        value={templateTags}
-                        onChange={(e) => setTemplateTags(e.target.value)}
-                      />
-                    </div>
-                  </div>
+                                    {rolePreset.layout.widgetSizes[widget]}
+                                </div>
+                            </div>
 
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="template-public"
-                      checked={templateIsPublic}
-                      onCheckedChange={(checked) => setTemplateIsPublic(checked as boolean)}
-                    />
-                    <Label htmlFor="template-public" className="text-sm font-normal">
-                      Make this template public (share with other users)
-                    </Label>
-                  </div>
+                            <h5 className="font-medium mb-2 text-sm">Recommend
+                              {rolePreset.recommendedW
+                                  <Plus size={16} />
+                                  <Badge variant="secondary" className="text-xs ml-a
+                                  </Badge>
+                              ))}
+                          </div>
 
-                  {currentLayout && (
-                    <div className="bg-muted p-4 rounded-lg">
-                      <h4 className="text-sm font-semibold mb-2">Current Layout Preview</h4>
-                      <div className="space-y-1 text-sm text-muted-foreground">
-                        <div>Widgets: {currentLayout.widgets.length}</div>
-                        <div>Columns: {currentLayout.columns}</div>
+
+                          <div class
+                          </div>
+
+                              name: rolePreset.name,
+                              author: 'System',
+                              isDefault: true,
+                              widgets: rolePreset.defaultWidgets.map(
+                                type,
+                                size: rolePreset.layout.widgetSizes[type
+                                isVisible: true
+                              columns: rolePreset.layout.col
+                              tags: [
+                              rati
+
+                            handleApplyTemplate(template)
+                            <Download size={16} className="mr-2" />
+                          </Button>
                       </div>
-                    </div>
                   )}
+              </TabsContent>
+              <TabsContent value="
 
-                  <Button
-                    onClick={handleSaveCurrentAsTemplate}
-                    disabled={!currentLayout || !templateName.trim()}
-                    className="w-full"
-                  >
-                    <Upload size={16} className="mr-2" />
-                    Save as Template
-                  </Button>
-                </div>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
-
-      {previewTemplate && (
-        <Dialog open={!!previewTemplate} onOpenChange={() => setPreviewTemplate(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>{previewTemplate.name}</DialogTitle>
-            </DialogHeader>
-
-            <div className="space-y-4">
-              <div>
-                <span className="font-medium">Description:</span>
-                <p className="text-sm text-muted-foreground mt-1">{previewTemplate.description}</p>
-              </div>
-
-              <div>
-                <span className="font-medium">Configuration:</span>
-                <div className="text-sm text-muted-foreground mt-1">
-                  {previewTemplate.widgets.length} widgets, {previewTemplate.columns} columns
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-medium mb-2">Widgets Included:</h4>
-                <div className="space-y-2">
-                  {previewTemplate.widgets.map((widget, index) => (
-                    <div key={widget.id} className="flex items-center justify-between p-2 bg-muted rounded">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">{index + 1}.</span>
-                        <span className="text-sm">{widget.title}</span>
-                      </div>
-                      <Badge variant="outline" className="text-xs">{widget.size}</Badge>
+                      <h3 className="text-lg font-semibold">Save Curre
+                        Create a reus
                     </div>
-                  ))}
-                </div>
-              </div>
+                    <Separator />
+                    <div className="space-y-4">
+                        <Label htmlFor="template-name">Template Name *</Labe
+                          id="t
+                          value={templateName}
+                        />
 
-              <div className="flex gap-2 pt-4">
-                <Button variant="outline" onClick={() => setPreviewTemplate(null)} className="flex-1">
-                  Close
-                </Button>
-                <Button onClick={() => {
-                  handleApplyTemplate(previewTemplate)
-                  setPreviewTemplate(null)
-                }} className="flex-1">
-                  <Download size={16} className="mr-2" />
-                  Apply Template
-                </Button>
-              </div>
+                        <Label htmlFo
+                          id="template-de
+                          value={templateDescripti
+                          rows={3}
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 g
+                          <Label html
+                            <SelectTrig
+                            </Sele
+                              {O
+                               
+                         
+                          
+
+                   
+                            
+
+                          />
+                      </div>
+                      <
+                          id="template-public"
+                          onCheckedChange={(checked) => setTempla
+                        <Label htmlFor="template-public" className
+                        
+
+
+                          <div cla
+                            <div>Columns: 
+                          </div>
+                      )}
+
+
+                      <Button 
+
+                        <Upload size=
+
+                  </div>
+              </TabsContent>
+          </div>
+      </Dialog>
+      {previewTemplate && (
+          <DialogContent className="max-w-4xl">
+              <DialogTitle>{previewTemplate.name} - Preview</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+                <div>
+                </div>
+                  <span className="fon
+                <div>
+                </div>
+                  <span classNam
+
+              <Separator />
+              <div>
+                <div className="space-y-2">
+                    <div key={widget.id} className="flex items-center justify-
+                        <span className="text-xs font-medium text-muted-foreground">#{index + 1}</span>
+                      </div>
+                    </div>
+                </div>
             </div>
-          </DialogContent>
-        </Dialog>
+            <DialogFooter>
+                Close
+              <Button onClick={()
+                setPreviewTemplate
+                <Download size={
+              </Button>
+
       )}
-    </>
-  )
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
