@@ -4267,6 +4267,13 @@ export type DashboardWidgetType =
   | 'crm-summary'
   | 'channel-performance'
   | 'period-comparison'
+  | 'goal-tracking'
+  | 'quick-actions'
+  | 'team-performance'
+  | 'channel-sync-status'
+  | 'ota-comparison'
+  | 'booking-source'
+  | 'channel-revenue'
 
 export type WidgetSize = 'small' | 'medium' | 'large' | 'full'
 

@@ -1129,6 +1129,337 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
           </Card>
         )
 
+      case 'goal-tracking':
+        const goals = [
+          { 
+            name: 'Occupancy Target', 
+            current: metrics.occupancy.rate, 
+            target: 85, 
+            color: 'text-accent',
+            bgColor: 'bg-accent'
+          },
+          { 
+            name: 'Revenue Target', 
+            current: (metrics.revenue.today / 100000) * 100, 
+            target: 100, 
+            color: 'text-primary',
+            bgColor: 'bg-primary'
+          },
+          { 
+            name: 'Guest Satisfaction', 
+            current: (metrics.guests.averageSatisfaction / 5) * 100, 
+            target: 90, 
+            color: 'text-success',
+            bgColor: 'bg-success'
+          },
+          { 
+            name: 'Cost Control', 
+            current: Math.min(((metrics.revenue.today - (metrics.revenue.today * 0.25)) / metrics.revenue.today) * 100, 100), 
+            target: 80, 
+            color: 'text-warning',
+            bgColor: 'bg-warning'
+          }
+        ]
+
+        return (
+          <Card className="p-6 h-full">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h3 className="text-base font-semibold">Goal Progress</h3>
+              <TrendUp size={18} className="text-muted-foreground" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {goals.map((goal, index) => {
+                const percentage = Math.min((goal.current / goal.target) * 100, 100)
+                const achieved = goal.current >= goal.target
+                
+                return (
+                  <div key={index} className="flex flex-col items-center justify-center p-4 rounded-lg bg-muted/30">
+                    <div className="relative w-20 h-20 mb-3">
+                      <svg className="transform -rotate-90 w-20 h-20">
+                        <circle
+                          cx="40"
+                          cy="40"
+                          r="32"
+                          stroke="currentColor"
+                          strokeWidth="6"
+                          fill="none"
+                          className="text-muted"
+                        />
+                        <circle
+                          cx="40"
+                          cy="40"
+                          r="32"
+                          stroke="currentColor"
+                          strokeWidth="6"
+                          fill="none"
+                          strokeDasharray={`${2 * Math.PI * 32}`}
+                          strokeDashoffset={`${2 * Math.PI * 32 * (1 - percentage / 100)}`}
+                          className={goal.color}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className={`text-lg font-bold ${goal.color}`}>
+                          {Math.round(percentage)}%
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-xs font-medium text-center mb-1">{goal.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {goal.current.toFixed(0)} / {goal.target}
+                      {achieved && <span className="ml-1 text-success">✓</span>}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+          </Card>
+        )
+
+      case 'quick-actions':
+        const quickActions = [
+          { label: 'New Reservation', icon: Bed, action: () => onNavigate?.('frontoffice') },
+          { label: 'New Guest', icon: Users, action: () => onNavigate?.('frontoffice') },
+          { label: 'Purchase Order', icon: Package, action: () => onNavigate?.('procurement') },
+          { label: 'Create Invoice', icon: CurrencyDollar, action: () => onNavigate?.('finance') },
+          { label: 'New Requisition', icon: ChartBar, action: () => onNavigate?.('procurement') },
+          { label: 'Log Feedback', icon: Heart, action: () => onNavigate?.('crm') }
+        ]
+
+        return (
+          <Card className="p-6 h-full">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h3 className="text-base font-semibold">Quick Actions</h3>
+              <Package size={18} className="text-muted-foreground" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {quickActions.map((action, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/10 hover:border-primary transition-all"
+                  onClick={action.action}
+                >
+                  <action.icon size={20} />
+                  <span className="text-xs font-medium text-center">{action.label}</span>
+                </Button>
+              ))}
+            </div>
+          </Card>
+        )
+
+      case 'team-performance':
+        const topPerformers = [
+          { name: 'Sarah Johnson', role: 'Front Desk', score: 98, tasks: 45 },
+          { name: 'Mike Chen', role: 'Housekeeping', score: 95, tasks: 52 },
+          { name: 'Emma Davis', role: 'F&B', score: 92, tasks: 38 },
+          { name: 'James Wilson', role: 'Kitchen', score: 90, tasks: 41 }
+        ]
+
+        return (
+          <Card className="p-6 h-full">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h3 className="text-base font-semibold">Top Performers</h3>
+              <Star size={18} className="text-muted-foreground" />
+            </div>
+            <div className="space-y-3">
+              {topPerformers.map((performer, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-all">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary font-bold text-sm shrink-0">
+                    #{index + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{performer.name}</p>
+                    <p className="text-xs text-muted-foreground">{performer.role}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-sm font-bold text-success">{performer.score}%</p>
+                    <p className="text-xs text-muted-foreground">{performer.tasks} tasks</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {onNavigate && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full mt-4"
+                onClick={() => onNavigate('hr')}
+              >
+                View All Staff
+              </Button>
+            )}
+          </Card>
+        )
+
+      case 'channel-sync-status':
+        const syncStatuses = [
+          { channel: 'Booking.com', status: 'synced', lastSync: '2 mins ago', color: 'text-success' },
+          { channel: 'Agoda', status: 'syncing', lastSync: 'In progress', color: 'text-warning' },
+          { channel: 'Airbnb', status: 'synced', lastSync: '5 mins ago', color: 'text-success' },
+          { channel: 'Expedia', status: 'error', lastSync: '1 hour ago', color: 'text-destructive' }
+        ]
+
+        return (
+          <Card className="p-6 h-full">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h3 className="text-base font-semibold">Channel Sync Status</h3>
+              {onNavigate && (
+                <Button size="sm" onClick={() => onNavigate('channel-manager')} variant="outline">
+                  Manage
+                </Button>
+              )}
+            </div>
+            <div className="space-y-3">
+              {syncStatuses.map((sync, index) => (
+                <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full ${sync.status === 'synced' ? 'bg-success' : sync.status === 'syncing' ? 'bg-warning animate-pulse' : 'bg-destructive'}`} />
+                    <div>
+                      <p className="font-medium text-sm">{sync.channel}</p>
+                      <p className="text-xs text-muted-foreground">{sync.lastSync}</p>
+                    </div>
+                  </div>
+                  <Badge variant={sync.status === 'synced' ? 'default' : sync.status === 'syncing' ? 'secondary' : 'destructive'}>
+                    {sync.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )
+
+      case 'ota-comparison':
+        const otaMetrics = [
+          { name: 'Booking.com', bookings: 38, adr: 2500, rating: 8.5 },
+          { name: 'Agoda', bookings: 32, adr: 2350, rating: 8.2 },
+          { name: 'Airbnb', bookings: 29, adr: 2800, rating: 4.7 },
+          { name: 'Expedia', bookings: 21, adr: 2400, rating: 8.0 }
+        ]
+
+        return (
+          <Card className="p-6 h-full">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h3 className="text-base font-semibold">OTA Comparison</h3>
+              {onNavigate && (
+                <Button size="sm" onClick={() => onNavigate('channel-manager')} variant="outline">
+                  Details
+                </Button>
+              )}
+            </div>
+            <div className="space-y-3">
+              {otaMetrics.map((ota, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-sm">{ota.name}</span>
+                    <div className="flex items-center gap-1">
+                      <Star size={12} className="text-yellow-500 fill-yellow-500" />
+                      <span className="text-xs font-medium">{ota.rating}</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="p-2 rounded bg-muted/50">
+                      <p className="text-muted-foreground">Bookings</p>
+                      <p className="font-semibold">{ota.bookings}</p>
+                    </div>
+                    <div className="p-2 rounded bg-muted/50">
+                      <p className="text-muted-foreground">ADR</p>
+                      <p className="font-semibold">{formatCurrency(ota.adr)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )
+
+      case 'booking-source':
+        const bookingSources = [
+          { source: 'Booking.com', count: 38, percentage: 35 },
+          { source: 'Agoda', count: 32, percentage: 30 },
+          { source: 'Airbnb', count: 29, percentage: 27 },
+          { source: 'Direct', count: 8, percentage: 8 }
+        ]
+        const totalBookings = bookingSources.reduce((sum, s) => sum + s.count, 0)
+
+        return (
+          <Card className="p-6 h-full">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h3 className="text-base font-semibold">Booking Source</h3>
+              <div className="text-right">
+                <p className="text-2xl font-semibold">{totalBookings}</p>
+                <p className="text-xs text-muted-foreground">Total</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {bookingSources.map((source, index) => (
+                <div key={index} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium">{source.source}</span>
+                    <span className="text-muted-foreground">{source.count} ({source.percentage}%)</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all"
+                      style={{ width: `${source.percentage}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )
+
+      case 'channel-revenue':
+        const channelRevenues = [
+          { channel: 'Booking.com', today: 15000, month: 450000, trend: 'up' },
+          { channel: 'Agoda', today: 12000, month: 360000, trend: 'up' },
+          { channel: 'Airbnb', today: 18000, month: 540000, trend: 'down' },
+          { channel: 'Direct', today: 8000, month: 240000, trend: 'up' }
+        ]
+        const totalToday = channelRevenues.reduce((sum, c) => sum + c.today, 0)
+        const totalMonth = channelRevenues.reduce((sum, c) => sum + c.month, 0)
+
+        return (
+          <Card className="p-6 h-full">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h3 className="text-base font-semibold">Channel Revenue</h3>
+              {onNavigate && (
+                <Button size="sm" onClick={() => onNavigate('channel-manager')} variant="outline">
+                  View All
+                </Button>
+              )}
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                  <p className="text-xs text-muted-foreground mb-1">Today</p>
+                  <p className="text-xl font-semibold">{formatCurrency(totalToday)}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-accent/10 border border-accent/20">
+                  <p className="text-xs text-muted-foreground mb-1">This Month</p>
+                  <p className="text-xl font-semibold">{formatCurrency(totalMonth)}</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {channelRevenues.map((rev, index) => (
+                  <div key={index} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{rev.channel}</span>
+                      {rev.trend === 'up' ? (
+                        <TrendUp size={14} className="text-success" />
+                      ) : (
+                        <TrendDown size={14} className="text-destructive" />
+                      )}
+                    </div>
+                    <span className="font-semibold">{formatCurrency(rev.today)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+        )
+
       default:
         return (
           <Card className="p-6 h-full">

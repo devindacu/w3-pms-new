@@ -44,6 +44,10 @@ import { formatCurrency, formatDate, formatDateTime } from '@/lib/helpers'
 import { InvoiceViewerA4 } from '@/components/InvoiceViewerA4'
 import { PrintButton } from '@/components/PrintButton'
 import { A4PrintWrapper } from '@/components/A4PrintWrapper'
+import { ChargePostingDialog, type ChargeType } from '@/components/ChargePostingDialog'
+import { InvoiceAdjustmentDialog } from '@/components/InvoiceAdjustmentDialog'
+import { GuestInvoiceDialog } from '@/components/GuestInvoiceDialog'
+import { InvoicePaymentDialog } from '@/components/InvoicePaymentDialog'
 
 interface GuestInvoicingProps {
   invoices: GuestInvoice[]
@@ -80,6 +84,7 @@ export function GuestInvoicing({
   const [selectedInvoice, setSelectedInvoice] = useState<GuestInvoice | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isChargeDialogOpen, setIsChargeDialogOpen] = useState(false)
+  const [chargeType, setChargeType] = useState<ChargeType | null>(null)
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
   const [isAdjustmentDialogOpen, setIsAdjustmentDialogOpen] = useState(false)
   const [isNightAuditDialogOpen, setIsNightAuditDialogOpen] = useState(false)
@@ -424,7 +429,10 @@ export function GuestInvoicing({
           <Card className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Button
-                onClick={() => setIsChargeDialogOpen(true)}
+                onClick={() => {
+                  setChargeType('room')
+                  setIsChargeDialogOpen(true)
+                }}
                 className="h-32 flex-col gap-2"
                 variant="outline"
               >
@@ -435,7 +443,10 @@ export function GuestInvoicing({
                 </div>
               </Button>
               <Button
-                onClick={() => setIsChargeDialogOpen(true)}
+                onClick={() => {
+                  setChargeType('fnb')
+                  setIsChargeDialogOpen(true)
+                }}
                 className="h-32 flex-col gap-2"
                 variant="outline"
               >
@@ -446,7 +457,10 @@ export function GuestInvoicing({
                 </div>
               </Button>
               <Button
-                onClick={() => setIsChargeDialogOpen(true)}
+                onClick={() => {
+                  setChargeType('extra-service')
+                  setIsChargeDialogOpen(true)
+                }}
                 className="h-32 flex-col gap-2"
                 variant="outline"
               >
@@ -461,13 +475,77 @@ export function GuestInvoicing({
         </TabsContent>
       </Tabs>
 
-      {/* TODO: Implement missing dialogs
-      <GuestInvoiceDialog... />
-      <ChargePostingDialog... />
-      <InvoicePaymentDialog... />
-      <InvoiceAdjustmentDialog... />
-      <NightAuditDialog... />
-      */}
+      {/* Dialogs */}
+      <GuestInvoiceDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        guests={guests}
+        reservations={reservations}
+        onInvoiceCreated={(newInvoice) => {
+          setInvoices((prev) => [...prev, newInvoice])
+        }}
+        currentUser={currentUser}
+      />
+
+      <ChargePostingDialog
+        open={isChargeDialogOpen}
+        onOpenChange={setIsChargeDialogOpen}
+        chargeType={chargeType}
+        invoice={selectedInvoice || undefined}
+        guestName={selectedInvoice?.guestName}
+        roomNumber={selectedInvoice?.roomNumber}
+        onChargePosted={(charges) => {
+          if (selectedInvoice) {
+            const updatedInvoice: GuestInvoice = {
+              ...selectedInvoice,
+              lineItems: [...selectedInvoice.lineItems, ...charges],
+              subtotal: selectedInvoice.subtotal + charges.reduce((sum, c) => sum + c.lineTotal, 0),
+              totalTax: selectedInvoice.totalTax + charges.reduce((sum, c) => sum + c.totalTax, 0),
+              grandTotal: selectedInvoice.grandTotal + charges.reduce((sum, c) => sum + c.lineGrandTotal, 0),
+              amountDue: selectedInvoice.amountDue + charges.reduce((sum, c) => sum + c.lineGrandTotal, 0)
+            }
+            setInvoices((prev) => prev.map((inv) => (inv.id === selectedInvoice.id ? updatedInvoice : inv)))
+          }
+        }}
+        currentUser={currentUser}
+      />
+
+      {selectedInvoice && (
+        <>
+          <InvoicePaymentDialog
+            open={isPaymentDialogOpen}
+            onOpenChange={setIsPaymentDialogOpen}
+            invoice={{
+              ...selectedInvoice,
+              invoiceNumber: selectedInvoice.invoiceNumber,
+              total: selectedInvoice.grandTotal,
+              balance: selectedInvoice.amountDue,
+              supplierId: '',
+              items: []
+            } as any}
+            onPaymentRecorded={(payment, updatedInvoice) => {
+              const guestInvoice: GuestInvoice = {
+                ...selectedInvoice,
+                totalPaid: selectedInvoice.totalPaid + payment.amount,
+                amountDue: selectedInvoice.amountDue - payment.amount,
+                status: selectedInvoice.amountDue - payment.amount <= 0 ? 'posted' : selectedInvoice.status
+              }
+              setInvoices((prev) => prev.map((inv) => (inv.id === selectedInvoice.id ? guestInvoice : inv)))
+            }}
+            currentUser={currentUser.name}
+          />
+
+          <InvoiceAdjustmentDialog
+            open={isAdjustmentDialogOpen}
+            onOpenChange={setIsAdjustmentDialogOpen}
+            invoice={selectedInvoice}
+            onAdjustmentApplied={(updatedInvoice) => {
+              setInvoices((prev) => prev.map((inv) => (inv.id === selectedInvoice.id ? updatedInvoice : inv)))
+            }}
+            currentUser={currentUser}
+          />
+        </>
+      )}
 
       {selectedInvoice && (
         <InvoiceViewerA4
