@@ -1154,7 +1154,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
           },
           { 
             name: 'Cost Control', 
-            current: 75, 
+            current: Math.min(((metrics.revenue.today - (metrics.revenue.today * 0.25)) / metrics.revenue.today) * 100, 100), 
             target: 80, 
             color: 'text-warning',
             bgColor: 'bg-warning'

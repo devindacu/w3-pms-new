@@ -116,6 +116,8 @@ export function withErrorHandling<T extends (...args: any[]) => Promise<any>>(
 
 /**
  * Validate that required fields are present
+ * Note: Treats empty strings as missing values. For fields where empty strings
+ * are valid, exclude them from the requiredFields array.
  */
 export function validateRequired<T extends Record<string, any>>(
   data: T,
@@ -160,7 +162,7 @@ export async function retryOperation<T>(
     onRetry
   } = options
 
-  let lastError: Error
+  let lastError: Error | undefined
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
@@ -182,7 +184,12 @@ export async function retryOperation<T>(
     }
   }
 
-  throw lastError!
+  // This point is only reached if all retries failed
+  if (!lastError) {
+    throw new Error('Operation failed but no error was captured')
+  }
+  
+  throw lastError
 }
 
 /**

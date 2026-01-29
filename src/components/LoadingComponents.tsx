@@ -16,7 +16,7 @@ const sizeMap = {
 const borderMap = {
   sm: 'border-2',
   md: 'border-2',
-  lg: 'border-3',
+  lg: 'border-4',
   xl: 'border-4'
 }
 
