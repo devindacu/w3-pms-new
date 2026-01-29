@@ -1,70 +1,32 @@
 import React, { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, S
+import { Textarea } from '@/components/ui/t
 import { Separator } from '@/components/ui/se
-import { Textarea } from '@/components/ui/textarea'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
-import { toast } from 'sonner'
+import { ScrollArea } from '@/components/ui/scroll-
+import { Label } from '@/components/ui/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } f
 import {
-  Plus,
   Star,
-  Sparkle
-  Uploa
-} from '
-  Dash
-  UserRole,
-  Widge
-  Dashbo
-import { g
-interface W
-  name: s
-  author: st
-  isDefault: boolean
-  widgets: Da
-  category: 'operation
-  usage: numb
-  UserRole,
-  RoleWidgetPreset,
-  WidgetSize,
+  Upload,
+  Layout,
+} from '@phosphor-icons/react'
+  SystemRole,
   DashboardLayout,
-  DashboardWidget
-} from '@/lib/types'
-import { getRoleWidgetPresets, getAvailableWidgets } from '@/lib/widgetConfig'
+} from '
 
-interface WidgetTemplate {
-  id: string
-  name: string
-  description: string
-  author: string
-  isPublic: boolean
-  isDefault: boolean
-  targetRoles: (SystemRole | UserRole)[]
-  widgets: DashboardWidget[]
-  columns: 1 | 2 | 3 | 4
-  category: 'operational' | 'executive' | 'departmental' | 'analytical' | 'custom'
-  tags: string[]
-  usage: number
+  id: s
+  descripti
+  isPubli
+  targ
+  columns
+  tags:
   rating: number
-  createdAt: number
-  updatedAt: number
-}
+  update
 
-interface WidgetTemplateManagerProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  currentRole: SystemRole | UserRole
-  currentLayout: DashboardLayout | null
-  onApplyTemplate: (layout: DashboardLayout) => void
-  'crm-summary': 'CRM Summary',
+  open: boo
+  currentRole: Sys
+  onApplyTemplate
  
-
   'channel-sync-status': 'Channel Sync Status',
   'booking-source': 'Booking Sou
 }
@@ -75,7 +37,7 @@ const CATEGORY_LABELS = {
 const CATEGORY_DESCRIPTIONS = {
   executive: 'High-level overview templates f
   analytical: 'Data-driven temp
-}
+  widgets: DashboardWidget[]
 export function WidgetTemplateManager({
   onOpenChange,
   currentLayout,
@@ -91,7 +53,7 @@ export function WidgetTemplateManager({
       description: 'Comprehensive o
       isPublic: true,
       targetRoles: ['admin', 'manager'],
-        { id: 'w1', type: 'revenue-to
+  'crm-summary': 'CRM Summary',
         { id: 'w3', type: 'financial-
         { id: 'w5', type: 'department-
  
@@ -125,33 +87,62 @@ export function WidgetTemplateManager({
     {
       name: 'Business Intelligence',
       author: 'System',
-      isDefault: false,
-  const [templateIsPublic, setTemplateIsPublic] = useState(false)
+      usage: 156,
+      createdAt: Date.now() -
   const [previewTemplate, setPreviewTemplate] = useState<WidgetTemplate | null>(null)
-
   const rolePreset = getRoleWidgetPresets(currentRole)
-  const availableWidgets = getAvailableWidgets()
+      description: 'Real-ti
+      isPublic: tr
+  WidgetTemplate[] = [
+
+        { id: 'w3', type: 'hous
+        { id: 'w5', type: 'guest-feedback', title: 'Guest Feedback', size: 'medi
+      ],rehensive overview for senior management with key performance indicators, revenue trends, and strategic metrics',
+      category: 'operational',
+      usage: 243,
+      createdAt: Date.now() - 60 * 24 * 60 * 60 * 100
+ 
+
+      description: 'Comprehensive Food 
+      iw2', type: 'occupancy', title: 'Occupancy Rate', size: 'small', position: 1, isVisible: true },
+      targetRolcial-summary', title: 'Financial Summary', size: 'large', position: 2, isVisible: true },
+        { id: itle: 'Revenue Trends', size: 'large', position: 3, isVisible: true },
+        { id: 'w size: 'large', position: 4, isVisible: true },
+        { id: 'w5'performance', title: 'Channel Performance', size: 'large', position: 5, isVisible: true }
+      columns: 2,
+      tags: ['fnb', 'kitchen', '
+      rating: 4.7,
+      updatedAt: Date.now() - 10 * 24 * 60 * 60 * 1000
+      usage: 156,
+      rating: 4.8,
+      createdAt: Date.now() - 90 * 24 * 60 * 60 * 1000,
+      isDefault: false,
+    },
+    {
+      id: 'tpl-ops-1',
+      name: 'Operations Command Center',
+      description: 'Real-time operations dashboard for front desk and management with focus on daily tasks and guest services',
 
   const sampleTemplates: WidgetTemplate[] = [
     {
       id: 'tpl-exec-1',
       name: 'Executive Dashboard',
-      description: 'Comprehensive overview for senior management with key performance indicators, revenue trends, and strategic metrics',
-      author: 'System',
-      isPublic: true,
-      isDefault: true,
-      targetRoles: ['admin', 'manager'],
-      widgets: [
-        { id: 'w1', type: 'revenue-today', title: 'Revenue Today', size: 'small', position: 0, isVisible: true },
-        { id: 'w2', type: 'occupancy', title: 'Occupancy Rate', size: 'small', position: 1, isVisible: true },
-        { id: 'w3', type: 'financial-summary', title: 'Financial Summary', size: 'large', position: 2, isVisible: true },
-        { id: 'w4', type: 'revenue-chart', title: 'Revenue Trends', size: 'large', position: 3, isVisible: true },
-        { id: 'w5', type: 'department-performance', title: 'Department Performance', size: 'large', position: 4, isVisible: true },
-        { id: 'w6', type: 'channel-performance', title: 'Channel Performance', size: 'large', position: 5, isVisible: true }
+        { id: 'w1', type: 'arrivals-departures', title: 'Arrivals & Departures', size: 'large', position: 0, isVisible: true },
+        { id: 'w2', type: 'room-status', title: 'Room Status', size: 'large', position: 1, isVisible: true },
+        { id: 'w3', type: 'housekeeping', title: 'Housekeeping', size: 'small', position: 2, isVisible: true },
+        { id: 'w4', type: 'occupancy', title: 'Occupancy', size: 'small', position: 3, isVisible: true },
+        { id: 'w5', type: 'guest-feedback', title: 'Guest Feedback', size: 'medium', position: 4, isVisible: true },
+        { id: 'w6', type: 'pending-approvals', title: 'Pending Tasks', size: 'medium', position: 5, isVisible: true }
       ],
-      columns: 3,
-      category: 'executive',
-      tags: ['executive', 'management', 'kpi', 'revenue'],
+      columns: 2,
+      category: 'operational',
+      tags: ['operations', 'front-desk', 'daily', 'guest-services'],
+      usage: 243,
+      rating: 4.9,
+      ],
+      updatedAt: Date.now() - 15 * 24 * 60 * 60 * 1000
+    },
+    {
       usage: 156,
       rating: 4.8,
       createdAt: Date.now() - 90 * 24 * 60 * 60 * 1000,
@@ -211,36 +202,6 @@ export function WidgetTemplateManager({
       author: 'System',
       isPublic: true,
       isDefault: false,
-      targetRoles: ['admin', 'manager', 'accountant'],
-      widgets: [
-        { id: 'w1', type: 'revenue-chart', title: 'Revenue Analysis', size: 'large', position: 0, isVisible: true },
-        { id: 'w2', type: 'occupancy-chart', title: 'Occupancy Trends', size: 'large', position: 1, isVisible: true },
-        { id: 'w3', type: 'period-comparison', title: 'Period Comparison', size: 'large', position: 2, isVisible: true },
-        { id: 'w4', type: 'channel-performance', title: 'Channel Analytics', size: 'large', position: 3, isVisible: true },
-        { id: 'w5', type: 'financial-summary', title: 'Financial Overview', size: 'large', position: 4, isVisible: true },
-        { id: 'w6', type: 'department-performance', title: 'Department Metrics', size: 'large', position: 5, isVisible: true }
-      ],
-      columns: 2,
-      category: 'analytical',
-      tags: ['analytics', 'charts', 'trends', 'metrics'],
-      usage: 124,
-      rating: 4.6,
-      createdAt: Date.now() - 30 * 24 * 60 * 60 * 1000,
-      updatedAt: Date.now() - 5 * 24 * 60 * 60 * 1000
-    },
-    {
-      id: 'tpl-housekeeping-1',
-      name: 'Housekeeping Central',
-      description: 'Streamlined dashboard for housekeeping team with room status, task assignments, and inventory tracking',
-      author: 'System',
-      isPublic: true,
-      isDefault: false,
-      targetRoles: ['housekeeper'],
-      widgets: [
-        { id: 'w1', type: 'housekeeping', title: 'Tasks Today', size: 'medium', position: 0, isVisible: true },
-        { id: 'w2', type: 'room-status', title: 'Room Status', size: 'large', position: 1, isVisible: true },
-        { id: 'w3', type: 'amenities-stock', title: 'Amenities Stock', size: 'small', position: 2, isVisible: true },
-        { id: 'w4', type: 'occupancy', title: 'Occupancy', size: 'small', position: 3, isVisible: true },
         { id: 'w5', type: 'arrivals-departures', title: 'Arrivals & Departures', size: 'medium', position: 4, isVisible: true },
         { id: 'w6', type: 'low-stock', title: 'Low Stock Items', size: 'large', position: 5, isVisible: true }
       ],
