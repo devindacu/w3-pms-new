@@ -25,7 +25,8 @@ import {
   GridFour,
   FloppyDisk,
   ArrowCounterClockwise,
-  Sparkle
+  Sparkle,
+  Layout
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import type {
@@ -38,6 +39,7 @@ import type {
   RoleWidgetPreset
 } from '@/lib/types'
 import { getRoleWidgetPresets, getDefaultWidgetsForRole, getAvailableWidgets } from '@/lib/widgetConfig'
+import { WidgetTemplateManager } from '@/components/WidgetTemplateManager'
 
 interface DashboardWidgetManagerProps {
   userId: string
@@ -55,6 +57,8 @@ export function DashboardWidgetManager({
   const [dialogOpen, setDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('widgets')
   const [tempLayout, setTempLayout] = useState<DashboardLayout | null>(null)
+  const [templateManagerOpen, setTemplateManagerOpen] = useState(false)
+  const [savedTemplates, setSavedTemplates] = useKV<any[]>('dashboard-templates', [])
 
   const availableWidgets = getAvailableWidgets()
   const rolePresets = getRoleWidgetPresets(userRole)
@@ -113,14 +117,7 @@ export function DashboardWidgetManager({
       'kitchen-operations': 'Kitchen Operations',
       'crm-summary': 'CRM Summary',
       'channel-performance': 'Channel Performance',
-      'period-comparison': 'Period Comparison',
-      'goal-tracking': 'Goal Tracking',
-      'quick-actions': 'Quick Actions',
-      'team-performance': 'Team Performance',
-      'channel-sync-status': 'Channel Sync Status',
-      'ota-comparison': 'OTA Comparison',
-      'booking-source': 'Booking Source',
-      'channel-revenue': 'Channel Revenue',
+      'period-comparison': 'Period Comparison'
     }
     return titles[type]
   }
@@ -261,6 +258,17 @@ export function DashboardWidgetManager({
     })
   }
 
+  const handleApplyTemplate = (layout: DashboardLayout) => {
+    setTempLayout(layout)
+    onLayoutChange(layout)
+    toast.success('Template applied successfully')
+  }
+
+  const handleSaveAsTemplate = (template: any) => {
+    setSavedTemplates((current) => [...(current || []), template])
+    toast.success('Template saved successfully')
+  }
+
   const getWidgetsByType = () => {
     const categories: Record<string, DashboardWidgetType[]> = {
       'Operations': [
@@ -300,42 +308,27 @@ export function DashboardWidgetManager({
     return categories
   }
 
-  const QuickColumnSelector = () => {
-    const layout = tempLayout || currentLayout
-    
-    return (
-      <div className="flex items-center gap-2">
-        <div className="hidden md:flex items-center gap-1 border rounded-lg p-0.5 bg-muted/30">
-          {[1, 2, 3, 4].map(num => (
-            <Button
-              key={num}
-              variant={layout?.columns === num ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => {
-                const activeLayout = layout || createDefaultLayout()
-                const updatedLayout = { ...activeLayout, columns: num as 1 | 2 | 3 | 4, updatedAt: Date.now() }
-                onLayoutChange(updatedLayout)
-                toast.success(`Dashboard layout changed to ${num} column${num > 1 ? 's' : ''}`)
-              }}
-              className="h-7 w-7 p-0"
-              title={`${num} Column${num > 1 ? 's' : ''}`}
-            >
-              {num}
-            </Button>
-          ))}
-        </div>
-        <Button variant="outline" onClick={openManager} size="sm">
-          <Sliders size={18} className="mr-2" />
-          <span className="hidden lg:inline">Customize Dashboard</span>
-          <span className="lg:hidden">Customize</span>
-        </Button>
-      </div>
-    )
-  }
-
   return (
     <>
-      <QuickColumnSelector />
+      <div className="flex gap-2">
+        <Button variant="outline" onClick={openManager} size="sm">
+          <Sliders size={18} className="mr-2" />
+          Customize Dashboard
+        </Button>
+        <Button variant="outline" onClick={() => setTemplateManagerOpen(true)} size="sm">
+          <Layout size={18} className="mr-2" />
+          Templates
+        </Button>
+      </div>
+
+      <WidgetTemplateManager
+        open={templateManagerOpen}
+        onOpenChange={setTemplateManagerOpen}
+        currentRole={userRole}
+        currentLayout={currentLayout || null}
+        onApplyTemplate={handleApplyTemplate}
+        onSaveAsTemplate={handleSaveAsTemplate}
+      />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
@@ -480,69 +473,22 @@ export function DashboardWidgetManager({
             <TabsContent value="layout" className="flex-1 overflow-y-auto space-y-4 mt-4">
               <div className="space-y-6">
                 <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <Label className="text-sm font-semibold block">Dashboard Layout</Label>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Adjust column count to optimize for your screen size
-                      </p>
-                    </div>
-                    <Badge variant="outline" className="text-xs">
-                      Current: {tempLayout?.columns} Column{(tempLayout?.columns || 2) > 1 ? 's' : ''}
-                    </Badge>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    {[
-                      { num: 1, label: 'Single', desc: 'Full width widgets', icon: '▐' },
-                      { num: 2, label: 'Two Columns', desc: 'Balanced layout', icon: '▐▐' },
-                      { num: 3, label: 'Three Columns', desc: 'Compact view', icon: '▐▐▐' },
-                      { num: 4, label: 'Four Columns', desc: 'Dense grid', icon: '▐▐▐▐' }
-                    ].map(({ num, label, desc, icon }) => (
-                      <Card
+                  <Label className="text-sm font-semibold mb-2 block">Dashboard Columns</Label>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Choose how many columns to display widgets in
+                  </p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[1, 2, 3, 4].map(num => (
+                      <Button
                         key={num}
-                        className={`p-4 cursor-pointer transition-all hover:shadow-md ${
-                          tempLayout?.columns === num 
-                            ? 'border-primary bg-primary/5 shadow-sm' 
-                            : 'hover:border-primary/50'
-                        }`}
+                        variant={tempLayout?.columns === num ? 'default' : 'outline'}
                         onClick={() => handleChangeColumns(num as 1 | 2 | 3 | 4)}
+                        className="h-20 flex flex-col items-center justify-center"
                       >
-                        <div className="flex flex-col items-center text-center gap-2">
-                          <div className={`text-2xl font-mono ${
-                            tempLayout?.columns === num ? 'text-primary' : 'text-muted-foreground'
-                          }`}>
-                            {icon}
-                          </div>
-                          <div>
-                            <div className={`text-sm font-semibold ${
-                              tempLayout?.columns === num ? 'text-primary' : ''
-                            }`}>
-                              {label}
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {desc}
-                            </div>
-                          </div>
-                          {tempLayout?.columns === num && (
-                            <Badge variant="default" className="text-xs mt-1">
-                              Active
-                            </Badge>
-                          )}
-                        </div>
-                      </Card>
+                        <GridFour size={24} className="mb-1" />
+                        <span className="text-xs">{num} Column{num > 1 ? 's' : ''}</span>
+                      </Button>
                     ))}
-                  </div>
-
-                  <div className="mt-4 p-3 bg-muted/50 rounded-lg border">
-                    <div className="flex items-start gap-2">
-                      <Sparkle size={16} className="text-primary mt-0.5 shrink-0" />
-                      <div className="text-xs text-muted-foreground">
-                        <strong className="text-foreground">Tip:</strong> Use 1-2 columns for mobile/tablet, 
-                        2-3 columns for laptops, and 3-4 columns for large displays. 
-                        Widget sizes adapt automatically based on your selection.
-                      </div>
-                    </div>
                   </div>
                 </div>
 
