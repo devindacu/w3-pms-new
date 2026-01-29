@@ -955,7 +955,7 @@ function App() {
               .filter(w => w.isVisible)
               .sort((a, b) => a.position - b.position)
               .map(widget => (
-                <div key={widget.id} className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
+                <div key={widget.id} className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex">
                   <WidgetRenderer
                     widget={widget}
                     metrics={filteredMetrics}

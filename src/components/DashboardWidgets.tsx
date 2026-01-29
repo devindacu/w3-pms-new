@@ -1476,5 +1476,5 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
     full: 'col-span-full'
   }
 
-  return <div className={sizeClasses[widget.size]}>{renderWidget()}</div>
+  return <div className={`${sizeClasses[widget.size]} flex`}>{renderWidget()}</div>
 }
