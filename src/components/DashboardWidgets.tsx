@@ -1292,6 +1292,174 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
           </Card>
         )
 
+      case 'channel-sync-status':
+        const syncStatuses = [
+          { channel: 'Booking.com', status: 'synced', lastSync: '2 mins ago', color: 'text-success' },
+          { channel: 'Agoda', status: 'syncing', lastSync: 'In progress', color: 'text-warning' },
+          { channel: 'Airbnb', status: 'synced', lastSync: '5 mins ago', color: 'text-success' },
+          { channel: 'Expedia', status: 'error', lastSync: '1 hour ago', color: 'text-destructive' }
+        ]
+
+        return (
+          <Card className="p-6 h-full">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h3 className="text-base font-semibold">Channel Sync Status</h3>
+              {onNavigate && (
+                <Button size="sm" onClick={() => onNavigate('channel-manager')} variant="outline">
+                  Manage
+                </Button>
+              )}
+            </div>
+            <div className="space-y-3">
+              {syncStatuses.map((sync, index) => (
+                <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full ${sync.status === 'synced' ? 'bg-success' : sync.status === 'syncing' ? 'bg-warning animate-pulse' : 'bg-destructive'}`} />
+                    <div>
+                      <p className="font-medium text-sm">{sync.channel}</p>
+                      <p className="text-xs text-muted-foreground">{sync.lastSync}</p>
+                    </div>
+                  </div>
+                  <Badge variant={sync.status === 'synced' ? 'default' : sync.status === 'syncing' ? 'secondary' : 'destructive'}>
+                    {sync.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )
+
+      case 'ota-comparison':
+        const otaMetrics = [
+          { name: 'Booking.com', bookings: 38, adr: 2500, rating: 8.5 },
+          { name: 'Agoda', bookings: 32, adr: 2350, rating: 8.2 },
+          { name: 'Airbnb', bookings: 29, adr: 2800, rating: 4.7 },
+          { name: 'Expedia', bookings: 21, adr: 2400, rating: 8.0 }
+        ]
+
+        return (
+          <Card className="p-6 h-full">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h3 className="text-base font-semibold">OTA Comparison</h3>
+              {onNavigate && (
+                <Button size="sm" onClick={() => onNavigate('channel-manager')} variant="outline">
+                  Details
+                </Button>
+              )}
+            </div>
+            <div className="space-y-3">
+              {otaMetrics.map((ota, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-sm">{ota.name}</span>
+                    <div className="flex items-center gap-1">
+                      <Star size={12} className="text-yellow-500 fill-yellow-500" />
+                      <span className="text-xs font-medium">{ota.rating}</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="p-2 rounded bg-muted/50">
+                      <p className="text-muted-foreground">Bookings</p>
+                      <p className="font-semibold">{ota.bookings}</p>
+                    </div>
+                    <div className="p-2 rounded bg-muted/50">
+                      <p className="text-muted-foreground">ADR</p>
+                      <p className="font-semibold">{formatCurrency(ota.adr)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )
+
+      case 'booking-source':
+        const bookingSources = [
+          { source: 'Booking.com', count: 38, percentage: 35 },
+          { source: 'Agoda', count: 32, percentage: 30 },
+          { source: 'Airbnb', count: 29, percentage: 27 },
+          { source: 'Direct', count: 8, percentage: 8 }
+        ]
+        const totalBookings = bookingSources.reduce((sum, s) => sum + s.count, 0)
+
+        return (
+          <Card className="p-6 h-full">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h3 className="text-base font-semibold">Booking Source</h3>
+              <div className="text-right">
+                <p className="text-2xl font-semibold">{totalBookings}</p>
+                <p className="text-xs text-muted-foreground">Total</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {bookingSources.map((source, index) => (
+                <div key={index} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium">{source.source}</span>
+                    <span className="text-muted-foreground">{source.count} ({source.percentage}%)</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all"
+                      style={{ width: `${source.percentage}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )
+
+      case 'channel-revenue':
+        const channelRevenues = [
+          { channel: 'Booking.com', today: 15000, month: 450000, trend: 'up' },
+          { channel: 'Agoda', today: 12000, month: 360000, trend: 'up' },
+          { channel: 'Airbnb', today: 18000, month: 540000, trend: 'down' },
+          { channel: 'Direct', today: 8000, month: 240000, trend: 'up' }
+        ]
+        const totalToday = channelRevenues.reduce((sum, c) => sum + c.today, 0)
+        const totalMonth = channelRevenues.reduce((sum, c) => sum + c.month, 0)
+
+        return (
+          <Card className="p-6 h-full">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h3 className="text-base font-semibold">Channel Revenue</h3>
+              {onNavigate && (
+                <Button size="sm" onClick={() => onNavigate('channel-manager')} variant="outline">
+                  View All
+                </Button>
+              )}
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                  <p className="text-xs text-muted-foreground mb-1">Today</p>
+                  <p className="text-xl font-semibold">{formatCurrency(totalToday)}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-accent/10 border border-accent/20">
+                  <p className="text-xs text-muted-foreground mb-1">This Month</p>
+                  <p className="text-xl font-semibold">{formatCurrency(totalMonth)}</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {channelRevenues.map((rev, index) => (
+                  <div key={index} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{rev.channel}</span>
+                      {rev.trend === 'up' ? (
+                        <TrendUp size={14} className="text-success" />
+                      ) : (
+                        <TrendDown size={14} className="text-destructive" />
+                      )}
+                    </div>
+                    <span className="font-semibold">{formatCurrency(rev.today)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+        )
+
       default:
         return (
           <Card className="p-6 h-full">

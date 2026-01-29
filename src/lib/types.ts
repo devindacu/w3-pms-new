@@ -4270,6 +4270,10 @@ export type DashboardWidgetType =
   | 'goal-tracking'
   | 'quick-actions'
   | 'team-performance'
+  | 'channel-sync-status'
+  | 'ota-comparison'
+  | 'booking-source'
+  | 'channel-revenue'
 
 export type WidgetSize = 'small' | 'medium' | 'large' | 'full'
 
