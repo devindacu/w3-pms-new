@@ -1,37 +1,36 @@
 import React, { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, D
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/se
 import { Card } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger }
-import { Checkbox } from '@/components/ui/checkbox'
-import type { DashboardLayout, DashboardWidge
-import { Card } from '@/components/ui/card'
-import { toast } from 'sonner'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Download, Upload, Eye, Star, Layout } from '@phosphor-icons/react'
 import type { DashboardLayout, DashboardWidget, SystemRole } from '@/lib/types'
-import { getAvailableWidgets, getRoleWidgetPresets } from '@/lib/widgetConfig'
+import { toast } from 'sonner'
 
 interface WidgetTemplate {
-  category: 
+  id: string
   name: string
-  usage: number
+  description: string
   author: string
-}
+  isPublic: boolean
   isDefault: boolean
-  open: boolean
+  targetRoles: SystemRole[]
   widgets: DashboardWidget[]
-  currentLayout?:
+  columns: number
   category: 'executive' | 'operational' | 'departmental' | 'analytical' | 'custom'
-}
+  tags: string[]
   rating: number
-  'revenue-toda
+  usage: number
   createdAt: number
   updatedAt: number
- 
+}
 
 interface WidgetTemplateManagerProps {
   open: boolean
@@ -42,33 +41,10 @@ interface WidgetTemplateManagerProps {
   onSaveAsTemplate?: (template: WidgetTemplate) => void
 }
 
-const WIDGET_TYPE_LABELS: Record<string, string> = {
-  'revenue-today': "Today's Revenue",
-  'occupancy': 'Occupancy Rate',
-  'arrivals-departures': 'Arrivals & Departures',
-  'room-status': 'Room Status',
-  'housekeeping': 'Housekeeping Tasks',
-  'low-stock': 'Low Stock Items',
-  'pending-approvals': 'Pending Approvals',
-  'financial-summary': 'Financial Summary',
-  'revenue-chart': 'Revenue Trends',
-}
-  'guest-feedback': 'Guest Feedback',
-  'maintenance-status': 'Maintenance Requests',
-  'food-inventory': 'Food Inventory',
-  'amenities-stock': 'Amenities Stock',
-  'kitchen-operations': 'Kitchen Operations',
-  'fnb-performance': 'F&B Performance',
-  'maintenance-construction': 'Construction Projects',
-  'channel-performance': 'Channel Performance',
-  'crm-summary': 'CRM Summary',
-  'booking-source': 'Booking Source'
-}
-
 const CATEGORY_LABELS: Record<WidgetTemplate['category'], string> = {
   executive: 'Executive',
   operational: 'Operational',
-    createdAt: Date.now() - 864
+  departmental: 'Departmental',
   analytical: 'Analytical',
   custom: 'Custom'
 }
@@ -78,7 +54,7 @@ const CATEGORY_DESCRIPTIONS: Record<WidgetTemplate['category'], string> = {
   operational: 'Day-to-day operations and task management',
   departmental: 'Department-specific dashboards',
   analytical: 'Data-driven templates with charts and insights',
-      { id: 'w4', type: 'occupancy', titl
+  custom: 'Custom templates created by users'
 }
 
 const DEFAULT_TEMPLATES: WidgetTemplate[] = [
@@ -86,113 +62,62 @@ const DEFAULT_TEMPLATES: WidgetTemplate[] = [
     id: 'template-executive-1',
     name: 'Executive Dashboard',
     description: 'Comprehensive overview for senior management with key performance indicators, revenue trends, and strategic metrics',
-  {
+    author: 'System',
     isPublic: true,
-    description: 'Fo
-    targetRoles: ['admin', 'manager'],
-    isDefault:
+    isDefault: true,
+    targetRoles: ['admin', 'procurement-manager'],
+    widgets: [
       { id: 'w1', type: 'revenue-today', title: "Today's Revenue", size: 'small', position: 0, isVisible: true, refreshInterval: 60000 },
       { id: 'w2', type: 'occupancy', title: 'Occupancy Rate', size: 'small', position: 1, isVisible: true, refreshInterval: 60000 },
       { id: 'w3', type: 'financial-summary', title: 'Financial Summary', size: 'large', position: 2, isVisible: true, refreshInterval: 60000 },
-      { id: 'w4', type: 'revenue-chart', title: 'Revenue Trends', size: 'large', position: 3, isVisible: true, refreshInterval: 60000 },
-      { id: 'w5', type: 'department-performance', title: 'Department Performance', size: 'large', position: 4, isVisible: true, refreshInterval: 60000 },
-      { id: 'w6', type: 'channel-performance', title: 'Channel Performance', size: 'large', position: 5, isVisible: true, refreshInterval: 60000 }
+      { id: 'w4', type: 'revenue-chart', title: 'Revenue Trends', size: 'large', position: 3, isVisible: true, refreshInterval: 60000 }
     ],
-    rating: 4.5
+    columns: 2,
     category: 'executive',
     tags: ['executive', 'revenue', 'kpi', 'management'],
     rating: 4.8,
-    id: 'templa
+    usage: 145,
     createdAt: Date.now() - 86400000 * 30,
     updatedAt: Date.now() - 86400000 * 5
   },
-   
+  {
     id: 'template-frontoffice-1',
-      { id: 'w2', type: 'financial-s
+    name: 'Front Office Operations',
     description: 'Daily operations dashboard for front desk staff with arrivals, departures, room status, and guest management',
-      { id: 'w5', typ
+    author: 'System',
     isPublic: true,
-    columns: 2,
-    targetRoles: ['front-desk', 'manager'],
-    rating: 4.
+    isDefault: false,
+    targetRoles: ['admin', 'department-head'],
+    widgets: [
       { id: 'w1', type: 'arrivals-departures', title: 'Arrivals & Departures', size: 'large', position: 0, isVisible: true, refreshInterval: 60000 },
       { id: 'w2', type: 'room-status', title: 'Room Status', size: 'large', position: 1, isVisible: true, refreshInterval: 60000 },
       { id: 'w3', type: 'housekeeping', title: 'Housekeeping', size: 'small', position: 2, isVisible: true, refreshInterval: 60000 },
-      { id: 'w4', type: 'occupancy', title: 'Occupancy', size: 'small', position: 3, isVisible: true, refreshInterval: 60000 },
-      { id: 'w5', type: 'guest-feedback', title: 'Guest Feedback', size: 'medium', position: 4, isVisible: true, refreshInterval: 60000 },
-      { id: 'w6', type: 'pending-approvals', title: 'Pending Tasks', size: 'medium', position: 5, isVisible: true, refreshInterval: 60000 }
+      { id: 'w4', type: 'occupancy', title: 'Occupancy', size: 'small', position: 3, isVisible: true, refreshInterval: 60000 }
     ],
-  onApplyTempla
+    columns: 2,
     category: 'operational',
     tags: ['front-office', 'operations', 'daily', 'guest-service'],
     rating: 4.6,
-  const [templ
+    usage: 98,
     createdAt: Date.now() - 86400000 * 25,
     updatedAt: Date.now() - 86400000 * 3
-  },
-  {
-    id: 'template-fnb-1',
-      userRole: currentRole
-    description: 'Food & Beverage management dashboard with kitchen operations, inventory, and performance metrics',
-      isShared: templ
-    isPublic: true,
-        id: `widget-$
-    targetRoles: ['fnb-manager', 'kitchen-manager'],
-      columns:
-      { id: 'w1', type: 'kitchen-operations', title: 'Kitchen Operations', size: 'large', position: 0, isVisible: true, refreshInterval: 60000 },
-      { id: 'w2', type: 'fnb-performance', title: 'F&B Performance', size: 'medium', position: 1, isVisible: true, refreshInterval: 60000 },
-      { id: 'w3', type: 'food-inventory', title: 'Food Inventory', size: 'small', position: 2, isVisible: true, refreshInterval: 60000 },
-      { id: 'w4', type: 'low-stock', title: 'Low Stock Alert', size: 'large', position: 3, isVisible: true, refreshInterval: 60000 },
-      { id: 'w5', type: 'guest-feedback', title: 'Guest Feedback', size: 'medium', position: 4, isVisible: true, refreshInterval: 60000 }
-    ],
-    columns: 2,
-    category: 'departmental',
-    tags: ['fnb', 'kitchen', 'inventory', 'operations'],
-    }
-    usage: 62,
-      toast.error('Save template function 
-    updatedAt: Date.now() - 86400000 * 2
-
-  {
-      return
-    name: 'Financial Overview',
-    description: 'Comprehensive financial dashboard for tracking revenue, expenses, and profitability',
-    author: 'System',
-      description: 
-    isDefault: false,
-    targetRoles: ['accountant', 'finance-manager', 'admin'],
-    widgets: [
-      { id: 'w1', type: 'revenue-today', title: "Today's Revenue", size: 'small', position: 0, isVisible: true, refreshInterval: 60000 },
-      { id: 'w2', type: 'financial-summary', title: 'Financial Summary', size: 'large', position: 1, isVisible: true, refreshInterval: 60000 },
-      { id: 'w3', type: 'pending-approvals', title: 'Pending Approvals', size: 'medium', position: 2, isVisible: true, refreshInterval: 60000 },
-      { id: 'w4', type: 'revenue-chart', title: 'Revenue Trends', size: 'large', position: 3, isVisible: true, refreshInterval: 60000 },
-      { id: 'w5', type: 'channel-performance', title: 'Channel Revenue', size: 'large', position: 4, isVisible: true, refreshInterval: 60000 },
-      { id: 'w6', type: 'department-performance', title: 'Department P&L', size: 'large', position: 5, isVisible: true, refreshInterval: 60000 }
-    on
-    columns: 2,
-    setTemplateName('')
-    tags: ['finance', 'revenue', 'analytics', 'reporting'],
-    setTemplateT
-    usage: 78,
-    createdAt: Date.now() - 86400000 * 15,
-    updatedAt: Date.now() - 86400000 * 1
-
+  }
 ]
 
 export function WidgetTemplateManager({
-       
+  open,
   onOpenChange,
-            </
+  currentRole,
   currentLayout,
-            </p>
+  onApplyTemplate,
   onSaveAsTemplate
-          <Tabs defaultValue="re
+}: WidgetTemplateManagerProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<WidgetTemplate | null>(null)
-              <TabsTrigger value="all">All Templates</TabsTrigger>
+  const [previewTemplate, setPreviewTemplate] = useState<WidgetTemplate | null>(null)
   const [templateName, setTemplateName] = useState('')
-
+  const [templateDescription, setTemplateDescription] = useState('')
   const [templateCategory, setTemplateCategory] = useState<WidgetTemplate['category']>('custom')
-                <div>
+  const [templateTags, setTemplateTags] = useState('')
   const [templateIsPublic, setTemplateIsPublic] = useState(false)
 
   const handleApplyTemplate = (template: WidgetTemplate) => {
@@ -200,34 +125,34 @@ export function WidgetTemplateManager({
       id: `layout-${Date.now()}`,
       userId: currentLayout?.userId || 'current-user',
       userRole: currentRole,
-                      {rol
+      name: template.name,
       isDefault: false,
-                            <div c
+      isShared: false,
       widgets: template.widgets.map((widget, index) => ({
         ...widget,
         id: `widget-${Date.now()}-${index}`,
         position: index
       })),
-                              </
+      columns: template.columns,
       createdAt: Date.now(),
-                            
+      updatedAt: Date.now(),
       createdBy: currentLayout?.createdBy || 'current-user'
     }
 
     onApplyTemplate(newLayout)
     toast.success(`Template "${template.name}" applied successfully`)
-                       
+    onOpenChange(false)
   }
 
   const handleSaveCurrentAsTemplate = () => {
-
+    if (!currentLayout) {
       toast.error('No current layout to save')
-            
-     
+      return
+    }
 
     if (!onSaveAsTemplate) {
       toast.error('Save template function not available')
-            
+      return
     }
 
     if (!templateName.trim()) {
@@ -236,29 +161,27 @@ export function WidgetTemplateManager({
     }
 
     const newTemplate: WidgetTemplate = {
-                                </Button>
+      id: `template-custom-${Date.now()}`,
       name: templateName.trim(),
-                          </div>
+      description: templateDescription.trim() || 'Custom dashboard template',
       author: currentLayout.createdBy || 'current-user',
-                    </div>
+      isPublic: templateIsPublic,
       isDefault: false,
-              </div>
+      targetRoles: [currentRole],
       widgets: currentLayout.widgets,
       columns: currentLayout.columns,
       category: templateCategory,
       tags: templateTags.split(',').map(tag => tag.trim()).filter(Boolean),
       rating: 0,
-               
+      usage: 0,
       createdAt: Date.now(),
-              ).map(([categ
+      updatedAt: Date.now()
     }
 
     onSaveAsTemplate(newTemplate)
     toast.success(`Template "${newTemplate.name}" saved successfully`)
-    
-                       
+    setTemplateName('')
     setTemplateDescription('')
-                            <p cl
     setTemplateTags('')
     setTemplateIsPublic(false)
   }
@@ -266,9 +189,9 @@ export function WidgetTemplateManager({
   const allTemplates = DEFAULT_TEMPLATES
   const roleRelevantTemplates = allTemplates.filter(t => t.targetRoles.includes(currentRole))
 
-          
+  return (
     <>
-                            <div className="flex gap-2
+      <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -280,23 +203,23 @@ export function WidgetTemplateManager({
             </p>
           </DialogHeader>
 
-                        </div>
+          <Tabs defaultValue="recommended">
             <TabsList className="grid w-full grid-cols-3">
-                  </div>
+              <TabsTrigger value="recommended">Recommended</TabsTrigger>
               <TabsTrigger value="all">All Templates</TabsTrigger>
-            </TabsContent>
+              <TabsTrigger value="create">Create New</TabsTrigger>
             </TabsList>
 
             <TabsContent value="recommended" className="mt-4">
-                    <h3 className="text-l
+              <div>
                 <div>
                   <h3 className="text-sm font-semibold mb-1">Templates for {currentRole}</h3>
                   <p className="text-xs text-muted-foreground">Curated dashboard layouts designed for your role</p>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-3 mt-4">
                   {roleRelevantTemplates.length === 0 ? (
-                  </div>
+                    <Card className="p-8 text-center">
                       <p className="text-muted-foreground">No recommended templates for your role. Check the "All Templates" tab.</p>
                     </Card>
                   ) : (
@@ -314,7 +237,7 @@ export function WidgetTemplateManager({
                                 </div>
                                 <p className="text-sm text-muted-foreground mt-1">{template.description}</p>
                               </div>
-                    <div>
+                            </div>
 
                             <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
                               <Badge variant="outline">{CATEGORY_LABELS[template.category]}</Badge>
@@ -322,21 +245,19 @@ export function WidgetTemplateManager({
                               <span>{template.widgets.length} widgets</span>
                               <Separator orientation="vertical" className="h-4" />
                               <span>{template.columns} columns</span>
-                    <Checkbox
+                            </div>
 
                             <div className="flex flex-wrap gap-1">
                               {template.tags.slice(0, 4).map((tag) => (
-                      Make this template public (share with other users)
-                                  {tag}
-
+                                <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
                               ))}
-                      <h4 classNam
+                            </div>
 
-                        <div>Columns: {currentLayout.columns}</div>
+                            <div className="flex items-center justify-between pt-2 border-t">
                               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  )}
+                                <span className="flex items-center gap-1">
                                   <Star size={14} weight="fill" className="text-yellow-500" />
-                    onClick={handleSaveCurrentAsTemplate}
+                                  {template.rating.toFixed(1)}
                                 </span>
                                 <span>{template.usage} uses</span>
                               </div>
@@ -345,7 +266,7 @@ export function WidgetTemplateManager({
                                   size="sm"
                                   variant="outline"
                                   onClick={() => setPreviewTemplate(template)}
-            <DialogHeader>
+                                >
                                   <Eye size={16} className="mr-1" />
                                   Preview
                                 </Button>
@@ -360,7 +281,7 @@ export function WidgetTemplateManager({
                             </div>
                           </div>
                         </Card>
-                  {previe
+                      ))}
                     </div>
                   )}
                 </div>
@@ -374,22 +295,22 @@ export function WidgetTemplateManager({
                     acc[template.category] = []
                   }
                   acc[template.category].push(template)
-                <Download si
+                  return acc
                 }, {} as Record<string, WidgetTemplate[]>)
-            </DialogFooter>
+              ).map(([category, templates]) => (
                 <div key={category} className="space-y-3">
-      )}
+                  <div>
                     <h3 className="text-lg font-semibold">{CATEGORY_LABELS[category as WidgetTemplate['category']]}</h3>
                     <p className="text-sm text-muted-foreground">{CATEGORY_DESCRIPTIONS[category as WidgetTemplate['category']]}</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {templates.map((template) => (
-
+                      <Card key={template.id} className="p-4 hover:shadow-lg transition-shadow">
                         <div className="space-y-3">
-
+                          <div>
                             <h4 className="font-semibold">{template.name}</h4>
                             <p className="text-sm text-muted-foreground mt-1">{template.description}</p>
-
+                          </div>
                           <div className="flex items-center gap-2 text-sm">
                             <span>{template.widgets.length} widgets</span>
                             <Separator orientation="vertical" className="h-4" />
@@ -408,11 +329,11 @@ export function WidgetTemplateManager({
                                 size="sm"
                                 variant="outline"
                                 onClick={() => setPreviewTemplate(template)}
-
+                              >
                                 <Eye size={16} className="mr-1" />
                                 Preview
                               </Button>
-
+                              <Button
                                 size="sm"
                                 onClick={() => handleApplyTemplate(template)}
                               >
@@ -424,7 +345,7 @@ export function WidgetTemplateManager({
                         </div>
                       </Card>
                     ))}
-
+                  </div>
                 </div>
               ))}
             </TabsContent>
@@ -432,7 +353,7 @@ export function WidgetTemplateManager({
             <TabsContent value="create" className="mt-4">
               <Card className="p-6">
                 <div className="space-y-4">
-
+                  <div>
                     <h3 className="text-lg font-semibold">Save Current Layout as Template</h3>
                     <p className="text-sm text-muted-foreground">Create a reusable template from your current dashboard configuration</p>
                   </div>
@@ -440,11 +361,11 @@ export function WidgetTemplateManager({
                   <div>
                     <Label htmlFor="template-name">Template Name *</Label>
                     <Input
-
+                      id="template-name"
                       placeholder="e.g., My Custom Dashboard"
                       value={templateName}
                       onChange={(e) => setTemplateName(e.target.value)}
-
+                    />
                   </div>
 
                   <div>
@@ -454,7 +375,6 @@ export function WidgetTemplateManager({
                       placeholder="Describe what this template is for..."
                       value={templateDescription}
                       onChange={(e) => setTemplateDescription(e.target.value)}
-
                     />
                   </div>
 
@@ -464,7 +384,7 @@ export function WidgetTemplateManager({
                       <Select value={templateCategory} onValueChange={(value) => setTemplateCategory(value as WidgetTemplate['category'])}>
                         <SelectTrigger id="template-category">
                           <SelectValue />
-
+                        </SelectTrigger>
                         <SelectContent>
                           {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
                             <SelectItem key={key} value={key}>{label}</SelectItem>
@@ -473,14 +393,15 @@ export function WidgetTemplateManager({
                       </Select>
                     </div>
 
+                    <div>
                       <Label htmlFor="template-tags">Tags (comma-separated)</Label>
-
+                      <Input
                         id="template-tags"
                         placeholder="e.g., operations, daily, reports"
                         value={templateTags}
-
+                        onChange={(e) => setTemplateTags(e.target.value)}
                       />
-
+                    </div>
                   </div>
 
                   <div className="flex items-center space-x-2">
@@ -488,41 +409,41 @@ export function WidgetTemplateManager({
                       id="template-public"
                       checked={templateIsPublic}
                       onCheckedChange={(checked) => setTemplateIsPublic(checked as boolean)}
-
+                    />
                     <Label htmlFor="template-public" className="text-sm font-normal">
                       Make this template public (share with other users)
                     </Label>
+                  </div>
 
-
-
+                  {currentLayout && (
                     <div className="bg-muted p-4 rounded-lg">
                       <h4 className="text-sm font-semibold mb-2">Current Layout Preview</h4>
                       <div className="space-y-1 text-sm text-muted-foreground">
                         <div>Widgets: {currentLayout.widgets.length}</div>
                         <div>Columns: {currentLayout.columns}</div>
-
+                      </div>
                     </div>
-
+                  )}
 
                   <Button
                     onClick={handleSaveCurrentAsTemplate}
                     disabled={!currentLayout || !templateName.trim()}
                     className="w-full"
-
+                  >
                     <Upload size={16} className="mr-2" />
-
+                    Save as Template
                   </Button>
                 </div>
               </Card>
             </TabsContent>
           </Tabs>
-
+        </DialogContent>
       </Dialog>
 
       {previewTemplate && (
         <Dialog open={!!previewTemplate} onOpenChange={() => setPreviewTemplate(null)}>
           <DialogContent className="max-w-2xl">
-
+            <DialogHeader>
               <DialogTitle>{previewTemplate.name}</DialogTitle>
             </DialogHeader>
 
@@ -530,8 +451,9 @@ export function WidgetTemplateManager({
               <div>
                 <span className="font-medium">Description:</span>
                 <p className="text-sm text-muted-foreground mt-1">{previewTemplate.description}</p>
+              </div>
 
-
+              <div>
                 <span className="font-medium">Configuration:</span>
                 <div className="text-sm text-muted-foreground mt-1">
                   {previewTemplate.widgets.length} widgets, {previewTemplate.columns} columns
@@ -540,35 +462,35 @@ export function WidgetTemplateManager({
 
               <div>
                 <h4 className="font-medium mb-2">Widgets Included:</h4>
-
+                <div className="space-y-2">
                   {previewTemplate.widgets.map((widget, index) => (
                     <div key={widget.id} className="flex items-center justify-between p-2 bg-muted rounded">
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">{index + 1}.</span>
                         <span className="text-sm">{widget.title}</span>
-
+                      </div>
                       <Badge variant="outline" className="text-xs">{widget.size}</Badge>
-
+                    </div>
                   ))}
-
+                </div>
               </div>
 
-
-
-              <Button variant="outline" onClick={() => setPreviewTemplate(null)}>
-                Close
-              </Button>
-              <Button onClick={() => {
-                handleApplyTemplate(previewTemplate)
-                setPreviewTemplate(null)
-              }}>
-
-                Apply Template
-
-            </DialogFooter>
-
+              <div className="flex gap-2 pt-4">
+                <Button variant="outline" onClick={() => setPreviewTemplate(null)} className="flex-1">
+                  Close
+                </Button>
+                <Button onClick={() => {
+                  handleApplyTemplate(previewTemplate)
+                  setPreviewTemplate(null)
+                }} className="flex-1">
+                  <Download size={16} className="mr-2" />
+                  Apply Template
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
         </Dialog>
-
+      )}
     </>
-
+  )
 }

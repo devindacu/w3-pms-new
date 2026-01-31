@@ -43,7 +43,7 @@ import {
   type CostCenter,
   type ProfitCenter
 } from '@/lib/types'
-import { formatCurrency, formatDate } from '@/lib/helpers'
+import { formatCurrency, formatDate, formatDateTime } from '@/lib/helpers'
 import { PercentageChangeIndicator } from './PercentageChangeIndicator'
 import { InvoiceDialog } from './InvoiceDialog'
 import { PaymentDialog } from './PaymentDialog'
