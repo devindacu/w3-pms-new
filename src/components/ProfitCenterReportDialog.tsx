@@ -11,7 +11,7 @@ import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import { Download, TrendUp, TrendDown, ArrowUp, ArrowDown } from '@phosphor-icons/react'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, ComposedChart, Area } from 'recharts'
 import { type ProfitCenter, type CostCenter, type Expense, type ProfitCenterReport } from '@/lib/types'
-import { formatCurrency } from '@/lib/helpers'
+import { formatCurrency, formatDate } from '@/lib/helpers'
 
 interface ProfitCenterReportDialogProps {
   open: boolean
