@@ -69,6 +69,7 @@ import { CostCenterDialog } from './CostCenterDialog'
 import { ProfitCenterDialog } from './ProfitCenterDialog'
 import { CostCenterReportDialog } from './CostCenterReportDialog'
 import { ProfitCenterReportDialog } from './ProfitCenterReportDialog'
+import { FinancialExportDialog } from './FinancialExportDialog'
 import { toast } from 'sonner'
 
 interface FinanceProps {
@@ -156,6 +157,7 @@ export function Finance({
   const [selectedReconciliation, setSelectedReconciliation] = useState<BankReconciliation | undefined>()
   const [selectedCostCenter, setSelectedCostCenter] = useState<CostCenter | undefined>()
   const [selectedProfitCenter, setSelectedProfitCenter] = useState<ProfitCenter | undefined>()
+  const [exportDialogOpen, setExportDialogOpen] = useState(false)
 
   const calculateMonthMetrics = () => {
     const now = new Date()
@@ -650,10 +652,15 @@ export function Finance({
           <p className="text-muted-foreground mt-1 text-sm md:text-base">Manage invoices, payments, expenses, and budgets</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" size="sm" onClick={() => setReportsDialogOpen(true)} className="flex-1 sm:flex-none">
+          <Button variant="outline" size="sm" onClick={() => setExportDialogOpen(true)} className="flex-1 sm:flex-none">
             <Download size={18} className="mr-2" />
             <span className="hidden sm:inline">Export Reports</span>
             <span className="sm:hidden">Export</span>
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setReportsDialogOpen(true)} className="flex-1 sm:flex-none">
+            <FileText size={18} className="mr-2" />
+            <span className="hidden sm:inline">View Reports</span>
+            <span className="sm:hidden">Reports</span>
           </Button>
           <Button variant="outline" size="sm" onClick={() => setSelectedTab('reports')} className="flex-1 sm:flex-none">
             <ChartBar size={18} className="mr-2" />
@@ -1878,7 +1885,7 @@ export function Finance({
               <FileText size={16} className="mr-2" />
               Departmental P&L
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setExportDialogOpen(true)}>
               <Download size={16} className="mr-2" />
               Export All Reports
             </Button>
@@ -2392,6 +2399,21 @@ export function Finance({
         costCenters={costCenters}
         expenses={expenses}
         profitCenterReports={profitCenterReports}
+      />
+
+      <FinancialExportDialog
+        open={exportDialogOpen}
+        onOpenChange={setExportDialogOpen}
+        data={{
+          invoices,
+          guestInvoices: guestInvoices || [],
+          payments,
+          expenses,
+          costCenters,
+          profitCenters,
+          costCenterReports,
+          profitCenterReports
+        }}
       />
     </div>
   )
