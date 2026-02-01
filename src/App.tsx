@@ -42,7 +42,8 @@ import {
   List,
   FileText,
   TrendUp,
-  Moon
+  Moon,
+  Layout
 } from '@phosphor-icons/react'
 import { ServerSyncStatusIndicator } from '@/components/ServerSyncStatusIndicator'
 import { ServerSyncConflictDialog } from '@/components/ServerSyncConflictDialog'
@@ -177,6 +178,7 @@ import { InvoiceManagement } from '@/components/InvoiceManagement'
 import { PaymentTracking } from '@/components/PaymentTracking'
 import { Reports } from '@/components/Reports'
 import { DashboardWidgetManager } from '@/components/DashboardWidgetManager'
+import { DashboardLayoutManager } from '@/components/DashboardLayoutManager'
 import { WidgetRenderer } from '@/components/DashboardWidgets'
 import { getDefaultWidgetsForRole, getWidgetSize } from '@/lib/widgetConfig'
 import { ThemeToggle } from '@/components/ThemeToggle'
@@ -403,7 +405,7 @@ function App() {
   const [profitCenters, setProfitCenters] = useKV<import('@/lib/types').ProfitCenter[]>('w3-hotel-profit-centers', [])
   const [costCenterReports, setCostCenterReports] = useKV<import('@/lib/types').CostCenterReport[]>('w3-hotel-cost-center-reports', [])
   const [profitCenterReports, setProfitCenterReports] = useKV<import('@/lib/types').ProfitCenterReport[]>('w3-hotel-profit-center-reports', [])
-  const [dashboardLayout, setDashboardLayout] = useKV<DashboardLayout | null>('w3-hotel-dashboard-layout', null)
+  const [dashboardLayout, setDashboardLayout] = useKV<DashboardLayout | null>('w3-hotel-active-dashboard-layout', null)
   const [invoiceSequences, setInvoiceSequences] = useKV<import('@/lib/types').InvoiceNumberSequence[]>('w3-hotel-invoice-sequences', [])
   const [nightAuditLogs, setNightAuditLogs] = useKV<import('@/lib/types').NightAuditLog[]>('w3-hotel-night-audit-logs', [])
   const [mealCombos, setMealCombos] = useKV<import('@/lib/types').MealCombo[]>('w3-hotel-meal-combos', [])
@@ -526,6 +528,27 @@ function App() {
     currentVersion: systemVersion,
     pendingMigrations: systemPendingMigrations
   } = useMigrationManager()
+
+  useEffect(() => {
+    const loadDefaultLayout = async () => {
+      try {
+        const layouts = await spark.kv.get<DashboardLayout[]>('w3-hotel-dashboard-layouts')
+        if (layouts && layouts.length > 0) {
+          const userDefaultLayout = layouts.find(
+            l => l.userId === currentUser.id && l.isDefault
+          )
+          
+          if (userDefaultLayout && !dashboardLayout) {
+            setDashboardLayout(userDefaultLayout)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load default layout:', error)
+      }
+    }
+    
+    loadDefaultLayout()
+  }, [currentUser.id])
 
   useEffect(() => {
     const handleNavigateToSettings = (event: CustomEvent) => {
@@ -900,9 +923,17 @@ function App() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div>
             <h1 className="mobile-heading-responsive font-semibold text-foreground">Hotel Dashboard</h1>
-            <p className="text-muted-foreground mt-1 mobile-text-responsive">Unified view of all hotel operations</p>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-muted-foreground mobile-text-responsive">Unified view of all hotel operations</p>
+              {layout && (
+                <Badge variant="outline" className="hidden sm:inline-flex">
+                  <Layout size={12} className="mr-1" />
+                  {layout.name}
+                </Badge>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {!hasData && (
               <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto mobile-optimized-button">
                 <Database size={20} className="mr-2" />
@@ -911,12 +942,20 @@ function App() {
               </Button>
             )}
             {hasData && layout && (
-              <DashboardWidgetManager
-                userId={currentUser.id}
-                userRole={currentUser.role}
-                currentLayout={layout}
-                onLayoutChange={handleLayoutChange}
-              />
+              <>
+                <DashboardLayoutManager
+                  userId={currentUser.id}
+                  userRole={currentUser.role}
+                  currentLayout={layout}
+                  onLayoutChange={handleLayoutChange}
+                />
+                <DashboardWidgetManager
+                  userId={currentUser.id}
+                  userRole={currentUser.role}
+                  currentLayout={layout}
+                  onLayoutChange={handleLayoutChange}
+                />
+              </>
             )}
           </div>
         </div>
