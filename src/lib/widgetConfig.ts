@@ -100,7 +100,7 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
       'channel-performance'
     ],
     layout: {
-      columns: 2,
+      columns: 3,
       widgetSizes: {
         'occupancy': 'small',
         'revenue-today': 'small',
@@ -143,7 +143,7 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
       'pending-approvals'
     ],
     layout: {
-      columns: 2,
+      columns: 3,
       widgetSizes: {
         'arrivals-departures': 'large',
         'occupancy': 'small',
@@ -185,7 +185,7 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
       'low-stock'
     ],
     layout: {
-      columns: 2,
+      columns: 3,
       widgetSizes: {
         'housekeeping': 'medium',
         'room-status': 'large',
@@ -227,7 +227,7 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
       'arrivals-departures'
     ],
     layout: {
-      columns: 2,
+      columns: 3,
       widgetSizes: {
         'kitchen-operations': 'large',
         'fnb-performance': 'medium',
@@ -268,7 +268,7 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
       'crm-summary'
     ],
     layout: {
-      columns: 2,
+      columns: 3,
       widgetSizes: {
         'fnb-performance': 'large',
         'occupancy': 'small',
@@ -310,7 +310,7 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
       'occupancy'
     ],
     layout: {
-      columns: 2,
+      columns: 3,
       widgetSizes: {
         'maintenance-status': 'large',
         'maintenance-construction': 'medium',
@@ -353,7 +353,7 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
       'department-performance'
     ],
     layout: {
-      columns: 2,
+      columns: 3,
       widgetSizes: {
         'revenue-today': 'small',
         'financial-summary': 'large',
@@ -395,7 +395,7 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
       'maintenance-status'
     ],
     layout: {
-      columns: 2,
+      columns: 3,
       widgetSizes: {
         'department-performance': 'large',
         'pending-approvals': 'medium',
@@ -438,7 +438,7 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
       'fnb-performance'
     ],
     layout: {
-      columns: 2,
+      columns: 3,
       widgetSizes: {
         'low-stock': 'large',
         'food-inventory': 'small',
@@ -481,7 +481,7 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
       'low-stock'
     ],
     layout: {
-      columns: 2,
+      columns: 3,
       widgetSizes: {
         'department-performance': 'large',
         'pending-approvals': 'medium',
@@ -524,7 +524,7 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
       'housekeeping'
     ],
     layout: {
-      columns: 2,
+      columns: 3,
       widgetSizes: {
         'low-stock': 'large',
         'food-inventory': 'small',
@@ -567,7 +567,7 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
       'department-performance'
     ],
     layout: {
-      columns: 2,
+      columns: 3,
       widgetSizes: {
         'revenue-today': 'small',
         'financial-summary': 'large',
@@ -608,7 +608,7 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
       'maintenance-status'
     ],
     layout: {
-      columns: 2,
+      columns: 3,
       widgetSizes: {
         'occupancy': 'small',
         'housekeeping': 'small',
