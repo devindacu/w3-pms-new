@@ -147,7 +147,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
     switch (widget.type) {
       case 'occupancy':
         return (
-          <Card className="p-6 border-l-4 border-l-primary h-full glass-card glow-border">
+          <Card className="p-6 border-l-4 border-l-primary h-full w-full glass-card glow-border">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-muted-foreground">Occupancy</h3>
               <Bed size={20} className="text-primary floating-animation" />
@@ -194,7 +194,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'revenue-today':
         return (
-          <Card className="p-6 border-l-4 border-l-success h-full glass-card glow-border">
+          <Card className="p-6 border-l-4 border-l-success h-full w-full glass-card glow-border">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-muted-foreground">Revenue Today</h3>
               <CurrencyDollar size={20} className="text-success floating-animation" />
@@ -225,7 +225,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'housekeeping':
         return (
-          <Card className="p-6 border-l-4 border-l-accent h-full glass-card glow-border">
+          <Card className="p-6 border-l-4 border-l-accent h-full w-full glass-card glow-border">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-muted-foreground">Housekeeping</h3>
               <Broom size={20} className="text-accent floating-animation" />
@@ -262,7 +262,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'amenities-stock':
         return (
-          <Card className="p-6 border-l-4 border-l-destructive h-full">
+          <Card className="p-6 border-l-4 border-l-destructive h-full w-full">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-muted-foreground">Amenities Stock</h3>
               <Basket size={20} className="text-destructive" />
@@ -286,7 +286,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'food-inventory':
         return (
-          <Card className="p-6 border-l-4 border-l-accent h-full">
+          <Card className="p-6 border-l-4 border-l-accent h-full w-full">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-muted-foreground">Food Inventory</h3>
               <Carrot size={20} className="text-accent" />
@@ -310,7 +310,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'maintenance-construction':
         return (
-          <Card className="p-6 border-l-4 border-l-primary h-full">
+          <Card className="p-6 border-l-4 border-l-primary h-full w-full">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-muted-foreground">Maintenance & Construction</h3>
               <Hammer size={20} className="text-primary" />
@@ -334,7 +334,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'fnb-performance':
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-semibold">F&B Performance</h3>
               <ForkKnife size={18} className="text-muted-foreground" />
@@ -364,7 +364,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'maintenance-status':
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-semibold">Maintenance Status</h3>
               <Wrench size={18} className="text-muted-foreground" />
@@ -388,7 +388,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'room-status':
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-base font-semibold">Room Status Overview</h3>
               {onNavigate && (
@@ -414,7 +414,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'low-stock':
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-base font-semibold">Low Stock Items</h3>
               {onNavigate && (
@@ -446,7 +446,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'pending-approvals':
         return (
-          <Card className="p-6 border-l-4 border-l-warning h-full">
+          <Card className="p-6 border-l-4 border-l-warning h-full w-full">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-muted-foreground">Pending Approvals</h3>
               <Package size={20} className="text-warning" />
@@ -470,7 +470,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'department-performance':
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-semibold">Department Performance</h3>
               <ChartBar size={18} className="text-muted-foreground" />
@@ -496,7 +496,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'financial-summary':
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-semibold">Financial Summary</h3>
               <CurrencyDollar size={18} className="text-muted-foreground" />
@@ -575,7 +575,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
         }
 
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-base font-semibold">Today's Arrivals & Departures</h3>
               {onNavigate && (
@@ -649,7 +649,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
         const negativeFeedback = (data?.guestFeedback || []).filter((f: GuestFeedback) => f.sentiment === 'negative').length
 
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-base font-semibold">CRM & Guest Relations</h3>
               {onNavigate && (
@@ -734,7 +734,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
         const maxRevenue = Math.max(...last7Days.map(d => d.revenue))
 
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-semibold">Revenue Trend (Last 7 Days)</h3>
               <ChartLine size={18} className="text-muted-foreground" />
@@ -786,7 +786,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
         })
 
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-semibold">Occupancy Trend (Last 7 Days)</h3>
               <ChartPie size={18} className="text-muted-foreground" />
@@ -842,7 +842,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
         const negativeCount = allFeedback.filter((f: GuestFeedback) => f.sentiment === 'negative').length
 
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-base font-semibold">Guest Feedback</h3>
               {onNavigate && (
@@ -905,7 +905,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       case 'kitchen-operations':
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-base font-semibold">Kitchen Operations</h3>
               {onNavigate && (
@@ -959,7 +959,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
         const totalChannelRevenue = channels.reduce((sum, ch) => sum + ch.revenue, 0)
 
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-base font-semibold">Channel Performance</h3>
               {onNavigate && (
@@ -1000,7 +1000,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
       case 'period-comparison':
         if (!hasComparison || !comparisonMetrics) {
           return (
-            <Card className="p-6 h-full">
+            <Card className="p-6 h-full w-full">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-base font-semibold">Period Comparison</h3>
                 <ChartBar size={18} className="text-muted-foreground" />
@@ -1024,7 +1024,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
         const previousTasks = comparisonMetrics.housekeeping.pendingTasks
 
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-base font-semibold">Period Comparison</h3>
               <ChartBar size={18} className="text-muted-foreground" />
@@ -1162,7 +1162,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
         ]
 
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-base font-semibold">Goal Progress</h3>
               <TrendUp size={18} className="text-muted-foreground" />
@@ -1227,7 +1227,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
         ]
 
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-base font-semibold">Quick Actions</h3>
               <Package size={18} className="text-muted-foreground" />
@@ -1257,7 +1257,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
         ]
 
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-base font-semibold">Top Performers</h3>
               <Star size={18} className="text-muted-foreground" />
@@ -1301,7 +1301,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
         ]
 
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-base font-semibold">Channel Sync Status</h3>
               {onNavigate && (
@@ -1338,7 +1338,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
         ]
 
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-base font-semibold">OTA Comparison</h3>
               {onNavigate && (
@@ -1383,7 +1383,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
         const totalBookings = bookingSources.reduce((sum, s) => sum + s.count, 0)
 
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-base font-semibold">Booking Source</h3>
               <div className="text-right">
@@ -1421,7 +1421,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
         const totalMonth = channelRevenues.reduce((sum, c) => sum + c.month, 0)
 
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-base font-semibold">Channel Revenue</h3>
               {onNavigate && (
@@ -1462,19 +1462,12 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
 
       default:
         return (
-          <Card className="p-6 h-full">
+          <Card className="p-6 h-full w-full">
             <p className="text-sm text-muted-foreground text-center">{widget.title} - Coming Soon</p>
           </Card>
         )
     }
   }
 
-  const sizeClasses = {
-    small: 'col-span-1',
-    medium: 'col-span-1 md:col-span-2',
-    large: 'col-span-1 md:col-span-2 lg:col-span-3',
-    full: 'col-span-full'
-  }
-
-  return <div className={`${sizeClasses[widget.size]} flex`}>{renderWidget()}</div>
+  return <div className="w-full h-full">{renderWidget()}</div>
 }

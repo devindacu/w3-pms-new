@@ -950,20 +950,52 @@ function App() {
             onReset={handleFiltersReset}
           />
           
-          <div className={`grid gap-4 sm:gap-6 ${layout?.columns === 1 ? 'grid-cols-1' : layout?.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : layout?.columns === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-2'}`}>
+          <div className={`grid gap-4 sm:gap-6 ${layout?.columns === 1 ? 'grid-cols-1' : layout?.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6' : layout?.columns === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6' : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-6'}`}>
             {(layout?.widgets || [])
               .filter(w => w.isVisible)
               .sort((a, b) => a.position - b.position)
-              .map(widget => (
-                <div key={widget.id} className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex">
-                  <WidgetRenderer
-                    widget={widget}
-                    metrics={filteredMetrics}
-                    data={widgetData}
-                    onNavigate={(module) => setCurrentModule(module as Module)}
-                  />
-                </div>
-              ))}
+              .map(widget => {
+                const getWidgetColSpan = () => {
+                  if (layout?.columns === 1) return 'col-span-1'
+                  
+                  switch (widget.size) {
+                    case 'small':
+                      return layout?.columns === 3 
+                        ? 'col-span-1 xl:col-span-2' 
+                        : layout?.columns === 4
+                        ? 'col-span-1 xl:col-span-1'
+                        : 'col-span-1 xl:col-span-2'
+                    case 'medium':
+                      return layout?.columns === 3
+                        ? 'col-span-1 md:col-span-2 lg:col-span-1 xl:col-span-3'
+                        : layout?.columns === 4
+                        ? 'col-span-1 sm:col-span-2 lg:col-span-2 xl:col-span-3'
+                        : 'col-span-1 xl:col-span-3'
+                    case 'large':
+                      return layout?.columns === 3
+                        ? 'col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-6'
+                        : layout?.columns === 4
+                        ? 'col-span-1 sm:col-span-2 lg:col-span-4 xl:col-span-6'
+                        : 'col-span-1 md:col-span-2 xl:col-span-6'
+                    default:
+                      return 'col-span-1 xl:col-span-3'
+                  }
+                }
+                
+                return (
+                  <div 
+                    key={widget.id} 
+                    className={`transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex ${getWidgetColSpan()}`}
+                  >
+                    <WidgetRenderer
+                      widget={widget}
+                      metrics={filteredMetrics}
+                      data={widgetData}
+                      onNavigate={(module) => setCurrentModule(module as Module)}
+                    />
+                  </div>
+                )
+              })}
           </div>
         </>
       )}
