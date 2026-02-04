@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { type Supplier, type SupplierContactPerson } from '@/lib/types'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { DialogAdapter } from '@/components/adapters/DialogAdapter'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -150,7 +151,12 @@ export function SupplierDialog({ open, onClose, onSave, supplier }: SupplierDial
   }
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <DialogAdapter 
+      open={open} 
+      onOpenChange={onClose}
+      size="xl"
+      showAnimation={true}
+    >
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{supplier ? 'Edit Supplier' : 'Add New Supplier'}</DialogTitle>
@@ -576,6 +582,6 @@ export function SupplierDialog({ open, onClose, onSave, supplier }: SupplierDial
           </div>
         </form>
       </DialogContent>
-    </Dialog>
+    </DialogAdapter>
   )
 }

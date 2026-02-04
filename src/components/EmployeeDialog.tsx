@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { DialogAdapter } from '@/components/adapters/DialogAdapter'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -126,7 +127,12 @@ export function EmployeeDialog({ open, onOpenChange, employee, employees, setEmp
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogAdapter 
+      open={open} 
+      onOpenChange={onOpenChange}
+      size="lg"
+      showAnimation={true}
+    >
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{employee ? 'Edit Employee' : 'Add New Employee'}</DialogTitle>
@@ -306,6 +312,6 @@ export function EmployeeDialog({ open, onOpenChange, employee, employees, setEmp
           </DialogFooter>
         </form>
       </DialogContent>
-    </Dialog>
+    </DialogAdapter>
   )
 }

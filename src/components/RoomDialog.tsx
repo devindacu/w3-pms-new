@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
+import { DialogAdapter } from '@/components/adapters/DialogAdapter'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -149,7 +150,12 @@ export function RoomDialog({ open, onOpenChange, room, onSave }: RoomDialogProps
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogAdapter 
+      open={open} 
+      onOpenChange={onOpenChange}
+      size="lg"
+      showAnimation={true}
+    >
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{room ? 'Edit Room' : 'Add New Room'}</DialogTitle>
@@ -315,6 +321,6 @@ export function RoomDialog({ open, onOpenChange, room, onSave }: RoomDialogProps
           </DialogFooter>
         </form>
       </DialogContent>
-    </Dialog>
+    </DialogAdapter>
   )
 }
