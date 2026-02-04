@@ -193,8 +193,6 @@ import { MasterFolioManagement } from '@/components/MasterFolioManagement'
 // New UI/UX Enhancement Components
 import { EnhancedDashboardWidgets } from '@/components/EnhancedDashboardWidgets'
 import { VisualFloorPlan } from '@/components/VisualFloorPlan'
-import { LinenTrackingSystem } from '@/components/LinenTrackingSystem'
-import { KitchenDisplaySystem } from '@/components/KitchenDisplaySystem'
 import { RevenueManagementSystem } from '@/components/RevenueManagementSystem'
 import type {
   DashboardLayout,
@@ -232,7 +230,7 @@ import type {
   EmailCampaignAnalytics
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'revenue-management' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio' | 'enhanced-dashboard' | 'floor-plan' | 'linen-tracking' | 'kitchen-display'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'revenue-management' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio' | 'enhanced-dashboard' | 'floor-plan'
 
 function App() {
   const {
@@ -1212,24 +1210,6 @@ function App() {
             Revenue Management
           </Button>
 
-          <Button
-            variant={currentModule === 'linen-tracking' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('linen-tracking')}
-          >
-            <Broom size={18} className="mr-2" />
-            Linen Tracking
-          </Button>
-
-          <Button
-            variant={currentModule === 'kitchen-display' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('kitchen-display')}
-          >
-            <ChefHat size={18} className="mr-2" />
-            Kitchen Display
-          </Button>
-
           <Separator className="my-2" />
 
           <Button
@@ -1787,16 +1767,6 @@ function App() {
                 </div>
               </div>
               <VisualFloorPlan rooms={rooms || []} reservations={reservations || []} />
-            </div>
-          )}
-          {currentModule === 'linen-tracking' && (
-            <div className="space-y-6">
-              <LinenTrackingSystem />
-            </div>
-          )}
-          {currentModule === 'kitchen-display' && (
-            <div className="space-y-6">
-              <KitchenDisplaySystem orders={orders || []} />
             </div>
           )}
           {currentModule === 'extra-services' && (
