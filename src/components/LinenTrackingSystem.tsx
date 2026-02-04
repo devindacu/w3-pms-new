@@ -24,7 +24,7 @@ import {
   TrendUp,
   TrendDown,
 } from '@phosphor-icons/react';
-import { useKV } from '@/hooks/use-kv';
+import { useKV } from '@github/spark/hooks';
 import { toast } from 'sonner';
 
 interface LinenItem {

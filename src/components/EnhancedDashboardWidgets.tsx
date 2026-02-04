@@ -55,7 +55,7 @@ import {
   Legend,
 } from 'recharts';
 import { cn } from '@/lib/utils';
-import { useKV } from '@/hooks/use-kv';
+import { useKV } from '@github/spark/hooks';
 
 interface DashboardWidget {
   id: string;

@@ -36,7 +36,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { useKV } from '@/hooks/use-kv';
+import { useKV } from '@github/spark/hooks';
 
 interface PricingStrategy {
   id: number;

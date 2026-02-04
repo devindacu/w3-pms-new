@@ -14,7 +14,7 @@ import {
   Users,
   Timer,
 } from '@phosphor-icons/react';
-import { useKV } from '@/hooks/use-kv';
+import { useKV } from '@github/spark/hooks';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 

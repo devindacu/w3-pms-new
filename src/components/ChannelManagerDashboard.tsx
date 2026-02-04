@@ -51,7 +51,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { toast } from 'sonner';
-import { useKV } from '@/hooks/use-kv';
+import { useKV } from '@github/spark/hooks';
 import { cn } from '@/lib/utils';
 
 interface ChannelConfig {
