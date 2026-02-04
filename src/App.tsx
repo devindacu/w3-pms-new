@@ -542,6 +542,8 @@ function App() {
     pendingMigrations: systemPendingMigrations
   } = useMigrationManager()
 
+  const currentUser = (systemUsers || [])[0] || sampleSystemUsers[0]
+
   useEffect(() => {
     const loadDefaultLayout = async () => {
       try {
@@ -690,8 +692,6 @@ function App() {
     constructionProjects,
     forecasts
   ])
-  
-  const currentUser = (systemUsers || [])[0] || sampleSystemUsers[0]
 
   const handleMarkAsRead = (id: string) => {
     setNotifications((notifs) =>
