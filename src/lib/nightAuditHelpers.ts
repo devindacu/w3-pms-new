@@ -493,7 +493,7 @@ export function getNextInvoiceNumber(
 ): { number: string; updatedSequence: InvoiceNumberSequence } {
   const shouldReset = shouldResetSequence(sequence, auditDate)
   
-  let currentNumber = shouldReset ? 1 : sequence.currentNumber + 1
+  const currentNumber = shouldReset ? 1 : sequence.currentNumber + 1
   const paddedNumber = currentNumber.toString().padStart(sequence.paddingLength, '0')
   const invoiceNumber = `${sequence.prefix}${paddedNumber}${sequence.suffix || ''}`
   

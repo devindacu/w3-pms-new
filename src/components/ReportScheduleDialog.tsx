@@ -103,7 +103,7 @@ export function ReportScheduleDialog({
   const calculateNextRun = (): number => {
     const now = new Date()
     const [hours, minutes] = timeOfDay.split(':').map(Number)
-    let nextRun = new Date()
+    const nextRun = new Date()
     nextRun.setHours(hours, minutes, 0, 0)
 
     if (frequency === 'daily') {

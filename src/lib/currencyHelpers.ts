@@ -309,7 +309,7 @@ export function parseCurrencyInput(
   const currency = CURRENCIES[currencyCode]
   if (!currency) return null
 
-  let cleanInput = input
+  const cleanInput = input
     .replace(new RegExp(`\\${currency.symbol}`, 'g'), '')
     .replace(new RegExp(currency.code, 'g'), '')
     .replace(new RegExp(`\\${currency.thousandsSeparator}`, 'g'), '')

@@ -195,8 +195,8 @@ export function DepartmentalPLDialog({
     let revenue = 0
     let costOfSales = 0
     let operatingExpenses = 0
-    let otherIncome = 0
-    let otherExpenses = 0
+    const otherIncome = 0
+    const otherExpenses = 0
     let transactions = 0
 
     folios.forEach(folio => {

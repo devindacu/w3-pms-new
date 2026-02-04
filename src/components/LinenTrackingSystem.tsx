@@ -133,7 +133,7 @@ export function LinenTrackingSystem() {
     const updatedItems = items.map((item) => {
       if (item.id === selectedItem.id) {
         const qty = transactionData.quantity || 0;
-        let updated = { ...item };
+        const updated = { ...item };
 
         switch (transactionData.type) {
           case 'issue':

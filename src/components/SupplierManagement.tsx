@@ -62,7 +62,7 @@ export function SupplierManagement({ suppliers, setSuppliers }: SupplierManageme
   )
 
   const filteredAndSortedSuppliers = useMemo(() => {
-    let filtered = suppliers.filter(supplier => {
+    const filtered = suppliers.filter(supplier => {
       const matchesSearch = 
         supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         supplier.supplierId.toLowerCase().includes(searchTerm.toLowerCase()) ||
