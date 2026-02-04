@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { DialogAdapter } from '@/components/adapters/DialogAdapter'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -104,7 +105,7 @@ export function HousekeepingTaskDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogAdapter open={open} onOpenChange={onOpenChange} size="lg" showAnimation={true}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{task ? 'Update Task' : 'New Housekeeping Task'}</DialogTitle>
@@ -212,6 +213,6 @@ export function HousekeepingTaskDialog({
           </DialogFooter>
         </form>
       </DialogContent>
-    </Dialog>
+    </DialogAdapter>
   )
 }

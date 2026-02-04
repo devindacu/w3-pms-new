@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { DialogAdapter } from '@/components/adapters/DialogAdapter'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -245,7 +246,7 @@ export function PurchaseOrderDialog({
   const approvedRequisitions = requisitions.filter(r => r.status === 'approved')
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogAdapter open={open} onOpenChange={onOpenChange} size="2xl" showAnimation={true}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
@@ -488,6 +489,6 @@ export function PurchaseOrderDialog({
           )}
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+    </DialogAdapter>
   )
 }

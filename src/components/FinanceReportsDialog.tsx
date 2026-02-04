@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { DialogAdapter } from '@/components/adapters/DialogAdapter'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -325,7 +326,7 @@ export function FinanceReportsDialog({
   ]
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogAdapter open={open} onOpenChange={onOpenChange} size="xl" showAnimation={true}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
@@ -483,6 +484,6 @@ export function FinanceReportsDialog({
           </A4PrintWrapper>
         </div>
       </DialogContent>
-    </Dialog>
+    </DialogAdapter>
   )
 }

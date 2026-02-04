@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { DialogAdapter } from '@/components/adapters/DialogAdapter'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -95,7 +96,7 @@ export function CheckInDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogAdapter open={open} onOpenChange={onOpenChange} size="lg" showAnimation={true}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Check-In Guest</DialogTitle>
@@ -165,6 +166,6 @@ export function CheckInDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+    </DialogAdapter>
   )
 }
