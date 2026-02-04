@@ -191,7 +191,6 @@ import { NightAudit } from '@/components/NightAudit'
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator'
 import { MasterFolioManagement } from '@/components/MasterFolioManagement'
 // New UI/UX Enhancement Components
-import { ChannelManagerDashboard } from '@/components/ChannelManagerDashboard'
 import { EnhancedDashboardWidgets } from '@/components/EnhancedDashboardWidgets'
 import { VisualFloorPlan } from '@/components/VisualFloorPlan'
 import { LinenTrackingSystem } from '@/components/LinenTrackingSystem'
@@ -233,7 +232,7 @@ import type {
   EmailCampaignAnalytics
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'revenue-management' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio' | 'channel-dashboard' | 'enhanced-dashboard' | 'floor-plan' | 'linen-tracking' | 'kitchen-display'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'revenue-management' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio' | 'enhanced-dashboard' | 'floor-plan' | 'linen-tracking' | 'kitchen-display'
 
 function App() {
   const {
@@ -1180,15 +1179,6 @@ function App() {
             Channel Manager
           </Button>
 
-          <Button
-            variant={currentModule === 'channel-dashboard' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('channel-dashboard')}
-          >
-            <Sparkle size={18} className="mr-2" />
-            Channel Dashboard
-          </Button>
-
           <Separator className="my-2" />
 
           <div className="text-xs font-semibold text-muted-foreground px-3 py-2">
@@ -1785,9 +1775,6 @@ function App() {
             <div className="space-y-6">
               <EnhancedDashboardWidgets />
             </div>
-          )}
-          {currentModule === 'channel-dashboard' && (
-            <ChannelManagerDashboard />
           )}
           {currentModule === 'floor-plan' && (
             <div className="space-y-6">
