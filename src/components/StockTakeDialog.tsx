@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { DialogAdapter } from '@/components/adapters/DialogAdapter'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -264,7 +265,7 @@ export function StockTakeDialog({
 
   if (stockTakeItems.length === 0 && open) {
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogAdapter open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -317,12 +318,12 @@ export function StockTakeDialog({
             </div>
           </div>
         </DialogContent>
-      </Dialog>
+      </DialogAdapter>
     )
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogAdapter open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -477,6 +478,6 @@ export function StockTakeDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+    </DialogAdapter>
   )
 }

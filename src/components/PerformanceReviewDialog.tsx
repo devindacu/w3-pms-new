@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { DialogAdapter } from '@/components/adapters/DialogAdapter'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -151,7 +152,7 @@ export function PerformanceReviewDialog({ open, onOpenChange, review, employees,
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogAdapter open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{review ? 'Edit Performance Review' : 'New Performance Review'}</DialogTitle>
@@ -366,6 +367,6 @@ export function PerformanceReviewDialog({ open, onOpenChange, review, employees,
           </DialogFooter>
         </form>
       </DialogContent>
-    </Dialog>
+    </DialogAdapter>
   )
 }

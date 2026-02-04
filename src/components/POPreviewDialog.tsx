@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { DialogAdapter } from '@/components/adapters/DialogAdapter'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -256,7 +257,7 @@ export function POPreviewDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogAdapter open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between gap-3">
@@ -700,6 +701,6 @@ export function POPreviewDialog({
           </A4PrintWrapper>
         </div>
       </DialogContent>
-    </Dialog>
+    </DialogAdapter>
   )
 }

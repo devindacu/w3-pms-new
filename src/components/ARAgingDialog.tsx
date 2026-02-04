@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { DialogAdapter } from '@/components/adapters/DialogAdapter'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -131,7 +132,7 @@ export function ARAgingDialog({ open, onOpenChange, invoices }: ARAgingDialogPro
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogAdapter open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
@@ -291,6 +292,6 @@ export function ARAgingDialog({ open, onOpenChange, invoices }: ARAgingDialogPro
           </A4PrintWrapper>
         </div>
       </DialogContent>
-    </Dialog>
+    </DialogAdapter>
   )
 }

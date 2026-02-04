@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { DialogAdapter } from '@/components/adapters/DialogAdapter'
 import { PrintButton } from '@/components/PrintButton'
 import type { GuestInvoice, SystemUser, HotelBranding } from '@/lib/types'
 import { InvoiceViewerA4 } from '@/components/InvoiceViewerA4'
@@ -13,7 +14,7 @@ interface InvoiceViewDialogProps {
 
 export function InvoiceViewDialog({ open, onOpenChange, invoice, branding, currentUser }: InvoiceViewDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogAdapter open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[900px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
@@ -50,6 +51,6 @@ export function InvoiceViewDialog({ open, onOpenChange, invoice, branding, curre
           />
         </div>
       </DialogContent>
-    </Dialog>
+    </DialogAdapter>
   )
 }

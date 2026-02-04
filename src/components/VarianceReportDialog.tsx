@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { DialogAdapter } from '@/components/adapters/DialogAdapter'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -207,7 +208,7 @@ export function VarianceReportDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogAdapter open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
@@ -521,6 +522,6 @@ export function VarianceReportDialog({
           </Button>
         </div>
       </DialogContent>
-    </Dialog>
+    </DialogAdapter>
   )
 }

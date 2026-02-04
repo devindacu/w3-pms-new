@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { DialogAdapter } from '@/components/adapters/DialogAdapter'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -84,7 +85,7 @@ export function ShiftDialog({ open, onOpenChange, shift, shifts, setShifts }: Sh
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogAdapter open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{shift ? 'Edit Shift' : 'Create New Shift'}</DialogTitle>
@@ -199,6 +200,6 @@ export function ShiftDialog({ open, onOpenChange, shift, shifts, setShifts }: Sh
           </DialogFooter>
         </form>
       </DialogContent>
-    </Dialog>
+    </DialogAdapter>
   )
 }
