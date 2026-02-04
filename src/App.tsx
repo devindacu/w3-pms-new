@@ -172,6 +172,7 @@ import { CRM } from '@/components/CRM'
 import { GlobalSearch } from '@/components/GlobalSearch'
 import { ChannelManager } from '@/components/ChannelManager'
 import { RoomRevenueManagement } from '@/components/RoomRevenueManagement'
+import { UnifiedRevenueManagement } from '@/components/UnifiedRevenueManagement'
 import { ExtraServicesManagement } from '@/components/ExtraServicesManagement'
 import { Analytics } from '@/components/Analytics'
 import { Settings } from '@/components/Settings'
@@ -233,7 +234,7 @@ import type {
   EmailCampaignAnalytics
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio' | 'channel-dashboard' | 'enhanced-dashboard' | 'floor-plan' | 'revenue-management' | 'lost-found' | 'linen-tracking' | 'kitchen-display'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'revenue-management' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio' | 'channel-dashboard' | 'enhanced-dashboard' | 'floor-plan' | 'lost-found' | 'linen-tracking' | 'kitchen-display'
 
 function App() {
   const {
@@ -1172,15 +1173,6 @@ function App() {
           <Separator className="my-2" />
 
           <Button
-            variant={currentModule === 'room-revenue' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('room-revenue')}
-          >
-            <Buildings size={18} className="mr-2" />
-            Room & Revenue
-          </Button>
-
-          <Button
             variant={currentModule === 'channel-manager' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('channel-manager')}
@@ -1228,7 +1220,7 @@ function App() {
             onClick={() => setCurrentModule('revenue-management')}
           >
             <TrendUp size={18} className="mr-2" />
-            Revenue Manager
+            Revenue Management
           </Button>
 
           <Button
@@ -1520,8 +1512,8 @@ function App() {
               currentUser={currentUser}
             />
           )}
-          {currentModule === 'room-revenue' && (
-            <RoomRevenueManagement
+          {currentModule === 'revenue-management' && (
+            <UnifiedRevenueManagement
               rooms={rooms || []}
               setRooms={setRooms}
               roomTypes={roomTypeConfigs || []}
@@ -1833,15 +1825,6 @@ function App() {
           {currentModule === 'kitchen-display' && (
             <div className="space-y-6">
               <KitchenDisplaySystem orders={orders || []} />
-            </div>
-          )}
-          {currentModule === 'revenue-management' && (
-            <div className="space-y-6">
-              <RevenueManagementSystem 
-                rooms={rooms || []} 
-                reservations={reservations || []}
-                invoices={guestInvoices || []}
-              />
             </div>
           )}
           {currentModule === 'extra-services' && (
