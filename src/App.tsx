@@ -194,7 +194,6 @@ import { MasterFolioManagement } from '@/components/MasterFolioManagement'
 import { ChannelManagerDashboard } from '@/components/ChannelManagerDashboard'
 import { EnhancedDashboardWidgets } from '@/components/EnhancedDashboardWidgets'
 import { VisualFloorPlan } from '@/components/VisualFloorPlan'
-import { LostAndFoundManagement } from '@/components/LostAndFoundManagement'
 import { LinenTrackingSystem } from '@/components/LinenTrackingSystem'
 import { KitchenDisplaySystem } from '@/components/KitchenDisplaySystem'
 import { RevenueManagementSystem } from '@/components/RevenueManagementSystem'
@@ -234,7 +233,7 @@ import type {
   EmailCampaignAnalytics
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'revenue-management' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio' | 'channel-dashboard' | 'enhanced-dashboard' | 'floor-plan' | 'lost-found' | 'linen-tracking' | 'kitchen-display'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'revenue-management' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio' | 'channel-dashboard' | 'enhanced-dashboard' | 'floor-plan' | 'linen-tracking' | 'kitchen-display'
 
 function App() {
   const {
@@ -1224,15 +1223,6 @@ function App() {
           </Button>
 
           <Button
-            variant={currentModule === 'lost-found' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('lost-found')}
-          >
-            <Package size={18} className="mr-2" />
-            Lost & Found
-          </Button>
-
-          <Button
             variant={currentModule === 'linen-tracking' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('linen-tracking')}
@@ -1810,11 +1800,6 @@ function App() {
                 </div>
               </div>
               <VisualFloorPlan rooms={rooms || []} reservations={reservations || []} />
-            </div>
-          )}
-          {currentModule === 'lost-found' && (
-            <div className="space-y-6">
-              <LostAndFoundManagement />
             </div>
           )}
           {currentModule === 'linen-tracking' && (
