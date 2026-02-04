@@ -151,7 +151,9 @@ export function LinenTrackingSystem() {
             updated.cleanQuantity += qty;
             break;
           case 'damage':
+            // Deduct from clean quantity and total, add to damaged
             updated.cleanQuantity = Math.max(0, item.cleanQuantity - qty);
+            updated.totalQuantity = Math.max(0, item.totalQuantity - qty);
             updated.damagedQuantity += qty;
             break;
           case 'purchase':
@@ -159,6 +161,7 @@ export function LinenTrackingSystem() {
             updated.cleanQuantity += qty;
             break;
           case 'disposal':
+            // Remove from total and damaged counts
             updated.totalQuantity = Math.max(0, item.totalQuantity - qty);
             updated.damagedQuantity = Math.max(0, item.damagedQuantity - qty);
             break;

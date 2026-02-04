@@ -11,7 +11,10 @@ export const securityHeaders = helmet({
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Vite dev server requires unsafe-eval
+      // unsafe-eval only in development for Vite
+      scriptSrc: process.env.NODE_ENV === 'development' 
+        ? ["'self'", "'unsafe-inline'", "'unsafe-eval'"]
+        : ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:"],
       connectSrc: ["'self'", "https://api.github.com", "wss:", "ws:"],
       fontSrc: ["'self'", "data:"],

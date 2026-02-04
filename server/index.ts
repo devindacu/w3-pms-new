@@ -81,7 +81,8 @@ app.post('/api/guests', validate(guestCreateSchema), async (req, res) => {
 
 app.put('/api/guests/:id', validate(idParamSchema, 'params'), validate(guestUpdateSchema), async (req, res) => {
   try {
-    const result = await db.update(schema.guests).set(req.body).where(eq(schema.guests.id, parseInt(req.params.id))).returning();
+    // idParamSchema transforms id to number, so we can use it directly
+    const result = await db.update(schema.guests).set(req.body).where(eq(schema.guests.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error('Error updating guest:', error);
@@ -91,7 +92,7 @@ app.put('/api/guests/:id', validate(idParamSchema, 'params'), validate(guestUpda
 
 app.patch('/api/guests/:id', validate(idParamSchema, 'params'), validate(guestUpdateSchema), async (req, res) => {
   try {
-    const result = await db.update(schema.guests).set(req.body).where(eq(schema.guests.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.guests).set(req.body).where(eq(schema.guests.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error('Error patching guest:', error);
@@ -101,7 +102,7 @@ app.patch('/api/guests/:id', validate(idParamSchema, 'params'), validate(guestUp
 
 app.delete('/api/guests/:id', validate(idParamSchema, 'params'), async (req, res) => {
   try {
-    await db.delete(schema.guests).where(eq(schema.guests.id, parseInt(req.params.id)));
+    await db.delete(schema.guests).where(eq(schema.guests.id, req.params.id));
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting guest:', error);
@@ -131,7 +132,7 @@ app.post('/api/rooms', validate(roomCreateSchema), async (req, res) => {
 
 app.put('/api/rooms/:id', validate(idParamSchema, 'params'), validate(roomUpdateSchema), async (req, res) => {
   try {
-    const result = await db.update(schema.rooms).set(req.body).where(eq(schema.rooms.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.rooms).set(req.body).where(eq(schema.rooms.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error('Error updating room:', error);
@@ -141,7 +142,7 @@ app.put('/api/rooms/:id', validate(idParamSchema, 'params'), validate(roomUpdate
 
 app.patch('/api/rooms/:id', validate(idParamSchema, 'params'), validate(roomUpdateSchema), async (req, res) => {
   try {
-    const result = await db.update(schema.rooms).set(req.body).where(eq(schema.rooms.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.rooms).set(req.body).where(eq(schema.rooms.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error('Error patching room:', error);
@@ -151,7 +152,7 @@ app.patch('/api/rooms/:id', validate(idParamSchema, 'params'), validate(roomUpda
 
 app.delete('/api/rooms/:id', validate(idParamSchema, 'params'), async (req, res) => {
   try {
-    await db.delete(schema.rooms).where(eq(schema.rooms.id, parseInt(req.params.id)));
+    await db.delete(schema.rooms).where(eq(schema.rooms.id, req.params.id));
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting room:', error);

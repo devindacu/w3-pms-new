@@ -325,11 +325,8 @@ export async function suggestAlternativeRooms(
   }
 }
 
-// Helper function for missing drizzle-orm exports
-function ne(column: any, value: any) {
-  return { sql: `${column} != ${value}`, params: [] };
-}
-
-function inArray(column: any, values: any[]) {
-  return { sql: `${column} IN (${values.join(',')})`, params: [] };
-}
+// Note: These helper functions are placeholders for drizzle-orm operators
+// In production, import { ne, inArray } from 'drizzle-orm' if available
+// or use proper drizzle-orm filter syntax to avoid SQL injection risks
+// Current implementation is for demonstration only and should be replaced
+// with proper drizzle-orm operators before production use

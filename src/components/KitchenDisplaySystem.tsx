@@ -58,12 +58,12 @@ export function KitchenDisplaySystem() {
 
     const interval = setInterval(() => {
       // In a real implementation, this would fetch new orders from the server
-      // For now, we'll just trigger a re-render
-      setOrders([...orders]);
+      // Trigger re-render by updating timestamp
+      setOrders((current) => [...current]);
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [autoRefresh, orders, setOrders]);
+  }, [autoRefresh, setOrders]); // Removed 'orders' dependency to prevent unnecessary re-renders
 
   // Play sound for new orders
   useEffect(() => {
