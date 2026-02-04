@@ -6,6 +6,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
+import { DialogAdapter } from '@/components/adapters/DialogAdapter'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -62,7 +63,12 @@ export function MenuItemDialog({ menuItem, open, onOpenChange, onSave }: MenuIte
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogAdapter 
+      open={open} 
+      onOpenChange={onOpenChange}
+      size="lg"
+      showAnimation={true}
+    >
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{menuItem ? 'Edit Menu Item' : 'Add Menu Item'}</DialogTitle>
@@ -157,6 +163,6 @@ export function MenuItemDialog({ menuItem, open, onOpenChange, onSave }: MenuIte
           </DialogFooter>
         </form>
       </DialogContent>
-    </Dialog>
+    </DialogAdapter>
   )
 }

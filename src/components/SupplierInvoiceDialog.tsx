@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { DialogAdapter } from '@/components/adapters/DialogAdapter'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -276,7 +277,7 @@ export function SupplierInvoiceDialog({
   const selectedSupplier = suppliers.find(s => s.id === supplierId)
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogAdapter open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
@@ -679,6 +680,6 @@ export function SupplierInvoiceDialog({
           </A4PrintWrapper>
         </div>
       </DialogContent>
-    </Dialog>
+    </DialogAdapter>
   )
 }

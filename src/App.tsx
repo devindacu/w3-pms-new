@@ -189,6 +189,14 @@ import { RevenueOccupancyTrends } from '@/components/RevenueOccupancyTrends'
 import { NightAudit } from '@/components/NightAudit'
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator'
 import { MasterFolioManagement } from '@/components/MasterFolioManagement'
+// New UI/UX Enhancement Components
+import { ChannelManagerDashboard } from '@/components/ChannelManagerDashboard'
+import { EnhancedDashboardWidgets } from '@/components/EnhancedDashboardWidgets'
+import { VisualFloorPlan } from '@/components/VisualFloorPlan'
+import { LostAndFoundManagement } from '@/components/LostAndFoundManagement'
+import { LinenTrackingSystem } from '@/components/LinenTrackingSystem'
+import { KitchenDisplaySystem } from '@/components/KitchenDisplaySystem'
+import { RevenueManagementSystem } from '@/components/RevenueManagementSystem'
 import type {
   DashboardLayout,
   DashboardWidget,
@@ -225,7 +233,7 @@ import type {
   EmailCampaignAnalytics
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio' | 'channel-dashboard' | 'enhanced-dashboard' | 'floor-plan' | 'revenue-management' | 'lost-found' | 'linen-tracking' | 'kitchen-display'
 
 function App() {
   const {
@@ -1171,6 +1179,75 @@ function App() {
             Channel Manager
           </Button>
 
+          <Button
+            variant={currentModule === 'channel-dashboard' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('channel-dashboard')}
+          >
+            <Sparkle size={18} className="mr-2" />
+            Channel Dashboard
+          </Button>
+
+          <Separator className="my-2" />
+
+          <div className="text-xs font-semibold text-muted-foreground px-3 py-2">
+            ENTERPRISE FEATURES
+          </div>
+
+          <Button
+            variant={currentModule === 'enhanced-dashboard' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('enhanced-dashboard')}
+          >
+            <Sparkle size={18} className="mr-2" />
+            Enhanced Dashboard
+          </Button>
+
+          <Button
+            variant={currentModule === 'floor-plan' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('floor-plan')}
+          >
+            <Layout size={18} className="mr-2" />
+            Floor Plan
+          </Button>
+
+          <Button
+            variant={currentModule === 'revenue-management' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('revenue-management')}
+          >
+            <TrendUp size={18} className="mr-2" />
+            Revenue Manager
+          </Button>
+
+          <Button
+            variant={currentModule === 'lost-found' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('lost-found')}
+          >
+            <Package size={18} className="mr-2" />
+            Lost & Found
+          </Button>
+
+          <Button
+            variant={currentModule === 'linen-tracking' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('linen-tracking')}
+          >
+            <Broom size={18} className="mr-2" />
+            Linen Tracking
+          </Button>
+
+          <Button
+            variant={currentModule === 'kitchen-display' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('kitchen-display')}
+          >
+            <ChefHat size={18} className="mr-2" />
+            Kitchen Display
+          </Button>
+
           <Separator className="my-2" />
 
           <Button
@@ -1702,6 +1779,51 @@ function App() {
               rooms={rooms || []}
               currentUser={currentUser}
             />
+          )}
+          {currentModule === 'enhanced-dashboard' && (
+            <div className="space-y-6">
+              <EnhancedDashboardWidgets />
+            </div>
+          )}
+          {currentModule === 'channel-dashboard' && (
+            <ChannelManagerDashboard />
+          )}
+          {currentModule === 'floor-plan' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tight">Visual Floor Plan</h1>
+                  <p className="text-muted-foreground">
+                    Interactive room status visualization
+                  </p>
+                </div>
+              </div>
+              <VisualFloorPlan rooms={rooms || []} reservations={reservations || []} />
+            </div>
+          )}
+          {currentModule === 'lost-found' && (
+            <div className="space-y-6">
+              <LostAndFoundManagement />
+            </div>
+          )}
+          {currentModule === 'linen-tracking' && (
+            <div className="space-y-6">
+              <LinenTrackingSystem />
+            </div>
+          )}
+          {currentModule === 'kitchen-display' && (
+            <div className="space-y-6">
+              <KitchenDisplaySystem orders={orders || []} />
+            </div>
+          )}
+          {currentModule === 'revenue-management' && (
+            <div className="space-y-6">
+              <RevenueManagementSystem 
+                rooms={rooms || []} 
+                reservations={reservations || []}
+                invoices={guestInvoices || []}
+              />
+            </div>
           )}
           {currentModule === 'extra-services' && (
             <ExtraServicesManagement

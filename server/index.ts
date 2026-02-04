@@ -3,52 +3,109 @@ import cors from 'cors';
 import { db } from './db';
 import * as schema from '../shared/schema';
 import { eq } from 'drizzle-orm';
+import { 
+  securityHeaders, 
+  apiLimiter, 
+  requestSizeLimiter,
+  errorLogger,
+  requestLogger,
+  corsOptions,
+} from './middleware/security';
+import {
+  validate,
+  idParamSchema,
+  paginationSchema,
+  guestCreateSchema,
+  guestUpdateSchema,
+  roomCreateSchema,
+  roomUpdateSchema,
+  reservationCreateSchema,
+  reservationUpdateSchema,
+  housekeepingTaskCreateSchema,
+  housekeepingTaskUpdateSchema,
+  menuItemCreateSchema,
+  menuItemUpdateSchema,
+  invoiceCreateSchema,
+  invoiceUpdateSchema,
+  employeeCreateSchema,
+  employeeUpdateSchema,
+  inventoryItemCreateSchema,
+  inventoryItemUpdateSchema,
+} from './middleware/validation';
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+
+// Security middleware - must be first
+app.use(securityHeaders);
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '10mb' })); // Add size limit
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(requestSizeLimiter);
+
+// Logging middleware
+if (process.env.NODE_ENV !== 'test') {
+  app.use(requestLogger);
+}
+
+// Rate limiting for all API routes
+app.use('/api/', apiLimiter);
+
+// Health check endpoint (no rate limiting)
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  });
+});
 
 app.get('/api/guests', async (req, res) => {
   try {
     const result = await db.select().from(schema.guests);
     res.json(result);
   } catch (error) {
+    console.error('Error fetching guests:', error);
     res.status(500).json({ error: 'Failed to fetch guests' });
   }
 });
 
-app.post('/api/guests', async (req, res) => {
+app.post('/api/guests', validate(guestCreateSchema), async (req, res) => {
   try {
     const result = await db.insert(schema.guests).values(req.body).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error('Error creating guest:', error);
     res.status(500).json({ error: 'Failed to create guest' });
   }
 });
 
-app.put('/api/guests/:id', async (req, res) => {
+app.put('/api/guests/:id', validate(idParamSchema, 'params'), validate(guestUpdateSchema), async (req, res) => {
   try {
-    const result = await db.update(schema.guests).set(req.body).where(eq(schema.guests.id, parseInt(req.params.id))).returning();
+    // idParamSchema transforms id to number, so we can use it directly
+    const result = await db.update(schema.guests).set(req.body).where(eq(schema.guests.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error('Error updating guest:', error);
     res.status(500).json({ error: 'Failed to update guest' });
   }
 });
 
-app.patch('/api/guests/:id', async (req, res) => {
+app.patch('/api/guests/:id', validate(idParamSchema, 'params'), validate(guestUpdateSchema), async (req, res) => {
   try {
-    const result = await db.update(schema.guests).set(req.body).where(eq(schema.guests.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.guests).set(req.body).where(eq(schema.guests.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error('Error patching guest:', error);
     res.status(500).json({ error: 'Failed to patch guest' });
   }
 });
 
-app.delete('/api/guests/:id', async (req, res) => {
+app.delete('/api/guests/:id', validate(idParamSchema, 'params'), async (req, res) => {
   try {
-    await db.delete(schema.guests).where(eq(schema.guests.id, parseInt(req.params.id)));
+    await db.delete(schema.guests).where(eq(schema.guests.id, req.params.id));
     res.json({ success: true });
   } catch (error) {
+    console.error('Error deleting guest:', error);
     res.status(500).json({ error: 'Failed to delete guest' });
   }
 });
@@ -58,42 +115,47 @@ app.get('/api/rooms', async (req, res) => {
     const result = await db.select().from(schema.rooms);
     res.json(result);
   } catch (error) {
+    console.error('Error fetching rooms:', error);
     res.status(500).json({ error: 'Failed to fetch rooms' });
   }
 });
 
-app.post('/api/rooms', async (req, res) => {
+app.post('/api/rooms', validate(roomCreateSchema), async (req, res) => {
   try {
     const result = await db.insert(schema.rooms).values(req.body).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error('Error creating room:', error);
     res.status(500).json({ error: 'Failed to create room' });
   }
 });
 
-app.put('/api/rooms/:id', async (req, res) => {
+app.put('/api/rooms/:id', validate(idParamSchema, 'params'), validate(roomUpdateSchema), async (req, res) => {
   try {
-    const result = await db.update(schema.rooms).set(req.body).where(eq(schema.rooms.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.rooms).set(req.body).where(eq(schema.rooms.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error('Error updating room:', error);
     res.status(500).json({ error: 'Failed to update room' });
   }
 });
 
-app.patch('/api/rooms/:id', async (req, res) => {
+app.patch('/api/rooms/:id', validate(idParamSchema, 'params'), validate(roomUpdateSchema), async (req, res) => {
   try {
-    const result = await db.update(schema.rooms).set(req.body).where(eq(schema.rooms.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.rooms).set(req.body).where(eq(schema.rooms.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error('Error patching room:', error);
     res.status(500).json({ error: 'Failed to patch room' });
   }
 });
 
-app.delete('/api/rooms/:id', async (req, res) => {
+app.delete('/api/rooms/:id', validate(idParamSchema, 'params'), async (req, res) => {
   try {
-    await db.delete(schema.rooms).where(eq(schema.rooms.id, parseInt(req.params.id)));
+    await db.delete(schema.rooms).where(eq(schema.rooms.id, req.params.id));
     res.json({ success: true });
   } catch (error) {
+    console.error('Error deleting room:', error);
     res.status(500).json({ error: 'Failed to delete room' });
   }
 });
@@ -1119,7 +1181,20 @@ app.post('/api/sync/process', async (req, res) => {
   }
 });
 
+// 404 handler - must be after all routes
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Not Found',
+    message: `Route ${req.method} ${req.url} not found`,
+  });
+});
+
+// Error handling middleware - must be last
+app.use(errorLogger);
+
 const PORT = 3001;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`API Server running on http://localhost:${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Security features enabled: ✓ Helmet ✓ CORS ✓ Rate limiting`);
 });

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { DialogAdapter } from '@/components/adapters/DialogAdapter'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -130,7 +131,7 @@ export function DailyReportDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogAdapter open={open} onOpenChange={onOpenChange} size="2xl" showAnimation={true}>
       <DialogContent className="max-w-6xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
@@ -377,6 +378,6 @@ export function DailyReportDialog({
           </div>
         )}
       </DialogContent>
-    </Dialog>
+    </DialogAdapter>
   )
 }

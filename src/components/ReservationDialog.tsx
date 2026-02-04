@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { DialogAdapter } from '@/components/adapters/DialogAdapter'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -239,7 +240,12 @@ export function ReservationDialog({
   const selectedRoom = rooms.find(r => r.id === formData.roomId)
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogAdapter 
+      open={open} 
+      onOpenChange={onOpenChange}
+      size="2xl"
+      showAnimation={true}
+    >
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{reservation ? 'Edit Reservation' : 'New Reservation'}</DialogTitle>
@@ -582,6 +588,6 @@ export function ReservationDialog({
           </TabsContent>
         </Tabs>
       </DialogContent>
-    </Dialog>
+    </DialogAdapter>
   )
 }

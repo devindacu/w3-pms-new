@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { DialogAdapter } from '@/components/adapters/DialogAdapter'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -145,7 +146,7 @@ export function FolioDialog({
   const folioId = `FOLIO-${currentFolio.id.slice(0, 8).toUpperCase()}`
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogAdapter open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
@@ -530,6 +531,6 @@ export function FolioDialog({
           currentUser={currentUser}
         />
       )}
-    </Dialog>
+    </DialogAdapter>
   )
 }
