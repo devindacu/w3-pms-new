@@ -542,10 +542,14 @@ function App() {
     pendingMigrations: systemPendingMigrations
   } = useMigrationManager()
 
-  const currentUser = (systemUsers || [])[0] || sampleSystemUsers[0]
+  const currentUser = React.useMemo(() => {
+    return (systemUsers || [])[0] || sampleSystemUsers[0]
+  }, [systemUsers])
 
   useEffect(() => {
     const loadDefaultLayout = async () => {
+      if (!currentUser?.id) return
+      
       try {
         const layouts = await spark.kv.get<DashboardLayout[]>('w3-hotel-dashboard-layouts')
         if (layouts && layouts.length > 0) {
@@ -563,7 +567,7 @@ function App() {
     }
     
     loadDefaultLayout()
-  }, [currentUser.id])
+  }, [currentUser?.id, dashboardLayout])
 
   useEffect(() => {
     const handleNavigateToSettings = (event: CustomEvent) => {
@@ -580,6 +584,8 @@ function App() {
   }, [])
 
   useEffect(() => {
+    if (!currentUser?.id) return
+    
     if (!currencyConfiguration) {
       const defaultCurrencyConfig: import('@/lib/currencyTypes').CurrencyConfiguration = {
         id: 'currency-config-default',
@@ -592,16 +598,16 @@ function App() {
         showOriginalAmount: true,
         createdAt: Date.now(),
         updatedAt: Date.now(),
-        updatedBy: currentUser?.id || 'system'
+        updatedBy: currentUser.id
       }
       setCurrencyConfiguration(defaultCurrencyConfig)
     }
 
     if (!exchangeRates || exchangeRates.length === 0) {
-      const defaultRates = generateDefaultExchangeRates('LKR', currentUser?.id || 'system')
+      const defaultRates = generateDefaultExchangeRates('LKR', currentUser.id)
       setExchangeRates(defaultRates)
     }
-  }, [])
+  }, [currentUser?.id, currencyConfiguration, exchangeRates])
 
   // Load branding from database on app initialization
   useEffect(() => {
@@ -816,6 +822,10 @@ function App() {
   const hasData = (rooms || []).length > 0
 
   const initializeDefaultLayout = () => {
+    if (!currentUser?.id || !currentUser?.role) {
+      return null
+    }
+    
     if (!dashboardLayout) {
       const defaultWidgets = getDefaultWidgetsForRole(currentUser.role) || []
       const widgets: DashboardWidget[] = defaultWidgets.map((type, index) => ({
@@ -954,7 +964,7 @@ function App() {
                 <span className="sm:hidden">Load Data</span>
               </Button>
             )}
-            {hasData && layout && (
+            {hasData && layout && currentUser?.id && (
               <>
                 <DashboardLayoutManager
                   userId={currentUser.id}
@@ -1413,6 +1423,15 @@ function App() {
 
   return (
     <div className="flex min-h-screen bg-background">
+      {!currentUser?.id ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Gauge size={64} className="mx-auto text-primary mb-4 animate-spin-slow" />
+            <p className="text-muted-foreground">Loading system...</p>
+          </div>
+        </div>
+      ) : (
+        <>
       <aside className="hidden lg:block w-64 border-r bg-card p-4 space-y-2 overflow-y-auto fixed left-0 top-0 bottom-0 z-40">
         <SidebarContent />
       </aside>
@@ -2102,6 +2121,8 @@ function App() {
       />
 
       <Toaster position="top-right" richColors />
+      </>
+      )}
     </div>
   )
 }
