@@ -1,6 +1,9 @@
 export type RoomStatus = 'vacant-clean' | 'vacant-dirty' | 'occupied-clean' | 'occupied-dirty' | 'maintenance' | 'out-of-order'
 export type RoomType = 'standard' | 'deluxe' | 'suite' | 'executive' | 'presidential'
 export type ReservationStatus = 'confirmed' | 'checked-in' | 'checked-out' | 'cancelled' | 'no-show'
+export type MasterFolioType = 'group' | 'corporate' | 'event' | 'travel-agency'
+export type BillingArrangement = 'master-only' | 'split-billing' | 'individual-with-routing'
+export type RoutingRuleType = 'room-charges' | 'fnb-charges' | 'extra-services' | 'all-charges' | 'custom'
 export type BeddingType = 'king' | 'queen' | 'twin' | 'single' | 'double' | 'sofa-bed' | 'bunk-bed'
 export type ViewType = 'city' | 'ocean' | 'garden' | 'pool' | 'mountain' | 'courtyard' | 'interior'
 export type BaseRatePlanType = 'bar' | 'rack' | 'corporate' | 'travel-agent' | 'wholesale' | 'member' | 'staff'
@@ -306,11 +309,24 @@ export interface Folio {
   id: string
   reservationId: string
   guestId: string
+  masterFolioId?: string
+  folioNumber?: string
   charges: FolioCharge[]
   payments: FolioPayment[]
   balance: number
+  routedCharges?: RoutedCharge[]
   createdAt: number
   updatedAt: number
+}
+
+export interface RoutedCharge {
+  id: string
+  chargeId: string
+  amount: number
+  targetFolioId: string
+  routingRuleId: string
+  routedAt: number
+  routedBy: string
 }
 
 export interface FolioCharge {
@@ -333,6 +349,82 @@ export interface FolioPayment {
   reference?: string
   timestamp: number
   receivedBy: string
+}
+
+export interface MasterFolio {
+  id: string
+  masterFolioNumber: string
+  type: MasterFolioType
+  name: string
+  description?: string
+  billingArrangement: BillingArrangement
+  primaryContact: {
+    name: string
+    email?: string
+    phone?: string
+    company?: string
+    address?: string
+  }
+  billingAddress?: {
+    street: string
+    city: string
+    state?: string
+    zipCode?: string
+    country: string
+  }
+  childFolioIds: string[]
+  routingRules: RoutingRule[]
+  charges: FolioCharge[]
+  payments: FolioPayment[]
+  creditLimit?: number
+  paymentTerms?: string
+  specialInstructions?: string
+  status: 'active' | 'closed' | 'suspended'
+  totalBalance: number
+  createdAt: number
+  updatedAt: number
+  createdBy: string
+  closedAt?: number
+  closedBy?: string
+}
+
+export interface RoutingRule {
+  id: string
+  masterFolioId: string
+  ruleType: RoutingRuleType
+  sourceFolioId?: string
+  targetFolioId: 'master' | string
+  chargeTypes?: Department[]
+  percentage?: number
+  description?: string
+  isActive: boolean
+  createdAt: number
+}
+
+export interface GroupReservation {
+  id: string
+  groupName: string
+  masterFolioId: string
+  reservationIds: string[]
+  checkInDate: number
+  checkOutDate: number
+  totalRooms: number
+  totalGuests: number
+  groupLeader: {
+    name: string
+    email?: string
+    phone?: string
+  }
+  eventDetails?: {
+    eventName?: string
+    eventType?: string
+    functionSpace?: string
+    specialRequirements?: string
+  }
+  status: 'confirmed' | 'checked-in' | 'checked-out' | 'cancelled'
+  createdAt: number
+  updatedAt: number
+  createdBy: string
 }
 
 export interface HousekeepingTask {
