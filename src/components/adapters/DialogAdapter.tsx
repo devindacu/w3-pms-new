@@ -11,14 +11,14 @@ export interface DialogAdapterProps {
   className?: string
 }
 
-export const DialogAdapter = ({
+export function DialogAdapter({
   open,
   onOpenChange,
   children,
   size = 'lg',
   showAnimation = true,
   className,
-}: DialogAdapterProps) => {
+}: DialogAdapterProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {children}
@@ -34,7 +34,7 @@ export interface LoadingDialogProps {
   message?: string
 }
 
-export const LoadingDialog = ({ open, title = 'Loading...', message }: LoadingDialogProps) => {
+export function LoadingDialog({ open, title = 'Loading...', message }: LoadingDialogProps) {
   return (
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent>
@@ -62,7 +62,7 @@ export interface ConfirmDialogProps {
   destructive?: boolean
 }
 
-export const ConfirmDialog = ({
+export function ConfirmDialog({
   open,
   onOpenChange,
   title,
@@ -72,7 +72,7 @@ export const ConfirmDialog = ({
   confirmText = 'Confirm',
   cancelText = 'Cancel',
   destructive = false,
-}: ConfirmDialogProps) => {
+}: ConfirmDialogProps) {
   const handleConfirm = () => {
     onConfirm()
     onOpenChange(false)
