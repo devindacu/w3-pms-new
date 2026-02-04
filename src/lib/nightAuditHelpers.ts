@@ -493,7 +493,7 @@ export function getNextInvoiceNumber(
 ): { number: string; updatedSequence: InvoiceNumberSequence } {
   const shouldReset = shouldResetSequence(sequence, auditDate)
   
-  let currentNumber = shouldReset ? 1 : sequence.currentNumber + 1
+  const currentNumber = shouldReset ? 1 : sequence.currentNumber + 1
   const paddedNumber = currentNumber.toString().padStart(sequence.paddingLength, '0')
   const invoiceNumber = `${sequence.prefix}${paddedNumber}${sequence.suffix || ''}`
   
@@ -532,7 +532,7 @@ function calculateNextResetDate(sequence: InvoiceNumberSequence, fromDate: numbe
       date.setMonth(0)
       date.setDate(1)
       break
-    case 'financial-year':
+    case 'financial-year': {
       const currentMonth = date.getMonth()
       if (currentMonth < 3) {
         date.setMonth(3)
@@ -542,6 +542,7 @@ function calculateNextResetDate(sequence: InvoiceNumberSequence, fromDate: numbe
       }
       date.setDate(1)
       break
+    }
   }
   
   date.setHours(0, 0, 0, 0)

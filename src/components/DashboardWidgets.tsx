@@ -543,7 +543,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
           </Card>
         )
 
-      case 'arrivals-departures':
+      case 'arrivals-departures': {
         const today = new Date()
         today.setHours(0, 0, 0, 0)
         const todayTimestamp = today.getTime()
@@ -637,8 +637,9 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
             </div>
           </Card>
         )
+      }
 
-      case 'crm-summary':
+      case 'crm-summary': {
         const totalGuests = data?.guestProfiles?.length || 0
         const totalFeedback = data?.guestFeedback?.length || 0
         const recentFeedback = (data?.guestFeedback || []).slice(0, 5)
@@ -720,8 +721,9 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
             </div>
           </Card>
         )
+      }
 
-      case 'revenue-chart':
+      case 'revenue-chart': {
         const last7Days = Array.from({ length: 7 }, (_, i) => {
           const date = new Date()
           date.setDate(date.getDate() - (6 - i))
@@ -774,8 +776,9 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
             </div>
           </Card>
         )
+      }
 
-      case 'occupancy-chart':
+      case 'occupancy-chart': {
         const last7DaysOccupancy = Array.from({ length: 7 }, (_, i) => {
           const date = new Date()
           date.setDate(date.getDate() - (6 - i))
@@ -830,8 +833,9 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
             </div>
           </Card>
         )
+      }
 
-      case 'guest-feedback':
+      case 'guest-feedback': {
         const allFeedback = data?.guestFeedback || []
         const feedbackCount = allFeedback.length
         const averageRating = feedbackCount > 0
@@ -902,6 +906,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
             </div>
           </Card>
         )
+      }
 
       case 'kitchen-operations':
         return (
@@ -949,7 +954,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
           </Card>
         )
 
-      case 'channel-performance':
+      case 'channel-performance': {
         const channels = [
           { name: 'Direct Booking', revenue: 125000, bookings: 45, color: 'bg-primary' },
           { name: 'Booking.com', revenue: 95000, bookings: 38, color: 'bg-accent' },
@@ -996,8 +1001,9 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
             </div>
           </Card>
         )
+      }
 
-      case 'period-comparison':
+      case 'period-comparison': {
         if (!hasComparison || !comparisonMetrics) {
           return (
             <Card className="p-6 h-full w-full">
@@ -1128,8 +1134,9 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
             </div>
           </Card>
         )
+      }
 
-      case 'goal-tracking':
+      case 'goal-tracking': {
         const goals = [
           { 
             name: 'Occupancy Target', 
@@ -1215,8 +1222,9 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
             </div>
           </Card>
         )
+      }
 
-      case 'quick-actions':
+      case 'quick-actions': {
         const quickActions = [
           { label: 'New Reservation', icon: Bed, action: () => onNavigate?.('frontoffice') },
           { label: 'New Guest', icon: Users, action: () => onNavigate?.('frontoffice') },
@@ -1247,8 +1255,9 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
             </div>
           </Card>
         )
+      }
 
-      case 'team-performance':
+      case 'team-performance': {
         const topPerformers = [
           { name: 'Sarah Johnson', role: 'Front Desk', score: 98, tasks: 45 },
           { name: 'Mike Chen', role: 'Housekeeping', score: 95, tasks: 52 },
@@ -1291,8 +1300,9 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
             )}
           </Card>
         )
+      }
 
-      case 'channel-sync-status':
+      case 'channel-sync-status': {
         const syncStatuses = [
           { channel: 'Booking.com', status: 'synced', lastSync: '2 mins ago', color: 'text-success' },
           { channel: 'Agoda', status: 'syncing', lastSync: 'In progress', color: 'text-warning' },
@@ -1328,8 +1338,9 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
             </div>
           </Card>
         )
+      }
 
-      case 'ota-comparison':
+      case 'ota-comparison': {
         const otaMetrics = [
           { name: 'Booking.com', bookings: 38, adr: 2500, rating: 8.5 },
           { name: 'Agoda', bookings: 32, adr: 2350, rating: 8.2 },
@@ -1372,8 +1383,9 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
             </div>
           </Card>
         )
+      }
 
-      case 'booking-source':
+      case 'booking-source': {
         const bookingSources = [
           { source: 'Booking.com', count: 38, percentage: 35 },
           { source: 'Agoda', count: 32, percentage: 30 },
@@ -1409,8 +1421,9 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
             </div>
           </Card>
         )
+      }
 
-      case 'channel-revenue':
+      case 'channel-revenue': {
         const channelRevenues = [
           { channel: 'Booking.com', today: 15000, month: 450000, trend: 'up' },
           { channel: 'Agoda', today: 12000, month: 360000, trend: 'up' },
@@ -1459,6 +1472,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
             </div>
           </Card>
         )
+      }
 
       default:
         return (

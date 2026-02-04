@@ -14,23 +14,10 @@ import {
 import {
   validate,
   idParamSchema,
-  paginationSchema,
   guestCreateSchema,
   guestUpdateSchema,
   roomCreateSchema,
   roomUpdateSchema,
-  reservationCreateSchema,
-  reservationUpdateSchema,
-  housekeepingTaskCreateSchema,
-  housekeepingTaskUpdateSchema,
-  menuItemCreateSchema,
-  menuItemUpdateSchema,
-  invoiceCreateSchema,
-  invoiceUpdateSchema,
-  employeeCreateSchema,
-  employeeUpdateSchema,
-  inventoryItemCreateSchema,
-  inventoryItemUpdateSchema,
 } from './middleware/validation';
 
 const app = express();
@@ -165,6 +152,7 @@ app.get('/api/reservations', async (req, res) => {
     const result = await db.select().from(schema.reservations);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch reservations' });
   }
 });
@@ -174,6 +162,7 @@ app.post('/api/reservations', async (req, res) => {
     const result = await db.insert(schema.reservations).values(req.body).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to create reservation' });
   }
 });
@@ -183,6 +172,7 @@ app.put('/api/reservations/:id', async (req, res) => {
     const result = await db.update(schema.reservations).set(req.body).where(eq(schema.reservations.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to update reservation' });
   }
 });
@@ -192,6 +182,7 @@ app.patch('/api/reservations/:id', async (req, res) => {
     const result = await db.update(schema.reservations).set(req.body).where(eq(schema.reservations.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to patch reservation' });
   }
 });
@@ -201,6 +192,7 @@ app.delete('/api/reservations/:id', async (req, res) => {
     await db.delete(schema.reservations).where(eq(schema.reservations.id, parseInt(req.params.id)));
     res.json({ success: true });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to delete reservation' });
   }
 });
@@ -210,6 +202,7 @@ app.get('/api/folios', async (req, res) => {
     const result = await db.select().from(schema.folios);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch folios' });
   }
 });
@@ -219,6 +212,7 @@ app.post('/api/folios', async (req, res) => {
     const result = await db.insert(schema.folios).values(req.body).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to create folio' });
   }
 });
@@ -228,6 +222,7 @@ app.put('/api/folios/:id', async (req, res) => {
     const result = await db.update(schema.folios).set(req.body).where(eq(schema.folios.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to update folio' });
   }
 });
@@ -237,6 +232,7 @@ app.patch('/api/folios/:id', async (req, res) => {
     const result = await db.update(schema.folios).set(req.body).where(eq(schema.folios.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to patch folio' });
   }
 });
@@ -246,6 +242,7 @@ app.delete('/api/folios/:id', async (req, res) => {
     await db.delete(schema.folios).where(eq(schema.folios.id, parseInt(req.params.id)));
     res.json({ success: true });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to delete folio' });
   }
 });
@@ -255,6 +252,7 @@ app.get('/api/inventory', async (req, res) => {
     const result = await db.select().from(schema.inventoryItems);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch inventory' });
   }
 });
@@ -264,6 +262,7 @@ app.post('/api/inventory', async (req, res) => {
     const result = await db.insert(schema.inventoryItems).values(req.body).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to create inventory item' });
   }
 });
@@ -273,6 +272,7 @@ app.put('/api/inventory/:id', async (req, res) => {
     const result = await db.update(schema.inventoryItems).set(req.body).where(eq(schema.inventoryItems.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to update inventory item' });
   }
 });
@@ -282,6 +282,7 @@ app.patch('/api/inventory/:id', async (req, res) => {
     const result = await db.update(schema.inventoryItems).set(req.body).where(eq(schema.inventoryItems.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to patch inventory item' });
   }
 });
@@ -291,6 +292,7 @@ app.delete('/api/inventory/:id', async (req, res) => {
     await db.delete(schema.inventoryItems).where(eq(schema.inventoryItems.id, parseInt(req.params.id)));
     res.json({ success: true });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to delete inventory item' });
   }
 });
@@ -300,6 +302,7 @@ app.get('/api/housekeeping-tasks', async (req, res) => {
     const result = await db.select().from(schema.housekeepingTasks);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch tasks' });
   }
 });
@@ -309,6 +312,7 @@ app.post('/api/housekeeping-tasks', async (req, res) => {
     const result = await db.insert(schema.housekeepingTasks).values(req.body).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to create housekeeping task' });
   }
 });
@@ -318,6 +322,7 @@ app.put('/api/housekeeping-tasks/:id', async (req, res) => {
     const result = await db.update(schema.housekeepingTasks).set(req.body).where(eq(schema.housekeepingTasks.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to update housekeeping task' });
   }
 });
@@ -327,6 +332,7 @@ app.patch('/api/housekeeping-tasks/:id', async (req, res) => {
     const result = await db.update(schema.housekeepingTasks).set(req.body).where(eq(schema.housekeepingTasks.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to patch housekeeping task' });
   }
 });
@@ -336,6 +342,7 @@ app.delete('/api/housekeeping-tasks/:id', async (req, res) => {
     await db.delete(schema.housekeepingTasks).where(eq(schema.housekeepingTasks.id, parseInt(req.params.id)));
     res.json({ success: true });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to delete housekeeping task' });
   }
 });
@@ -345,6 +352,7 @@ app.get('/api/menu-items', async (req, res) => {
     const result = await db.select().from(schema.menuItems);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch menu items' });
   }
 });
@@ -354,6 +362,7 @@ app.post('/api/menu-items', async (req, res) => {
     const result = await db.insert(schema.menuItems).values(req.body).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to create menu item' });
   }
 });
@@ -363,6 +372,7 @@ app.put('/api/menu-items/:id', async (req, res) => {
     const result = await db.update(schema.menuItems).set(req.body).where(eq(schema.menuItems.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to update menu item' });
   }
 });
@@ -372,6 +382,7 @@ app.patch('/api/menu-items/:id', async (req, res) => {
     const result = await db.update(schema.menuItems).set(req.body).where(eq(schema.menuItems.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to patch menu item' });
   }
 });
@@ -381,6 +392,7 @@ app.delete('/api/menu-items/:id', async (req, res) => {
     await db.delete(schema.menuItems).where(eq(schema.menuItems.id, parseInt(req.params.id)));
     res.json({ success: true });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to delete menu item' });
   }
 });
@@ -390,6 +402,7 @@ app.get('/api/orders', async (req, res) => {
     const result = await db.select().from(schema.orders);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch orders' });
   }
 });
@@ -399,6 +412,7 @@ app.post('/api/orders', async (req, res) => {
     const result = await db.insert(schema.orders).values(req.body).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to create order' });
   }
 });
@@ -408,6 +422,7 @@ app.put('/api/orders/:id', async (req, res) => {
     const result = await db.update(schema.orders).set(req.body).where(eq(schema.orders.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to update order' });
   }
 });
@@ -417,6 +432,7 @@ app.patch('/api/orders/:id', async (req, res) => {
     const result = await db.update(schema.orders).set(req.body).where(eq(schema.orders.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to patch order' });
   }
 });
@@ -426,6 +442,7 @@ app.delete('/api/orders/:id', async (req, res) => {
     await db.delete(schema.orders).where(eq(schema.orders.id, parseInt(req.params.id)));
     res.json({ success: true });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to delete order' });
   }
 });
@@ -435,6 +452,7 @@ app.get('/api/suppliers', async (req, res) => {
     const result = await db.select().from(schema.suppliers);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch suppliers' });
   }
 });
@@ -444,6 +462,7 @@ app.post('/api/suppliers', async (req, res) => {
     const result = await db.insert(schema.suppliers).values(req.body).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to create supplier' });
   }
 });
@@ -453,6 +472,7 @@ app.put('/api/suppliers/:id', async (req, res) => {
     const result = await db.update(schema.suppliers).set(req.body).where(eq(schema.suppliers.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to update supplier' });
   }
 });
@@ -462,6 +482,7 @@ app.patch('/api/suppliers/:id', async (req, res) => {
     const result = await db.update(schema.suppliers).set(req.body).where(eq(schema.suppliers.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to patch supplier' });
   }
 });
@@ -471,6 +492,7 @@ app.delete('/api/suppliers/:id', async (req, res) => {
     await db.delete(schema.suppliers).where(eq(schema.suppliers.id, parseInt(req.params.id)));
     res.json({ success: true });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to delete supplier' });
   }
 });
@@ -480,6 +502,7 @@ app.get('/api/employees', async (req, res) => {
     const result = await db.select().from(schema.employees);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch employees' });
   }
 });
@@ -489,6 +512,7 @@ app.post('/api/employees', async (req, res) => {
     const result = await db.insert(schema.employees).values(req.body).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to create employee' });
   }
 });
@@ -498,6 +522,7 @@ app.put('/api/employees/:id', async (req, res) => {
     const result = await db.update(schema.employees).set(req.body).where(eq(schema.employees.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to update employee' });
   }
 });
@@ -507,6 +532,7 @@ app.patch('/api/employees/:id', async (req, res) => {
     const result = await db.update(schema.employees).set(req.body).where(eq(schema.employees.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to patch employee' });
   }
 });
@@ -516,6 +542,7 @@ app.delete('/api/employees/:id', async (req, res) => {
     await db.delete(schema.employees).where(eq(schema.employees.id, parseInt(req.params.id)));
     res.json({ success: true });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to delete employee' });
   }
 });
@@ -525,6 +552,7 @@ app.get('/api/accounts', async (req, res) => {
     const result = await db.select().from(schema.accounts);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch accounts' });
   }
 });
@@ -534,6 +562,7 @@ app.get('/api/system-users', async (req, res) => {
     const result = await db.select().from(schema.systemUsers);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch system users' });
   }
 });
@@ -543,6 +572,7 @@ app.get('/api/extra-service-categories', async (req, res) => {
     const result = await db.select().from(schema.extraServiceCategories);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch categories' });
   }
 });
@@ -552,6 +582,7 @@ app.get('/api/extra-services', async (req, res) => {
     const result = await db.select().from(schema.extraServices);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch services' });
   }
 });
@@ -561,6 +592,7 @@ app.get('/api/shifts', async (req, res) => {
     const result = await db.select().from(schema.shifts);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch shifts' });
   }
 });
@@ -570,6 +602,7 @@ app.get('/api/amenities', async (req, res) => {
     const result = await db.select().from(schema.amenities);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch amenities' });
   }
 });
@@ -579,6 +612,7 @@ app.get('/api/maintenance-requests', async (req, res) => {
     const result = await db.select().from(schema.maintenanceRequests);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch maintenance requests' });
   }
 });
@@ -588,6 +622,7 @@ app.post('/api/maintenance-requests', async (req, res) => {
     const result = await db.insert(schema.maintenanceRequests).values(req.body).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to create maintenance request' });
   }
 });
@@ -597,6 +632,7 @@ app.put('/api/maintenance-requests/:id', async (req, res) => {
     const result = await db.update(schema.maintenanceRequests).set(req.body).where(eq(schema.maintenanceRequests.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to update maintenance request' });
   }
 });
@@ -606,6 +642,7 @@ app.patch('/api/maintenance-requests/:id', async (req, res) => {
     const result = await db.update(schema.maintenanceRequests).set(req.body).where(eq(schema.maintenanceRequests.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to patch maintenance request' });
   }
 });
@@ -615,6 +652,7 @@ app.delete('/api/maintenance-requests/:id', async (req, res) => {
     await db.delete(schema.maintenanceRequests).where(eq(schema.maintenanceRequests.id, parseInt(req.params.id)));
     res.json({ success: true });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to delete maintenance request' });
   }
 });
@@ -624,6 +662,7 @@ app.get('/api/system-settings', async (req, res) => {
     const result = await db.select().from(schema.systemSettings);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch system settings' });
   }
 });
@@ -633,6 +672,7 @@ app.get('/api/system-settings/:key', async (req, res) => {
     const result = await db.select().from(schema.systemSettings).where(eq(schema.systemSettings.key, req.params.key));
     res.json(result[0] || null);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch setting' });
   }
 });
@@ -643,9 +683,14 @@ app.post('/api/system-settings', async (req, res) => {
     try {
       const result = await db.insert(schema.systemSettings).values({ key, value, category, description }).returning();
       res.json(result[0]);
-    } catch (insertError: any) {
+    } catch (insertError: unknown) {
       const errorStr = JSON.stringify(insertError);
-      if (insertError.cause?.code === '23505' || errorStr.includes('duplicate') || errorStr.includes('unique')) {
+      const isDuplicateError = errorStr.includes('duplicate') || errorStr.includes('unique') || 
+        (insertError && typeof insertError === 'object' && 'cause' in insertError && 
+         insertError.cause && typeof insertError.cause === 'object' && 'code' in insertError.cause && 
+         insertError.cause.code === '23505');
+      
+      if (isDuplicateError) {
         const result = await db.update(schema.systemSettings)
           .set({ value, category, description })
           .where(eq(schema.systemSettings.key, key))
@@ -655,9 +700,10 @@ app.post('/api/system-settings', async (req, res) => {
         throw insertError;
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('System settings error:', error);
-    res.status(500).json({ error: 'Failed to save setting', details: error.message });
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ error: 'Failed to save setting', details: message });
   }
 });
 
@@ -666,6 +712,7 @@ app.delete('/api/system-settings/:key', async (req, res) => {
     await db.delete(schema.systemSettings).where(eq(schema.systemSettings.key, req.params.key));
     res.json({ success: true });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to delete setting' });
   }
 });
@@ -698,9 +745,14 @@ app.post('/api/branding', async (req, res) => {
         description: 'Hotel branding and customization settings'
       }).returning();
       res.json(JSON.parse(result[0].value));
-    } catch (insertError: any) {
+    } catch (insertError: unknown) {
       const errorStr = JSON.stringify(insertError);
-      if (insertError.cause?.code === '23505' || errorStr.includes('duplicate') || errorStr.includes('unique')) {
+      const isDuplicateError = errorStr.includes('duplicate') || errorStr.includes('unique') || 
+        (insertError && typeof insertError === 'object' && 'cause' in insertError && 
+         insertError.cause && typeof insertError.cause === 'object' && 'code' in insertError.cause && 
+         insertError.cause.code === '23505');
+      
+      if (isDuplicateError) {
         const result = await db.update(schema.systemSettings)
           .set({ value, updatedAt: new Date() })
           .where(eq(schema.systemSettings.key, 'branding'))
@@ -710,9 +762,10 @@ app.post('/api/branding', async (req, res) => {
         throw insertError;
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to save branding:', error);
-    res.status(500).json({ error: 'Failed to save branding', details: error.message });
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ error: 'Failed to save branding', details: message });
   }
 });
 
@@ -721,6 +774,7 @@ app.get('/api/system-versions', async (req, res) => {
     const result = await db.select().from(schema.systemVersions);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch versions' });
   }
 });
@@ -730,6 +784,7 @@ app.post('/api/system-versions', async (req, res) => {
     const result = await db.insert(schema.systemVersions).values(req.body).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to create version' });
   }
 });
@@ -740,6 +795,7 @@ app.get('/api/transactions', async (req, res) => {
     const result = await db.select().from(schema.transactions);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch transactions' });
   }
 });
@@ -749,6 +805,7 @@ app.post('/api/transactions', async (req, res) => {
     const result = await db.insert(schema.transactions).values(req.body).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to create transaction' });
   }
 });
@@ -759,6 +816,7 @@ app.get('/api/rate-calendar', async (req, res) => {
     const result = await db.select().from(schema.rateCalendar);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch rate calendar' });
   }
 });
@@ -768,6 +826,7 @@ app.post('/api/rate-calendar', async (req, res) => {
     const result = await db.insert(schema.rateCalendar).values(req.body).returning();
     res.json(result[0]);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to create rate entry' });
   }
 });
@@ -777,6 +836,7 @@ app.get('/api/channels', async (req, res) => {
     const result = await db.select().from(schema.channels);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch channels' });
   }
 });
@@ -786,6 +846,7 @@ app.get('/api/audit-logs', async (req, res) => {
     const result = await db.select().from(schema.auditLogs);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch audit logs' });
   }
 });
@@ -795,6 +856,7 @@ app.get('/api/recipes', async (req, res) => {
     const result = await db.select().from(schema.recipes);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch recipes' });
   }
 });
@@ -820,6 +882,7 @@ app.get('/api/channel-bookings', async (req, res) => {
     const result = await db.select().from(schema.channelBookings);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch channel bookings' });
   }
 });
@@ -853,6 +916,7 @@ app.post('/api/channels/:id/sync-bookings', async (req, res) => {
 
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to sync bookings', details: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
@@ -883,6 +947,7 @@ app.post('/api/channels/:id/sync-availability', async (req, res) => {
     const success = await service.syncAvailability(roomType, new Date(date), available);
     res.json({ success });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to sync availability' });
   }
 });
@@ -913,6 +978,7 @@ app.post('/api/channels/:id/sync-rates', async (req, res) => {
     const success = await service.syncRates(roomType, new Date(date), rate);
     res.json({ success });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to sync rates' });
   }
 });
@@ -923,6 +989,7 @@ app.get('/api/channel-sync-logs', async (req, res) => {
     const result = await db.select().from(schema.channelSyncLogs);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch sync logs' });
   }
 });
@@ -937,6 +1004,7 @@ app.post('/api/channels/booking-com/property', async (req, res) => {
     const success = await service.updateProperty(propertyData);
     res.json({ success });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to update property' });
   }
 });
@@ -949,6 +1017,7 @@ app.post('/api/channels/booking-com/rooms', async (req, res) => {
     const success = await service.updateRoomTypes(roomTypes);
     res.json({ success });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to update room types' });
   }
 });
@@ -961,6 +1030,7 @@ app.post('/api/channels/booking-com/photos', async (req, res) => {
     const success = await service.uploadPhoto(photoData);
     res.json({ success });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to upload photo' });
   }
 });
@@ -973,6 +1043,7 @@ app.post('/api/channels/booking-com/facilities', async (req, res) => {
     const success = await service.updateFacilities(facilities);
     res.json({ success });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to update facilities' });
   }
 });
@@ -985,6 +1056,7 @@ app.post('/api/channels/booking-com/payments', async (req, res) => {
     const payments = await service.getPayments(new Date(startDate), new Date(endDate));
     res.json(payments);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch payments' });
   }
 });
@@ -1000,6 +1072,7 @@ app.get('/api/channels/booking-com/reviews', async (req, res) => {
     );
     res.json(reviews);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch reviews' });
   }
 });
@@ -1014,6 +1087,7 @@ app.post('/api/channels/airbnb/listing', async (req, res) => {
     const success = await service.updateListing(listingData);
     res.json({ success });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to update listing' });
   }
 });
@@ -1026,6 +1100,7 @@ app.post('/api/channels/airbnb/photos', async (req, res) => {
     const success = await service.uploadListingPhoto(photoUrl, caption);
     res.json({ success });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to upload photo' });
   }
 });
@@ -1038,6 +1113,7 @@ app.post('/api/channels/airbnb/messages', async (req, res) => {
     const success = await service.sendMessage(reservationId, message);
     res.json({ success });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to send message' });
   }
 });
@@ -1050,6 +1126,7 @@ app.get('/api/channels/airbnb/messages/:reservationId', async (req, res) => {
     const messages = await service.getMessages(req.params.reservationId);
     res.json(messages);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch messages' });
   }
 });
@@ -1062,6 +1139,7 @@ app.get('/api/channels/airbnb/reviews', async (req, res) => {
     const reviews = await service.getReviews();
     res.json(reviews);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch reviews' });
   }
 });
@@ -1074,6 +1152,7 @@ app.post('/api/channels/airbnb/reviews/:reviewId/response', async (req, res) => 
     const success = await service.respondToReview(req.params.reviewId, response);
     res.json({ success });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to respond to review' });
   }
 });
@@ -1086,6 +1165,7 @@ app.post('/api/channels/airbnb/pricing', async (req, res) => {
     const success = await service.updatePricingRules(pricingRules);
     res.json({ success });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to update pricing rules' });
   }
 });
@@ -1098,6 +1178,7 @@ app.get('/api/channels/airbnb/calendar', async (req, res) => {
     const calendar = await service.getCalendar(new Date(startDate), new Date(endDate));
     res.json(calendar);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch calendar' });
   }
 });
@@ -1110,6 +1191,7 @@ app.get('/api/channels/airbnb/analytics', async (req, res) => {
     const analytics = await service.getAnalytics(new Date(startDate), new Date(endDate));
     res.json(analytics);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch analytics' });
   }
 });
@@ -1121,6 +1203,7 @@ app.post('/api/backup/create', async (req, res) => {
     const filePath = await backupService.createFullBackup(createdBy || 'system', options || {});
     res.json({ success: true, filePath });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to create backup', details: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
@@ -1130,6 +1213,7 @@ app.get('/api/backup/list', async (req, res) => {
     const backups = await backupService.listBackups();
     res.json(backups);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to list backups' });
   }
 });
@@ -1140,6 +1224,7 @@ app.post('/api/backup/restore', async (req, res) => {
     await backupService.restoreFromBackup(filePath, options || {});
     res.json({ success: true });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to restore backup', details: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
@@ -1149,6 +1234,7 @@ app.delete('/api/backup/:id', async (req, res) => {
     await backupService.deleteBackup(parseInt(req.params.id));
     res.json({ success: true });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to delete backup' });
   }
 });
@@ -1159,6 +1245,7 @@ app.post('/api/sync/queue', async (req, res) => {
     await dataSyncService.queueSync(req.body);
     res.json({ success: true });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to queue sync' });
   }
 });
@@ -1168,6 +1255,7 @@ app.get('/api/sync/status', async (req, res) => {
     const status = await dataSyncService.getSyncQueueStatus();
     res.json(status);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to get sync status' });
   }
 });
@@ -1177,6 +1265,7 @@ app.post('/api/sync/process', async (req, res) => {
     await dataSyncService.processSyncQueue();
     res.json({ success: true });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to process sync queue' });
   }
 });

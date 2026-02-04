@@ -4,7 +4,7 @@ export function calculateNextRun(schedule: ReportSchedule): number {
   const { frequency, timeOfDay, dayOfWeek, dayOfMonth, timezone } = schedule.scheduleConfig
   const now = new Date()
   const [hours, minutes] = timeOfDay.split(':').map(Number)
-  let nextRun = new Date()
+  const nextRun = new Date()
   nextRun.setHours(hours, minutes, 0, 0)
 
   if (frequency === 'daily') {

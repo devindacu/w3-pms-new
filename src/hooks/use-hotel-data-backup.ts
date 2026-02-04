@@ -294,7 +294,7 @@ export function useHotelDataBackup() {
         }
         break
 
-      case 'weekly':
+      case 'weekly': {
         nextBackupTime = new Date(now)
         const targetDay = config.schedule.dayOfWeek || 0
         const currentDay = now.getDay()
@@ -311,6 +311,7 @@ export function useHotelDataBackup() {
           nextBackupTime.setHours(hours, minutes, 0, 0)
         }
         break
+      }
 
       default:
         return

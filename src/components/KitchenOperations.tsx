@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ChefHat, ChartBar, BookOpen } from '@phosphor-icons/react'
+import { ChefHat, ChartBar, BookOpen, CookingPot } from '@phosphor-icons/react'
 import { RecipeManagement } from '@/components/RecipeManagement'
 import { KitchenConsumption } from '@/components/KitchenConsumption'
 import { KitchenManagement } from '@/components/KitchenManagement'
+import { KitchenDisplaySystem } from '@/components/KitchenDisplaySystem'
 import {
   type Recipe,
   type Menu,
@@ -70,11 +71,11 @@ export function KitchenOperations({
     <div className="space-y-6">
       <div>
         <h1 className="text-4xl font-semibold">Kitchen Operations</h1>
-        <p className="text-muted-foreground mt-1">Manage recipes, menus, consumption tracking, and kitchen management</p>
+        <p className="text-muted-foreground mt-1">Manage recipes, menus, consumption tracking, kitchen management, and display system</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="recipes" className="gap-2">
             <BookOpen size={18} />
             Recipes & Menus
@@ -86,6 +87,10 @@ export function KitchenOperations({
           <TabsTrigger value="management" className="gap-2">
             <ChefHat size={18} />
             Kitchen Management
+          </TabsTrigger>
+          <TabsTrigger value="display" className="gap-2">
+            <CookingPot size={18} />
+            Display System
           </TabsTrigger>
         </TabsList>
 
@@ -125,6 +130,10 @@ export function KitchenOperations({
             employees={employees}
             foodItems={foodItems}
           />
+        </TabsContent>
+
+        <TabsContent value="display" className="mt-6">
+          <KitchenDisplaySystem orders={orders} />
         </TabsContent>
       </Tabs>
     </div>

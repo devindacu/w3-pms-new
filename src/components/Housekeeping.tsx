@@ -21,7 +21,8 @@ import {
   ListDashes,
   ClipboardText,
   Stack,
-  Bell
+  Bell,
+  Sparkle
 } from '@phosphor-icons/react'
 import { type Room, type HousekeepingTask, type Employee, type MaintenanceRequest, type LostFoundItem } from '@/lib/types'
 import { getRoomStatusColor } from '@/lib/helpers'
@@ -32,6 +33,7 @@ import { MaintenanceIntegrationDialog } from './MaintenanceIntegrationDialog'
 import { LostFoundDialog } from './LostFoundDialog'
 import { MobileSimulatorDialog } from './MobileSimulatorDialog'
 import { HousekeepingBatchOperations } from './HousekeepingBatchOperations'
+import { LinenTrackingSystem } from './LinenTrackingSystem'
 import { PrintButton } from '@/components/PrintButton'
 import { A4PrintWrapper } from '@/components/A4PrintWrapper'
 import { useKV } from '@github/spark/hooks'
@@ -291,6 +293,7 @@ export function Housekeeping({ rooms, setRooms, tasks, setTasks, employees }: Ho
             <TabsTrigger value="clean" className="mobile-text-responsive">Clean</TabsTrigger>
             <TabsTrigger value="maintenance" className="mobile-text-responsive">Maintenance</TabsTrigger>
             <TabsTrigger value="lost-found" className="mobile-text-responsive">Lost & Found</TabsTrigger>
+            <TabsTrigger value="linen" className="mobile-text-responsive">Linen Tracking</TabsTrigger>
           </TabsList>
 
           <div className="mb-3 sm:mb-4">
@@ -588,6 +591,10 @@ export function Housekeeping({ rooms, setRooms, tasks, setTasks, employees }: Ho
                 })}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="linen" className="mt-0">
+            <LinenTrackingSystem />
           </TabsContent>
         </Tabs>
       </Card>

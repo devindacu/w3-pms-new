@@ -62,7 +62,7 @@ export function SupplierManagement({ suppliers, setSuppliers }: SupplierManageme
   )
 
   const filteredAndSortedSuppliers = useMemo(() => {
-    let filtered = suppliers.filter(supplier => {
+    const filtered = suppliers.filter(supplier => {
       const matchesSearch = 
         supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         supplier.supplierId.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -82,11 +82,12 @@ export function SupplierManagement({ suppliers, setSuppliers }: SupplierManageme
         case 'name':
           comparison = a.name.localeCompare(b.name)
           break
-        case 'rating':
+        case 'rating': {
           const aRating = (a.deliveryTimeRating + a.costRating + a.qualityRating) / 3
           const bRating = (b.deliveryTimeRating + b.costRating + b.qualityRating) / 3
           comparison = aRating - bRating
           break
+        }
         case 'totalOrders':
           comparison = a.totalOrders - b.totalOrders
           break

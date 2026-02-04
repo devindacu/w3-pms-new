@@ -367,7 +367,7 @@ export function CRM({
   }
 
   const filteredAndSortedGuests = (() => {
-    let filtered = guestProfiles.filter(guest => {
+    const filtered = guestProfiles.filter(guest => {
       const matchesSearch = !searchQuery || (
         guest.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         guest.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -417,7 +417,7 @@ export function CRM({
   })()
 
   const filteredAndSortedFeedback = (() => {
-    let filtered = feedback.filter(fb => {
+    const filtered = feedback.filter(fb => {
       const matchesSearch = !feedbackSearchQuery || (
         fb.guestName.toLowerCase().includes(feedbackSearchQuery.toLowerCase()) ||
         fb.comments?.toLowerCase().includes(feedbackSearchQuery.toLowerCase())
