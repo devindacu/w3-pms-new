@@ -27,7 +27,8 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  UserCircle
+  UserCircle,
+  Users
 } from '@phosphor-icons/react'
 import { 
   type Guest, 
@@ -62,6 +63,7 @@ import { FolioDialog } from './FolioDialog'
 import { ReservationDetailsDialog } from './ReservationDetailsDialog'
 import { InvoiceViewerA4 } from './InvoiceViewerA4'
 import { InvoiceManagementDialog } from './InvoiceManagementDialog'
+import { GroupReservationsDialog } from './GroupReservationsDialog'
 import { toast } from 'sonner'
 
 interface FrontOfficeProps {
@@ -168,6 +170,16 @@ export function FrontOffice({
 
   const repeatGuests = guests.filter(g => g.totalStays && g.totalStays > 1)
 
+  const groupReservations = reservations.filter(r => 
+    r.source && (r.source.startsWith('group-') || r.source === 'group')
+  )
+
+  const groupSources = Array.from(new Set(
+    groupReservations
+      .map(r => r.specialRequests?.match(/Group: ([^|]+)/)?.[1])
+      .filter(Boolean)
+  ))
+
   const filteredGuests = guests.filter(g => 
     `${g.firstName} ${g.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
     g.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -242,6 +254,77 @@ export function FrontOffice({
   const handleNewGuest = () => {
     setSelectedGuestProfile(null)
     setGuestDialogOpen(true)
+  }
+
+  const handleSaveGroupReservations = (
+    groupReservations: Reservation[], 
+    groupName: string, 
+    groupId: string,
+    guestsData: Partial<Guest>[]
+  ) => {
+    const newGuests: Guest[] = guestsData.map(guestData => ({
+      id: guestData.id || generateId(),
+      firstName: guestData.firstName || 'Guest',
+      lastName: guestData.lastName || 'Guest',
+      email: guestData.email || '',
+      phone: guestData.phone || '',
+      loyaltyPoints: guestData.loyaltyPoints || 0,
+      totalStays: guestData.totalStays || 1,
+      totalSpent: guestData.totalSpent || 0,
+      createdAt: guestData.createdAt || Date.now(),
+      updatedAt: guestData.updatedAt || Date.now()
+    }))
+
+    setGuests((current) => [...current, ...newGuests])
+    setReservations((current) => [...current, ...groupReservations])
+    
+    const newFolios: Folio[] = groupReservations.map(reservation => ({
+      id: generateId(),
+      reservationId: reservation.id,
+      guestId: reservation.guestId,
+      charges: [{
+        id: generateId(),
+        folioId: '', 
+        description: `Room Charge - ${calculateNights(reservation.checkInDate, reservation.checkOutDate)} nights`,
+        amount: reservation.ratePerNight,
+        quantity: calculateNights(reservation.checkInDate, reservation.checkOutDate),
+        department: 'front-office',
+        timestamp: Date.now(),
+        postedBy: currentUser?.userId || 'system'
+      }],
+      payments: reservation.advancePaid > 0 ? [{
+        id: generateId(),
+        folioId: '',
+        amount: reservation.advancePaid,
+        method: 'cash',
+        status: 'completed',
+        timestamp: Date.now(),
+        receivedBy: currentUser?.userId || 'system'
+      }] : [],
+      balance: reservation.totalAmount - reservation.advancePaid,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    }))
+
+    newFolios.forEach(folio => {
+      folio.charges[0].folioId = folio.id
+      if (folio.payments.length > 0) {
+        folio.payments[0].folioId = folio.id
+      }
+    })
+
+    setFolios((current) => [...current, ...newFolios])
+
+    const roomIds = groupReservations.map(r => r.roomId).filter(Boolean) as string[]
+    setRooms((current) =>
+      current.map(room =>
+        roomIds.includes(room.id)
+          ? { ...room, status: 'occupied-clean' as const }
+          : room
+      )
+    )
+
+    toast.success(`Group reservation "${groupName}" created with ${groupReservations.length} rooms`)
   }
 
   const handleSaveGuestProfile = (profileData: Partial<GuestProfile>) => {
@@ -587,14 +670,18 @@ export function FrontOffice({
           <h1 className="text-4xl font-semibold">Front Office</h1>
           <p className="text-muted-foreground mt-1">Guest management and reservations</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={handleNewGuest}>
+        <div className="flex gap-2 flex-wrap">
+          <Button onClick={handleNewGuest} variant="outline">
             <UserPlus size={20} className="mr-2" />
             New Guest
           </Button>
-          <Button onClick={handleNewReservation}>
+          <Button onClick={handleNewReservation} variant="outline">
             <Plus size={20} className="mr-2" />
             New Reservation
+          </Button>
+          <Button onClick={() => setGroupReservationsDialogOpen(true)}>
+            <Users size={20} className="mr-2" />
+            Group Booking
           </Button>
         </div>
       </div>
@@ -677,6 +764,10 @@ export function FrontOffice({
             <TabsTrigger value="reservations">Reservations</TabsTrigger>
             <TabsTrigger value="arrivals">Arrivals Today</TabsTrigger>
             <TabsTrigger value="departures">Departures Today</TabsTrigger>
+            <TabsTrigger value="groups">
+              <Users size={16} className="mr-1" />
+              Groups ({groupSources.length})
+            </TabsTrigger>
             <TabsTrigger value="upcoming">
               Upcoming ({upcomingArrivals.length})
             </TabsTrigger>
@@ -941,6 +1032,171 @@ export function FrontOffice({
                           <FileText size={16} className="mr-1" />
                           Edit
                         </Button>
+                      </div>
+                    </div>
+                  </Card>
+                )
+              })
+            )}
+          </TabsContent>
+
+          <TabsContent value="groups" className="space-y-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Group Bookings</h3>
+              <Button onClick={() => setGroupReservationsDialogOpen(true)} size="sm">
+                <Users size={16} className="mr-2" />
+                New Group Booking
+              </Button>
+            </div>
+            
+            {groupSources.length === 0 ? (
+              <div className="text-center py-12">
+                <Users size={48} className="mx-auto text-muted-foreground mb-4 opacity-50" />
+                <p className="text-muted-foreground mb-4">No group bookings found</p>
+                <Button onClick={() => setGroupReservationsDialogOpen(true)}>
+                  <Users size={16} className="mr-2" />
+                  Create First Group Booking
+                </Button>
+              </div>
+            ) : (
+              groupSources.map((groupName) => {
+                const groupBookings = groupReservations.filter(r => 
+                  r.specialRequests?.includes(`Group: ${groupName}`)
+                )
+                const groupGuests = groupBookings.map(r => guests.find(g => g.id === r.guestId)).filter(Boolean)
+                const totalRevenue = groupBookings.reduce((sum, r) => sum + r.totalAmount, 0)
+                const totalPaid = groupBookings.reduce((sum, r) => sum + r.advancePaid, 0)
+                const groupType = groupBookings[0]?.source?.replace('group-', '') || 'other'
+                const checkInDate = groupBookings[0]?.checkInDate
+                const checkOutDate = groupBookings[0]?.checkOutDate
+                const activeBookings = groupBookings.filter(r => r.status === 'confirmed' || r.status === 'checked-in')
+                
+                return (
+                  <Card key={groupName} className="p-6 border-l-4 border-l-primary">
+                    <div className="space-y-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <Users size={24} className="text-primary" />
+                            <h3 className="text-xl font-semibold">{groupName}</h3>
+                            <Badge className="capitalize">{groupType}</Badge>
+                            {activeBookings.length > 0 && (
+                              <Badge variant="outline" className="bg-green-50 text-green-700">
+                                {activeBookings.length} Active
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
+                            <div>
+                              <p className="text-xs text-muted-foreground">Total Rooms</p>
+                              <p className="text-lg font-semibold">{groupBookings.length}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Total Guests</p>
+                              <p className="text-lg font-semibold">
+                                {groupBookings.reduce((sum, r) => sum + r.adults + r.children, 0)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Check-In</p>
+                              <p className="text-sm font-medium">
+                                {checkInDate ? formatDate(checkInDate) : 'N/A'}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Check-Out</p>
+                              <p className="text-sm font-medium">
+                                {checkOutDate ? formatDate(checkOutDate) : 'N/A'}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Total Revenue</p>
+                              <p className="text-lg font-semibold text-primary">
+                                {formatCurrency(totalRevenue)}
+                              </p>
+                            </div>
+                          </div>
+
+                          {totalPaid > 0 && (
+                            <div className="mt-3 p-3 bg-green-50 rounded-lg">
+                              <p className="text-sm text-green-800">
+                                <strong>Deposit Paid:</strong> {formatCurrency(totalPaid)} of {formatCurrency(totalRevenue)}
+                              </p>
+                              <div className="mt-2 w-full bg-green-200 rounded-full h-2">
+                                <div 
+                                  className="bg-green-600 h-2 rounded-full"
+                                  style={{ width: `${Math.min((totalPaid / totalRevenue) * 100, 100)}%` }}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      <div>
+                        <h4 className="font-semibold mb-3 flex items-center gap-2">
+                          <Receipt size={16} />
+                          Individual Bookings
+                        </h4>
+                        <div className="space-y-2">
+                          {groupBookings.map((reservation) => {
+                            const guest = guests.find(g => g.id === reservation.guestId)
+                            const room = rooms.find(r => r.id === reservation.roomId)
+                            
+                            return (
+                              <div 
+                                key={reservation.id} 
+                                className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
+                              >
+                                <div className="flex items-center gap-4 flex-1">
+                                  <div className="flex-1">
+                                    <p className="font-medium">
+                                      {guest ? `${guest.firstName} ${guest.lastName}` : 'Unknown Guest'}
+                                    </p>
+                                    <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
+                                      <span>Room {room?.roomNumber || 'Not assigned'}</span>
+                                      <span>•</span>
+                                      <span>{reservation.adults}A, {reservation.children}C</span>
+                                      <span>•</span>
+                                      {getStatusBadge(reservation.status)}
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-semibold">{formatCurrency(reservation.totalAmount)}</p>
+                                    {reservation.advancePaid > 0 && (
+                                      <p className="text-xs text-green-600">
+                                        {formatCurrency(reservation.advancePaid)} paid
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex gap-2 ml-4">
+                                  {reservation.status === 'confirmed' && (
+                                    <Button size="sm" onClick={() => handleCheckIn(reservation)}>
+                                      <CalendarCheck size={16} className="mr-1" />
+                                      Check In
+                                    </Button>
+                                  )}
+                                  {reservation.status === 'checked-in' && (
+                                    <>
+                                      <Button size="sm" variant="outline" onClick={() => handleViewFolio(reservation)}>
+                                        <Receipt size={16} className="mr-1" />
+                                        Folio
+                                      </Button>
+                                      <Button size="sm" onClick={() => handleCheckOut(reservation)}>
+                                        <CalendarX size={16} className="mr-1" />
+                                        Check Out
+                                      </Button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
                       </div>
                     </div>
                   </Card>
@@ -1516,6 +1772,13 @@ export function FrontOffice({
           setEditingInvoice(undefined)
         }}
         currentUser={currentUser}
+      />
+
+      <GroupReservationsDialog
+        open={groupReservationsDialogOpen}
+        onOpenChange={setGroupReservationsDialogOpen}
+        rooms={rooms}
+        onSave={handleSaveGroupReservations}
       />
     </div>
   )

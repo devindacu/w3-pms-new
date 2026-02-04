@@ -27,7 +27,7 @@ interface GroupReservationsDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   rooms: Room[]
-  onSave: (reservations: Reservation[], groupName: string, groupId: string) => void
+  onSave: (reservations: Reservation[], groupName: string, groupId: string, guests: Partial<Guest>[]) => void
 }
 
 export function GroupReservationsDialog({
@@ -103,9 +103,27 @@ export function GroupReservationsDialog({
     const groupId = generateId()
     const nights = Math.ceil((new Date(checkOutDate).getTime() - new Date(checkInDate).getTime()) / (1000 * 60 * 60 * 24))
 
+    const guestsData: Partial<Guest>[] = []
     const reservations: Reservation[] = groupBookings.map((booking, index) => {
       const room = rooms.find(r => r.id === booking.roomId)
       const guestId = generateId()
+      
+      const nameParts = booking.guestName.trim().split(' ')
+      const firstName = nameParts[0] || 'Guest'
+      const lastName = nameParts.slice(1).join(' ') || `${groupName} ${index + 1}`
+      
+      guestsData.push({
+        id: guestId,
+        firstName,
+        lastName,
+        email: contactEmail || undefined,
+        phone: contactPhone || '',
+        loyaltyPoints: 0,
+        totalStays: 1,
+        totalSpent: room ? room.baseRate * nights : 0,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      })
       
       return {
         id: generateId(),
@@ -119,15 +137,15 @@ export function GroupReservationsDialog({
         ratePerNight: room ? room.baseRate : 0,
         advancePaid: depositPaid ? depositAmount / groupBookings.length : 0,
         status: 'confirmed' as const,
-        specialRequests: booking.specialRequests,
-        source: 'group',
+        specialRequests: booking.specialRequests || `Group: ${groupName} | Type: ${groupType} | Contact: ${contactPerson}`,
+        source: `group-${groupType}`,
         createdAt: Date.now(),
         updatedAt: Date.now(),
         createdBy: 'system'
       }
     })
 
-    onSave(reservations, groupName, groupId)
+    onSave(reservations, groupName, groupId, guestsData)
     toast.success(`Group reservation created for ${groupBookings.length} rooms`)
     handleReset()
     onOpenChange(false)
