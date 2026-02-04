@@ -532,7 +532,7 @@ function calculateNextResetDate(sequence: InvoiceNumberSequence, fromDate: numbe
       date.setMonth(0)
       date.setDate(1)
       break
-    case 'financial-year':
+    case 'financial-year': {
       const currentMonth = date.getMonth()
       if (currentMonth < 3) {
         date.setMonth(3)
@@ -542,6 +542,7 @@ function calculateNextResetDate(sequence: InvoiceNumberSequence, fromDate: numbe
       }
       date.setDate(1)
       break
+    }
   }
   
   date.setHours(0, 0, 0, 0)

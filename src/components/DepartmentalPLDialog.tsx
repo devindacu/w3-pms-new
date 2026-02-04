@@ -117,22 +117,25 @@ export function DepartmentalPLDialog({
     const endDate = now.getTime()
     
     switch (selectedPeriod) {
-      case 'today':
+      case 'today': {
         const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
         return { startDate: todayStart.getTime(), endDate }
+      }
       
-      case 'yesterday':
+      case 'yesterday': {
         const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
         const yesterdayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 23, 59, 59)
         return { startDate: yesterday.getTime(), endDate: yesterdayEnd.getTime() }
+      }
       
-      case 'week':
+      case 'week': {
         const weekStart = new Date(now)
         weekStart.setDate(now.getDate() - now.getDay())
         weekStart.setHours(0, 0, 0, 0)
         return { startDate: weekStart.getTime(), endDate }
+      }
       
-      case 'last-week':
+      case 'last-week': {
         const lastWeekStart = new Date(now)
         lastWeekStart.setDate(now.getDate() - now.getDay() - 7)
         lastWeekStart.setHours(0, 0, 0, 0)
@@ -140,39 +143,47 @@ export function DepartmentalPLDialog({
         lastWeekEnd.setDate(lastWeekStart.getDate() + 6)
         lastWeekEnd.setHours(23, 59, 59, 999)
         return { startDate: lastWeekStart.getTime(), endDate: lastWeekEnd.getTime() }
+      }
       
-      case 'month':
+      case 'month': {
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
         return { startDate: monthStart.getTime(), endDate }
+      }
       
-      case 'last-month':
+      case 'last-month': {
         const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
         const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59)
         return { startDate: lastMonthStart.getTime(), endDate: lastMonthEnd.getTime() }
+      }
       
-      case 'quarter':
+      case 'quarter': {
         const quarterMonth = Math.floor(now.getMonth() / 3) * 3
         const quarterStart = new Date(now.getFullYear(), quarterMonth, 1)
         return { startDate: quarterStart.getTime(), endDate }
+      }
       
-      case 'last-quarter':
+      case 'last-quarter': {
         const lastQuarterMonth = Math.floor(now.getMonth() / 3) * 3 - 3
         const lastQuarterStart = new Date(now.getFullYear(), lastQuarterMonth, 1)
         const lastQuarterEnd = new Date(now.getFullYear(), lastQuarterMonth + 3, 0, 23, 59, 59)
         return { startDate: lastQuarterStart.getTime(), endDate: lastQuarterEnd.getTime() }
+      }
       
-      case 'year':
+      case 'year': {
         const yearStart = new Date(now.getFullYear(), 0, 1)
         return { startDate: yearStart.getTime(), endDate }
+      }
       
-      case 'last-year':
+      case 'last-year': {
         const lastYearStart = new Date(now.getFullYear() - 1, 0, 1)
         const lastYearEnd = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59)
         return { startDate: lastYearStart.getTime(), endDate: lastYearEnd.getTime() }
+      }
       
-      case 'ytd':
+      case 'ytd': {
         const ytdStart = new Date(now.getFullYear(), 0, 1)
         return { startDate: ytdStart.getTime(), endDate }
+      }
       
       case 'custom':
         return customPeriod

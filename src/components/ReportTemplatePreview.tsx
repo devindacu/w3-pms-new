@@ -289,7 +289,7 @@ export function ReportTemplatePreview({
           </ResponsiveContainer>
         )
 
-      case 'pie':
+      case 'pie': {
         const pieData = metrics.map((metric, idx) => ({
           name: metric?.name || '',
           value: Math.floor(Math.random() * 10000)
@@ -316,6 +316,7 @@ export function ReportTemplatePreview({
             </PieChart>
           </ResponsiveContainer>
         )
+      }
 
       default:
         return null

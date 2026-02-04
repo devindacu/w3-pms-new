@@ -253,9 +253,9 @@ export function BankStatementImport({
 
   const parseDate = (dateStr: string): number => {
     const formats = [
-      /(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/,
-      /(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/,
-      /(\d{1,2})[-\/](\d{1,2})[-\/](\d{2})/
+      /(\d{1,2})[-/](\d{1,2})[-/](\d{4})/,
+      /(\d{4})[-/](\d{1,2})[-/](\d{1,2})/,
+      /(\d{1,2})[-/](\d{1,2})[-/](\d{2})/
     ]
 
     for (const format of formats) {
