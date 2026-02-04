@@ -1,5 +1,6 @@
 import React from 'react'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 
 export interface DialogAdapterProps {
   open: boolean
@@ -25,6 +26,8 @@ export function DialogAdapter({
   )
 }
 
+DialogAdapter.displayName = 'DialogAdapter'
+
 export interface LoadingDialogProps {
   open: boolean
   title?: string
@@ -44,6 +47,8 @@ export function LoadingDialog({ open, title = 'Loading...', message }: LoadingDi
     </Dialog>
   )
 }
+
+LoadingDialog.displayName = 'LoadingDialog'
 
 export interface ConfirmDialogProps {
   open: boolean
@@ -85,23 +90,23 @@ export function ConfirmDialog({
           <h3 className="text-lg font-semibold mb-2">{title}</h3>
           <p className="text-sm text-muted-foreground mb-4">{message}</p>
           <div className="flex justify-end gap-2">
-            <button
+            <Button
               onClick={handleCancel}
-              className="px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-100"
+              variant="outline"
             >
               {cancelText}
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleConfirm}
-              className={`px-4 py-2 rounded-md text-sm font-medium text-white ${
-                destructive ? 'bg-red-600 hover:bg-red-700' : 'bg-primary hover:bg-primary/90'
-              }`}
+              variant={destructive ? 'destructive' : 'default'}
             >
               {confirmText}
-            </button>
+            </Button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
   )
 }
+
+ConfirmDialog.displayName = 'ConfirmDialog'
