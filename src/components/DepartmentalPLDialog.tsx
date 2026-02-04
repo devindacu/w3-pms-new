@@ -206,8 +206,9 @@ export function DepartmentalPLDialog({
     let revenue = 0
     let costOfSales = 0
     let operatingExpenses = 0
-    const otherIncome = 0
-    const otherExpenses = 0
+    // TODO: Implement other income/expenses tracking
+    const otherIncome = 0  // Placeholder for non-operating income
+    const otherExpenses = 0  // Placeholder for non-operating expenses
     let transactions = 0
 
     folios.forEach(folio => {
