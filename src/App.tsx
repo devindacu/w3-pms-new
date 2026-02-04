@@ -93,7 +93,9 @@ import {
   type DemandForecast,
   type ExtraService,
   type ExtraServiceCategory,
-  type FolioExtraService
+  type FolioExtraService,
+  type MasterFolio,
+  type GroupReservation
 } from '@/lib/types'
 import { 
   formatCurrency, 
@@ -186,6 +188,7 @@ import { ColorMoodSelector } from '@/components/ColorMoodSelector'
 import { RevenueOccupancyTrends } from '@/components/RevenueOccupancyTrends'
 import { NightAudit } from '@/components/NightAudit'
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator'
+import { MasterFolioManagement } from '@/components/MasterFolioManagement'
 // New UI/UX Enhancement Components
 import { ChannelManagerDashboard } from '@/components/ChannelManagerDashboard'
 import { EnhancedDashboardWidgets } from '@/components/EnhancedDashboardWidgets'
@@ -230,7 +233,7 @@ import type {
   EmailCampaignAnalytics
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'room-revenue' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio' | 'channel-dashboard' | 'enhanced-dashboard' | 'floor-plan' | 'revenue-management' | 'lost-found' | 'linen-tracking' | 'kitchen-display'
 
 function App() {
   const {
@@ -419,6 +422,8 @@ function App() {
   const [mealCombos, setMealCombos] = useKV<import('@/lib/types').MealCombo[]>('w3-hotel-meal-combos', [])
   const [currencyConfiguration, setCurrencyConfiguration] = useKV<import('@/lib/currencyTypes').CurrencyConfiguration | null>('w3-hotel-currency-config', null)
   const [exchangeRates, setExchangeRates] = useKV<import('@/lib/currencyTypes').ExchangeRate[]>('w3-hotel-exchange-rates', [])
+  const [masterFolios, setMasterFolios] = useKV<MasterFolio[]>('w3-hotel-master-folios', [])
+  const [groupReservations, setGroupReservations] = useKV<GroupReservation[]>('w3-hotel-group-reservations', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
@@ -1304,6 +1309,17 @@ function App() {
           </Button>
 
           <Button
+            variant={currentModule === 'master-folio' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('master-folio')}
+          >
+            <Buildings size={18} className="mr-2" />
+            Master Folio
+          </Button>
+
+          <Separator className="my-2" />
+
+          <Button
             variant={currentModule === 'hr' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('hr')}
@@ -2037,6 +2053,17 @@ function App() {
               setInvoiceSequences={setInvoiceSequences}
               auditLogs={nightAuditLogs || []}
               setAuditLogs={setNightAuditLogs}
+              currentUser={currentUser}
+            />
+          )}
+          {currentModule === 'master-folio' && (
+            <MasterFolioManagement
+              masterFolios={masterFolios || []}
+              setMasterFolios={setMasterFolios}
+              folios={folios || []}
+              setFolios={setFolios}
+              reservations={reservations || []}
+              guests={guests || []}
               currentUser={currentUser}
             />
           )}
