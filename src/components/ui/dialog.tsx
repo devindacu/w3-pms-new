@@ -54,14 +54,15 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"
+        data-radix-dialog-content
         className={cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 flex flex-col w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] sm:w-[calc(100vw-2rem)] sm:max-w-[calc(100vw-2rem)] md:w-[calc(100vw-2rem)] md:max-w-[calc(100vw-2rem)] lg:w-[calc(100vw-3rem)] lg:max-w-[calc(100vw-3rem)] xl:w-[calc(100vw-4rem)] xl:max-w-[calc(100vw-4rem)] max-h-[95vh] sm:max-h-[92vh] md:max-h-[90vh] translate-x-[-50%] translate-y-[-50%] gap-2 sm:gap-3 md:gap-4 rounded-lg border p-3 sm:p-4 md:p-5 lg:p-6 shadow-lg duration-200 overflow-hidden",
+          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 flex flex-col translate-x-[-50%] translate-y-[-50%] gap-2 sm:gap-3 md:gap-4 rounded-lg border p-3 sm:p-4 md:p-5 lg:p-6 shadow-lg duration-200",
           className
         )}
         {...props}
       >
         {children}
-        <DialogPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 size-6 sm:size-7 md:size-8 flex items-center justify-center z-50">
+        <DialogPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 size-6 sm:size-7 md:size-8 flex items-center justify-center z-50">
           <XIcon className="size-3.5 sm:size-4" />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>
