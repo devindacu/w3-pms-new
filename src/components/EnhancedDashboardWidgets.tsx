@@ -25,12 +25,9 @@ import {
   TrendDown,
   Users,
   CurrencyDollar,
-  Calendar,
   Bed,
   ChartBar,
-  Package,
   Warning,
-  CheckCircle,
   Clock,
   DotsSixVertical,
   Eye,
@@ -52,7 +49,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts';
 import { cn } from '@/lib/utils';
 import { useKV } from '@github/spark/hooks';
@@ -66,11 +62,20 @@ interface DashboardWidget {
   visible: boolean;
   data?: any;
   config?: {
-    icon?: any;
+    iconName?: string;
     color?: string;
     chartType?: 'line' | 'bar' | 'area' | 'pie';
   };
 }
+
+const iconMap: Record<string, any> = {
+  CurrencyDollar,
+  Bed,
+  Users,
+  Clock,
+  ChartBar,
+  Warning,
+};
 
 interface SortableWidgetProps {
   widget: DashboardWidget;
@@ -110,7 +115,7 @@ function SortableWidget({ widget, children }: SortableWidgetProps) {
 }
 
 export function EnhancedDashboardWidgets() {
-  const [widgets, setWidgets] = useKV<DashboardWidget[]>('dashboardWidgets', [
+  const [widgets, setWidgets, deleteWidgets] = useKV<DashboardWidget[]>('dashboardWidgets', [
     {
       id: 'total-revenue',
       type: 'metric',
@@ -120,7 +125,7 @@ export function EnhancedDashboardWidgets() {
       visible: true,
       data: { value: 125840, change: 12.5, trend: 'up' },
       config: {
-        icon: CurrencyDollar,
+        iconName: 'CurrencyDollar',
         color: 'text-success',
       },
     },
@@ -133,7 +138,7 @@ export function EnhancedDashboardWidgets() {
       visible: true,
       data: { value: 78, change: 5.2, trend: 'up' },
       config: {
-        icon: Bed,
+        iconName: 'Bed',
         color: 'text-primary',
       },
     },
@@ -146,7 +151,7 @@ export function EnhancedDashboardWidgets() {
       visible: true,
       data: { value: 342, change: -2.1, trend: 'down' },
       config: {
-        icon: Users,
+        iconName: 'Users',
         color: 'text-blue-600',
       },
     },
@@ -159,7 +164,7 @@ export function EnhancedDashboardWidgets() {
       visible: true,
       data: { value: 18, change: 0, trend: 'neutral' },
       config: {
-        icon: Clock,
+        iconName: 'Clock',
         color: 'text-accent',
       },
     },
@@ -272,7 +277,7 @@ export function EnhancedDashboardWidgets() {
   };
 
   const renderMetricWidget = (widget: DashboardWidget) => {
-    const Icon = widget.config?.icon || ChartBar;
+    const Icon = widget.config?.iconName ? iconMap[widget.config.iconName] || ChartBar : ChartBar;
     const data = widget.data || {};
 
     return (
