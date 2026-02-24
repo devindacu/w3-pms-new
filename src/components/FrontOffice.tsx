@@ -1528,11 +1528,12 @@ export function FrontOffice({
                             e.stopPropagation()
                             const printWindow = window.open('', '_blank')
                             if (printWindow) {
-                              printWindow.document.write(`<html><head><title>Invoice ${invoice.invoiceNumber}</title></head><body>
-                                <h2>Invoice: ${invoice.invoiceNumber}</h2>
-                                <p>Guest: ${invoice.guestName}</p>
-                                <p>Total: ${invoice.grandTotal}</p>
-                                <p>Status: ${invoice.status}</p>
+                              const esc = (s: string | number) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+                              printWindow.document.write(`<html><head><title>Invoice ${esc(invoice.invoiceNumber)}</title></head><body>
+                                <h2>Invoice: ${esc(invoice.invoiceNumber)}</h2>
+                                <p>Guest: ${esc(invoice.guestName)}</p>
+                                <p>Total: ${esc(invoice.grandTotal)}</p>
+                                <p>Status: ${esc(invoice.status)}</p>
                               </body></html>`)
                               printWindow.document.close()
                               printWindow.print()

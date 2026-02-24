@@ -63,6 +63,91 @@ interface PaymentTrackingProps {
   currentUser: SystemUser
 }
 
+function PaymentDetailsContent({ payment, invoice }: { payment: Payment; invoice: GuestInvoice | null | undefined }) {
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3 text-sm">
+        <div>
+          <p className="text-muted-foreground">Payment #</p>
+          <p className="font-semibold">{payment.paymentNumber}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Amount</p>
+          <p className="font-semibold text-lg">{formatCurrency(payment.amount)}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Method</p>
+          <p className="font-medium capitalize">{payment.method.split('-').join(' ')}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Status</p>
+          <Badge>{payment.status}</Badge>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Processed At</p>
+          <p className="font-medium">{format(payment.processedAt, 'MMM dd, yyyy HH:mm')}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Processed By</p>
+          <p className="font-medium">{payment.processedBy}</p>
+        </div>
+        {payment.reference && (
+          <div className="col-span-2">
+            <p className="text-muted-foreground">Reference</p>
+            <p className="font-medium">{payment.reference}</p>
+          </div>
+        )}
+      </div>
+      {invoice && (
+        <>
+          <Separator />
+          <div className="space-y-2 text-sm">
+            <p className="font-semibold">Invoice Information</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-muted-foreground">Invoice #</p>
+                <p className="font-medium">{invoice.invoiceNumber}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Guest</p>
+                <p className="font-medium">{invoice.guestName}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Invoice Total</p>
+                <p className="font-medium">{formatCurrency(invoice.grandTotal)}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Balance Due</p>
+                <p className="font-medium text-destructive">{formatCurrency(invoice.amountDue)}</p>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+      {payment.isRefunded && (
+        <>
+          <Separator />
+          <div className="space-y-1 text-sm">
+            <p className="font-semibold text-destructive">Refund Information</p>
+            <p>Refunded Amount: <span className="font-medium">{formatCurrency(payment.refundedAmount || 0)}</span></p>
+            {payment.refundedAt && <p>Refunded At: <span className="font-medium">{format(payment.refundedAt, 'MMM dd, yyyy')}</span></p>}
+            {payment.refundReason && <p>Reason: <span className="font-medium">{payment.refundReason}</span></p>}
+          </div>
+        </>
+      )}
+      {payment.notes && (
+        <>
+          <Separator />
+          <div className="text-sm">
+            <p className="text-muted-foreground mb-1">Notes</p>
+            <p>{payment.notes}</p>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 export function PaymentTracking({ payments, invoices, onUpdatePayment, onUpdateInvoice, currentUser }: PaymentTrackingProps) {
   const isMobile = useIsMobile()
   const [searchTerm, setSearchTerm] = useState('')
@@ -557,91 +642,9 @@ export function PaymentTracking({ payments, invoices, onUpdatePayment, onUpdateI
           <DialogHeader>
             <DialogTitle>Payment Details</DialogTitle>
           </DialogHeader>
-          {viewPayment && (() => {
-            const invoice = getInvoiceDetails(viewPayment.invoiceId)
-            return (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Payment #</p>
-                    <p className="font-semibold">{viewPayment.paymentNumber}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Amount</p>
-                    <p className="font-semibold text-lg">{formatCurrency(viewPayment.amount)}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Method</p>
-                    <p className="font-medium capitalize">{viewPayment.method.split('-').join(' ')}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Status</p>
-                    <Badge>{viewPayment.status}</Badge>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Processed At</p>
-                    <p className="font-medium">{format(viewPayment.processedAt, 'MMM dd, yyyy HH:mm')}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Processed By</p>
-                    <p className="font-medium">{viewPayment.processedBy}</p>
-                  </div>
-                  {viewPayment.reference && (
-                    <div className="col-span-2">
-                      <p className="text-muted-foreground">Reference</p>
-                      <p className="font-medium">{viewPayment.reference}</p>
-                    </div>
-                  )}
-                </div>
-                {invoice && (
-                  <>
-                    <Separator />
-                    <div className="space-y-2 text-sm">
-                      <p className="font-semibold">Invoice Information</p>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <p className="text-muted-foreground">Invoice #</p>
-                          <p className="font-medium">{invoice.invoiceNumber}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Guest</p>
-                          <p className="font-medium">{invoice.guestName}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Invoice Total</p>
-                          <p className="font-medium">{formatCurrency(invoice.grandTotal)}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Balance Due</p>
-                          <p className="font-medium text-destructive">{formatCurrency(invoice.amountDue)}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-                {viewPayment.isRefunded && (
-                  <>
-                    <Separator />
-                    <div className="space-y-1 text-sm">
-                      <p className="font-semibold text-destructive">Refund Information</p>
-                      <p>Refunded Amount: <span className="font-medium">{formatCurrency(viewPayment.refundedAmount || 0)}</span></p>
-                      {viewPayment.refundedAt && <p>Refunded At: <span className="font-medium">{format(viewPayment.refundedAt, 'MMM dd, yyyy')}</span></p>}
-                      {viewPayment.refundReason && <p>Reason: <span className="font-medium">{viewPayment.refundReason}</span></p>}
-                    </div>
-                  </>
-                )}
-                {viewPayment.notes && (
-                  <>
-                    <Separator />
-                    <div className="text-sm">
-                      <p className="text-muted-foreground mb-1">Notes</p>
-                      <p>{viewPayment.notes}</p>
-                    </div>
-                  </>
-                )}
-              </div>
-            )
-          })()}
+          {viewPayment && (
+            <PaymentDetailsContent payment={viewPayment} invoice={getInvoiceDetails(viewPayment.invoiceId)} />
+          )}
         </DialogContent>
       </Dialog>
 
