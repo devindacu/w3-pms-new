@@ -172,6 +172,8 @@ export function updateExchangeRate(
     rate,
     inverseRate: 1 / rate,
     source,
+    effectiveDate: Date.now(),
+    updatedAt: Date.now(),
     validFrom: Date.now(),
     lastUpdated: Date.now(),
     updatedBy: userId,
@@ -200,7 +202,7 @@ export function getLatestExchangeRate(
         rate.isActive &&
         (!rate.validTo || rate.validTo > Date.now())
     )
-    .sort((a, b) => b.lastUpdated - a.lastUpdated)
+    .sort((a, b) => (b.lastUpdated ?? 0) - (a.lastUpdated ?? 0))
 
   return activeRates[0] || null
 }
@@ -277,6 +279,8 @@ export function generateDefaultExchangeRates(
         rate: exchangeRate,
         inverseRate: 1 / exchangeRate,
         source: 'system',
+        effectiveDate: Date.now(),
+        updatedAt: Date.now(),
         validFrom: Date.now(),
         lastUpdated: Date.now(),
         updatedBy: userId,

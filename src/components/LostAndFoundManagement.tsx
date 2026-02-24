@@ -68,7 +68,7 @@ export function LostAndFoundManagement() {
     notes: '',
   });
 
-  const filteredItems = items.filter((item) => {
+  const filteredItems = (items ?? []).filter((item) => {
     const matchesSearch =
       searchQuery === '' ||
       item.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -91,7 +91,7 @@ export function LostAndFoundManagement() {
     if (editingItem) {
       // Update existing item
       setItems(
-        items.map((item) =>
+        (items ?? []).map((item) =>
           item.id === editingItem.id ? { ...editingItem, ...formData } : item
         )
       );
@@ -103,7 +103,7 @@ export function LostAndFoundManagement() {
         ...formData,
       } as LostAndFoundItem;
 
-      setItems([...items, newItem]);
+      setItems([...(items ?? []), newItem]);
       toast.success('Lost & Found item added');
     }
 
@@ -113,7 +113,7 @@ export function LostAndFoundManagement() {
 
   const handleMarkAsClaimed = (item: LostAndFoundItem) => {
     setItems(
-      items.map((i) =>
+      (items ?? []).map((i) =>
         i.id === item.id
           ? {
               ...i,
@@ -128,7 +128,7 @@ export function LostAndFoundManagement() {
 
   const handleMarkAsDisposed = (item: LostAndFoundItem) => {
     setItems(
-      items.map((i) =>
+      (items ?? []).map((i) =>
         i.id === item.id
           ? {
               ...i,
@@ -175,10 +175,10 @@ export function LostAndFoundManagement() {
   };
 
   const stats = {
-    total: items.length,
-    stored: items.filter((i) => i.status === 'stored').length,
-    claimed: items.filter((i) => i.status === 'claimed').length,
-    disposed: items.filter((i) => i.status === 'disposed').length,
+    total: (items ?? []).length,
+    stored: (items ?? []).filter((i) => i.status === 'stored').length,
+    claimed: (items ?? []).filter((i) => i.status === 'claimed').length,
+    disposed: (items ?? []).filter((i) => i.status === 'disposed').length,
   };
 
   return (

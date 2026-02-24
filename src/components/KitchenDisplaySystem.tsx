@@ -59,7 +59,7 @@ export function KitchenDisplaySystem() {
     const interval = setInterval(() => {
       // In a real implementation, this would fetch new orders from the server
       // Trigger re-render by updating timestamp
-      setOrders((current) => [...current]);
+      setOrders((current) => [...(current ?? [])]);
     }, 5000);
 
     return () => clearInterval(interval);
@@ -67,7 +67,7 @@ export function KitchenDisplaySystem() {
 
   // Play sound for new orders
   useEffect(() => {
-    const newOrders = orders.filter((o) => o.status === 'new');
+    const newOrders = (orders ?? []).filter((o) => o.status === 'new');
     if (newOrders.length > 0 && soundEnabled) {
       // In a real implementation, play a sound here
       // new Audio('/notification.mp3').play();
@@ -75,7 +75,7 @@ export function KitchenDisplaySystem() {
   }, [orders, soundEnabled]);
 
   const filteredOrders = useMemo(() => {
-    let filtered = orders.filter((order) => order.status !== 'completed');
+    let filtered = (orders ?? []).filter((order) => order.status !== 'completed');
 
     if (selectedStation !== 'all') {
       filtered = filtered.filter((order) =>
@@ -102,11 +102,11 @@ export function KitchenDisplaySystem() {
 
   const stats = useMemo(() => {
     return {
-      total: orders.filter((o) => o.status !== 'completed').length,
-      new: orders.filter((o) => o.status === 'new').length,
-      preparing: orders.filter((o) => o.status === 'preparing').length,
-      ready: orders.filter((o) => o.status === 'ready').length,
-      urgent: orders.filter((o) => o.priority === 'urgent' && o.status !== 'completed').length,
+      total: (orders ?? []).filter((o) => o.status !== 'completed').length,
+      new: (orders ?? []).filter((o) => o.status === 'new').length,
+      preparing: (orders ?? []).filter((o) => o.status === 'preparing').length,
+      ready: (orders ?? []).filter((o) => o.status === 'ready').length,
+      urgent: (orders ?? []).filter((o) => o.priority === 'urgent' && o.status !== 'completed').length,
     };
   }, [orders]);
 
@@ -123,7 +123,7 @@ export function KitchenDisplaySystem() {
 
   const handleStartOrder = (orderId: number) => {
     setOrders(
-      orders.map((o) =>
+      (orders ?? []).map((o) =>
         o.id === orderId
           ? {
               ...o,
@@ -138,7 +138,7 @@ export function KitchenDisplaySystem() {
 
   const handleCompleteItem = (orderId: number, itemId: number) => {
     setOrders(
-      orders.map((o) => {
+      (orders ?? []).map((o) => {
         if (o.id === orderId) {
           const updatedItems = o.items.map((item) =>
             item.id === itemId ? { ...item, status: 'done' as const } : item
@@ -159,7 +159,7 @@ export function KitchenDisplaySystem() {
 
   const handleMarkReady = (orderId: number) => {
     setOrders(
-      orders.map((o) =>
+      (orders ?? []).map((o) =>
         o.id === orderId
           ? {
               ...o,
@@ -174,7 +174,7 @@ export function KitchenDisplaySystem() {
 
   const handleCompleteOrder = (orderId: number) => {
     setOrders(
-      orders.map((o) =>
+      (orders ?? []).map((o) =>
         o.id === orderId
           ? {
               ...o,

@@ -72,7 +72,7 @@ export function RecipeCostingDialog({
   const profitabilityData = useMemo(() => 
     menuItems
       .map(menuItem => {
-        const recipe = recipeMap.get(menuItem.recipeId)
+        const recipe = menuItem.recipeId ? recipeMap.get(menuItem.recipeId) : undefined
         if (!recipe) return null
         return calculateMenuItemProfitability(menuItem, recipe, foodItems)
       })

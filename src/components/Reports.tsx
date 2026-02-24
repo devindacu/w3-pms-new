@@ -985,7 +985,7 @@ export function Reports({
                     {(reportSchedules || []).map((schedule) => (
                       <tr key={schedule.id} className="border-b">
                         <td className="py-2">{schedule.name}</td>
-                        <td className="py-2 capitalize">{schedule.frequency}</td>
+                        <td className="py-2 capitalize">{schedule.scheduleConfig?.frequency}</td>
                         <td className="py-2 capitalize">{schedule.status}</td>
                         <td className="py-2 text-right">{schedule.runCount}</td>
                       </tr>

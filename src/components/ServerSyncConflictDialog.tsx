@@ -37,13 +37,13 @@ export function ServerSyncConflictDialog<T>({
   const getPreviewValue = (): T => {
     switch (selectedStrategy) {
       case 'keep-local':
-        return currentConflict.localValue
+        return currentConflict.localValue as T
       case 'keep-remote':
-        return currentConflict.remoteValue
+        return currentConflict.remoteValue as T
       case 'merge':
-        return mergeValues(currentConflict.localValue, currentConflict.remoteValue, currentConflict.fieldChanges)
+        return mergeValues(currentConflict.localValue as T, currentConflict.remoteValue as T, currentConflict.fieldChanges)
       default:
-        return currentConflict.localValue
+        return currentConflict.localValue as T
     }
   }
 
@@ -183,7 +183,7 @@ export function ServerSyncConflictDialog<T>({
                   </div>
                   <Separator className="mb-3" />
                   <div className="max-h-[300px] overflow-y-auto">
-                    {renderValue(currentConflict.localValue)}
+                    {renderValue(currentConflict.localValue as T)}
                   </div>
                 </Card>
 
@@ -197,7 +197,7 @@ export function ServerSyncConflictDialog<T>({
                   </div>
                   <Separator className="mb-3" />
                   <div className="max-h-[300px] overflow-y-auto">
-                    {renderValue(currentConflict.remoteValue)}
+                    {renderValue(currentConflict.remoteValue as T)}
                   </div>
                 </Card>
               </div>

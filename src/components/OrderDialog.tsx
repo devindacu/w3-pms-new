@@ -34,7 +34,7 @@ export function OrderDialog({ order, open, onOpenChange, guests, rooms }: OrderD
   }
 
   return (
-    <DialogAdapter open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Order Details - {order.orderNumber}</DialogTitle>
@@ -136,6 +136,6 @@ export function OrderDialog({ order, open, onOpenChange, guests, rooms }: OrderD
           </div>
         </div>
       </DialogContent>
-    </DialogAdapter>
+    </Dialog>
   )
 }

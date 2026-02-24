@@ -94,7 +94,7 @@ export function AgodaManagement() {
   // State for rate updates
   const [rateUpdate, setRateUpdate] = useState<AgodaRateData>({
     roomId: '',
-    date: formatDate(new Date()),
+    date: formatDate(Date.now()),
     baseRate: 0,
     currency: 'USD',
     availability: 0,

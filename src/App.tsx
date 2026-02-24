@@ -416,6 +416,7 @@ function App() {
   const [costCenterReports, setCostCenterReports] = useKV<import('@/lib/types').CostCenterReport[]>('w3-hotel-cost-center-reports', [])
   const [profitCenterReports, setProfitCenterReports] = useKV<import('@/lib/types').ProfitCenterReport[]>('w3-hotel-profit-center-reports', [])
   const [dashboardLayout, setDashboardLayout] = useKV<DashboardLayout | null>('w3-hotel-active-dashboard-layout', null)
+  const [savedDashboardLayouts] = useKV<DashboardLayout[]>('w3-hotel-dashboard-layouts', [])
   const [invoiceSequences, setInvoiceSequences] = useKV<import('@/lib/types').InvoiceNumberSequence[]>('w3-hotel-invoice-sequences', [])
   const [nightAuditLogs, setNightAuditLogs] = useKV<import('@/lib/types').NightAuditLog[]>('w3-hotel-night-audit-logs', [])
   const [mealCombos, setMealCombos] = useKV<import('@/lib/types').MealCombo[]>('w3-hotel-meal-combos', [])
@@ -547,27 +548,16 @@ function App() {
   }, [systemUsers])
 
   useEffect(() => {
-    const loadDefaultLayout = async () => {
-      if (!currentUser?.id) return
-      
-      try {
-        const layouts = await spark.kv.get<DashboardLayout[]>('w3-hotel-dashboard-layouts')
-        if (layouts && layouts.length > 0) {
-          const userDefaultLayout = layouts.find(
-            l => l.userId === currentUser.id && l.isDefault
-          )
-          
-          if (userDefaultLayout && !dashboardLayout) {
-            setDashboardLayout(userDefaultLayout)
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load default layout:', error)
+    if (!currentUser?.id) return
+    if (savedDashboardLayouts && savedDashboardLayouts.length > 0) {
+      const userDefaultLayout = savedDashboardLayouts.find(
+        l => l.userId === currentUser.id && l.isDefault
+      )
+      if (userDefaultLayout && !dashboardLayout) {
+        setDashboardLayout(userDefaultLayout)
       }
     }
-    
-    loadDefaultLayout()
-  }, [currentUser?.id, dashboardLayout])
+  }, [currentUser?.id, savedDashboardLayouts, dashboardLayout])
 
   useEffect(() => {
     const handleNavigateToSettings = (event: CustomEvent) => {

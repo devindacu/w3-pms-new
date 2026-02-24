@@ -669,7 +669,7 @@ export function POPreviewDialog({
                     {purchaseOrder.items.map((item, idx) => (
                       <tr key={item.id}>
                         <td className="border p-2">{idx + 1}</td>
-                        <td className="border p-2">{item.itemName}</td>
+                        <td className="border p-2">{item.name}</td>
                         <td className="border p-2 text-right">{item.quantity} {item.unit}</td>
                         <td className="border p-2 text-right">{formatCurrency(item.unitPrice)}</td>
                         <td className="border p-2 text-right font-semibold">{formatCurrency(item.total)}</td>
@@ -680,7 +680,7 @@ export function POPreviewDialog({
                       <td className="border p-2 text-right font-bold">{formatCurrency(purchaseOrder.subtotal)}</td>
                     </tr>
                     <tr className="bg-gray-50">
-                      <td colSpan={4} className="border p-2 text-right font-semibold">Tax ({purchaseOrder.taxRate}%):</td>
+                      <td colSpan={4} className="border p-2 text-right font-semibold">Tax:</td>
                       <td className="border p-2 text-right font-bold">{formatCurrency(purchaseOrder.tax)}</td>
                     </tr>
                     <tr className="bg-gray-100">

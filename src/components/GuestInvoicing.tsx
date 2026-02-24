@@ -532,7 +532,7 @@ export function GuestInvoicing({
               }
               setInvoices((prev) => prev.map((inv) => (inv.id === selectedInvoice.id ? guestInvoice : inv)))
             }}
-            currentUser={currentUser.name}
+            currentUser={`${currentUser.firstName} ${currentUser.lastName}`}
           />
 
           <InvoiceAdjustmentDialog

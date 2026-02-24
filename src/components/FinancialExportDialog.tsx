@@ -243,7 +243,7 @@ export function FinancialExportDialog({
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start">
                       <CalendarBlank size={16} className="mr-2" />
-                      {formatDate(dateRange.from)}
+                      {formatDate(dateRange.from.getTime())}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -263,7 +263,7 @@ export function FinancialExportDialog({
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start">
                       <CalendarBlank size={16} className="mr-2" />
-                      {formatDate(dateRange.to)}
+                      {formatDate(dateRange.to.getTime())}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -347,7 +347,7 @@ export function FinancialExportDialog({
                   <div className="space-y-1 text-sm text-muted-foreground">
                     <p><strong>Report:</strong> {selectedReport?.label}</p>
                     <p><strong>Format:</strong> {selectedFormat?.label}</p>
-                    <p><strong>Period:</strong> {formatDate(dateRange.from)} to {formatDate(dateRange.to)}</p>
+                    <p><strong>Period:</strong> {formatDate(dateRange.from.getTime())} to {formatDate(dateRange.to.getTime())}</p>
                     <p><strong>Currency:</strong> {currency}</p>
                   </div>
                 </div>

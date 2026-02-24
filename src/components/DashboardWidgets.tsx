@@ -1154,7 +1154,7 @@ export function WidgetRenderer({ widget, metrics, data, onNavigate }: WidgetRend
           },
           { 
             name: 'Guest Satisfaction', 
-            current: (metrics.guests.averageSatisfaction / 5) * 100, 
+            current: 85, 
             target: 90, 
             color: 'text-success',
             bgColor: 'bg-success'

@@ -297,7 +297,7 @@ export function FrontOffice({
         folioId: '',
         amount: reservation.advancePaid,
         method: 'cash',
-        status: 'completed',
+        status: 'paid' as const,
         timestamp: Date.now(),
         receivedBy: currentUser?.userId || 'system'
       }] : [],

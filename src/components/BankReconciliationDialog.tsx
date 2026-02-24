@@ -1166,7 +1166,7 @@ export function BankReconciliationDialog({
                         if (!bankTxn || !glEntry) return null
                         
                         return (
-                          <tr key={pair.id} className="border-b">
+                          <tr key={pair.bankTransactionId} className="border-b">
                             <td className="py-2 px-2">{formatDate(bankTxn.transactionDate)}</td>
                             <td className="py-2 px-2">{bankTxn.description}</td>
                             <td className="py-2 px-2 text-right font-semibold">
@@ -1234,7 +1234,7 @@ export function BankReconciliationDialog({
                       {unmatchedGLList.map((entry) => (
                         <tr key={entry.id} className="border-b">
                           <td className="py-2 px-2">{formatDate(entry.transactionDate)}</td>
-                          <td className="py-2 px-2">{entry.journalEntryNumber}</td>
+                          <td className="py-2 px-2">{entry.journalNumber}</td>
                           <td className="py-2 px-2">{entry.description}</td>
                           <td className="py-2 px-2 text-right">{entry.debit ? formatCurrency(entry.debit) : '-'}</td>
                           <td className="py-2 px-2 text-right">{entry.credit ? formatCurrency(entry.credit) : '-'}</td>

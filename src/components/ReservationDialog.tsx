@@ -396,7 +396,7 @@ export function ReservationDialog({
                             </p>
                             {room.roomType !== rooms.find(r => r.id === formData.roomId)?.roomType && (
                               <Badge variant="secondary" className="text-xs">
-                                {room.roomType === 'Suite' || room.roomType === 'Deluxe' ? 'Upgrade' : 'Alternative'}
+                            {room.roomType === 'suite' || room.roomType === 'executive' ? 'Upgrade' : 'Alternative'}
                               </Badge>
                             )}
                           </div>

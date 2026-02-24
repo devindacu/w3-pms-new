@@ -25,7 +25,7 @@ import {
   Calendar,
   ChartBar,
   Bell,
-  Settings,
+  GearSix,
   Play,
   Pause,
   Eye,
@@ -193,9 +193,9 @@ export function ChannelManagerDashboard() {
 
   // Calculate aggregate metrics
   const metrics = useMemo(() => {
-    const active = channels.filter((c) => c.enabled);
+    const active = (channels ?? []).filter((c) => c.enabled);
     return {
-      totalChannels: channels.length,
+      totalChannels: (channels ?? []).length,
       activeChannels: active.length,
       totalBookings: active.reduce((sum, c) => sum + c.stats.totalBookings, 0),
       totalRevenue: active.reduce((sum, c) => sum + c.stats.revenue, 0),
@@ -208,7 +208,7 @@ export function ChannelManagerDashboard() {
 
   // Performance data for charts
   const performanceData: ChannelPerformance[] = useMemo(() => {
-    return channels
+    return (channels ?? [])
       .filter((c) => c.enabled)
       .map((c) => ({
         channel: c.name,
@@ -254,18 +254,18 @@ export function ChannelManagerDashboard() {
 
   const handleSync = (channelId: string) => {
     setChannels((prev) =>
-      prev.map((c) =>
+      (prev ?? []).map((c) =>
         c.id === channelId
           ? { ...c, status: 'syncing' as const, lastSync: new Date().toISOString() }
           : c
       )
     );
 
-    toast.info(`Syncing ${channels.find((c) => c.id === channelId)?.name}...`);
+    toast.info(`Syncing ${(channels ?? []).find((c) => c.id === channelId)?.name}...`);
 
     setTimeout(() => {
       setChannels((prev) =>
-        prev.map((c) => (c.id === channelId ? { ...c, status: 'connected' as const } : c))
+        (prev ?? []).map((c) => (c.id === channelId ? { ...c, status: 'connected' as const } : c))
       );
       toast.success('Sync completed successfully');
     }, 2000);
@@ -273,7 +273,7 @@ export function ChannelManagerDashboard() {
 
   const toggleChannel = (channelId: string) => {
     setChannels((prev) =>
-      prev.map((c) =>
+      (prev ?? []).map((c) =>
         c.id === channelId
           ? {
               ...c,
@@ -459,7 +459,7 @@ export function ChannelManagerDashboard() {
         {/* Channels Tab */}
         <TabsContent value="channels" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {channels.map((channel) => (
+            {(channels ?? []).map((channel) => (
               <Card
                 key={channel.id}
                 className={cn(
@@ -545,7 +545,7 @@ export function ChannelManagerDashboard() {
                         setConfigDialogOpen(true);
                       }}
                     >
-                      <Settings size={16} />
+                      <GearSix size={16} />
                       Configure
                     </Button>
                   </div>
