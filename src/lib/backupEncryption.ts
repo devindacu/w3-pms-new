@@ -63,13 +63,11 @@ async function generateKey(password: string, salt: Uint8Array, iterations: numbe
 export async function encryptData(data: string, password: string): Promise<{ encrypted: string; salt: string; iv: string }> {
   const salt = crypto.getRandomValues(new Uint8Array(16))
   const iv = crypto.getRandomValues(new Uint8Array(12))
-  // @ts-expect-error - Crypto API type compatibility
   const key = await generateKey(password, salt)
 
   const encoder = new TextEncoder()
   const encodedData = encoder.encode(data)
 
-  // @ts-expect-error - Crypto API type compatibility
   const encryptedData = await crypto.subtle.encrypt(
     {
       name: 'AES-GCM',

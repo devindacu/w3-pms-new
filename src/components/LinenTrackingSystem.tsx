@@ -97,7 +97,7 @@ export function LinenTrackingSystem() {
       ...formData,
     } as LinenItem;
 
-    setItems([...items, newItem]);
+    setItems([...(items ?? []), newItem]);
     toast.success('Linen item added');
     setFormData({
       type: 'bed-sheet',
@@ -130,7 +130,7 @@ export function LinenTrackingSystem() {
     } as LinenTransaction;
 
     // Update item quantities based on transaction type
-    const updatedItems = items.map((item) => {
+    const updatedItems = (items ?? []).map((item) => {
       if (item.id === selectedItem.id) {
         const qty = transactionData.quantity || 0;
         const updated = { ...item };
@@ -173,7 +173,7 @@ export function LinenTrackingSystem() {
     });
 
     setItems(updatedItems);
-    setTransactions([...transactions, newTransaction]);
+    setTransactions([...(transactions ?? []), newTransaction]);
     toast.success('Transaction recorded');
     setTransactionData({
       date: new Date().toISOString().split('T')[0],
@@ -188,12 +188,12 @@ export function LinenTrackingSystem() {
   };
 
   const stats = useMemo(() => {
-    const total = items.reduce((sum, item) => sum + item.totalQuantity, 0);
-    const clean = items.reduce((sum, item) => sum + item.cleanQuantity, 0);
-    const dirty = items.reduce((sum, item) => sum + item.dirtyQuantity, 0);
-    const inLaundry = items.reduce((sum, item) => sum + item.inLaundryQuantity, 0);
-    const damaged = items.reduce((sum, item) => sum + item.damagedQuantity, 0);
-    const lowStock = items.filter(
+    const total = (items ?? []).reduce((sum, item) => sum + item.totalQuantity, 0);
+    const clean = (items ?? []).reduce((sum, item) => sum + item.cleanQuantity, 0);
+    const dirty = (items ?? []).reduce((sum, item) => sum + item.dirtyQuantity, 0);
+    const inLaundry = (items ?? []).reduce((sum, item) => sum + item.inLaundryQuantity, 0);
+    const damaged = (items ?? []).reduce((sum, item) => sum + item.damagedQuantity, 0);
+    const lowStock = (items ?? []).filter(
       (item) => item.cleanQuantity < item.minimumQuantity
     ).length;
 
@@ -427,7 +427,7 @@ export function LinenTrackingSystem() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.map((item) => (
+              {(items ?? []).map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{formatLinenType(item.type)}</TableCell>
                   <TableCell>
@@ -472,7 +472,7 @@ export function LinenTrackingSystem() {
             </TableBody>
           </Table>
 
-          {items.length === 0 && (
+          {(items ?? []).length === 0 && (
             <div className="text-center py-12 text-muted-foreground">
               No linen items found. Add your first linen type to get started.
             </div>

@@ -1,4 +1,4 @@
-import DOMPurify from 'dompurify'
+import DOMPurify, { type Config as DOMPurifyConfig } from 'dompurify'
 
 /**
  * Sanitizes HTML content to prevent XSS attacks
@@ -10,10 +10,10 @@ import DOMPurify from 'dompurify'
  */
 export function sanitizeHtml(
   html: string,
-  options?: DOMPurify.Config
+  options?: DOMPurifyConfig
 ): string {
   // Default configuration - allow common HTML tags and attributes
-  const defaultConfig: DOMPurify.Config = {
+  const defaultConfig: DOMPurifyConfig = {
     ALLOWED_TAGS: [
       'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
       'p', 'br', 'span', 'div',
@@ -33,7 +33,7 @@ export function sanitizeHtml(
     ...options
   }
 
-  return DOMPurify.sanitize(html, defaultConfig)
+  return DOMPurify.sanitize(html, defaultConfig) as string
 }
 
 /**

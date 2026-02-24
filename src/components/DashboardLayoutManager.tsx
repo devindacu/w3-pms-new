@@ -44,13 +44,13 @@ import { Switch } from '@/components/ui/switch'
 import {
   Layout,
   Plus,
-  Save,
+  FloppyDisk,
   Copy,
   Trash,
-  MoreVertical,
+  DotsThreeVertical,
   Star,
-  Share2,
-  Edit,
+  ShareNetwork,
+  PencilSimple,
   Check,
   Sparkle,
   Crown,
@@ -233,7 +233,6 @@ export function DashboardLayoutManager({
   const getRoleIcon = (role: UserRole | SystemRole) => {
     switch (role) {
       case 'admin':
-      case 'owner':
         return <Crown size={16} className="text-primary" />
       case 'manager':
         return <Star size={16} className="text-accent" />
@@ -318,7 +317,7 @@ export function DashboardLayoutManager({
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-lg font-semibold">Saved Layouts</h3>
                   <Button onClick={handleSaveCurrentLayout} size="sm">
-                    <Save size={16} className="mr-2" />
+                    <FloppyDisk size={16} className="mr-2" />
                     Save Current
                   </Button>
                 </div>
@@ -347,12 +346,12 @@ export function DashboardLayoutManager({
                               )}
                               {layout.isShared && (
                                 <Badge variant="secondary" className="shrink-0">
-                                  <Share2 size={12} className="mr-1" />
+                                  <ShareNetwork size={12} className="mr-1" />
                                   Shared
                                 </Badge>
                               )}
                               <div className="flex items-center gap-1 text-muted-foreground">
-                                {getRoleIcon(layout.userRole)}
+                                {layout.userRole && getRoleIcon(layout.userRole)}
                               </div>
                             </div>
                             {layout.description && (
@@ -388,7 +387,7 @@ export function DashboardLayoutManager({
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon">
-                                  <MoreVertical size={16} />
+                                  <DotsThreeVertical size={16} />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
@@ -405,7 +404,7 @@ export function DashboardLayoutManager({
                                 {layout.userId === userId && (
                                   <>
                                     <DropdownMenuItem onClick={() => handleEditLayout(layout)}>
-                                      <Edit size={16} className="mr-2" />
+                                      <PencilSimple size={16} className="mr-2" />
                                       Edit Details
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
@@ -489,7 +488,7 @@ export function DashboardLayoutManager({
               Cancel
             </Button>
             <Button onClick={confirmSaveLayout}>
-              <Save size={16} className="mr-2" />
+              <FloppyDisk size={16} className="mr-2" />
               {editingLayoutId ? 'Update' : 'Save'} Layout
             </Button>
           </DialogFooter>

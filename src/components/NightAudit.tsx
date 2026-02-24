@@ -1170,7 +1170,7 @@ export function NightAudit({
                       <tbody>
                         {lastAudit.errors.map((error, idx) => (
                           <tr key={idx}>
-                            <td className="border p-2 text-sm">{error}</td>
+                            <td className="border p-2 text-sm">{error.message}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -1190,7 +1190,7 @@ export function NightAudit({
                       <tbody>
                         {lastAudit.warnings.map((warning, idx) => (
                           <tr key={idx}>
-                            <td className="border p-2 text-sm">{warning}</td>
+                            <td className="border p-2 text-sm">{warning.message}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -1211,9 +1211,9 @@ export function NightAudit({
                     <tbody>
                       {lastAudit.operations.map((operation, idx) => (
                         <tr key={idx}>
-                          <td className="border p-2">{operation.operation}</td>
+                          <td className="border p-2">{operation.operation || operation.operationType}</td>
                           <td className="border p-2 capitalize">{operation.status}</td>
-                          <td className="border p-2">{formatTime(operation.timestamp)}</td>
+                          <td className="border p-2">{formatTime(operation.timestamp || operation.startTime)}</td>
                         </tr>
                       ))}
                     </tbody>

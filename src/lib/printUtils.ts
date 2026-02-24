@@ -260,8 +260,10 @@ export async function downloadAsWord(elementId: string, options: PrintOptions = 
       sections: [{
         properties: {
           page: {
-            width: A4_SIZE.width * 56.7, // Convert mm to twips
-            height: A4_SIZE.height * 56.7,
+            size: {
+              width: A4_SIZE.width * 56.7, // Convert mm to twips
+              height: A4_SIZE.height * 56.7,
+            },
             margin: {
               top: A4_SIZE.margin * 56.7,
               right: A4_SIZE.margin * 56.7,

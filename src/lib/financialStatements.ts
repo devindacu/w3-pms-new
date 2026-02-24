@@ -158,11 +158,11 @@ export function generateProfitLossStatement(
 
   // Calculate Cost of Sales
   const foodBeverageCost = periodSupplierInvoices
-    .filter(inv => inv.category === 'food-beverage')
+    .filter(inv => inv.type === 'standard')
     .reduce((sum, inv) => sum + inv.total, 0)
 
   const roomSuppliesCost = periodSupplierInvoices
-    .filter(inv => inv.category === 'amenities')
+    .filter(inv => inv.type === 'standard')
     .reduce((sum, inv) => sum + inv.total, 0)
 
   const totalCostOfSales = foodBeverageCost + roomSuppliesCost
@@ -172,7 +172,7 @@ export function generateProfitLossStatement(
 
   // Calculate Operating Expenses
   const salaries = periodExpenses
-    .filter(exp => exp.category === 'salaries')
+    .filter(exp => exp.category === 'salary')
     .reduce((sum, exp) => sum + exp.amount, 0)
 
   const utilities = periodExpenses

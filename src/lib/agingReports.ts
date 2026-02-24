@@ -224,7 +224,7 @@ export function generateAPAgingReport(
     if (!vendorMap.has(inv.supplierId)) {
       vendorMap.set(inv.supplierId, {
         vendorId: inv.supplierId,
-        vendorName: inv.supplierName,
+        vendorName: inv.supplierName || inv.supplierId,
         totalOutstanding: 0,
         invoices: []
       })

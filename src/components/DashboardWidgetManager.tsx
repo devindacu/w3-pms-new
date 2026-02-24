@@ -113,7 +113,14 @@ export function DashboardWidgetManager({
       'kitchen-operations': 'Kitchen Operations',
       'crm-summary': 'CRM Summary',
       'channel-performance': 'Channel Performance',
-      'period-comparison': 'Period Comparison'
+      'period-comparison': 'Period Comparison',
+      'goal-tracking': 'Goal Tracking',
+      'quick-actions': 'Quick Actions',
+      'team-performance': 'Team Performance',
+      'channel-sync-status': 'Channel Sync Status',
+      'ota-comparison': 'OTA Comparison',
+      'booking-source': 'Booking Source',
+      'channel-revenue': 'Channel Revenue',
     }
     return titles[type]
   }

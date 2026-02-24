@@ -109,7 +109,9 @@ export function GuestInvoiceEditDialog({
       return
     }
 
-    const roundingMode = currencyConfiguration?.roundingMode || 'round'
+    const rawMode = currencyConfiguration?.roundingMode || 'round'
+    const roundingMode: 'round' | 'floor' | 'ceil' = 
+      rawMode === 'floor' ? 'floor' : rawMode === 'ceil' ? 'ceil' : 'round'
     
     const convertedLineItems = editedInvoice.lineItems.map(item => ({
       ...item,

@@ -17,6 +17,7 @@ export interface ReorderTrigger {
   currentStock: number
   reorderLevel: number
   reorderQuantity: number
+  unit: string
   preferredSupplierId: string
   preferredSupplierName: string
   unitCost: number
@@ -33,6 +34,7 @@ export interface AutoPORecommendation {
     itemName: string
     itemType: 'food' | 'amenity' | 'material' | 'product'
     quantity: number
+    unit: string
     unitCost: number
     total: number
   }>
@@ -69,11 +71,12 @@ export function identifyReorderTriggers(
         itemId: item.id,
         itemName: item.name,
         itemType: 'food',
+        unit: item.unit,
         category: item.category,
         currentStock: item.currentStock,
         reorderLevel: item.reorderLevel,
         reorderQuantity: item.reorderQuantity,
-        preferredSupplierId: item.preferredSupplierId || '',
+        preferredSupplierId: (item as any).preferredSupplierId || item.supplierIds?.[0] || '',
         preferredSupplierName: '', // Will be filled later
         unitCost: item.unitCost,
         estimatedTotal: item.reorderQuantity * item.unitCost,
@@ -99,11 +102,12 @@ export function identifyReorderTriggers(
         itemId: item.id,
         itemName: item.name,
         itemType: 'amenity',
+        unit: item.unit,
         category: item.category,
         currentStock: item.currentStock,
         reorderLevel: item.reorderLevel,
         reorderQuantity: item.reorderQuantity,
-        preferredSupplierId: item.preferredSupplierId || '',
+        preferredSupplierId: (item as any).preferredSupplierId || item.supplierIds?.[0] || '',
         preferredSupplierName: '',
         unitCost: item.unitCost,
         estimatedTotal: item.reorderQuantity * item.unitCost,
@@ -128,11 +132,12 @@ export function identifyReorderTriggers(
         itemId: item.id,
         itemName: item.name,
         itemType: 'material',
+        unit: item.unit,
         category: item.category,
         currentStock: item.currentStock,
         reorderLevel: item.reorderLevel,
         reorderQuantity: item.reorderQuantity,
-        preferredSupplierId: item.preferredSupplierId || '',
+        preferredSupplierId: (item as any).preferredSupplierId || item.supplierIds?.[0] || '',
         preferredSupplierName: '',
         unitCost: item.unitCost,
         estimatedTotal: item.reorderQuantity * item.unitCost,
@@ -157,11 +162,12 @@ export function identifyReorderTriggers(
         itemId: item.id,
         itemName: item.name,
         itemType: 'product',
+        unit: (item as any).unit || 'unit',
         category: item.category,
         currentStock: item.currentStock,
         reorderLevel: item.reorderLevel,
         reorderQuantity: item.reorderQuantity,
-        preferredSupplierId: item.preferredSupplierId || '',
+        preferredSupplierId: (item as any).preferredSupplierId || item.supplierIds?.[0] || '',
         preferredSupplierName: '',
         unitCost: item.unitCost,
         estimatedTotal: item.reorderQuantity * item.unitCost,
@@ -232,6 +238,7 @@ export function generateAutoPORecommendations(
         itemId: item.itemId,
         itemName: item.itemName,
         itemType: item.itemType,
+        unit: item.unit,
         quantity: item.reorderQuantity,
         unitCost: item.unitCost,
         total: item.estimatedTotal
@@ -261,12 +268,11 @@ export function createPOFromRecommendation(
   const items: PurchaseOrderItem[] = recommendation.items.map((item, index) => ({
     id: `poi-${Date.now()}-${index}`,
     inventoryItemId: item.itemId,
-    itemName: item.itemName,
+    name: item.itemName,
     quantity: item.quantity,
+    unit: item.unit || 'unit',
     unitPrice: item.unitCost,
     total: item.total,
-    receivedQuantity: 0,
-    status: 'pending'
   }))
 
   const subtotal = items.reduce((sum, item) => sum + item.total, 0)
@@ -277,8 +283,6 @@ export function createPOFromRecommendation(
     id: `po-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     poNumber,
     supplierId: recommendation.supplierId,
-    supplierName: recommendation.supplierName,
-    orderDate: Date.now(),
     expectedDelivery: deliveryDate,
     status: 'draft',
     items,
@@ -287,10 +291,8 @@ export function createPOFromRecommendation(
     total,
     notes: notes || `Auto-generated PO based on reorder triggers. Urgency: ${recommendation.urgency}`,
     createdAt: Date.now(),
-    updatedAt: Date.now(),
     createdBy: `${currentUser.firstName} ${currentUser.lastName}`,
-    approvedBy: undefined,
-    approvedAt: undefined
+    revisionNumber: 1,
   }
 
   return po

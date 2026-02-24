@@ -29,7 +29,7 @@ export function GuestInvoiceDialog({
 }: GuestInvoiceDialogProps) {
   const [selectedGuestId, setSelectedGuestId] = useState<string>('')
   const [selectedReservationId, setSelectedReservationId] = useState<string>('')
-  const [invoiceType, setInvoiceType] = useState<GuestInvoiceType>('standard')
+  const [invoiceType, setInvoiceType] = useState<GuestInvoiceType>('guest-folio')
   const [notes, setNotes] = useState<string>('')
 
   const handleSubmit = () => {
@@ -48,31 +48,48 @@ export function GuestInvoiceDialog({
       ? reservations.find(r => r.id === selectedReservationId)
       : undefined
 
+    const now = Date.now()
     const newInvoice: GuestInvoice = {
-      id: `ginv-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `ginv-${now}-${Math.random().toString(36).substr(2, 9)}`,
       invoiceNumber: generateNumber('INV'),
       guestId: selectedGuestId,
-      guestName: guest.name,
-      reservationId: selectedReservationId || undefined,
-      roomNumber: reservation?.roomNumber,
+      guestName: `${guest.firstName} ${guest.lastName}`,
+      reservationIds: selectedReservationId ? [selectedReservationId] : [],
+      folioIds: [],
+      roomNumber: undefined,
+      checkInDate: reservation?.checkInDate,
+      checkOutDate: reservation?.checkOutDate,
       invoiceType,
       status: 'draft' as GuestInvoiceStatus,
       currency: 'LKR',
+      exchangeRate: 1,
       lineItems: [],
       subtotal: 0,
+      discounts: [],
       totalTax: 0,
       totalDiscount: 0,
+      serviceChargeRate: 0,
       serviceChargeAmount: 0,
+      taxLines: [],
       grandTotal: 0,
+      payments: [],
       totalPaid: 0,
       amountDue: 0,
-      issueDate: formatDate(new Date()),
-      dueDate: formatDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)), // 7 days from now
-      notes,
-      createdAt: Date.now(),
+      creditNotes: [],
+      debitNotes: [],
+      prepayments: [],
+      netAmountDue: 0,
+      isPostedToAccounts: false,
+      deliveryMethods: [],
+      auditTrail: [],
+      isGroupMaster: false,
+      isTaxExempt: false,
+      invoiceDate: now,
+      dueDate: now + 7 * 24 * 60 * 60 * 1000,
+      internalNotes: notes || undefined,
+      createdAt: now,
       createdBy: currentUser.id,
-      updatedAt: Date.now(),
-      updatedBy: currentUser.id
+      updatedAt: now,
     }
 
     onInvoiceCreated(newInvoice)
@@ -82,7 +99,7 @@ export function GuestInvoiceDialog({
     // Reset form
     setSelectedGuestId('')
     setSelectedReservationId('')
-    setInvoiceType('standard')
+    setInvoiceType('guest-folio')
     setNotes('')
   }
 
@@ -124,7 +141,7 @@ export function GuestInvoiceDialog({
                       <div className="flex items-center gap-2">
                         <User size={16} />
                         <div>
-                          <div className="font-medium">{guest.name}</div>
+                          <div className="font-medium">{guest.firstName} {guest.lastName}</div>
                           <div className="text-xs text-muted-foreground">
                             {guest.email || guest.phone || 'No contact info'}
                           </div>
@@ -158,10 +175,10 @@ export function GuestInvoiceDialog({
                         <Bed size={16} />
                         <div>
                           <div className="font-medium">
-                            Room {reservation.roomNumber} | {reservation.roomType}
+                            Room {reservation.roomId} | Reservation
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            {formatDate(new Date(reservation.checkIn))} - {formatDate(new Date(reservation.checkOut))}
+                            {formatDate(reservation.checkInDate)} - {formatDate(reservation.checkOutDate)}
                           </div>
                         </div>
                       </div>
@@ -183,7 +200,8 @@ export function GuestInvoiceDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="standard">Standard Invoice</SelectItem>
+                <SelectItem value="guest-folio">Guest Folio</SelectItem>
+                <SelectItem value="room-only">Room Only</SelectItem>
                 <SelectItem value="proforma">Proforma Invoice</SelectItem>
                 <SelectItem value="credit-note">Credit Note</SelectItem>
                 <SelectItem value="debit-note">Debit Note</SelectItem>
@@ -198,7 +216,7 @@ export function GuestInvoiceDialog({
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
                   <span className="text-muted-foreground">Name:</span>
-                  <div className="font-medium">{selectedGuest.name}</div>
+                  <div className="font-medium">{selectedGuest.firstName} {selectedGuest.lastName}</div>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Email:</span>

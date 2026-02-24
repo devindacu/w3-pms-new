@@ -133,7 +133,7 @@ export function WidgetTemplateManager({
         id: `widget-${Date.now()}-${index}`,
         position: index
       })),
-      columns: template.columns,
+      columns: (Math.min(Math.max(template.columns, 1), 4) as 1 | 2 | 3 | 4),
       createdAt: Date.now(),
       updatedAt: Date.now(),
       createdBy: currentLayout?.createdBy || 'current-user'

@@ -462,7 +462,7 @@ export function CashFlowStatementDialog({
   )
 
   return (
-    <DialogAdapter open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
@@ -836,6 +836,6 @@ export function CashFlowStatementDialog({
           </A4PrintWrapper>
         </div>
       </DialogContent>
-    </DialogAdapter>
+    </Dialog>
   )
 }

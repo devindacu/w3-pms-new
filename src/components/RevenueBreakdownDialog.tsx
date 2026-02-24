@@ -237,7 +237,7 @@ export function RevenueBreakdownDialog({
   const avgRevenuePerBooking = totalBookings > 0 ? totalRevenue / totalBookings : 0
 
   return (
-    <DialogAdapter open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <ChartBar size={16} className="mr-2" />
@@ -532,6 +532,6 @@ export function RevenueBreakdownDialog({
           </Tabs>
         </div>
       </DialogContent>
-    </DialogAdapter>
+    </Dialog>
   )
 }

@@ -520,7 +520,8 @@ export function logActivity(
     username: `${user.firstName} ${user.lastName}`,
     userRole: user.role,
     action: action as any,
-    resourceType: resourceType as any,
+    activityType: 'update' as any,
+    resource: resourceType as any,
     resourceId,
     details,
     timestamp: Date.now(),
@@ -588,7 +589,7 @@ export function syncInventoryWithConsumption(
     setFoodItems(currentItems =>
       currentItems.map(fi =>
         fi.id === item.foodItemId
-          ? { ...fi, currentStock: Math.max(0, fi.currentStock - item.actualQuantityUsed) }
+          ? { ...fi, currentStock: Math.max(0, fi.currentStock - (((item as any).actualQuantityUsed ?? item.actualQuantity) as number)) }
           : fi
       )
     )
@@ -664,12 +665,15 @@ export function createFolioFromReservation(
     
     return {
       id: `folio-item-${Date.now()}-${i}`,
+      folioId: '',
       date: date.getTime(),
       description: `Room ${room.roomNumber} - ${room.roomType}`,
       quantity: 1,
       unitPrice: roomCharge,
       amount: roomCharge,
-      category: 'accommodation' as const
+      department: 'front-office' as const,
+      timestamp: date.getTime(),
+      postedBy: 'system',
     }
   })
   

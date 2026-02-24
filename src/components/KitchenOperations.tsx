@@ -133,7 +133,7 @@ export function KitchenOperations({
         </TabsContent>
 
         <TabsContent value="display" className="mt-6">
-          <KitchenDisplaySystem orders={orders} />
+          <KitchenDisplaySystem />
         </TabsContent>
       </Tabs>
     </div>

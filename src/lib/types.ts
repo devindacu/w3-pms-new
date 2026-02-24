@@ -1,4 +1,4 @@
-export type RoomStatus = 'vacant-clean' | 'vacant-dirty' | 'occupied-clean' | 'occupied-dirty' | 'maintenance' | 'out-of-order'
+export type RoomStatus = 'vacant-clean' | 'vacant-dirty' | 'occupied-clean' | 'occupied-dirty' | 'maintenance' | 'under-maintenance' | 'out-of-order'
 export type RoomType = 'standard' | 'deluxe' | 'suite' | 'executive' | 'presidential'
 export type ReservationStatus = 'confirmed' | 'checked-in' | 'checked-out' | 'cancelled' | 'no-show'
 export type MasterFolioType = 'group' | 'corporate' | 'event' | 'travel-agency'
@@ -3577,6 +3577,9 @@ export interface NightAuditLog {
   invoicesGenerated: number
   paymentsReconciled: number
   totalRevenue: number
+  occupancyPercentage?: number
+  averageDailyRate?: number
+  revPAR?: number
   errors: AuditError[]
   warnings: AuditWarning[]
   summary: {
@@ -3597,9 +3600,13 @@ export interface NightAuditLog {
 export interface NightAuditOperation {
   id: string
   operationType: 'post-room-charges' | 'post-fnb-charges' | 'post-extra-charges' | 'close-folios' | 'generate-invoices' | 'reconcile-payments' | 'update-inventory' | 'rotate-invoice-numbers' | 'generate-reports'
+  /** @alias operationType */
+  operation?: string
   status: 'pending' | 'completed' | 'failed' | 'skipped'
   recordsProcessed: number
   startTime: number
+  /** @alias startTime */
+  timestamp?: number
   endTime?: number
   duration?: number
   errors?: string[]
@@ -4427,7 +4434,7 @@ export interface RoleWidgetPreset {
   recommendedWidgets: DashboardWidgetType[]
   layout: {
     columns: 1 | 2 | 3 | 4
-    widgetSizes: Record<DashboardWidgetType, WidgetSize>
+    widgetSizes: Partial<Record<DashboardWidgetType, WidgetSize>>
   }
 }
 

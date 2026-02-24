@@ -48,6 +48,7 @@ import { ChargePostingDialog, type ChargeType } from '@/components/ChargePosting
 import { InvoiceAdjustmentDialog } from '@/components/InvoiceAdjustmentDialog'
 import { GuestInvoiceDialog } from '@/components/GuestInvoiceDialog'
 import { InvoicePaymentDialog } from '@/components/InvoicePaymentDialog'
+import { toast } from 'sonner'
 
 interface GuestInvoicingProps {
   invoices: GuestInvoice[]
@@ -160,6 +161,26 @@ export function GuestInvoicing({
 
   const handleNightAudit = () => {
     setIsNightAuditDialogOpen(true)
+  }
+
+  const handleCancelInvoice = (invoice: GuestInvoice) => {
+    if (!window.confirm(`Cancel invoice ${invoice.invoiceNumber}? This will mark it as cancelled.`)) return
+    setInvoices(prev => prev.map(inv => 
+      inv.id === invoice.id 
+        ? { ...inv, status: 'cancelled' as const, updatedAt: Date.now() }
+        : inv
+    ))
+    toast.success(`Invoice ${invoice.invoiceNumber} cancelled`)
+  }
+
+  const handleDeleteInvoice = (invoice: GuestInvoice) => {
+    if (invoice.status !== 'cancelled' && invoice.status !== 'draft') {
+      toast.error('Only cancelled or draft invoices can be deleted')
+      return
+    }
+    if (!window.confirm(`Delete invoice ${invoice.invoiceNumber}? This cannot be undone.`)) return
+    setInvoices(prev => prev.filter(inv => inv.id !== invoice.id))
+    toast.success(`Invoice ${invoice.invoiceNumber} deleted`)
   }
 
   const stats = {
@@ -331,7 +352,7 @@ export function GuestInvoicing({
                           </div>
                         )}
                       </div>
-                      <div className="flex gap-2 ml-4">
+                      <div className="flex gap-2 ml-4 flex-wrap">
                         <Button size="sm" variant="outline" onClick={() => handleViewInvoice(invoice)}>
                           <Eye size={16} className="mr-1" />
                           View
@@ -352,6 +373,17 @@ export function GuestInvoicing({
                           <Button size="sm" variant="outline" onClick={() => handleAdjustment(invoice)}>
                             <PencilSimple size={16} className="mr-1" />
                             Adjust
+                          </Button>
+                        )}
+                        {(invoice.status === 'draft' || invoice.status === 'interim') && (
+                          <Button size="sm" variant="outline" className="text-destructive hover:text-destructive" onClick={() => handleCancelInvoice(invoice)}>
+                            <XCircle size={16} className="mr-1" />
+                            Cancel
+                          </Button>
+                        )}
+                        {(invoice.status === 'draft' || invoice.status === 'cancelled') && (
+                          <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive px-2" onClick={() => handleDeleteInvoice(invoice)}>
+                            <Trash size={16} />
                           </Button>
                         )}
                       </div>
@@ -532,7 +564,7 @@ export function GuestInvoicing({
               }
               setInvoices((prev) => prev.map((inv) => (inv.id === selectedInvoice.id ? guestInvoice : inv)))
             }}
-            currentUser={currentUser.name}
+            currentUser={`${currentUser.firstName} ${currentUser.lastName}`}
           />
 
           <InvoiceAdjustmentDialog

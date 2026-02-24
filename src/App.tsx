@@ -232,7 +232,7 @@ import type {
   EmailCampaignAnalytics
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'revenue-management' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio' | 'enhanced-dashboard' | 'floor-plan'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'revenue-management' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio' | 'floor-plan'
 
 function App() {
   const {
@@ -416,6 +416,7 @@ function App() {
   const [costCenterReports, setCostCenterReports] = useKV<import('@/lib/types').CostCenterReport[]>('w3-hotel-cost-center-reports', [])
   const [profitCenterReports, setProfitCenterReports] = useKV<import('@/lib/types').ProfitCenterReport[]>('w3-hotel-profit-center-reports', [])
   const [dashboardLayout, setDashboardLayout] = useKV<DashboardLayout | null>('w3-hotel-active-dashboard-layout', null)
+  const [savedDashboardLayouts] = useKV<DashboardLayout[]>('w3-hotel-dashboard-layouts', [])
   const [invoiceSequences, setInvoiceSequences] = useKV<import('@/lib/types').InvoiceNumberSequence[]>('w3-hotel-invoice-sequences', [])
   const [nightAuditLogs, setNightAuditLogs] = useKV<import('@/lib/types').NightAuditLog[]>('w3-hotel-night-audit-logs', [])
   const [mealCombos, setMealCombos] = useKV<import('@/lib/types').MealCombo[]>('w3-hotel-meal-combos', [])
@@ -547,27 +548,16 @@ function App() {
   }, [systemUsers])
 
   useEffect(() => {
-    const loadDefaultLayout = async () => {
-      if (!currentUser?.id) return
-      
-      try {
-        const layouts = await spark.kv.get<DashboardLayout[]>('w3-hotel-dashboard-layouts')
-        if (layouts && layouts.length > 0) {
-          const userDefaultLayout = layouts.find(
-            l => l.userId === currentUser.id && l.isDefault
-          )
-          
-          if (userDefaultLayout && !dashboardLayout) {
-            setDashboardLayout(userDefaultLayout)
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load default layout:', error)
+    if (!currentUser?.id) return
+    if (savedDashboardLayouts && savedDashboardLayouts.length > 0) {
+      const userDefaultLayout = savedDashboardLayouts.find(
+        l => l.userId === currentUser.id && l.isDefault
+      )
+      if (userDefaultLayout && !dashboardLayout) {
+        setDashboardLayout(userDefaultLayout)
       }
     }
-    
-    loadDefaultLayout()
-  }, [currentUser?.id, dashboardLayout])
+  }, [currentUser?.id, savedDashboardLayouts, dashboardLayout])
 
   useEffect(() => {
     const handleNavigateToSettings = (event: CustomEvent) => {
@@ -942,6 +932,19 @@ function App() {
 
     return (
     <div className="mobile-spacing-compact">
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">
+            <Gauge size={16} className="mr-2" />
+            Operations Overview
+          </TabsTrigger>
+          <TabsTrigger value="advanced">
+            <Sparkle size={16} className="mr-2" />
+            Advanced Analytics
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview">
       <div className="flex flex-col gap-3 sm:gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div>
@@ -1033,6 +1036,12 @@ function App() {
           />
         </>
       )}
+        </TabsContent>
+
+        <TabsContent value="advanced">
+          <EnhancedDashboardWidgets />
+        </TabsContent>
+      </Tabs>
     </div>
   )
   }
@@ -1085,7 +1094,7 @@ function App() {
           <Separator className="my-2" />
 
           <div className="px-3 py-2">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Property Management</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Operations</p>
           </div>
 
           <Button
@@ -1096,6 +1105,30 @@ function App() {
             <Bed size={18} className="mr-2" />
             Front Office
           </Button>
+
+          <Button
+            variant={currentModule === 'floor-plan' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('floor-plan')}
+          >
+            <Layout size={18} className="mr-2" />
+            Floor Plan
+          </Button>
+
+          <Button
+            variant={currentModule === 'housekeeping' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('housekeeping')}
+          >
+            <Broom size={18} className="mr-2" />
+            Housekeeping
+          </Button>
+
+          <Separator className="my-2" />
+
+          <div className="px-3 py-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Guest Services</p>
+          </div>
 
           <Button
             variant={currentModule === 'crm' ? 'default' : 'ghost'}
@@ -1115,14 +1148,11 @@ function App() {
             Extra Services
           </Button>
 
-          <Button
-            variant={currentModule === 'housekeeping' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('housekeeping')}
-          >
-            <Broom size={18} className="mr-2" />
-            Housekeeping
-          </Button>
+          <Separator className="my-2" />
+
+          <div className="px-3 py-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Food & Beverage</p>
+          </div>
 
           <Button
             variant={currentModule === 'fnb' ? 'default' : 'ghost'}
@@ -1133,7 +1163,29 @@ function App() {
             F&B / POS
           </Button>
 
+          <Button
+            variant={currentModule === 'kitchen' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('kitchen')}
+          >
+            <ChefHat size={18} className="mr-2" />
+            Kitchen Operations
+          </Button>
+
           <Separator className="my-2" />
+
+          <div className="px-3 py-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Revenue & Distribution</p>
+          </div>
+
+          <Button
+            variant={currentModule === 'revenue-management' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('revenue-management')}
+          >
+            <TrendUp size={18} className="mr-2" />
+            Revenue Management
+          </Button>
 
           <Button
             variant={currentModule === 'channel-manager' ? 'default' : 'ghost'}
@@ -1146,38 +1198,9 @@ function App() {
 
           <Separator className="my-2" />
 
-          <div className="text-xs font-semibold text-muted-foreground px-3 py-2">
-            ENTERPRISE FEATURES
+          <div className="px-3 py-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Inventory & Procurement</p>
           </div>
-
-          <Button
-            variant={currentModule === 'enhanced-dashboard' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('enhanced-dashboard')}
-          >
-            <Sparkle size={18} className="mr-2" />
-            Enhanced Dashboard
-          </Button>
-
-          <Button
-            variant={currentModule === 'floor-plan' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('floor-plan')}
-          >
-            <Layout size={18} className="mr-2" />
-            Floor Plan
-          </Button>
-
-          <Button
-            variant={currentModule === 'revenue-management' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('revenue-management')}
-          >
-            <TrendUp size={18} className="mr-2" />
-            Revenue Management
-          </Button>
-
-          <Separator className="my-2" />
 
           <Button
             variant={currentModule === 'inventory' ? 'default' : 'ghost'}
@@ -1208,16 +1231,9 @@ function App() {
 
           <Separator className="my-2" />
 
-          <Button
-            variant={currentModule === 'kitchen' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('kitchen')}
-          >
-            <ChefHat size={18} className="mr-2" />
-            Kitchen Operations
-          </Button>
-
-          <Separator className="my-2" />
+          <div className="px-3 py-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Finance & Accounting</p>
+          </div>
 
           <Button
             variant={currentModule === 'finance' ? 'default' : 'ghost'}
@@ -1226,6 +1242,15 @@ function App() {
           >
             <CurrencyDollar size={18} className="mr-2" />
             Finance
+          </Button>
+
+          <Button
+            variant={currentModule === 'invoice-center' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('invoice-center')}
+          >
+            <Receipt size={18} className="mr-2" />
+            Invoice Center
           </Button>
 
           <Button
@@ -1247,6 +1272,10 @@ function App() {
           </Button>
 
           <Separator className="my-2" />
+
+          <div className="px-3 py-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">HR & Administration</p>
+          </div>
 
           <Button
             variant={currentModule === 'hr' ? 'default' : 'ghost'}
@@ -1318,15 +1347,6 @@ function App() {
           </Button>
 
           <Separator className="my-2" />
-
-          <Button
-            variant={currentModule === 'invoice-center' ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => setCurrentModule('invoice-center')}
-          >
-            <Receipt size={18} className="mr-2" />
-            Invoice Center
-          </Button>
 
           <Button
             variant={currentModule === 'settings' ? 'default' : 'ghost'}
@@ -1718,11 +1738,6 @@ function App() {
               currentUser={currentUser}
             />
           )}
-          {currentModule === 'enhanced-dashboard' && (
-            <div className="space-y-6">
-              <EnhancedDashboardWidgets />
-            </div>
-          )}
           {currentModule === 'floor-plan' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -1872,7 +1887,7 @@ function App() {
                         <ClipboardText size={20} className="text-secondary" />
                       </div>
                       <div className="space-y-2 mt-4">
-                        <Button variant="outline" className="w-full justify-start" size="sm">
+                        <Button variant="outline" className="w-full justify-start" size="sm" onClick={() => setCurrentModule('front-office')}>
                           <Receipt size={16} className="mr-2" />
                           New Invoice
                         </Button>

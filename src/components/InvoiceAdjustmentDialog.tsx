@@ -117,6 +117,7 @@ export function InvoiceAdjustmentDialog({
     }
 
     // Apply adjustment to invoice
+    const userName = `${currentUser.firstName} ${currentUser.lastName}`
     const updatedInvoice: GuestInvoice = {
       ...invoice,
       totalDiscount: isNegative 
@@ -124,9 +125,9 @@ export function InvoiceAdjustmentDialog({
         : invoice.totalDiscount,
       grandTotal: getAdjustedTotal(),
       amountDue: getAdjustedTotal() - invoice.totalPaid,
-      notes: invoice.notes 
-        ? `${invoice.notes}\n[${new Date().toISOString()}] ${adjustmentType.toUpperCase()}: ${reason} (${currentUser.name})`
-        : `[${new Date().toISOString()}] ${adjustmentType.toUpperCase()}: ${reason} (${currentUser.name})`
+      internalNotes: invoice.internalNotes 
+        ? `${invoice.internalNotes}\n[${new Date().toISOString()}] ${adjustmentType.toUpperCase()}: ${reason} (${userName})`
+        : `[${new Date().toISOString()}] ${adjustmentType.toUpperCase()}: ${reason} (${userName})`
     }
 
     onAdjustmentApplied(updatedInvoice)

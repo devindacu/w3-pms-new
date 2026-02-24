@@ -510,7 +510,7 @@ export function RevenueManagementSystem() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {strategies.map((strategy) => (
+                {(strategies ?? []).map((strategy) => (
                   <div key={strategy.id} className="border rounded-lg p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">

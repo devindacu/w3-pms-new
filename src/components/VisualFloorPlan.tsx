@@ -104,6 +104,7 @@ export function VisualFloorPlan({
           textColor: 'text-accent',
         };
       case 'out-of-order':
+      case 'maintenance':
       case 'under-maintenance':
         return {
           bgColor: 'bg-destructive/10 border-destructive/30',

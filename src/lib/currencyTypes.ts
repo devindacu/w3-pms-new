@@ -90,6 +90,11 @@ export const CURRENCIES: Record<CurrencyCode, Currency> = {
   ILS: { code: 'ILS', name: 'Israeli Shekel', symbol: '₪', decimalPlaces: 2 },
   LKR: { code: 'LKR', name: 'Sri Lankan Rupee', symbol: 'Rs', decimalPlaces: 2 },
   KRW: { code: 'KRW', name: 'South Korean Won', symbol: '₩', decimalPlaces: 0 },
+  NZD: { code: 'NZD', name: 'New Zealand Dollar', symbol: 'NZ$', decimalPlaces: 2 },
+  THB: { code: 'THB', name: 'Thai Baht', symbol: '฿', decimalPlaces: 2 },
+  MYR: { code: 'MYR', name: 'Malaysian Ringgit', symbol: 'RM', decimalPlaces: 2 },
+  IDR: { code: 'IDR', name: 'Indonesian Rupiah', symbol: 'Rp', decimalPlaces: 0 },
+  PHP: { code: 'PHP', name: 'Philippine Peso', symbol: '₱', decimalPlaces: 2 },
 }
 
 

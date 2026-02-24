@@ -293,7 +293,7 @@ export function MasterFolioDialog({
                     value={formData.primaryContact?.email || ''}
                     onChange={(e) => setFormData(prev => ({
                       ...prev,
-                      primaryContact: { ...prev.primaryContact, email: e.target.value }
+                      primaryContact: { name: prev.primaryContact?.name || '', ...prev.primaryContact, email: e.target.value }
                     }))}
                     placeholder="email@example.com"
                     className="dialog-form-input"
@@ -307,7 +307,7 @@ export function MasterFolioDialog({
                     value={formData.primaryContact?.phone || ''}
                     onChange={(e) => setFormData(prev => ({
                       ...prev,
-                      primaryContact: { ...prev.primaryContact, phone: e.target.value }
+                      primaryContact: { name: prev.primaryContact?.name || '', ...prev.primaryContact, phone: e.target.value }
                     }))}
                     placeholder="Phone number"
                     className="dialog-form-input"
@@ -321,7 +321,7 @@ export function MasterFolioDialog({
                     value={formData.primaryContact?.company || ''}
                     onChange={(e) => setFormData(prev => ({
                       ...prev,
-                      primaryContact: { ...prev.primaryContact, company: e.target.value }
+                      primaryContact: { name: prev.primaryContact?.name || '', ...prev.primaryContact, company: e.target.value }
                     }))}
                     placeholder="Company name"
                     className="dialog-form-input"

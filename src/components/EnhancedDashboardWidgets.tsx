@@ -247,17 +247,18 @@ export function EnhancedDashboardWidgets() {
 
     if (over && active.id !== over.id) {
       setWidgets((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
+        const safeItems = items ?? [];
+        const oldIndex = safeItems.findIndex((item) => item.id === active.id);
+        const newIndex = safeItems.findIndex((item) => item.id === over.id);
 
-        return arrayMove(items, oldIndex, newIndex);
+        return arrayMove(safeItems, oldIndex, newIndex);
       });
     }
   };
 
   const toggleWidgetVisibility = (widgetId: string) => {
     setWidgets((prev) =>
-      prev.map((w) => (w.id === widgetId ? { ...w, visible: !w.visible } : w))
+      (prev ?? []).map((w) => (w.id === widgetId ? { ...w, visible: !w.visible } : w))
     );
   };
 
@@ -492,7 +493,7 @@ export function EnhancedDashboardWidgets() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {widgets.map((widget) => (
+              {(widgets ?? []).map((widget) => (
                 <Button
                   key={widget.id}
                   variant="outline"
@@ -518,9 +519,9 @@ export function EnhancedDashboardWidgets() {
 
       {/* Widgets Grid */}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={widgets.map((w) => w.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext items={(widgets ?? []).map((w) => w.id)} strategy={verticalListSortingStrategy}>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {widgets.map((widget) => (
+            {(widgets ?? []).map((widget) => (
               <div key={widget.id} className={getSizeClass(widget.size)}>
                 {editMode ? (
                   <SortableWidget widget={widget}>{renderWidget(widget)}</SortableWidget>

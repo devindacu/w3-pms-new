@@ -118,7 +118,7 @@ export function useServerSync<T>(
             deviceId: item.deviceId,
             userId: item.userId,
             remoteUserId: remoteData.userId,
-            fieldChanges: detectFieldChanges(item.value, remoteData.value),
+            fieldChanges: detectFieldChanges(item.value as T, remoteData.value as T),
             status: 'pending',
           }
 
@@ -177,7 +177,7 @@ export function useServerSync<T>(
             remoteVersion: remoteData.version,
             deviceId: DEVICE_ID,
             remoteUserId: remoteData.userId,
-            fieldChanges: detectFieldChanges(value, remoteData.value),
+            fieldChanges: detectFieldChanges(value as T, remoteData.value as T),
             status: 'pending',
           }
 
@@ -276,15 +276,15 @@ export function useServerSync<T>(
 
     switch (strategy) {
       case 'keep-local':
-        resolvedValue = conflict.localValue
+        resolvedValue = conflict.localValue as T
         break
       case 'keep-remote':
-        resolvedValue = conflict.remoteValue
+        resolvedValue = conflict.remoteValue as T
         break
       case 'merge':
         resolvedValue = mergeValues(
-          conflict.localValue,
-          conflict.remoteValue,
+          conflict.localValue as T,
+          conflict.remoteValue as T,
           conflict.fieldChanges
         )
         break

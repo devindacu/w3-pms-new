@@ -26,7 +26,8 @@ import {
   FilePlus,
   Check,
   Package,
-  Buildings
+  Buildings,
+  Trash
 } from '@phosphor-icons/react'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { 
@@ -274,14 +275,32 @@ export function Finance({
     setInvoiceDialogOpen(true)
   }
 
+  const handleDeleteInvoice = (invoiceId: string) => {
+    if (!window.confirm('Delete this invoice? This action cannot be undone.')) return
+    setInvoices((prev) => (prev || []).filter(inv => inv.id !== invoiceId))
+    toast.success('Invoice deleted')
+  }
+
   const handleEditPayment = (payment: Payment) => {
     setSelectedPayment(payment)
     setPaymentDialogOpen(true)
   }
 
+  const handleDeletePayment = (paymentId: string) => {
+    if (!window.confirm('Delete this payment record? This action cannot be undone.')) return
+    setPayments((prev) => (prev || []).filter(p => p.id !== paymentId))
+    toast.success('Payment deleted')
+  }
+
   const handleEditExpense = (expense: Expense) => {
     setSelectedExpense(expense)
     setExpenseDialogOpen(true)
+  }
+
+  const handleDeleteExpense = (expenseId: string) => {
+    if (!window.confirm('Delete this expense? This action cannot be undone.')) return
+    setExpenses((prev) => (prev || []).filter(e => e.id !== expenseId))
+    toast.success('Expense deleted')
   }
 
   const handleEditBudget = (budget: Budget) => {
@@ -1209,6 +1228,14 @@ export function Finance({
                             <span className="sm:hidden">Pay</span>
                           </Button>
                         )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive hover:text-destructive px-2 w-full sm:w-auto"
+                          onClick={(e) => { e.stopPropagation(); handleDeleteInvoice(invoice.id) }}
+                        >
+                          <Trash size={14} />
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -1242,11 +1269,10 @@ export function Finance({
                 payments.map((payment) => (
                   <div
                     key={payment.id}
-                    className="p-3 md:p-4 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted transition-colors"
-                    onClick={() => handleEditPayment(payment)}
+                    className="p-3 md:p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                      <div className="flex-1">
+                      <div className="flex-1 cursor-pointer" onClick={() => handleEditPayment(payment)}>
                         <div className="flex items-center gap-2 md:gap-3 mb-2 flex-wrap">
                           <p className="font-semibold text-sm md:text-base">{payment.paymentNumber}</p>
                           {getPaymentStatusBadge(payment.status)}
@@ -1275,8 +1301,16 @@ export function Finance({
                           </div>
                         </div>
                       </div>
-                      <div className="text-left sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0">
+                      <div className="flex items-center gap-2 border-t sm:border-t-0 pt-3 sm:pt-0">
                         <p className="text-lg md:text-xl lg:text-2xl font-semibold text-success">{formatCurrency(payment.amount)}</p>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive hover:text-destructive px-2"
+                          onClick={() => handleDeletePayment(payment.id)}
+                        >
+                          <Trash size={14} />
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -1310,11 +1344,10 @@ export function Finance({
                 expenses.map((expense) => (
                   <div
                     key={expense.id}
-                    className="p-3 md:p-4 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted transition-colors"
-                    onClick={() => handleEditExpense(expense)}
+                    className="p-3 md:p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                      <div className="flex-1">
+                      <div className="flex-1 cursor-pointer" onClick={() => handleEditExpense(expense)}>
                         <div className="flex items-center gap-2 md:gap-3 mb-2 flex-wrap">
                           <p className="font-semibold text-sm md:text-base">{expense.expenseNumber}</p>
                           {expense.approvedBy ? (
@@ -1343,8 +1376,16 @@ export function Finance({
                           </div>
                         </div>
                       </div>
-                      <div className="text-left sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0">
+                      <div className="flex items-center gap-2 border-t sm:border-t-0 pt-3 sm:pt-0">
                         <p className="text-lg md:text-xl lg:text-2xl font-semibold text-destructive">{formatCurrency(expense.amount)}</p>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive hover:text-destructive px-2"
+                          onClick={() => handleDeleteExpense(expense.id)}
+                        >
+                          <Trash size={14} />
+                        </Button>
                       </div>
                     </div>
                   </div>

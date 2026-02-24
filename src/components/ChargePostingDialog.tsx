@@ -48,7 +48,7 @@ export function ChargePostingDialog({
   const [description, setDescription] = useState('')
   const [amount, setAmount] = useState<number>(0)
   const [quantity, setQuantity] = useState<number>(1)
-  const [chargeDate, setChargeDate] = useState(formatDate(new Date()))
+  const [chargeDate, setChargeDate] = useState(formatDate(Date.now()))
   const [notes, setNotes] = useState('')
 
   useEffect(() => {
@@ -58,7 +58,7 @@ export function ChargePostingDialog({
       setDescription('')
       setAmount(0)
       setQuantity(1)
-      setChargeDate(formatDate(new Date()))
+      setChargeDate(formatDate(Date.now()))
       setNotes('')
     }
   }, [open])
@@ -116,21 +116,33 @@ export function ChargePostingDialog({
     const taxRate = 0.1 // 10% tax
     const totalTax = lineTotal * taxRate
     const lineGrandTotal = lineTotal + totalTax
+    const now = Date.now()
 
     const newCharge: InvoiceLineItem = {
-      id: `charge-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `charge-${now}-${Math.random().toString(36).substr(2, 9)}`,
       description: description.trim(),
       quantity,
+      unit: 'unit',
       unitPrice: amount,
       lineTotal,
-      taxRate,
+      taxLines: [{ taxType: 'vat', taxName: 'VAT', taxRate: taxRate * 100, taxableAmount: lineTotal, taxAmount: totalTax, isInclusive: false }],
       totalTax,
       netAmount: lineTotal,
       lineGrandTotal,
       discountAmount: 0,
+      discountType: undefined,
+      discountValue: 0,
+      serviceChargeApplicable: false,
       serviceChargeAmount: 0,
-      chargeType: chargeType || 'room',
-      chargeDate
+      itemType: chargeType === 'fnb' ? 'fnb-restaurant' : chargeType === 'extra-service' ? 'extra-service' : 'room-charge',
+      department: chargeType === 'fnb' ? 'fnb' : chargeType === 'extra-service' ? 'admin' : 'front-office',
+      date: now,
+      postedAt: now,
+      postedBy: `${currentUser.firstName} ${currentUser.lastName}`,
+      taxable: true,
+      isSplit: false,
+      isVoided: false,
+      notes: chargeDate,
     }
 
     setCharges([...charges, newCharge])
@@ -270,7 +282,7 @@ export function ChargePostingDialog({
                         <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
                           <span>{charge.quantity} × {formatCurrency(charge.unitPrice)}</span>
                           <span>Tax: {formatCurrency(charge.totalTax)}</span>
-                          <span className="text-xs text-muted-foreground">{charge.chargeDate}</span>
+                          <span className="text-xs text-muted-foreground">{charge.notes}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">

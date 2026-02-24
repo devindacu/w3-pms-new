@@ -185,7 +185,7 @@ const generatePDFReport = (
 
   doc.setFontSize(8)
   doc.setTextColor(128, 128, 128)
-  const footerText = `Generated on ${formatDate(new Date())} at ${new Date().toLocaleTimeString()}`
+  const footerText = `Generated on ${formatDate(Date.now())} at ${new Date().toLocaleTimeString()}`
   doc.text(footerText, pageWidth / 2, pageHeight - 10, { align: 'center' })
 
   return doc
@@ -235,25 +235,25 @@ export const exportIncomeStatement = (
   const rows: string[][] = []
   
   rows.push(['REVENUE', '', ''])
-  rows.push(['Total Revenue', formatCurrency(totalRevenue, currency), '100%'])
+  rows.push(['Total Revenue', formatCurrency(totalRevenue), '100%'])
   rows.push(['', '', ''])
   
   rows.push(['EXPENSES', '', ''])
   Object.entries(expensesByCategory).forEach(([category, amount]) => {
     const percentage = totalRevenue > 0 ? ((amount / totalRevenue) * 100).toFixed(2) : '0'
-    rows.push([category, formatCurrency(amount, currency), `${percentage}%`])
+    rows.push([category, formatCurrency(amount), `${percentage}%`])
   })
-  rows.push(['Total Expenses', formatCurrency(totalExpenses, currency), ''])
+  rows.push(['Total Expenses', formatCurrency(totalExpenses), ''])
   rows.push(['', '', ''])
   
-  rows.push(['NET INCOME', formatCurrency(netIncome, currency), ''])
+  rows.push(['NET INCOME', formatCurrency(netIncome), ''])
   rows.push(['Net Profit Margin', '', totalRevenue > 0 ? `${((netIncome / totalRevenue) * 100).toFixed(2)}%` : '0%'])
   
   const title = 'Income Statement'
   const subtitle = dateRange 
-    ? `Period: ${formatDate(dateRange.from)} to ${formatDate(dateRange.to)}`
-    : `As of ${formatDate(new Date())}`
-  const filename = `income-statement-${formatDate(new Date())}`
+    ? `Period: ${formatDate(dateRange.from.getTime())} to ${formatDate(dateRange.to.getTime())}`
+    : `As of ${formatDate(Date.now())}`
+  const filename = `income-statement-${formatDate(Date.now())}`
   
   if (format === 'csv') {
     const csvContent = generateCSVContent(headers, rows)
@@ -286,24 +286,24 @@ export const exportBalanceSheet = (
   const rows: string[][] = []
   
   rows.push(['ASSETS', ''])
-  rows.push(['Accounts Receivable', formatCurrency(totalReceivables, currency)])
-  rows.push(['Total Assets', formatCurrency(totalAssets, currency)])
+  rows.push(['Accounts Receivable', formatCurrency(totalReceivables)])
+  rows.push(['Total Assets', formatCurrency(totalAssets)])
   rows.push(['', ''])
   
   rows.push(['LIABILITIES', ''])
-  rows.push(['Accounts Payable', formatCurrency(totalPayables, currency)])
-  rows.push(['Total Liabilities', formatCurrency(totalLiabilities, currency)])
+  rows.push(['Accounts Payable', formatCurrency(totalPayables)])
+  rows.push(['Total Liabilities', formatCurrency(totalLiabilities)])
   rows.push(['', ''])
   
   rows.push(['EQUITY', ''])
-  rows.push(['Total Equity', formatCurrency(equity, currency)])
+  rows.push(['Total Equity', formatCurrency(equity)])
   rows.push(['', ''])
   
-  rows.push(['TOTAL LIABILITIES & EQUITY', formatCurrency(totalLiabilities + equity, currency)])
+  rows.push(['TOTAL LIABILITIES & EQUITY', formatCurrency(totalLiabilities + equity)])
   
   const title = 'Balance Sheet'
-  const subtitle = `As of ${formatDate(new Date())}`
-  const filename = `balance-sheet-${formatDate(new Date())}`
+  const subtitle = `As of ${formatDate(Date.now())}`
+  const filename = `balance-sheet-${formatDate(Date.now())}`
   
   if (format === 'csv') {
     const csvContent = generateCSVContent(headers, rows)
@@ -344,18 +344,18 @@ export const exportCashFlow = (
   const rows: string[][] = []
   
   rows.push(['OPERATING ACTIVITIES', ''])
-  rows.push(['Cash from Operations (Payments Received)', formatCurrency(cashInflows, currency)])
-  rows.push(['Cash for Operations (Expenses Paid)', formatCurrency(-cashOutflows, currency)])
-  rows.push(['Net Cash from Operating Activities', formatCurrency(cashInflows - cashOutflows, currency)])
+  rows.push(['Cash from Operations (Payments Received)', formatCurrency(cashInflows)])
+  rows.push(['Cash for Operations (Expenses Paid)', formatCurrency(-cashOutflows)])
+  rows.push(['Net Cash from Operating Activities', formatCurrency(cashInflows - cashOutflows)])
   rows.push(['', ''])
   
-  rows.push(['NET INCREASE IN CASH', formatCurrency(netCashFlow, currency)])
+  rows.push(['NET INCREASE IN CASH', formatCurrency(netCashFlow)])
   
   const title = 'Cash Flow Statement'
   const subtitle = dateRange 
-    ? `Period: ${formatDate(dateRange.from)} to ${formatDate(dateRange.to)}`
-    : `As of ${formatDate(new Date())}`
-  const filename = `cash-flow-${formatDate(new Date())}`
+    ? `Period: ${formatDate(dateRange.from.getTime())} to ${formatDate(dateRange.to.getTime())}`
+    : `As of ${formatDate(Date.now())}`
+  const filename = `cash-flow-${formatDate(Date.now())}`
   
   if (format === 'csv') {
     const csvContent = generateCSVContent(headers, rows)
@@ -388,19 +388,19 @@ export const exportAccountsReceivable = (
       inv.guestName,
       formatDate(inv.invoiceDate),
       inv.dueDate ? formatDate(inv.dueDate) : 'N/A',
-      formatCurrency(inv.grandTotal, currency),
-      formatCurrency(inv.amountPaid, currency),
-      formatCurrency(inv.amountDue, currency),
+      formatCurrency(inv.grandTotal),
+      formatCurrency(inv.totalPaid),
+      formatCurrency(inv.amountDue),
       daysOverdue.toString()
     ]
   })
   
   const totalDue = arInvoices.reduce((sum, inv) => sum + inv.amountDue, 0)
-  rows.push(['', '', '', '', '', 'TOTAL', formatCurrency(totalDue, currency), ''])
+  rows.push(['', '', '', '', '', 'TOTAL', formatCurrency(totalDue), ''])
   
   const title = 'Accounts Receivable Report'
-  const subtitle = `As of ${formatDate(new Date())}`
-  const filename = `accounts-receivable-${formatDate(new Date())}`
+  const subtitle = `As of ${formatDate(Date.now())}`
+  const filename = `accounts-receivable-${formatDate(Date.now())}`
   
   if (format === 'csv') {
     const csvContent = generateCSVContent(headers, rows)
@@ -435,18 +435,18 @@ export const exportAccountsPayable = (
       inv.supplierId || 'Unknown',
       formatDate(inv.invoiceDate),
       inv.dueDate ? formatDate(inv.dueDate) : 'N/A',
-      formatCurrency(inv.total, currency),
+      formatCurrency(inv.total),
       inv.status,
       daysOverdue.toString()
     ]
   })
   
   const totalPayable = apInvoices.reduce((sum, inv) => sum + inv.total, 0)
-  rows.push(['', '', '', '', formatCurrency(totalPayable, currency), '', ''])
+  rows.push(['', '', '', '', formatCurrency(totalPayable), '', ''])
   
   const title = 'Accounts Payable Report'
-  const subtitle = `As of ${formatDate(new Date())}`
-  const filename = `accounts-payable-${formatDate(new Date())}`
+  const subtitle = `As of ${formatDate(Date.now())}`
+  const filename = `accounts-payable-${formatDate(Date.now())}`
   
   if (format === 'csv') {
     const csvContent = generateCSVContent(headers, rows)
@@ -474,9 +474,9 @@ export const exportExpenseReport = (
   
   const title = 'Expense Report'
   const subtitle = dateRange 
-    ? `Period: ${formatDate(dateRange.from)} to ${formatDate(dateRange.to)}`
-    : `As of ${formatDate(new Date())}`
-  const filename = `expense-report-${formatDate(new Date())}`
+    ? `Period: ${formatDate(dateRange.from.getTime())} to ${formatDate(dateRange.to.getTime())}`
+    : `As of ${formatDate(Date.now())}`
+  const filename = `expense-report-${formatDate(Date.now())}`
   
   if (groupBy === 'category') {
     const expensesByCategory = filteredExpenses.reduce((acc, exp) => {
@@ -498,17 +498,17 @@ export const exportExpenseReport = (
           '',
           formatDate(exp.expenseDate),
           exp.description || '',
-          formatCurrency(exp.amount, currency),
+          formatCurrency(exp.amount),
           exp.approvedBy ? 'Approved' : 'Pending'
         ])
       })
       const categoryTotal = expenses.reduce((sum, e) => sum + e.amount, 0)
-      rows.push(['', '', 'Subtotal', formatCurrency(categoryTotal, currency), ''])
+      rows.push(['', '', 'Subtotal', formatCurrency(categoryTotal), ''])
       rows.push(['', '', '', '', ''])
     })
     
     const total = filteredExpenses.reduce((sum, e) => sum + e.amount, 0)
-    rows.push(['', '', 'TOTAL', formatCurrency(total, currency), ''])
+    rows.push(['', '', 'TOTAL', formatCurrency(total), ''])
     
     if (format === 'csv') {
       const csvContent = generateCSVContent(headers, rows)
@@ -526,13 +526,13 @@ export const exportExpenseReport = (
       formatDate(exp.expenseDate),
       exp.category || 'Uncategorized',
       exp.description || '',
-      formatCurrency(exp.amount, currency),
+      formatCurrency(exp.amount),
       exp.approvedBy ? 'Approved' : 'Pending',
       exp.approvedBy || ''
     ])
     
     const total = filteredExpenses.reduce((sum, e) => sum + e.amount, 0)
-    rows.push(['', '', 'TOTAL', formatCurrency(total, currency), '', ''])
+    rows.push(['', '', 'TOTAL', formatCurrency(total), '', ''])
     
     if (format === 'csv') {
       const csvContent = generateCSVContent(headers, rows)
@@ -561,9 +561,9 @@ export const exportRevenueReport = (
   
   const title = 'Revenue Report'
   const subtitle = dateRange 
-    ? `Period: ${formatDate(dateRange.from)} to ${formatDate(dateRange.to)}`
-    : `As of ${formatDate(new Date())}`
-  const filename = `revenue-report-${formatDate(new Date())}`
+    ? `Period: ${formatDate(dateRange.from.getTime())} to ${formatDate(dateRange.to.getTime())}`
+    : `As of ${formatDate(Date.now())}`
+  const filename = `revenue-report-${formatDate(Date.now())}`
   
   if (groupBy === 'month') {
     const revenueByMonth = filteredInvoices.reduce((acc, inv) => {
@@ -582,11 +582,11 @@ export const exportRevenueReport = (
           return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` === month
         }).length
         
-        return [month, formatCurrency(revenue, currency), count.toString()]
+        return [month, formatCurrency(revenue), count.toString()]
       })
     
     const total = filteredInvoices.reduce((sum, inv) => sum + inv.grandTotal, 0)
-    rows.push(['TOTAL', formatCurrency(total, currency), filteredInvoices.length.toString()])
+    rows.push(['TOTAL', formatCurrency(total), filteredInvoices.length.toString()])
     
     if (format === 'csv') {
       const csvContent = generateCSVContent(headers, rows)
@@ -604,14 +604,14 @@ export const exportRevenueReport = (
       inv.invoiceNumber,
       inv.guestName,
       formatDate(inv.invoiceDate),
-      formatCurrency(inv.subtotal, currency),
-      formatCurrency(inv.totalTax, currency),
-      formatCurrency(inv.grandTotal, currency),
+      formatCurrency(inv.subtotal),
+      formatCurrency(inv.totalTax),
+      formatCurrency(inv.grandTotal),
       inv.status
     ])
     
     const total = filteredInvoices.reduce((sum, inv) => sum + inv.grandTotal, 0)
-    rows.push(['', '', 'TOTAL', '', '', formatCurrency(total, currency), ''])
+    rows.push(['', '', 'TOTAL', '', '', formatCurrency(total), ''])
     
     if (format === 'csv') {
       const csvContent = generateCSVContent(headers, rows)
@@ -639,12 +639,12 @@ export const exportTaxSummary = (
   )
   
   const taxSummary = filteredInvoices.reduce((acc, inv) => {
-    inv.taxes?.forEach(tax => {
-      if (!acc[tax.name]) {
-        acc[tax.name] = { amount: 0, count: 0 }
+    inv.taxLines?.forEach(tax => {
+      if (!acc[tax.taxName]) {
+        acc[tax.taxName] = { amount: 0, count: 0 }
       }
-      acc[tax.name].amount += tax.amount
-      acc[tax.name].count += 1
+      acc[tax.taxName].amount += tax.taxAmount
+      acc[tax.taxName].count += 1
     })
     return acc
   }, {} as Record<string, { amount: number; count: number }>)
@@ -652,18 +652,18 @@ export const exportTaxSummary = (
   const headers = ['Tax Type', 'Total Amount', 'Invoice Count']
   const rows: string[][] = Object.entries(taxSummary).map(([name, data]) => [
     name,
-    formatCurrency(data.amount, currency),
+    formatCurrency(data.amount),
     data.count.toString()
   ])
   
   const total = Object.values(taxSummary).reduce((sum, data) => sum + data.amount, 0)
-  rows.push(['TOTAL', formatCurrency(total, currency), ''])
+  rows.push(['TOTAL', formatCurrency(total), ''])
   
   const title = 'Tax Summary Report'
   const subtitle = dateRange 
-    ? `Period: ${formatDate(dateRange.from)} to ${formatDate(dateRange.to)}`
-    : `As of ${formatDate(new Date())}`
-  const filename = `tax-summary-${formatDate(new Date())}`
+    ? `Period: ${formatDate(dateRange.from.getTime())} to ${formatDate(dateRange.to.getTime())}`
+    : `As of ${formatDate(Date.now())}`
+  const filename = `tax-summary-${formatDate(Date.now())}`
   
   if (format === 'csv') {
     const csvContent = generateCSVContent(headers, rows)
@@ -689,24 +689,24 @@ export const exportCostCenterReport = (
   
   const headers = ['Cost Center', 'Period', 'Total Costs', 'Budget', 'Variance', 'Variance %']
   const rows: string[][] = data.costCenterReports.map(report => {
-    const variance = report.budgetAmount - report.actualAmount
-    const variancePercent = report.budgetAmount > 0 
-      ? ((variance / report.budgetAmount) * 100).toFixed(2)
+    const variance = report.budgetedAmount - report.actualAmount
+    const variancePercent = report.budgetedAmount > 0 
+      ? ((variance / report.budgetedAmount) * 100).toFixed(2)
       : '0'
     
     return [
       report.costCenterId,
-      report.period,
-      formatCurrency(report.actualAmount, currency),
-      formatCurrency(report.budgetAmount, currency),
-      formatCurrency(variance, currency),
+      `${formatDate(report.period.from)} - ${formatDate(report.period.to)}`,
+      formatCurrency(report.actualAmount),
+      formatCurrency(report.budgetedAmount),
+      formatCurrency(variance),
       `${variancePercent}%`
     ]
   })
   
   const title = 'Cost Center Report'
-  const subtitle = `As of ${formatDate(new Date())}`
-  const filename = `cost-center-report-${formatDate(new Date())}`
+  const subtitle = `As of ${formatDate(Date.now())}`
+  const filename = `cost-center-report-${formatDate(Date.now())}`
   
   if (format === 'csv') {
     const csvContent = generateCSVContent(headers, rows)
@@ -732,24 +732,23 @@ export const exportProfitCenterReport = (
   
   const headers = ['Profit Center', 'Period', 'Revenue', 'Costs', 'Profit', 'Margin %']
   const rows: string[][] = data.profitCenterReports.map(report => {
-    const profit = report.revenueAmount - report.costAmount
-    const margin = report.revenueAmount > 0 
-      ? ((profit / report.revenueAmount) * 100).toFixed(2)
+    const margin = report.revenue > 0 
+      ? ((report.netProfit / report.revenue) * 100).toFixed(2)
       : '0'
     
     return [
       report.profitCenterId,
-      report.period,
-      formatCurrency(report.revenueAmount, currency),
-      formatCurrency(report.costAmount, currency),
-      formatCurrency(profit, currency),
+      `${formatDate(report.period.from)} - ${formatDate(report.period.to)}`,
+      formatCurrency(report.revenue),
+      formatCurrency(report.totalCosts),
+      formatCurrency(report.netProfit),
       `${margin}%`
     ]
   })
   
   const title = 'Profit Center Report'
-  const subtitle = `As of ${formatDate(new Date())}`
-  const filename = `profit-center-report-${formatDate(new Date())}`
+  const subtitle = `As of ${formatDate(Date.now())}`
+  const filename = `profit-center-report-${formatDate(Date.now())}`
   
   if (format === 'csv') {
     const csvContent = generateCSVContent(headers, rows)
