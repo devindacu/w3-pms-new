@@ -4,31 +4,31 @@ import {
   closestCenter,
   KeyboardSensor,
   PointerSensor,
-  useSensor,
+  DragStartE
   useSensors,
-  DragEndEvent,
-  DragStartEvent,
-  DragOverlay,
-} from '@dnd-kit/core'
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
   useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { WidgetRenderer } from '@/components/DashboardWidgets'
-import type { DashboardLayout, DashboardWidget } from '@/lib/types'
+} from '@dnd-kit/
+import { Widge
 
-interface SortableWidgetProps {
-  widget: DashboardWidget
-  layout: DashboardLayout | null
-  metrics: any
-  data: any
-  onNavigate?: (module: string) => void
-  isDragging?: boolean
+  widget
+  metrics: a
+  onNavigate?: (mo
 }
+function Sorta
+    attributes,
+    setNodeRef,
+    transition,
+  } = useSortable({ id: widget.id })
+  const style = {
+
+  }
+  const getWidgetColSpan 
+    
+      case 'sm
+        if 
+      
+        if (layout?.co
+ 
 
 function SortableWidget({ widget, layout, metrics, data, onNavigate, isDragging }: SortableWidgetProps) {
   const {
@@ -54,7 +54,7 @@ function SortableWidget({ widget, layout, metrics, data, onNavigate, isDragging 
         if (layout?.columns === 3) return 'col-span-1 2xl:col-span-2'
         if (layout?.columns === 4) return 'col-span-1 2xl:col-span-1'
         return 'col-span-1 2xl:col-span-2'
-      
+    </
       case 'medium':
         if (layout?.columns === 3) return 'col-span-1 md:col-span-2 lg:col-span-1 2xl:col-span-3'
         if (layout?.columns === 4) return 'col-span-1 sm:col-span-2 lg:col-span-2 2xl:col-span-3'
@@ -68,33 +68,33 @@ function SortableWidget({ widget, layout, metrics, data, onNavigate, isDragging 
       case 'full':
         return 'col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-4 2xl:col-span-6'
       
-      default:
+  metrics,
         return 'col-span-1 2xl:col-span-3'
-    }
+  onL
   }
 
   return (
-    <div
+    useS
       ref={setNodeRef}
-      style={style}
+    })
       className={getWidgetColSpan()}
-      {...attributes}
+  const handleDragSta
       {...listeners}
     >
       <WidgetRenderer
         widget={widget}
         metrics={metrics}
-        data={data}
+      const oldInde
         onNavigate={onNavigate}
-      />
+      co
     </div>
-  )
+   
 }
 
 interface DraggableDashboardGridProps {
   layout: DashboardLayout | null
   metrics: any
-  data: any
+
   onNavigate?: (module: string) => void
   onLayoutChange?: (layout: DashboardLayout) => void
   dragEnabled?: boolean
@@ -102,125 +102,125 @@ interface DraggableDashboardGridProps {
 }
 
 export function DraggableDashboardGrid({
-  layout,
+
   metrics,
-  data,
+    ret
   onNavigate,
-  onLayoutChange,
+      ? 'grid-col
   dragEnabled = false,
-}: DraggableDashboardGridProps) {
+      : 'grid-cols-1 sm:grid-cols
   const [activeId, setActiveId] = useState<string | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
+      <div className={`grid ${gridColumns} gap-4 sm:
     })
-  )
+   
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string)
-  }
+   
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
-    setActiveId(null)
 
-    if (over && active.id !== over.id && layout) {
-      const oldIndex = layout.widgets.findIndex((w) => w.id === active.id)
-      const newIndex = layout.widgets.findIndex((w) => w.id === over.id)
 
-      const newWidgets = arrayMove(layout.widgets, oldIndex, newIndex).map(
-        (widget, index) => ({
-          ...widget,
-          position: index,
-        })
-      )
 
-      const updatedLayout = {
-        ...layout,
-        widgets: newWidgets,
-        updatedAt: Date.now(),
-      }
 
-      onLayoutChange?.(updatedLayout)
-    }
-  }
 
-  if (!layout || !layout.widgets || layout.widgets.length === 0) {
-    return null
-  }
 
-  const visibleWidgets = layout.widgets
-    .filter((w) => w.isVisible)
-    .sort((a, b) => a.position - b.position)
 
-  const getGridColumns = () => {
-    const cols = layout?.columns || 2
-    return cols === 1
-      ? 'grid-cols-1'
-      : cols === 2
-      ? 'grid-cols-1 md:col-span-2'
-      : cols === 3
-      ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6'
-      : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6'
-  }
 
-  const gridColumns = getGridColumns()
 
-  const activeWidget = visibleWidgets.find((w) => w.id === activeId)
 
-  if (!dragEnabled) {
-    return (
-      <div className={`grid ${gridColumns} gap-4 sm:gap-5 lg:gap-6`}>
-        {visibleWidgets.map((widget) => (
-          <SortableWidget
-            key={widget.id}
-            widget={widget}
-            layout={layout}
-            metrics={metrics}
-            data={data}
-            onNavigate={onNavigate}
-            isDragging={false}
-          />
-        ))}
-      </div>
-    )
-  }
 
-  return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <SortableContext items={visibleWidgets.map((w) => w.id)} strategy={verticalListSortingStrategy}>
-        <div className={`grid ${gridColumns} gap-4 sm:gap-5 lg:gap-6`}>
-          {visibleWidgets.map((widget) => (
-            <SortableWidget
-              key={widget.id}
-              widget={widget}
-              layout={layout}
-              metrics={metrics}
-              data={data}
-              onNavigate={onNavigate}
-            />
-          ))}
-        </div>
-      </SortableContext>
-      <DragOverlay>
-        {activeWidget ? (
-          <div className="opacity-80">
-            <WidgetRenderer
-              widget={activeWidget}
-              metrics={metrics}
-              data={data}
-              onNavigate={onNavigate}
-            />
-          </div>
-        ) : null}
-      </DragOverlay>
-    </DndContext>
-  )
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
