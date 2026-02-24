@@ -43,7 +43,8 @@ import {
   FileText,
   TrendUp,
   Moon,
-  Layout
+  Layout,
+  ArrowsOutCardinal
 } from '@phosphor-icons/react'
 import { ServerSyncStatusIndicator } from '@/components/ServerSyncStatusIndicator'
 import { ServerSyncConflictDialog } from '@/components/ServerSyncConflictDialog'
@@ -183,6 +184,7 @@ import { Reports } from '@/components/Reports'
 import { DashboardWidgetManager } from '@/components/DashboardWidgetManager'
 import { DashboardLayoutManager } from '@/components/DashboardLayoutManager'
 import { WidgetRenderer } from '@/components/DashboardWidgets'
+import { DraggableDashboardGrid } from '@/components/DraggableDashboardGrid'
 import { getDefaultWidgetsForRole, getWidgetSize } from '@/lib/widgetConfig'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { ColorMoodSelector } from '@/components/ColorMoodSelector'
@@ -426,6 +428,7 @@ function App() {
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)
   const [settingsTab, setSettingsTab] = useState<string>('branding')
   const [showSyncConflicts, setShowSyncConflicts] = useState(false)
+  const [dragMode, setDragMode] = useState(false)
   
   const [dashboardFilters, setDashboardFilters] = useState<DashboardFiltersType>({
     dateRange: {
@@ -963,6 +966,16 @@ function App() {
             )}
             {hasData && layout && currentUser?.id && (
               <>
+                <Button
+                  variant={dragMode ? 'default' : 'outline'}
+                  size="lg"
+                  onClick={() => setDragMode(!dragMode)}
+                  className="mobile-optimized-button"
+                >
+                  <ArrowsOutCardinal size={20} className="mr-2" />
+                  <span className="hidden sm:inline">{dragMode ? 'Exit Rearrange' : 'Rearrange Widgets'}</span>
+                  <span className="sm:hidden">{dragMode ? 'Exit' : 'Rearrange'}</span>
+                </Button>
                 <DashboardLayoutManager
                   userId={currentUser.id}
                   userRole={currentUser.role}
@@ -1009,61 +1022,15 @@ function App() {
             onReset={handleFiltersReset}
           />
           
-          <div className={`grid gap-4 sm:gap-6 ${
-            layout?.columns === 1 
-              ? 'grid-cols-1' 
-              : layout?.columns === 3 
-              ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6' 
-              : layout?.columns === 4 
-              ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6' 
-              : 'grid-cols-1 md:grid-cols-2 2xl:grid-cols-6'
-          }`}>
-            {(layout?.widgets || [])
-              .filter(w => w.isVisible)
-              .sort((a, b) => a.position - b.position)
-              .map(widget => {
-                const getWidgetColSpan = () => {
-                  if (layout?.columns === 1) return 'col-span-1'
-                  
-                  switch (widget.size) {
-                    case 'small':
-                      if (layout?.columns === 3) return 'col-span-1 2xl:col-span-2'
-                      if (layout?.columns === 4) return 'col-span-1 2xl:col-span-1'
-                      return 'col-span-1 2xl:col-span-2'
-                    
-                    case 'medium':
-                      if (layout?.columns === 3) return 'col-span-1 md:col-span-2 lg:col-span-1 2xl:col-span-3'
-                      if (layout?.columns === 4) return 'col-span-1 sm:col-span-2 lg:col-span-2 2xl:col-span-3'
-                      return 'col-span-1 2xl:col-span-3'
-                    
-                    case 'large':
-                      if (layout?.columns === 3) return 'col-span-1 md:col-span-2 lg:col-span-3 2xl:col-span-6'
-                      if (layout?.columns === 4) return 'col-span-1 sm:col-span-2 lg:col-span-3 xl:col-span-4 2xl:col-span-6'
-                      return 'col-span-1 md:col-span-2 2xl:col-span-6'
-                    
-                    case 'full':
-                      return 'col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-4 2xl:col-span-6'
-                    
-                    default:
-                      return 'col-span-1 2xl:col-span-3'
-                  }
-                }
-                
-                return (
-                  <div 
-                    key={widget.id} 
-                    className={`transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex ${getWidgetColSpan()}`}
-                  >
-                    <WidgetRenderer
-                      widget={widget}
-                      metrics={filteredMetrics}
-                      data={widgetData}
-                      onNavigate={(module) => setCurrentModule(module as Module)}
-                    />
-                  </div>
-                )
-              })}
-          </div>
+          <DraggableDashboardGrid
+            layout={layout}
+            metrics={filteredMetrics}
+            data={widgetData}
+            onNavigate={(module) => setCurrentModule(module as Module)}
+            onLayoutChange={handleLayoutChange}
+            dragEnabled={dragMode}
+            onDragEnabledChange={setDragMode}
+          />
         </>
       )}
     </div>
