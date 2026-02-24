@@ -4434,7 +4434,7 @@ export interface RoleWidgetPreset {
   recommendedWidgets: DashboardWidgetType[]
   layout: {
     columns: 1 | 2 | 3 | 4
-    widgetSizes: Record<DashboardWidgetType, WidgetSize>
+    widgetSizes: Partial<Record<DashboardWidgetType, WidgetSize>>
   }
 }
 

@@ -51,7 +51,7 @@ export function checkBookingConflicts(
       hasConflict: true,
       conflictingReservations: conflictingReservations.map(res => ({
         id: res.id,
-        guestName: res.guestId,
+        guestName: `Guest: ${res.guestId}`,
         checkIn: res.checkInDate,
         checkOut: res.checkOutDate,
         confirmationNumber: res.id,

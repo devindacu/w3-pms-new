@@ -589,7 +589,7 @@ export function syncInventoryWithConsumption(
     setFoodItems(currentItems =>
       currentItems.map(fi =>
         fi.id === item.foodItemId
-          ? { ...fi, currentStock: Math.max(0, fi.currentStock - (item as any).actualQuantityUsed ?? item.actualQuantity ?? item.plannedQuantity) }
+          ? { ...fi, currentStock: Math.max(0, fi.currentStock - (((item as any).actualQuantityUsed ?? item.actualQuantity) as number)) }
           : fi
       )
     )

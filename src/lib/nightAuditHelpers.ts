@@ -16,7 +16,8 @@ import {
   TaxConfiguration,
   ServiceChargeConfiguration,
   GLEntry,
-  Department
+  Department,
+  PaymentType
 } from './types'
 
 // Helper to create a complete GLEntry object

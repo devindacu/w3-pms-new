@@ -56,7 +56,7 @@ export function calculateRecipeCost(
     
     if (!foodItem) {
       return {
-        ingredientId: ingredient.foodItemId,
+        ingredientId: ingredient.foodItemId || ingredient.id,
         ingredientName: 'Unknown Item',
         quantity: ingredient.quantity,
         unit: ingredient.unit,
@@ -73,7 +73,7 @@ export function calculateRecipeCost(
     const totalCost = ingredient.quantity * foodItem.unitCost
 
     return {
-      ingredientId: ingredient.foodItemId,
+      ingredientId: ingredient.foodItemId || ingredient.id,
       ingredientName: foodItem.name,
       quantity: ingredient.quantity,
       unit: ingredient.unit,
@@ -83,14 +83,15 @@ export function calculateRecipeCost(
   })
 
   const totalCost = ingredientCosts.reduce((sum, ic) => sum + ic.totalCost, 0)
-  const costPerServing = recipe.servings > 0 ? totalCost / recipe.servings : totalCost
+  const servings = recipe.yieldPortions || 1
+  const costPerServing = servings > 0 ? totalCost / servings : totalCost
 
   return {
     recipeId: recipe.id,
     recipeName: recipe.name,
     totalCost,
     costPerServing,
-    servings: recipe.servings,
+    servings,
     ingredientCosts,
     lastCalculated: Date.now()
   }
