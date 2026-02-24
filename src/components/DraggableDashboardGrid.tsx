@@ -6,8 +6,8 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
   DragStartEvent,
+  DragEndEvent,
   DragOverlay,
 } from '@dnd-kit/core'
 import {
@@ -28,7 +28,7 @@ interface SortableWidgetProps {
   metrics: DashboardMetrics
   data: any
   onNavigate?: (module: string) => void
-  isDragging?: boolean
+  isDragging: boolean
 }
 
 function SortableWidget({ widget, layout, metrics, data, onNavigate, isDragging }: SortableWidgetProps) {
@@ -86,7 +86,6 @@ function SortableWidget({ widget, layout, metrics, data, onNavigate, isDragging 
             {...attributes}
             {...listeners}
             className="p-2 bg-background/90 backdrop-blur-sm border border-border rounded-md shadow-sm hover:bg-accent hover:text-accent-foreground cursor-grab active:cursor-grabbing"
-            aria-label="Drag to reorder"
           >
             <GripVertical size={16} />
           </button>
@@ -110,7 +109,7 @@ interface DraggableDashboardGridProps {
   data: any
   onNavigate?: (module: string) => void
   onLayoutChange: (layout: DashboardLayout) => void
-  dragEnabled?: boolean
+  dragEnabled: boolean
   onDragEnabledChange?: (enabled: boolean) => void
 }
 
@@ -120,7 +119,7 @@ export function DraggableDashboardGrid({
   data,
   onNavigate,
   onLayoutChange,
-  dragEnabled = false,
+  dragEnabled,
 }: DraggableDashboardGridProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
   
