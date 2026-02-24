@@ -1,34 +1,34 @@
 import { useState } from 'react'
-  DndCon
-  KeyboardSen
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
   useSensor,
+  useSensors,
+  DragEndEvent,
   DragStartEvent,
   DragOverlay,
+} from '@dnd-kit/core'
 import {
-  SortableCon
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
   useSortable,
-} from '@dnd-ki
-import { Widge
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { WidgetRenderer } from '@/components/DashboardWidgets'
+import type { DashboardLayout, DashboardWidget } from '@/lib/types'
 
-  widget
-  metrics: D
-  onNavigate?: (mo
+interface SortableWidgetProps {
+  widget: DashboardWidget
+  layout: DashboardLayout | null
+  metrics: any
+  data: any
+  onNavigate?: (module: string) => void
+  isDragging?: boolean
 }
-function Sorta
-    attributes,
-    setNodeRef,
-    transition,
-  } = useSortable({ id: widget.id })
-  const style = {
-
-  }
-  const getWidgetColSpan 
-    
-      case 'small':
-        if 
-      
-        if (layout?.c
- 
 
 function SortableWidget({ widget, layout, metrics, data, onNavigate, isDragging }: SortableWidgetProps) {
   const {
@@ -62,158 +62,165 @@ function SortableWidget({ widget, layout, metrics, data, onNavigate, isDragging 
       
       case 'large':
         if (layout?.columns === 3) return 'col-span-1 md:col-span-2 lg:col-span-3 2xl:col-span-6'
-  }
-  const handleDragEnd = (event: DragEndEve
-    se
-    if (over && ac
-      const newIndex = layout.
+        if (layout?.columns === 4) return 'col-span-1 sm:col-span-2 lg:col-span-3 xl:col-span-4 2xl:col-span-6'
+        return 'col-span-1 2xl:col-span-6'
       
-        positi
+      case 'full':
+        return 'col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-4 2xl:col-span-6'
+      
+      default:
+        return 'col-span-1 2xl:col-span-3'
+    }
+  }
 
-     
-   
-
-
-
-    ? 'grid-cols-1'
-    ? 'grid-cols-1 
-    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-col
-
-    return (
-     
-            key={widget.id}
-            layout={lay
-            data={data}
-            isDragging={fal
-        ))}
-    )
-
-    <DndCont
-      coll
-   
- 
-
-        <div className={`grid ${gridCol
-            <SortableWidg
-              widget={widg
-           
-              onNavigate={onNavigate}
-            />
-        </div>
-      <DragOverlay>
- 
-
-              data={data}
-         
-        ) 
-    </D
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={getWidgetColSpan()}
+      {...attributes}
+      {...listeners}
+    >
+      <WidgetRenderer
+        widget={widget}
+        metrics={metrics}
+        data={data}
+        onNavigate={onNavigate}
+      />
+    </div>
+  )
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+interface DraggableDashboardGridProps {
+  layout: DashboardLayout | null
+  metrics: any
+  data: any
+  onNavigate?: (module: string) => void
+  onLayoutChange?: (layout: DashboardLayout) => void
+  dragEnabled?: boolean
+  onDragEnabledChange?: (enabled: boolean) => void
+}
+
+export function DraggableDashboardGrid({
+  layout,
+  metrics,
+  data,
+  onNavigate,
+  onLayoutChange,
+  dragEnabled = false,
+}: DraggableDashboardGridProps) {
+  const [activeId, setActiveId] = useState<string | null>(null)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string)
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    setActiveId(null)
+
+    if (over && active.id !== over.id && layout) {
+      const oldIndex = layout.widgets.findIndex((w) => w.id === active.id)
+      const newIndex = layout.widgets.findIndex((w) => w.id === over.id)
+
+      const newWidgets = arrayMove(layout.widgets, oldIndex, newIndex).map(
+        (widget, index) => ({
+          ...widget,
+          position: index,
+        })
+      )
+
+      const updatedLayout = {
+        ...layout,
+        widgets: newWidgets,
+        updatedAt: Date.now(),
+      }
+
+      onLayoutChange?.(updatedLayout)
+    }
+  }
+
+  if (!layout || !layout.widgets || layout.widgets.length === 0) {
+    return null
+  }
+
+  const visibleWidgets = layout.widgets
+    .filter((w) => w.isVisible)
+    .sort((a, b) => a.position - b.position)
+
+  const getGridColumns = () => {
+    const cols = layout?.columns || 2
+    return cols === 1
+      ? 'grid-cols-1'
+      : cols === 2
+      ? 'grid-cols-1 md:col-span-2'
+      : cols === 3
+      ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6'
+      : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6'
+  }
+
+  const gridColumns = getGridColumns()
+
+  const activeWidget = visibleWidgets.find((w) => w.id === activeId)
+
+  if (!dragEnabled) {
+    return (
+      <div className={`grid ${gridColumns} gap-4 sm:gap-5 lg:gap-6`}>
+        {visibleWidgets.map((widget) => (
+          <SortableWidget
+            key={widget.id}
+            widget={widget}
+            layout={layout}
+            metrics={metrics}
+            data={data}
+            onNavigate={onNavigate}
+            isDragging={false}
+          />
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext items={visibleWidgets.map((w) => w.id)} strategy={verticalListSortingStrategy}>
+        <div className={`grid ${gridColumns} gap-4 sm:gap-5 lg:gap-6`}>
+          {visibleWidgets.map((widget) => (
+            <SortableWidget
+              key={widget.id}
+              widget={widget}
+              layout={layout}
+              metrics={metrics}
+              data={data}
+              onNavigate={onNavigate}
+            />
+          ))}
+        </div>
+      </SortableContext>
+      <DragOverlay>
+        {activeWidget ? (
+          <div className="opacity-80">
+            <WidgetRenderer
+              widget={activeWidget}
+              metrics={metrics}
+              data={data}
+              onNavigate={onNavigate}
+            />
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
+  )
+}
