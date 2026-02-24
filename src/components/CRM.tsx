@@ -335,6 +335,30 @@ export function CRM({
     setSelectedGuest(undefined)
   }
 
+  const handleDeleteGuest = (guestId: string, guestName: string) => {
+    if (!window.confirm(`Delete guest profile for "${guestName}"? This cannot be undone.`)) return
+    setGuestProfiles((current) => (current || []).filter(g => g.id !== guestId))
+    toast.success(`Guest profile for "${guestName}" deleted`)
+  }
+
+  const handleDeleteComplaint = (complaintId: string) => {
+    if (!window.confirm('Delete this complaint? This cannot be undone.')) return
+    setComplaints((current) => (current || []).filter(c => c.id !== complaintId))
+    toast.success('Complaint deleted')
+  }
+
+  const handleDeleteFeedback = (feedbackId: string) => {
+    if (!window.confirm('Delete this feedback record? This cannot be undone.')) return
+    setFeedback((current) => (current || []).filter(f => f.id !== feedbackId))
+    toast.success('Feedback deleted')
+  }
+
+  const handleDeleteCampaign = (campaignId: string, campaignName: string) => {
+    if (!window.confirm(`Delete campaign "${campaignName}"? This cannot be undone.`)) return
+    setCampaigns((current) => (current || []).filter(c => c.id !== campaignId))
+    toast.success(`Campaign "${campaignName}" deleted`)
+  }
+
   const stats = {
     totalGuests: guestProfiles.length,
     vipGuests: guestProfiles.filter(g => g.segments.includes('vip')).length,
@@ -706,14 +730,10 @@ export function CRM({
             {filteredAndSortedGuests.map((guest) => (
               <Card
                 key={guest.id}
-                className="p-6 hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => {
-                  setSelectedGuest(guest)
-                  setGuestDialogOpen(true)
-                }}
+                className="p-6 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex-1">
+                  <div className="flex-1 cursor-pointer" onClick={() => { setSelectedGuest(guest); setGuestDialogOpen(true) }}>
                     <div className="flex items-center gap-3">
                       <h3 className="text-lg font-semibold">
                         {guest.salutation} {guest.firstName} {guest.lastName}
@@ -764,6 +784,14 @@ export function CRM({
                       </div>
                     </div>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-destructive hover:text-destructive ml-2"
+                    onClick={(e) => { e.stopPropagation(); handleDeleteGuest(guest.id, `${guest.firstName} ${guest.lastName}`) }}
+                  >
+                    <X size={16} />
+                  </Button>
                 </div>
               </Card>
             ))}
@@ -870,14 +898,10 @@ export function CRM({
                 {campaigns.map((campaign) => (
                   <Card
                     key={campaign.id}
-                    className="p-6 cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => {
-                      setSelectedCampaign(campaign)
-                      setCampaignDialogOpen(true)
-                    }}
+                    className="p-6 hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-start justify-between">
-                      <div className="flex-1">
+                      <div className="flex-1 cursor-pointer" onClick={() => { setSelectedCampaign(campaign); setCampaignDialogOpen(true) }}>
                         <div className="flex items-center gap-3">
                           <h3 className="text-lg font-semibold">{campaign.name}</h3>
                           <Badge variant={campaign.status === 'running' ? 'default' : 'outline'}>
@@ -905,6 +929,14 @@ export function CRM({
                           </div>
                         </div>
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive ml-2"
+                        onClick={() => handleDeleteCampaign(campaign.id, campaign.name)}
+                      >
+                        <X size={16} />
+                      </Button>
                     </div>
                   </Card>
                 ))}
@@ -1247,14 +1279,10 @@ export function CRM({
                   return (
                     <Card
                       key={fb.id}
-                      className="p-6 cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => {
-                        setSelectedFeedback(fb)
-                        setFeedbackDialogOpen(true)
-                      }}
+                      className="p-6 hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
+                        <div className="flex-1 cursor-pointer" onClick={() => { setSelectedFeedback(fb); setFeedbackDialogOpen(true) }}>
                           <div className="flex items-center gap-3">
                             <h3 className="text-lg font-semibold">{fb.guestName}</h3>
                             <div className="flex items-center gap-1">
@@ -1285,6 +1313,14 @@ export function CRM({
                             </a>
                           )}
                         </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive ml-2"
+                          onClick={() => handleDeleteFeedback(fb.id)}
+                        >
+                          <X size={16} />
+                        </Button>
                       </div>
                       {fb.comments && (
                         <p className="text-sm mt-3">{fb.comments}</p>
@@ -1343,14 +1379,10 @@ export function CRM({
                   return (
                     <Card
                       key={complaint.id}
-                      className={`p-6 border-l-4 cursor-pointer hover:shadow-md transition-shadow ${getComplaintPriorityColor(complaint.priority)}`}
-                      onClick={() => {
-                        setSelectedComplaint(complaint)
-                        setComplaintDialogOpen(true)
-                      }}
+                      className={`p-6 border-l-4 hover:shadow-md transition-shadow ${getComplaintPriorityColor(complaint.priority)}`}
                     >
                       <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
+                        <div className="flex-1 cursor-pointer" onClick={() => { setSelectedComplaint(complaint); setComplaintDialogOpen(true) }}>
                           <div className="flex items-center gap-3">
                             <h3 className="font-semibold">{complaint.complaintNumber}</h3>
                             <Badge variant={
@@ -1375,6 +1407,14 @@ export function CRM({
                             </div>
                           )}
                         </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive ml-2"
+                          onClick={() => handleDeleteComplaint(complaint.id)}
+                        >
+                          <X size={16} />
+                        </Button>
                       </div>
                     </Card>
                   )

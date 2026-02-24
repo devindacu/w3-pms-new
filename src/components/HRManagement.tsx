@@ -4,6 +4,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import {
   Users,
   Calendar,
@@ -14,8 +18,14 @@ import {
   Clock,
   CalendarCheck,
   Star,
-  Briefcase
+  Briefcase,
+  PencilSimple,
+  Trash,
+  DotsThreeVertical,
+  MagnifyingGlass,
+  FunnelSimple
 } from '@phosphor-icons/react'
+import { toast } from 'sonner'
 import { type Employee, type Attendance, type LeaveRequest, type Shift, type DutyRoster, type PerformanceReview } from '@/lib/types'
 import { EmployeeDialog } from '@/components/EmployeeDialog'
 import { AttendanceDialog } from '@/components/AttendanceDialog'
@@ -65,6 +75,13 @@ export function HRManagement({
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null)
   const [selectedRoster, setSelectedRoster] = useState<DutyRoster | null>(null)
   const [selectedReview, setSelectedReview] = useState<PerformanceReview | null>(null)
+  // Delete confirmation state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<{ type: string; id: string; name: string } | null>(null)
+  // Search/filter state
+  const [employeeSearch, setEmployeeSearch] = useState('')
+  const [employeeDeptFilter, setEmployeeDeptFilter] = useState('all')
+  const [employeeStatusFilter, setEmployeeStatusFilter] = useState('all')
 
   const activeEmployees = employees.filter(emp => emp.status === 'active')
   const pendingLeaves = leaveRequests.filter(req => req.status === 'pending')
@@ -140,6 +157,54 @@ export function HRManagement({
     setReviewDialogOpen(true)
   }
 
+  const confirmDelete = (type: string, id: string, name: string) => {
+    setDeleteTarget({ type, id, name })
+    setDeleteDialogOpen(true)
+  }
+
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return
+    const { type, id, name } = deleteTarget
+    switch (type) {
+      case 'employee':
+        setEmployees(employees.filter(e => e.id !== id))
+        toast.success(`Employee "${name}" removed`)
+        break
+      case 'attendance':
+        setAttendance(attendance.filter(a => a.id !== id))
+        toast.success('Attendance record deleted')
+        break
+      case 'leave':
+        setLeaveRequests(leaveRequests.filter(l => l.id !== id))
+        toast.success('Leave request deleted')
+        break
+      case 'shift':
+        setShifts(shifts.filter(s => s.id !== id))
+        toast.success(`Shift "${name}" deleted`)
+        break
+      case 'roster':
+        setDutyRosters(dutyRosters.filter(r => r.id !== id))
+        toast.success('Duty roster entry deleted')
+        break
+      case 'review':
+        setPerformanceReviews(performanceReviews.filter(r => r.id !== id))
+        toast.success('Performance review deleted')
+        break
+    }
+    setDeleteDialogOpen(false)
+    setDeleteTarget(null)
+  }
+
+  const filteredEmployees = employees.filter(emp => {
+    const matchesSearch = !employeeSearch ||
+      `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(employeeSearch.toLowerCase()) ||
+      emp.employeeId?.toLowerCase().includes(employeeSearch.toLowerCase()) ||
+      emp.email?.toLowerCase().includes(employeeSearch.toLowerCase())
+    const matchesDept = employeeDeptFilter === 'all' || emp.department === employeeDeptFilter
+    const matchesStatus = employeeStatusFilter === 'all' || emp.status === employeeStatusFilter
+    return matchesSearch && matchesDept && matchesStatus
+  })
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -198,7 +263,7 @@ export function HRManagement({
         </TabsList>
 
         <TabsContent value="employees" className="space-y-4">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <h2 className="text-2xl font-semibold">Staff Profiles</h2>
             <Button onClick={() => { setSelectedEmployee(null); setEmployeeDialogOpen(true) }}>
               <Plus size={18} className="mr-2" />
@@ -206,12 +271,57 @@ export function HRManagement({
             </Button>
           </div>
 
+          {/* Search & Filter Bar */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, ID, or email..."
+                value={employeeSearch}
+                onChange={(e) => setEmployeeSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={employeeDeptFilter} onValueChange={setEmployeeDeptFilter}>
+              <SelectTrigger className="w-44">
+                <FunnelSimple size={14} className="mr-2" />
+                <SelectValue placeholder="Department" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Departments</SelectItem>
+                <SelectItem value="front-office">Front Office</SelectItem>
+                <SelectItem value="housekeeping">Housekeeping</SelectItem>
+                <SelectItem value="fnb">F&B</SelectItem>
+                <SelectItem value="kitchen">Kitchen</SelectItem>
+                <SelectItem value="finance">Finance</SelectItem>
+                <SelectItem value="hr">HR</SelectItem>
+                <SelectItem value="engineering">Engineering</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={employeeStatusFilter} onValueChange={setEmployeeStatusFilter}>
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="on-leave">On Leave</SelectItem>
+                <SelectItem value="terminated">Terminated</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            Showing {filteredEmployees.length} of {employees.length} employees
+          </p>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {employees.map((emp) => (
-              <Card key={emp.id} className="p-6 hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleEditEmployee(emp)}>
+            {filteredEmployees.map((emp) => (
+              <Card key={emp.id} className="p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="flex items-center gap-3 flex-1 cursor-pointer" onClick={() => handleEditEmployee(emp)}>
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <UserCircle size={32} className="text-primary" weight="fill" />
                     </div>
                     <div>
@@ -219,7 +329,30 @@ export function HRManagement({
                       <p className="text-sm text-muted-foreground">{emp.employeeId}</p>
                     </div>
                   </div>
-                  <Badge variant={getStatusBadge(emp.status)}>{emp.status}</Badge>
+                  <div className="flex items-center gap-1">
+                    <Badge variant={getStatusBadge(emp.status)}>{emp.status}</Badge>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <DotsThreeVertical size={16} />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEditEmployee(emp)}>
+                          <PencilSimple size={16} className="mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => confirmDelete('employee', emp.id, `${emp.firstName} ${emp.lastName}`)}
+                        >
+                          <Trash size={16} className="mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
                 <Separator className="my-3" />
                 <div className="space-y-2 text-sm">
@@ -242,6 +375,12 @@ export function HRManagement({
                 </div>
               </Card>
             ))}
+            {filteredEmployees.length === 0 && (
+              <div className="col-span-full text-center py-12 text-muted-foreground">
+                <Users size={48} className="mx-auto mb-3 opacity-40" />
+                <p>No employees match your search or filters</p>
+              </div>
+            )}
           </div>
         </TabsContent>
 
@@ -271,7 +410,7 @@ export function HRManagement({
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
                         {att.checkIn && (
                           <div className="text-right">
                             <p className="text-sm text-muted-foreground">Check In</p>
@@ -285,6 +424,14 @@ export function HRManagement({
                           </div>
                         )}
                         <Badge variant={getStatusBadge(att.status)}>{att.status}</Badge>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                          onClick={() => confirmDelete('attendance', att.id, `${getEmployeeName(att.employeeId)} - ${new Date(att.date).toLocaleDateString()}`)}
+                        >
+                          <Trash size={16} />
+                        </Button>
                       </div>
                     </div>
                   ))
@@ -310,9 +457,9 @@ export function HRManagement({
               </Card>
             ) : (
               leaveRequests.map((leave) => (
-                <Card key={leave.id} className="p-6 hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleEditLeave(leave)}>
+                <Card key={leave.id} className="p-6 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                    <div className="flex-1 cursor-pointer" onClick={() => handleEditLeave(leave)}>
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="font-semibold text-lg">{getEmployeeName(leave.employeeId)}</h3>
                         <Badge variant={getStatusBadge(leave.status)}>{leave.status}</Badge>
@@ -337,6 +484,14 @@ export function HRManagement({
                         </div>
                       </div>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive ml-2"
+                      onClick={(e) => { e.stopPropagation(); confirmDelete('leave', leave.id, `${getEmployeeName(leave.employeeId)}'s leave`) }}
+                    >
+                      <Trash size={16} />
+                    </Button>
                   </div>
                 </Card>
               ))
@@ -355,13 +510,23 @@ export function HRManagement({
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {shifts.map((shift) => (
-              <Card key={shift.id} className="p-6 hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleEditShift(shift)}>
+              <Card key={shift.id} className="p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-4">
-                  <div>
+                  <div className="flex-1 cursor-pointer" onClick={() => handleEditShift(shift)}>
                     <h3 className="font-semibold text-lg capitalize">{shift.shiftType} Shift</h3>
                     <Badge variant="outline" className={getDepartmentColor(shift.department)}>{shift.department}</Badge>
                   </div>
-                  <Briefcase size={24} className="text-primary" />
+                  <div className="flex items-center gap-1">
+                    <Briefcase size={24} className="text-primary" />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      onClick={() => confirmDelete('shift', shift.id, `${shift.shiftType} shift`)}
+                    >
+                      <Trash size={16} />
+                    </Button>
+                  </div>
                 </div>
                 <Separator className="my-3" />
                 <div className="space-y-2 text-sm">
@@ -404,8 +569,8 @@ export function HRManagement({
                   dutyRosters.map((roster) => {
                     const shift = getShiftDetails(roster.shiftId)
                     return (
-                      <div key={roster.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer" onClick={() => handleEditRoster(roster)}>
-                        <div className="flex items-center gap-4">
+                      <div key={roster.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
+                        <div className="flex items-center gap-4 flex-1 cursor-pointer" onClick={() => handleEditRoster(roster)}>
                           <CalendarCheck size={24} className="text-primary" />
                           <div>
                             <p className="font-medium">{getEmployeeName(roster.employeeId)}</p>
@@ -414,7 +579,7 @@ export function HRManagement({
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
                           <Badge variant="outline" className={getDepartmentColor(roster.department)}>
                             {roster.department}
                           </Badge>
@@ -424,6 +589,14 @@ export function HRManagement({
                             </span>
                           )}
                           <Badge variant={getStatusBadge(roster.status)}>{roster.status}</Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                            onClick={() => confirmDelete('roster', roster.id, `${getEmployeeName(roster.employeeId)} duty`)}
+                          >
+                            <Trash size={16} />
+                          </Button>
                         </div>
                       </div>
                     )
@@ -450,9 +623,9 @@ export function HRManagement({
               </Card>
             ) : (
               performanceReviews.map((review) => (
-                <Card key={review.id} className="p-6 hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleEditReview(review)}>
+                <Card key={review.id} className="p-6 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-1 cursor-pointer" onClick={() => handleEditReview(review)}>
                       <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
                         <Star size={24} className="text-success" weight="fill" />
                       </div>
@@ -469,6 +642,14 @@ export function HRManagement({
                         <p className="text-xs text-muted-foreground">Overall</p>
                       </div>
                       <Badge variant={getStatusBadge(review.status)}>{review.status}</Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        onClick={() => confirmDelete('review', review.id, `${getEmployeeName(review.employeeId)}'s review`)}
+                      >
+                        <Trash size={16} />
+                      </Button>
                     </div>
                   </div>
                   <Separator className="my-3" />
@@ -559,6 +740,26 @@ export function HRManagement({
         reviews={performanceReviews}
         setReviews={setPerformanceReviews}
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {deleteTarget?.type === 'employee' ? 'Employee' : deleteTarget?.type?.charAt(0).toUpperCase() + (deleteTarget?.type?.slice(1) || '')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>{deleteTarget?.name}</strong>? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

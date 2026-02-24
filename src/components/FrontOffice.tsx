@@ -1523,9 +1523,20 @@ export function FrontOffice({
                         <Button
                           variant="ghost"
                           size="sm"
+                          title="Print Invoice"
                           onClick={(e) => {
                             e.stopPropagation()
-                            toast.info('Print initiated - check your print dialog')
+                            const printWindow = window.open('', '_blank')
+                            if (printWindow) {
+                              printWindow.document.write(`<html><head><title>Invoice ${invoice.invoiceNumber}</title></head><body>
+                                <h2>Invoice: ${invoice.invoiceNumber}</h2>
+                                <p>Guest: ${invoice.guestName}</p>
+                                <p>Total: ${invoice.grandTotal}</p>
+                                <p>Status: ${invoice.status}</p>
+                              </body></html>`)
+                              printWindow.document.close()
+                              printWindow.print()
+                            }
                           }}
                         >
                           <Printer size={18} />
@@ -1533,9 +1544,18 @@ export function FrontOffice({
                         <Button
                           variant="ghost"
                           size="sm"
+                          title="Download Invoice"
                           onClick={(e) => {
                             e.stopPropagation()
-                            toast.info('Download functionality ready')
+                            const data = JSON.stringify(invoice, null, 2)
+                            const blob = new Blob([data], { type: 'application/json' })
+                            const url = URL.createObjectURL(blob)
+                            const a = document.createElement('a')
+                            a.href = url
+                            a.download = `invoice-${invoice.invoiceNumber}.json`
+                            a.click()
+                            URL.revokeObjectURL(url)
+                            toast.success(`Invoice ${invoice.invoiceNumber} downloaded`)
                           }}
                         >
                           <Download size={18} />

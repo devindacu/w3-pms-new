@@ -1862,7 +1862,7 @@ function App() {
                         <ClipboardText size={20} className="text-secondary" />
                       </div>
                       <div className="space-y-2 mt-4">
-                        <Button variant="outline" className="w-full justify-start" size="sm">
+                        <Button variant="outline" className="w-full justify-start" size="sm" onClick={() => setCurrentModule('front-office')}>
                           <Receipt size={16} className="mr-2" />
                           New Invoice
                         </Button>

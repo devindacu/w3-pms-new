@@ -22,7 +22,8 @@ import {
   ClipboardText,
   Stack,
   Bell,
-  Sparkle
+  Sparkle,
+  Trash
 } from '@phosphor-icons/react'
 import { type Room, type HousekeepingTask, type Employee, type MaintenanceRequest, type LostFoundItem } from '@/lib/types'
 import { getRoomStatusColor } from '@/lib/helpers'
@@ -180,6 +181,12 @@ export function Housekeeping({ rooms, setRooms, tasks, setTasks, employees }: Ho
   const handleEditTask = (task: HousekeepingTask) => {
     setSelectedTask(task)
     setTaskDialogOpen(true)
+  }
+
+  const handleDeleteTask = (taskId: string) => {
+    if (!window.confirm('Delete this housekeeping task? This cannot be undone.')) return
+    setTasks((prev) => (prev || []).filter(t => t.id !== taskId))
+    toast.success('Task deleted')
   }
 
   const handleChangeRoomStatus = (room: Room) => {
@@ -383,9 +390,14 @@ export function Housekeeping({ rooms, setRooms, tasks, setTasks, employees }: Ho
                             </div>
                           )}
                         </div>
-                        <Button size="sm" variant="outline" onClick={() => handleEditTask(task)} className="w-full sm:w-auto">
-                          Update
-                        </Button>
+                        <div className="flex gap-2 w-full sm:w-auto">
+                          <Button size="sm" variant="outline" onClick={() => handleEditTask(task)} className="flex-1 sm:flex-none">
+                            Update
+                          </Button>
+                          <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive px-2" onClick={() => handleDeleteTask(task.id)}>
+                            <Trash size={16} />
+                          </Button>
+                        </div>
                       </div>
                     </Card>
                   )
