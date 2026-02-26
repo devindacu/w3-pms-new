@@ -53,6 +53,7 @@ function ComparisonIndicator({ current, previous, format = 'number', inverse = f
   const isNegative = inverse ? change > 0 : change < 0
 
   const formatValue = (val: number) => {
+    if (!isFinite(val)) val = 0
     switch (format) {
       case 'currency':
         return formatCurrency(val)
@@ -74,7 +75,7 @@ function ComparisonIndicator({ current, previous, format = 'number', inverse = f
   return (
     <div className={`flex items-center gap-1 text-xs font-medium ${isPositive ? 'text-success' : isNegative ? 'text-destructive' : 'text-muted-foreground'}`}>
       {isPositive ? <TrendUp size={14} /> : <TrendDown size={14} />}
-      <span>{Math.abs(percentChange).toFixed(1)}%</span>
+      <span>{isFinite(percentChange) ? Math.abs(percentChange).toFixed(1) : '0.0'}%</span>
       <span className="text-muted-foreground">
         ({change > 0 ? '+' : ''}{formatValue(change)})
       </span>

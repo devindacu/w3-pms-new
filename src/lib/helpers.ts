@@ -75,6 +75,10 @@ export function formatTime(timestamp: number | undefined): string {
 }
 
 export function formatCurrency(amount: number): string {
+  if (amount === undefined || amount === null || !isFinite(amount)) {
+    amount = 0
+  }
+  
   const formatted = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
@@ -96,6 +100,7 @@ export function calculatePercentageChange(current: number, previous: number): nu
 
 export function formatPercentageChange(current: number, previous: number): string {
   const change = calculatePercentageChange(current, previous)
+  if (!isFinite(change)) return '0.0%'
   const sign = change >= 0 ? '+' : ''
   return `${sign}${change.toFixed(1)}%`
 }

@@ -80,7 +80,7 @@ export function calculateLineTaxes(
       taxName: taxConfig.name,
       taxRate: taxConfig.rate,
       taxableAmount: taxableAmount,
-      taxAmount: Number(taxAmount.toFixed(2)),
+      taxAmount: isFinite(taxAmount) ? Number(taxAmount.toFixed(2)) : 0,
       isInclusive: taxConfig.isInclusive
     })
 
@@ -103,7 +103,7 @@ export function calculateServiceCharge(
   const netAmount = lineItem.netAmount || 0
   const serviceChargeAmount = (netAmount * serviceChargeConfig.rate) / 100
   
-  return Number(serviceChargeAmount.toFixed(2))
+  return isFinite(serviceChargeAmount) ? Number(serviceChargeAmount.toFixed(2)) : 0
 }
 
 export function calculateInvoiceTotals(
@@ -163,8 +163,8 @@ export function calculateInvoiceTotals(
 
   const taxLines = Object.values(taxBreakdown).map(tax => ({
     ...tax,
-    taxableAmount: Number(tax.taxableAmount.toFixed(2)),
-    taxAmount: Number(tax.taxAmount.toFixed(2))
+    taxableAmount: isFinite(tax.taxableAmount) ? Number(tax.taxableAmount.toFixed(2)) : 0,
+    taxAmount: isFinite(tax.taxAmount) ? Number(tax.taxAmount.toFixed(2)) : 0
   }))
 
   const totalTax = taxLines.reduce((sum, tax) => sum + tax.taxAmount, 0)
@@ -172,12 +172,12 @@ export function calculateInvoiceTotals(
   const grandTotal = discountedSubtotal + serviceChargeAmount + totalTax
 
   return {
-    subtotal: Number(subtotal.toFixed(2)),
-    totalDiscount: Number(totalDiscount.toFixed(2)),
-    serviceChargeAmount: Number(serviceChargeAmount.toFixed(2)),
+    subtotal: isFinite(subtotal) ? Number(subtotal.toFixed(2)) : 0,
+    totalDiscount: isFinite(totalDiscount) ? Number(totalDiscount.toFixed(2)) : 0,
+    serviceChargeAmount: isFinite(serviceChargeAmount) ? Number(serviceChargeAmount.toFixed(2)) : 0,
     taxLines,
-    totalTax: Number(totalTax.toFixed(2)),
-    grandTotal: Number(grandTotal.toFixed(2))
+    totalTax: isFinite(totalTax) ? Number(totalTax.toFixed(2)) : 0,
+    grandTotal: isFinite(grandTotal) ? Number(grandTotal.toFixed(2)) : 0
   }
 }
 

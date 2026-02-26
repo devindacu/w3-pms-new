@@ -12,6 +12,10 @@ export function formatCurrencyAmount(
   currencyCode: CurrencyCode = 'LKR',
   showCode: boolean = true
 ): string {
+  if (amount === undefined || amount === null || !isFinite(amount)) {
+    amount = 0
+  }
+  
   const currency = CURRENCIES[currencyCode]
   if (!currency) {
     return amount.toFixed(2)
