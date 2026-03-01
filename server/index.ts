@@ -2,7 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import { db } from './db';
 import * as schema from '../shared/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and, lte, gte, ne, sql } from 'drizzle-orm';
+import { computeRateQuote } from './services/rateEngine';
 import { 
   securityHeaders, 
   apiLimiter, 
@@ -1267,6 +1268,303 @@ app.post('/api/sync/process', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to process sync queue' });
+  }
+});
+
+// ============ Booking Engine API ============
+
+// Rate Plans CRUD
+app.get('/api/booking/rate-plans', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.ratePlans);
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch rate plans' });
+  }
+});
+
+app.post('/api/booking/rate-plans', async (req, res) => {
+  try {
+    const result = await db.insert(schema.ratePlans).values(req.body).returning();
+    res.json(result[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to create rate plan' });
+  }
+});
+
+app.put('/api/booking/rate-plans/:id', async (req, res) => {
+  try {
+    const result = await db.update(schema.ratePlans).set({ ...req.body, updatedAt: new Date() }).where(eq(schema.ratePlans.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to update rate plan' });
+  }
+});
+
+app.delete('/api/booking/rate-plans/:id', async (req, res) => {
+  try {
+    await db.delete(schema.ratePlans).where(eq(schema.ratePlans.id, parseInt(req.params.id)));
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to delete rate plan' });
+  }
+});
+
+// Resident Rules CRUD
+app.get('/api/booking/resident-rules', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.residentRules);
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch resident rules' });
+  }
+});
+
+app.post('/api/booking/resident-rules', async (req, res) => {
+  try {
+    const result = await db.insert(schema.residentRules).values(req.body).returning();
+    res.json(result[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to create resident rule' });
+  }
+});
+
+app.delete('/api/booking/resident-rules/:id', async (req, res) => {
+  try {
+    await db.delete(schema.residentRules).where(eq(schema.residentRules.id, parseInt(req.params.id)));
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to delete resident rule' });
+  }
+});
+
+// Seasonal Multipliers CRUD
+app.get('/api/booking/seasonal-multipliers', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.seasonalMultipliers);
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch seasonal multipliers' });
+  }
+});
+
+app.post('/api/booking/seasonal-multipliers', async (req, res) => {
+  try {
+    const result = await db.insert(schema.seasonalMultipliers).values(req.body).returning();
+    res.json(result[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to create seasonal multiplier' });
+  }
+});
+
+app.delete('/api/booking/seasonal-multipliers/:id', async (req, res) => {
+  try {
+    await db.delete(schema.seasonalMultipliers).where(eq(schema.seasonalMultipliers.id, parseInt(req.params.id)));
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to delete seasonal multiplier' });
+  }
+});
+
+// Promo Codes CRUD
+app.get('/api/booking/promo-codes', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.promoCodes);
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch promo codes' });
+  }
+});
+
+app.post('/api/booking/promo-codes', async (req, res) => {
+  try {
+    const data = { ...req.body, code: req.body.code?.toUpperCase() };
+    const result = await db.insert(schema.promoCodes).values(data).returning();
+    res.json(result[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to create promo code' });
+  }
+});
+
+app.put('/api/booking/promo-codes/:id', async (req, res) => {
+  try {
+    const data = { ...req.body, updatedAt: new Date() };
+    const result = await db.update(schema.promoCodes).set(data).where(eq(schema.promoCodes.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to update promo code' });
+  }
+});
+
+app.delete('/api/booking/promo-codes/:id', async (req, res) => {
+  try {
+    await db.delete(schema.promoCodes).where(eq(schema.promoCodes.id, parseInt(req.params.id)));
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to delete promo code' });
+  }
+});
+
+// Widget Settings
+app.get('/api/booking/widget-settings', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.widgetSettings).where(eq(schema.widgetSettings.propertyId, 'default'));
+    if (result.length) {
+      res.json(result[0]);
+    } else {
+      res.json({ propertyId: 'default', primaryColor: '#1a56db', accentColor: '#0e9f6e', propertyName: 'Hotel', currencyCode: 'KES', currencySymbol: 'KES', showAddOns: true });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch widget settings' });
+  }
+});
+
+app.put('/api/booking/widget-settings', async (req, res) => {
+  try {
+    const existing = await db.select().from(schema.widgetSettings).where(eq(schema.widgetSettings.propertyId, 'default'));
+    if (existing.length) {
+      const result = await db.update(schema.widgetSettings).set({ ...req.body, updatedAt: new Date() }).where(eq(schema.widgetSettings.propertyId, 'default')).returning();
+      res.json(result[0]);
+    } else {
+      const result = await db.insert(schema.widgetSettings).values({ ...req.body, propertyId: 'default' }).returning();
+      res.json(result[0]);
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to update widget settings' });
+  }
+});
+
+// Rate Quote - server-side pricing calculation (NEVER trust frontend pricing)
+app.post('/api/booking/quote', async (req, res) => {
+  try {
+    const { checkIn, checkOut, adults, children, roomId, guestCountry, promoCode } = req.body;
+    if (!checkIn || !checkOut || !roomId) {
+      return res.status(400).json({ error: 'checkIn, checkOut, and roomId are required' });
+    }
+    const quote = await computeRateQuote({ checkIn, checkOut, adults: adults || 1, children: children || 0, roomId, guestCountry, promoCode });
+    res.json(quote);
+  } catch (error: any) {
+    console.error(error);
+    res.status(400).json({ error: error.message || 'Failed to compute rate quote' });
+  }
+});
+
+// Availability search
+app.get('/api/booking/availability', async (req, res) => {
+  try {
+    const { checkIn, checkOut, adults, guestCountry } = req.query as Record<string, string>;
+    if (!checkIn || !checkOut) return res.status(400).json({ error: 'checkIn and checkOut are required' });
+
+    const allRooms = await db.select().from(schema.rooms).where(eq(schema.rooms.status, 'available'));
+
+    // Get reservations that overlap with the requested dates
+    const overlapping = await db.select().from(schema.reservations).where(
+      and(
+        ne(schema.reservations.status, 'cancelled'),
+        lte(schema.reservations.checkInDate, checkOut),
+        gte(schema.reservations.checkOutDate, checkIn)
+      )
+    );
+    const occupiedRoomIds = new Set(overlapping.map(r => r.roomId));
+    const availableRooms = allRooms.filter(r => !occupiedRoomIds.has(r.id));
+
+    const roomsWithRates = await Promise.all(availableRooms.map(async (room) => {
+      try {
+        const quote = await computeRateQuote({
+          checkIn,
+          checkOut,
+          adults: parseInt(adults || '1'),
+          roomId: room.id,
+          guestCountry,
+        });
+        return { ...room, quote };
+      } catch {
+        return { ...room, quote: null };
+      }
+    }));
+    res.json(roomsWithRates.filter(r => r.quote !== null));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch availability' });
+  }
+});
+
+// Create booking (server-side price validation)
+app.post('/api/booking/reserve', async (req, res) => {
+  try {
+    const { checkIn, checkOut, roomId, guestCountry, promoCode, adults, children, guestDetails } = req.body;
+    if (!checkIn || !checkOut || !roomId || !guestDetails) {
+      return res.status(400).json({ error: 'Missing required booking fields' });
+    }
+    // Server-side price computation - never trust client
+    const quote = await computeRateQuote({ checkIn, checkOut, adults: adults || 1, children: children || 0, roomId, guestCountry, promoCode });
+
+    // Upsert guest
+    let guestId: number;
+    const existingGuests = await db.select().from(schema.guests).where(eq(schema.guests.email, guestDetails.email));
+    if (existingGuests.length) {
+      guestId = existingGuests[0].id;
+    } else {
+      const newGuest = await db.insert(schema.guests).values({
+        firstName: guestDetails.firstName,
+        lastName: guestDetails.lastName,
+        email: guestDetails.email,
+        phone: guestDetails.phone,
+        country: guestCountry,
+        nationality: guestCountry,
+      }).returning();
+      guestId = newGuest[0].id;
+    }
+
+    const confirmationNumber = `BKG-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+    const reservation = await db.insert(schema.reservations).values({
+      guestId,
+      roomId,
+      confirmationNumber,
+      checkInDate: checkIn,
+      checkOutDate: checkOut,
+      adults: adults || 1,
+      children: children || 0,
+      ratePerNight: quote.adjustedRatePerNight.toFixed(2),
+      totalAmount: quote.totalAmount.toFixed(2),
+      status: 'confirmed',
+      source: 'booking-widget',
+      specialRequests: guestDetails.specialRequests,
+    }).returning();
+
+    // Increment promo code usage if applicable
+    if (quote.promoCode) {
+      await db.update(schema.promoCodes)
+        .set({ usedCount: sql`${schema.promoCodes.usedCount} + 1` })
+        .where(eq(schema.promoCodes.code, quote.promoCode));
+    }
+
+    res.json({
+      success: true,
+      confirmationNumber,
+      reservationId: reservation[0].id,
+      quote,
+      guestDetails,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ error: error.message || 'Failed to create booking' });
   }
 });
 

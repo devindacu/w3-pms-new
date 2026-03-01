@@ -378,3 +378,85 @@ export const dataSyncQueue = pgTable('data_sync_queue', {
   createdAt: timestamp('created_at').defaultNow(),
   processedAt: timestamp('processed_at'),
 });
+
+export const ratePlans = pgTable('rate_plans', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 200 }).notNull(),
+  description: text('description'),
+  roomType: varchar('room_type', { length: 50 }),
+  residentRate: decimal('resident_rate', { precision: 10, scale: 2 }).notNull(),
+  nonResidentRate: decimal('non_resident_rate', { precision: 10, scale: 2 }).notNull(),
+  mealPlan: varchar('meal_plan', { length: 50 }).default('room_only'),
+  minNights: integer('min_nights').default(1),
+  maxNights: integer('max_nights'),
+  isActive: boolean('is_active').default(true),
+  taxPercent: decimal('tax_percent', { precision: 5, scale: 2 }).default('16'),
+  serviceChargePercent: decimal('service_charge_percent', { precision: 5, scale: 2 }).default('5'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const residentRules = pgTable('resident_rules', {
+  id: serial('id').primaryKey(),
+  ratePlanId: integer('rate_plan_id').references(() => ratePlans.id),
+  countryCode: varchar('country_code', { length: 10 }).notNull(),
+  countryName: varchar('country_name', { length: 100 }).notNull(),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const seasonalMultipliers = pgTable('seasonal_multipliers', {
+  id: serial('id').primaryKey(),
+  ratePlanId: integer('rate_plan_id').references(() => ratePlans.id),
+  name: varchar('name', { length: 100 }).notNull(),
+  startDate: date('start_date').notNull(),
+  endDate: date('end_date').notNull(),
+  multiplier: decimal('multiplier', { precision: 5, scale: 3 }).default('1.000'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const promoCodes = pgTable('promo_codes', {
+  id: serial('id').primaryKey(),
+  code: varchar('code', { length: 50 }).unique().notNull(),
+  description: text('description'),
+  discountType: varchar('discount_type', { length: 20 }).default('percent'),
+  discountValue: decimal('discount_value', { precision: 10, scale: 2 }).notNull(),
+  minNights: integer('min_nights').default(1),
+  maxUses: integer('max_uses'),
+  usedCount: integer('used_count').default(0),
+  validFrom: date('valid_from'),
+  validTo: date('valid_to'),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const widgetSettings = pgTable('widget_settings', {
+  id: serial('id').primaryKey(),
+  propertyId: varchar('property_id', { length: 100 }).default('default').unique(),
+  primaryColor: varchar('primary_color', { length: 20 }).default('#1a56db'),
+  accentColor: varchar('accent_color', { length: 20 }).default('#0e9f6e'),
+  logoUrl: text('logo_url'),
+  propertyName: varchar('property_name', { length: 200 }).default('Hotel'),
+  welcomeMessage: text('welcome_message'),
+  currencyCode: varchar('currency_code', { length: 10 }).default('KES'),
+  currencySymbol: varchar('currency_symbol', { length: 10 }).default('KES'),
+  residentLabel: varchar('resident_label', { length: 50 }).default('Resident'),
+  nonResidentLabel: varchar('non_resident_label', { length: 50 }).default('Non-Resident'),
+  showAddOns: boolean('show_add_ons').default(true),
+  allowedOrigins: text('allowed_origins'),
+  isActive: boolean('is_active').default(true),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const bookingPayments = pgTable('booking_payments', {
+  id: serial('id').primaryKey(),
+  reservationId: integer('reservation_id').references(() => reservations.id),
+  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+  currency: varchar('currency', { length: 10 }).default('KES'),
+  method: varchar('method', { length: 50 }),
+  status: varchar('status', { length: 50 }).default('pending'),
+  transactionRef: varchar('transaction_ref', { length: 100 }),
+  paidAt: timestamp('paid_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
