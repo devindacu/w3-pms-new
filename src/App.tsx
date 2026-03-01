@@ -44,7 +44,8 @@ import {
   TrendUp,
   Moon,
   Layout,
-  ArrowsOutCardinal
+  ArrowsOutCardinal,
+  Ticket
 } from '@phosphor-icons/react'
 import { ServerSyncStatusIndicator } from '@/components/ServerSyncStatusIndicator'
 import { ServerSyncConflictDialog } from '@/components/ServerSyncConflictDialog'
@@ -196,6 +197,8 @@ import { MasterFolioManagement } from '@/components/MasterFolioManagement'
 import { EnhancedDashboardWidgets } from '@/components/EnhancedDashboardWidgets'
 import { VisualFloorPlan } from '@/components/VisualFloorPlan'
 import { RevenueManagementSystem } from '@/components/RevenueManagementSystem'
+import { BookingEngine } from '@/components/BookingEngine'
+import { BookingWidgetAdmin } from '@/components/BookingWidgetAdmin'
 import type {
   DashboardLayout,
   DashboardWidget,
@@ -232,7 +235,7 @@ import type {
   EmailCampaignAnalytics
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'revenue-management' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio' | 'floor-plan'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'revenue-management' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio' | 'floor-plan' | 'booking-engine'
 
 function App() {
   const {
@@ -1196,6 +1199,15 @@ function App() {
             Channel Manager
           </Button>
 
+          <Button
+            variant={currentModule === 'booking-engine' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('booking-engine')}
+          >
+            <Ticket size={18} className="mr-2" />
+            Booking Engine
+          </Button>
+
           <Separator className="my-2" />
 
           <div className="px-3 py-2">
@@ -1992,6 +2004,20 @@ function App() {
               guests={guests || []}
               currentUser={currentUser}
             />
+          )}
+          {currentModule === 'booking-engine' && (
+            <Tabs defaultValue="widget">
+              <TabsList>
+                <TabsTrigger value="widget">Booking Widget</TabsTrigger>
+                <TabsTrigger value="admin">Admin / Settings</TabsTrigger>
+              </TabsList>
+              <TabsContent value="widget" className="mt-4">
+                <BookingEngine />
+              </TabsContent>
+              <TabsContent value="admin" className="mt-4">
+                <BookingWidgetAdmin />
+              </TabsContent>
+            </Tabs>
           )}
         </div>
         
