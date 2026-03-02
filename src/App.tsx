@@ -537,19 +537,19 @@ function App() {
       try {
         const dbGuests = await fetchFromAPI<Guest[]>('/guests', [])
         if (dbGuests.length > 0 && (!guests || guests.length === 0)) {
-          setGuests(dbGuests as any[])
+          setGuests(dbGuests)
         }
         const dbRooms = await fetchFromAPI<Room[]>('/rooms', [])
         if (dbRooms.length > 0 && (!rooms || rooms.length === 0)) {
-          setRooms(dbRooms as any[])
+          setRooms(dbRooms)
         }
         const dbSuppliers = await fetchFromAPI<Supplier[]>('/suppliers', [])
         if (dbSuppliers.length > 0 && (!suppliers || suppliers.length === 0)) {
-          setSuppliers(dbSuppliers as any[])
+          setSuppliers(dbSuppliers)
         }
         const dbEmployees = await fetchFromAPI<Employee[]>('/employees', [])
         if (dbEmployees.length > 0 && (!employees || employees.length === 0)) {
-          setEmployees(dbEmployees as any[])
+          setEmployees(dbEmployees)
         }
       } catch {
         // Silently fail - KV data takes precedence

@@ -23,7 +23,7 @@ export function useDBSync<T>(
 
   useEffect(() => {
     syncFromDB()
-  }, []) // only on mount
+  }, [syncFromDB]) // only on mount (syncFromDB stable via useCallback)
 
   return { syncFromDB }
 }
