@@ -1361,6 +1361,15 @@ function App() {
           <Separator className="my-2" />
 
           <Button
+            variant={currentModule === 'notifications' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('notifications')}
+          >
+            <Bell size={18} className="mr-2" />
+            Notifications
+          </Button>
+
+          <Button
             variant={currentModule === 'settings' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('settings')}
@@ -2018,6 +2027,16 @@ function App() {
                 <BookingWidgetAdmin />
               </TabsContent>
             </Tabs>
+          )}
+          {currentModule === 'notifications' && (
+            <NotificationPanel
+              notifications={notifications || []}
+              onMarkAsRead={handleMarkAsRead}
+              onMarkAllAsRead={handleMarkAllAsRead}
+              onDismiss={handleDismiss}
+              onArchive={handleArchive}
+              onClearAll={handleClearAll}
+            />
           )}
         </div>
         

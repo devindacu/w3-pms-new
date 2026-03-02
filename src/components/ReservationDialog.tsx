@@ -169,6 +169,16 @@ export function ReservationDialog({
       return
     }
 
+    if (!formData.roomId || formData.roomId === 'no-room') {
+      toast.error('Please select a room')
+      return
+    }
+
+    if (!formData.adults || formData.adults < 1) {
+      toast.error('At least 1 adult is required')
+      return
+    }
+
     const checkIn = new Date(formData.checkInDate).getTime()
     const checkOut = new Date(formData.checkOutDate).getTime()
 

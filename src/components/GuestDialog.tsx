@@ -66,6 +66,16 @@ export function GuestDialog({ open, onOpenChange, guest, guests, setGuests }: Gu
       return
     }
 
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      toast.error('Please enter a valid email address')
+      return
+    }
+
+    if (formData.phone && !/^\+?[\d\s\-().]{7,20}$/.test(formData.phone.trim())) {
+      toast.error('Please enter a valid phone number')
+      return
+    }
+
     const preferencesArray = formData.preferences
       ? formData.preferences.split(',').map(p => p.trim()).filter(p => p)
       : []

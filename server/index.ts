@@ -19,6 +19,10 @@ import {
   guestUpdateSchema,
   roomCreateSchema,
   roomUpdateSchema,
+  reservationCreateSchema,
+  reservationUpdateSchema,
+  employeeCreateSchema,
+  employeeUpdateSchema,
 } from './middleware/validation';
 
 const app = express();
@@ -158,7 +162,7 @@ app.get('/api/reservations', async (req, res) => {
   }
 });
 
-app.post('/api/reservations', async (req, res) => {
+app.post('/api/reservations', validate(reservationCreateSchema), async (req, res) => {
   try {
     const result = await db.insert(schema.reservations).values(req.body).returning();
     res.json(result[0]);
@@ -168,7 +172,7 @@ app.post('/api/reservations', async (req, res) => {
   }
 });
 
-app.put('/api/reservations/:id', async (req, res) => {
+app.put('/api/reservations/:id', validate(idParamSchema, 'params'), validate(reservationUpdateSchema), async (req, res) => {
   try {
     const result = await db.update(schema.reservations).set(req.body).where(eq(schema.reservations.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
@@ -508,7 +512,7 @@ app.get('/api/employees', async (req, res) => {
   }
 });
 
-app.post('/api/employees', async (req, res) => {
+app.post('/api/employees', validate(employeeCreateSchema), async (req, res) => {
   try {
     const result = await db.insert(schema.employees).values(req.body).returning();
     res.json(result[0]);
@@ -518,7 +522,7 @@ app.post('/api/employees', async (req, res) => {
   }
 });
 
-app.put('/api/employees/:id', async (req, res) => {
+app.put('/api/employees/:id', validate(idParamSchema, 'params'), validate(employeeUpdateSchema), async (req, res) => {
   try {
     const result = await db.update(schema.employees).set(req.body).where(eq(schema.employees.id, parseInt(req.params.id))).returning();
     res.json(result[0]);
