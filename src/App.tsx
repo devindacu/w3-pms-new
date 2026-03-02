@@ -2064,6 +2064,7 @@ function App() {
               onDismiss={handleDismiss}
               onArchive={handleArchive}
               onClearAll={handleClearAll}
+              inline={true}
             />
           )}
         </div>

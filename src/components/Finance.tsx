@@ -788,7 +788,7 @@ export function Finance({
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList className="flex-wrap h-auto">
+        <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="invoices">Invoices</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
@@ -2234,7 +2234,19 @@ export function Finance({
 
       <InvoiceDialog
         open={invoiceDialogOpen}
-        onOpenChange={setInvoiceDialogOpen}
+        onOpenChange={(open) => {
+          setInvoiceDialogOpen(open)
+          if (!open) setSelectedInvoice(undefined)
+        }}
+        invoice={selectedInvoice}
+        onSave={(inv) => {
+          if (selectedInvoice) {
+            setInvoices((prev) => prev.map((i) => (i.id === inv.id ? inv : i)))
+          } else {
+            setInvoices((prev) => [...prev, inv])
+          }
+        }}
+        currentUser={currentUser}
       />
 
       <PaymentDialog
