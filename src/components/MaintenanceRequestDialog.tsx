@@ -196,8 +196,24 @@ export function MaintenanceRequestDialog({
   }
 
   const handleSubmit = () => {
-    if (!formData.location || !formData.issueType || !formData.description || !formData.reportedBy) {
-      toast.error('Please fill in all required fields')
+    if (!formData.location?.trim()) {
+      toast.error('Please enter a location')
+      return
+    }
+    if (!formData.issueType) {
+      toast.error('Please select an issue type')
+      return
+    }
+    if (!formData.priority) {
+      toast.error('Please select a priority level')
+      return
+    }
+    if (!formData.description?.trim()) {
+      toast.error('Please enter a description')
+      return
+    }
+    if (!formData.reportedBy) {
+      toast.error('Please select who reported the issue')
       return
     }
 

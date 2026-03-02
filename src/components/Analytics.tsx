@@ -452,7 +452,8 @@ export function Analytics(props: AnalyticsProps) {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-11">
+        <div className="overflow-x-auto">
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-11 min-w-[600px] lg:min-w-0">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="rooms">Rooms</TabsTrigger>
           <TabsTrigger value="revenue">Revenue</TabsTrigger>
@@ -468,6 +469,7 @@ export function Analytics(props: AnalyticsProps) {
             <span className="hidden lg:inline">Google</span>
           </TabsTrigger>
         </TabsList>
+        </div>
 
         <TabsContent value="overview" className="space-y-6 mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

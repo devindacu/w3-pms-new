@@ -48,6 +48,11 @@ export function CheckOutDialog({
   const balance = totalCharges - totalPayments
 
   const handleCheckOut = () => {
+    if (!reservation.roomId) {
+      toast.error('No room is assigned to this reservation')
+      return
+    }
+
     if (balance > 0 && paymentAmount < balance) {
       toast.error('Payment amount must cover the full balance')
       return

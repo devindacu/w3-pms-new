@@ -43,6 +43,16 @@ export function CheckInDialog({
       return
     }
 
+    if (!reservation.checkInDate) {
+      toast.error('Check-in date is missing')
+      return
+    }
+
+    if (reservation.adults < 1) {
+      toast.error('At least 1 adult is required for check-in')
+      return
+    }
+
     setReservations((prev) => prev.map(r => 
       r.id === reservation.id 
         ? { ...r, status: 'checked-in', updatedAt: Date.now() }
