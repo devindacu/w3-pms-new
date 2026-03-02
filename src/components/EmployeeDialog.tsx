@@ -73,8 +73,28 @@ export function EmployeeDialog({ open, onOpenChange, employee, employees, setEmp
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formData.firstName || !formData.lastName || !formData.phone) {
-      toast.error('Please fill in all required fields')
+    if (!formData.firstName.trim()) {
+      toast.error('Please enter employee first name')
+      return
+    }
+    if (!formData.lastName.trim()) {
+      toast.error('Please enter employee last name')
+      return
+    }
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      toast.error('Please enter a valid email address')
+      return
+    }
+    if (!formData.department) {
+      toast.error('Please select a department')
+      return
+    }
+    if (!formData.role) {
+      toast.error('Please select a position/role')
+      return
+    }
+    if (!formData.phone.trim()) {
+      toast.error('Please enter employee phone number')
       return
     }
 

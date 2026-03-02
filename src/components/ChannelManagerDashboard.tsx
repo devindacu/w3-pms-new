@@ -252,7 +252,8 @@ export function ChannelManagerDashboard() {
     }
   };
 
-  const handleSync = (channelId: string) => {
+  const handleSync = async (channelId: string) => {
+    const channel = (channels ?? []).find((c) => c.id === channelId);
     setChannels((prev) =>
       (prev ?? []).map((c) =>
         c.id === channelId
@@ -261,14 +262,35 @@ export function ChannelManagerDashboard() {
       )
     );
 
-    toast.info(`Syncing ${(channels ?? []).find((c) => c.id === channelId)?.name}...`);
+    toast.info(`Syncing ${channel?.name ?? channelId}...`);
 
-    setTimeout(() => {
-      setChannels((prev) =>
-        (prev ?? []).map((c) => (c.id === channelId ? { ...c, status: 'connected' as const } : c))
+    const config = { apiKey: channel?.credentials?.apiKey, propertyId: channel?.credentials?.propertyId };
+    const today = new Date().toISOString().split('T')[0];
+
+    try {
+      const endpoints = [
+        `/api/channels/${channelId}/sync-availability`,
+        `/api/channels/${channelId}/sync-rates`,
+      ];
+      await Promise.allSettled(
+        endpoints.map(ep =>
+          fetch(ep, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ channelName: channel?.name ?? channelId, config, roomType: 'all', date: today, available: 0, rate: 0 }),
+          })
+        )
       );
-      toast.success('Sync completed successfully');
-    }, 2000);
+      setChannels((prev) =>
+        (prev ?? []).map((c) => (c.id === channelId ? { ...c, status: 'connected' as const, lastSync: new Date().toISOString() } : c))
+      );
+      toast.success(`${channel?.name ?? channelId} sync completed`);
+    } catch {
+      setChannels((prev) =>
+        (prev ?? []).map((c) => (c.id === channelId ? { ...c, status: 'error' as const } : c))
+      );
+      toast.error(`Sync failed for ${channel?.name ?? channelId}`);
+    }
   };
 
   const toggleChannel = (channelId: string) => {

@@ -345,10 +345,11 @@ export function useServerSync<T>(
       const userId = await getUserId()
       const userIdStr = userId !== undefined ? String(userId) : undefined
       
-      setValue((currentValue: T) => {
+      setValue((currentValue: T | undefined) => {
+        const safeCurrentValue = currentValue ?? defaultValue
         const resolvedValue =
           typeof newValue === 'function'
-            ? (newValue as (prev: T) => T)(currentValue)
+            ? (newValue as (prev: T) => T)(safeCurrentValue)
             : newValue
 
         const newVersion = version + 1
@@ -381,7 +382,7 @@ export function useServerSync<T>(
         return resolvedValue
       })
     },
-    [setValue, broadcast, key, version, opts.maxQueueSize]
+    [setValue, broadcast, key, version, opts.maxQueueSize, defaultValue]
   )
 
   const resolveConflict = useCallback(

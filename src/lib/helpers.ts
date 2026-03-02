@@ -183,9 +183,10 @@ export function getRoomStatusColor(status: RoomStatus): string {
     'occupied-clean': 'bg-primary text-primary-foreground',
     'occupied-dirty': 'bg-secondary text-secondary-foreground',
     'maintenance': 'bg-muted text-muted-foreground',
+    'under-maintenance': 'bg-muted text-muted-foreground',
     'out-of-order': 'bg-destructive text-destructive-foreground'
   }
-  return colors[status]
+  return colors[status] || 'bg-muted text-muted-foreground'
 }
 
 export function getRoomStatusIcon(status: RoomStatus): string {
@@ -195,9 +196,10 @@ export function getRoomStatusIcon(status: RoomStatus): string {
     'occupied-clean': 'User',
     'occupied-dirty': 'UserCircle',
     'maintenance': 'Wrench',
+    'under-maintenance': 'Wrench',
     'out-of-order': 'XCircle'
   }
-  return icons[status]
+  return icons[status] || 'Wrench'
 }
 
 export function getStockStatusColor(item: InventoryItem): string {

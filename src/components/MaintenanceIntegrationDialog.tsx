@@ -15,7 +15,7 @@ interface MaintenanceIntegrationDialogProps {
   tasks: HousekeepingTask[]
   setTasks: (tasks: HousekeepingTask[] | ((prev: HousekeepingTask[]) => HousekeepingTask[])) => void
   maintenanceRequests: MaintenanceRequest[]
-  setMaintenanceRequests: (requests: MaintenanceRequest[] | ((prev: MaintenanceRequest[]) => MaintenanceRequest[])) => void
+  setMaintenanceRequests: (requests: MaintenanceRequest[] | ((prev?: MaintenanceRequest[]) => MaintenanceRequest[])) => void
   rooms: Room[]
   employees: Employee[]
 }

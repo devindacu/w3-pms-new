@@ -182,6 +182,11 @@ export function PurchaseOrderDialog({
       return
     }
 
+    if (!expectedDelivery) {
+      toast.error('Please set an expected delivery date')
+      return
+    }
+
     const now = Date.now()
     const { subtotal, tax, total } = calculateTotals()
     

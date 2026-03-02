@@ -253,7 +253,8 @@ export function HRManagement({
       </div>
 
       <Tabs defaultValue="employees" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6">
+        <div className="overflow-x-auto">
+        <TabsList className="grid w-full grid-cols-6 min-w-[540px]">
           <TabsTrigger value="employees">Staff Profiles</TabsTrigger>
           <TabsTrigger value="attendance">Attendance</TabsTrigger>
           <TabsTrigger value="leaves">Leave Management</TabsTrigger>
@@ -261,6 +262,7 @@ export function HRManagement({
           <TabsTrigger value="rosters">Duty Rosters</TabsTrigger>
           <TabsTrigger value="reviews">Performance Reviews</TabsTrigger>
         </TabsList>
+        </div>
 
         <TabsContent value="employees" className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">

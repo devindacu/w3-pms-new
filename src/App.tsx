@@ -199,6 +199,7 @@ import { VisualFloorPlan } from '@/components/VisualFloorPlan'
 import { RevenueManagementSystem } from '@/components/RevenueManagementSystem'
 import { BookingEngine } from '@/components/BookingEngine'
 import { BookingWidgetAdmin } from '@/components/BookingWidgetAdmin'
+import { fetchFromAPI } from '@/lib/api-sync'
 import type {
   DashboardLayout,
   DashboardWidget,
@@ -529,6 +530,33 @@ function App() {
       ignoreHousekeepingConflict(conflictId)
     }
   }
+
+  // Sync initial data from DB on first load, fallback to KV if API unavailable
+  useEffect(() => {
+    const syncInitialData = async () => {
+      try {
+        const dbGuests = await fetchFromAPI<Guest[]>('/guests', [])
+        if (dbGuests.length > 0 && (!guests || guests.length === 0)) {
+          setGuests(dbGuests)
+        }
+        const dbRooms = await fetchFromAPI<Room[]>('/rooms', [])
+        if (dbRooms.length > 0 && (!rooms || rooms.length === 0)) {
+          setRooms(dbRooms)
+        }
+        const dbSuppliers = await fetchFromAPI<Supplier[]>('/suppliers', [])
+        if (dbSuppliers.length > 0 && (!suppliers || suppliers.length === 0)) {
+          setSuppliers(dbSuppliers)
+        }
+        const dbEmployees = await fetchFromAPI<Employee[]>('/employees', [])
+        if (dbEmployees.length > 0 && (!employees || employees.length === 0)) {
+          setEmployees(dbEmployees)
+        }
+      } catch {
+        // Silently fail - KV data takes precedence
+      }
+    }
+    syncInitialData()
+  }, []) // Only on mount
 
   useEffect(() => {
     if (getCombinedConflictCount() > 0) {
@@ -1361,6 +1389,15 @@ function App() {
           <Separator className="my-2" />
 
           <Button
+            variant={currentModule === 'notifications' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('notifications')}
+          >
+            <Bell size={18} className="mr-2" />
+            Notifications
+          </Button>
+
+          <Button
             variant={currentModule === 'settings' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('settings')}
@@ -2018,6 +2055,16 @@ function App() {
                 <BookingWidgetAdmin />
               </TabsContent>
             </Tabs>
+          )}
+          {currentModule === 'notifications' && (
+            <NotificationPanel
+              notifications={notifications || []}
+              onMarkAsRead={handleMarkAsRead}
+              onMarkAllAsRead={handleMarkAllAsRead}
+              onDismiss={handleDismiss}
+              onArchive={handleArchive}
+              onClearAll={handleClearAll}
+            />
           )}
         </div>
         

@@ -221,29 +221,41 @@ export function Finance({
   const pendingInvoices = invoices.filter(inv => inv.status === 'pending-validation' || inv.status === 'validated').length
 
   const getInvoiceStatusBadge = (status: Invoice['status']) => {
-    const variants = {
+    const variants: Record<string, 'secondary' | 'default' | 'destructive' | 'outline'> = {
+      'draft': 'secondary',
       'pending-validation': 'secondary',
       'validated': 'default',
       'matched': 'default',
       'mismatch': 'destructive',
       'approved': 'default',
+      'paid': 'default',
+      'partially-paid': 'secondary',
+      'overdue': 'destructive',
       'posted': 'default',
-      'rejected': 'destructive'
-    } as const
+      'rejected': 'destructive',
+      'disputed': 'destructive',
+      'cancelled': 'outline'
+    }
     
-    const colors = {
+    const colors: Record<string, string> = {
+      'draft': 'text-muted-foreground',
       'pending-validation': 'text-muted-foreground',
       'validated': 'text-primary',
       'matched': 'text-success',
       'mismatch': 'text-destructive',
       'approved': 'text-success',
+      'paid': 'text-success',
+      'partially-paid': 'text-accent-foreground',
+      'overdue': 'text-destructive',
       'posted': 'text-success',
-      'rejected': 'text-destructive'
+      'rejected': 'text-destructive',
+      'disputed': 'text-destructive',
+      'cancelled': 'text-muted-foreground'
     }
     
     return (
-      <Badge variant={variants[status]} className={colors[status]}>
-        {status.replace('-', ' ')}
+      <Badge variant={variants[status] || 'secondary'} className={colors[status] || ''}>
+        {status.replace(/-/g, ' ')}
       </Badge>
     )
   }
@@ -1774,6 +1786,9 @@ export function Finance({
           <Card className="p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold">Chart of Accounts</h3>
+              <Badge variant="secondary" className="text-xs text-muted-foreground">
+                Managed in Settings
+              </Badge>
             </div>
 
             <div className="space-y-4">
@@ -2083,6 +2098,7 @@ export function Finance({
               <ListChecks size={20} />
               Trial Balance
             </h3>
+            <div className="overflow-x-auto">
             <div className="space-y-2">
               <div className="grid grid-cols-4 gap-4 p-3 bg-primary/10 rounded-lg font-semibold text-sm">
                 <div>Account Code</div>
@@ -2113,6 +2129,7 @@ export function Finance({
                 <div className="text-right">{formatCurrency(chartOfAccounts.filter(a => a.normalBalance === 'debit').reduce((sum, a) => sum + a.currentBalance, 0))}</div>
                 <div className="text-right">{formatCurrency(chartOfAccounts.filter(a => a.normalBalance === 'credit').reduce((sum, a) => sum + a.currentBalance, 0))}</div>
               </div>
+            </div>
             </div>
           </Card>
         </TabsContent>

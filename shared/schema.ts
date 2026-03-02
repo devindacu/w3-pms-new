@@ -460,3 +460,120 @@ export const bookingPayments = pgTable('booking_payments', {
   paidAt: timestamp('paid_at'),
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+export const expenses = pgTable('expenses', {
+  id: serial('id').primaryKey(),
+  category: varchar('category', { length: 100 }).notNull(),
+  description: text('description').notNull(),
+  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+  date: date('date').notNull(),
+  vendor: varchar('vendor', { length: 200 }),
+  receiptUrl: text('receipt_url'),
+  approvedBy: varchar('approved_by', { length: 100 }),
+  status: varchar('status', { length: 50 }).default('pending'),
+  createdBy: varchar('created_by', { length: 100 }),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const budgets = pgTable('budgets', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 200 }).notNull(),
+  fiscalYear: varchar('fiscal_year', { length: 20 }).notNull(),
+  period: varchar('period', { length: 50 }).notNull(),
+  totalBudget: decimal('total_budget', { precision: 15, scale: 2 }).notNull(),
+  spentAmount: decimal('spent_amount', { precision: 15, scale: 2 }).default('0'),
+  status: varchar('status', { length: 50 }).default('active'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const journalEntries = pgTable('journal_entries', {
+  id: serial('id').primaryKey(),
+  entryNumber: varchar('entry_number', { length: 50 }).unique(),
+  date: date('date').notNull(),
+  description: text('description').notNull(),
+  totalDebit: decimal('total_debit', { precision: 15, scale: 2 }).notNull(),
+  totalCredit: decimal('total_credit', { precision: 15, scale: 2 }).notNull(),
+  status: varchar('status', { length: 50 }).default('draft'),
+  createdBy: varchar('created_by', { length: 100 }),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const attendanceRecords = pgTable('attendance_records', {
+  id: serial('id').primaryKey(),
+  employeeId: integer('employee_id').references(() => employees.id),
+  date: date('date').notNull(),
+  checkIn: timestamp('check_in'),
+  checkOut: timestamp('check_out'),
+  status: varchar('status', { length: 50 }).default('present'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const leaveRequests = pgTable('leave_requests', {
+  id: serial('id').primaryKey(),
+  employeeId: integer('employee_id').references(() => employees.id),
+  leaveType: varchar('leave_type', { length: 50 }).notNull(),
+  startDate: date('start_date').notNull(),
+  endDate: date('end_date').notNull(),
+  reason: text('reason'),
+  status: varchar('status', { length: 50 }).default('pending'),
+  approvedBy: varchar('approved_by', { length: 100 }),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const requisitions = pgTable('requisitions', {
+  id: serial('id').primaryKey(),
+  requisitionNumber: varchar('requisition_number', { length: 50 }).unique(),
+  requestedBy: varchar('requested_by', { length: 100 }),
+  department: varchar('department', { length: 100 }),
+  status: varchar('status', { length: 50 }).default('pending'),
+  priority: varchar('priority', { length: 20 }).default('medium'),
+  notes: text('notes'),
+  totalEstimated: decimal('total_estimated', { precision: 12, scale: 2 }),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const purchaseOrders = pgTable('purchase_orders', {
+  id: serial('id').primaryKey(),
+  poNumber: varchar('po_number', { length: 50 }).unique(),
+  supplierId: integer('supplier_id').references(() => suppliers.id),
+  requisitionId: integer('requisition_id').references(() => requisitions.id),
+  status: varchar('status', { length: 50 }).default('draft'),
+  orderDate: date('order_date'),
+  expectedDelivery: date('expected_delivery'),
+  totalAmount: decimal('total_amount', { precision: 12, scale: 2 }),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const goodsReceivedNotes = pgTable('goods_received_notes', {
+  id: serial('id').primaryKey(),
+  grnNumber: varchar('grn_number', { length: 50 }).unique(),
+  purchaseOrderId: integer('purchase_order_id').references(() => purchaseOrders.id),
+  receivedBy: varchar('received_by', { length: 100 }),
+  receivedDate: date('received_date').notNull(),
+  status: varchar('status', { length: 50 }).default('pending'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const guestProfiles = pgTable('guest_profiles', {
+  id: serial('id').primaryKey(),
+  guestId: integer('guest_id').references(() => guests.id),
+  vipStatus: varchar('vip_status', { length: 50 }),
+  preferences: text('preferences'),
+  dietaryRestrictions: text('dietary_restrictions'),
+  roomPreferences: text('room_preferences'),
+  loyaltyTier: varchar('loyalty_tier', { length: 50 }).default('Bronze'),
+  totalSpend: decimal('total_spend', { precision: 15, scale: 2 }).default('0'),
+  totalVisits: integer('total_visits').default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});

@@ -343,18 +343,21 @@ export function RoomRevenueManagement({
   }
 
   const getStatusStats = () => {
-    const stats = {
+    const stats: Record<string, number> = {
       total: rooms.length,
       'vacant-clean': 0,
       'vacant-dirty': 0,
       'occupied-clean': 0,
       'occupied-dirty': 0,
       'maintenance': 0,
+      'under-maintenance': 0,
       'out-of-order': 0
     }
 
     rooms.forEach(room => {
-      stats[room.status]++
+      if (stats[room.status] !== undefined) {
+        stats[room.status]++
+      }
     })
 
     return stats
