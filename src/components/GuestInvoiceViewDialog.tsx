@@ -46,17 +46,22 @@ export function GuestInvoiceViewDialog({
   const contentRef = useRef<HTMLDivElement>(null)
 
   const getStatusBadge = () => {
-    const config = {
-      draft: { variant: 'secondary' as const, icon: <Clock size={14} />, label: 'Draft' },
-      final: { variant: 'default' as const, icon: <CheckCircle size={14} />, label: 'Final' },
-      posted: { variant: 'default' as const, icon: <FileText size={14} />, label: 'Posted' },
-      'partially-paid': { variant: 'secondary' as const, icon: <Warning size={14} />, label: 'Partially Paid' }
-    }[invoice.status] || { variant: 'secondary' as const, icon: <Clock size={14} />, label: invoice.status }
+    const config: Record<string, { variant: 'secondary' | 'default' | 'destructive' | 'outline', icon: JSX.Element, label: string }> = {
+      draft: { variant: 'secondary', icon: <Clock size={14} />, label: 'Draft' },
+      interim: { variant: 'secondary', icon: <Clock size={14} />, label: 'Interim' },
+      final: { variant: 'default', icon: <CheckCircle size={14} />, label: 'Final' },
+      posted: { variant: 'default', icon: <FileText size={14} />, label: 'Posted' },
+      'partially-paid': { variant: 'secondary', icon: <Warning size={14} />, label: 'Partially Paid' },
+      cancelled: { variant: 'outline', icon: <XCircle size={14} />, label: 'Cancelled' },
+      refunded: { variant: 'secondary', icon: <XCircle size={14} />, label: 'Refunded' },
+      'partially-refunded': { variant: 'secondary', icon: <Warning size={14} />, label: 'Partially Refunded' }
+    }
+    const statusConfig = config[invoice.status] || { variant: 'secondary' as const, icon: <Clock size={14} />, label: invoice.status }
 
     return (
-      <Badge variant={config.variant} className="gap-1">
-        {config.icon}
-        {config.label}
+      <Badge variant={statusConfig.variant} className="gap-1">
+        {statusConfig.icon}
+        {statusConfig.label}
       </Badge>
     )
   }

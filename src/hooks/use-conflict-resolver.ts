@@ -77,10 +77,11 @@ export function useConflictResolver<T>(
 
   const setValueWithConflictDetection = useCallback(
     (newValue: T | ((prev: T) => T)) => {
-      setValue((currentValue: T) => {
+      setValue((currentValue: T | undefined) => {
+        const safeCurrentValue = currentValue ?? defaultValue
         const resolvedValue =
           typeof newValue === 'function'
-            ? (newValue as (prev: T) => T)(currentValue)
+            ? (newValue as (prev: T) => T)(safeCurrentValue)
             : newValue
 
         const metadata: ConflictMetadata = {
@@ -105,7 +106,7 @@ export function useConflictResolver<T>(
         return resolvedValue
       })
     },
-    [setValue, broadcast, key, tabId]
+    [setValue, broadcast, key, tabId, defaultValue]
   )
 
   const resolveConflictById = useCallback(

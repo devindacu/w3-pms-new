@@ -1,11 +1,9 @@
 import React from 'react';
+import type { FallbackProps } from 'react-error-boundary';
 
-interface ErrorFallbackProps {
-  error: Error;
-  resetErrorBoundary: () => void;
-}
+export const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
+  const errorMessage = error instanceof Error ? error.message : String(error);
 
-export const ErrorFallback = ({ error, resetErrorBoundary }: ErrorFallbackProps) => {
   if (import.meta.env.DEV) throw error;
 
   return (
@@ -55,7 +53,7 @@ export const ErrorFallback = ({ error, resetErrorBoundary }: ErrorFallbackProps)
             overflow: 'auto',
             maxHeight: '150px'
           }}>
-            {error.message}
+            {errorMessage}
           </pre>
         </div>
         

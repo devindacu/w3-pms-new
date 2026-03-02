@@ -19,9 +19,10 @@ export function useSyncedKV<T>(key: string, defaultValue: T) {
   const { broadcast } = useBroadcastSync(handleSyncMessage)
 
   const syncedSetValue = useCallback((newValue: T | ((prev: T) => T)) => {
-    setValue((currentValue: T) => {
+    setValue((currentValue: T | undefined) => {
+      const safeCurrentValue = currentValue ?? defaultValue
       const resolvedValue = typeof newValue === 'function' 
-        ? (newValue as (prev: T) => T)(currentValue)
+        ? (newValue as (prev: T) => T)(safeCurrentValue)
         : newValue
 
       broadcast({
@@ -32,7 +33,7 @@ export function useSyncedKV<T>(key: string, defaultValue: T) {
 
       return resolvedValue
     })
-  }, [setValue, broadcast, key])
+  }, [setValue, broadcast, key, defaultValue])
 
   const syncedDeleteValue = useCallback(() => {
     deleteValue()

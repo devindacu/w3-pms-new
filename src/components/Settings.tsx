@@ -41,7 +41,7 @@ interface SettingsProps {
   serviceCharge: ServiceChargeConfiguration | null
   setServiceCharge: (update: (current: ServiceChargeConfiguration | null) => ServiceChargeConfiguration) => void
   emailTemplates: EmailTemplate[]
-  setEmailTemplates: (update: (current: EmailTemplate[]) => EmailTemplate[]) => void
+  setEmailTemplates: (value: EmailTemplate[] | ((prevState: EmailTemplate[]) => EmailTemplate[])) => void
   emailAnalytics: any[]
   campaignAnalytics: any[]
   emailRecords: any[]

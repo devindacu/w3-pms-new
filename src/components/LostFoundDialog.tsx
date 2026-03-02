@@ -16,7 +16,7 @@ interface LostFoundDialogProps {
   onOpenChange: (open: boolean) => void
   item?: LostFoundItem
   items: LostFoundItem[]
-  setItems: (items: LostFoundItem[] | ((prev: LostFoundItem[]) => LostFoundItem[])) => void
+  setItems: (items: LostFoundItem[] | ((prev?: LostFoundItem[]) => LostFoundItem[])) => void
   rooms: Room[]
   employees: Employee[]
 }
