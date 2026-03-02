@@ -536,7 +536,7 @@ export function BookingEngine({ rooms: hotelRooms = [], reservations: hotelReser
   const [submitting, setSubmitting] = useState(false)
   const [bookingResult, setBookingResult] = useState<BookingResult | null>(null)
   const [currency] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(BOOKING_LS_KEYS.widgetSettings) || '{}').currencyCode || 'USD' } catch { return 'USD' }
+    try { return JSON.parse(localStorage.getItem(BOOKING_LS_KEYS.widgetSettings) || '{}').currencyCode || 'USD' } catch (e) { console.warn('Failed to read widget settings:', e); return 'USD' }
   })
   const [guestDetails, setGuestDetails] = useState<GuestDetails>({
     firstName: '',

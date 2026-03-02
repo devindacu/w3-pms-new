@@ -35,6 +35,7 @@ interface TestEmailTemplateProps {
 export function TestEmailTemplate({ templates, branding }: TestEmailTemplateProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
+  const [sendingEmail, setSendingEmail] = useState(false)
   const [testGuestName, setTestGuestName] = useState('John Smith')
   const [testGuestEmail, setTestGuestEmail] = useState('john.smith@example.com')
   const [testGuestPhone, setTestGuestPhone] = useState('+94 77 123 4567')
@@ -116,7 +117,7 @@ export function TestEmailTemplate({ templates, branding }: TestEmailTemplateProp
     toast.success('Email preview generated!')
   }
 
-  const handleSendTestEmail = () => {
+  const handleSendTestEmail = async () => {
     if (!selectedTemplate) {
       toast.error('Please select a template')
       return
@@ -127,10 +128,39 @@ export function TestEmailTemplate({ templates, branding }: TestEmailTemplateProp
       return
     }
 
-    toast.success(`Test email would be sent to: ${testGuestEmail}`, {
-      description: `Template: ${selectedTemplate.name}`,
-      duration: 5000,
-    })
+    if (!previewHtml) {
+      toast.error('Please generate a preview first before sending')
+      return
+    }
+
+    setSendingEmail(true)
+    try {
+      const resp = await fetch('/api/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: testGuestEmail,
+          subject: previewSubject || `Test: ${selectedTemplate.name}`,
+          html: previewHtml,
+        }),
+      })
+      const data = await resp.json()
+      if (!resp.ok || data.error) {
+        toast.error(data.error || 'Failed to send email', {
+          description: data.error?.includes('SMTP') ? 'Please configure SMTP in Settings > Email SMTP' : undefined,
+          duration: 7000,
+        })
+      } else {
+        toast.success(`Email sent to ${testGuestEmail}`, {
+          description: `Template: ${selectedTemplate.name}`,
+          duration: 5000,
+        })
+      }
+    } catch {
+      toast.error('Failed to send email. Check your SMTP settings in Settings > Email SMTP.')
+    } finally {
+      setSendingEmail(false)
+    }
   }
 
   const preArrivalTemplates = templates.filter(
@@ -259,9 +289,9 @@ export function TestEmailTemplate({ templates, branding }: TestEmailTemplateProp
                   <Eye size={18} className="mr-2" />
                   Generate Preview
                 </Button>
-                <Button onClick={handleSendTestEmail} variant="outline" className="w-full">
+                <Button onClick={handleSendTestEmail} variant="outline" className="w-full" disabled={sendingEmail}>
                   <EnvelopeSimple size={18} className="mr-2" />
-                  Send Test Email
+                  {sendingEmail ? 'Sending…' : 'Send Test Email'}
                 </Button>
               </div>
 

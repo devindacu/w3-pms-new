@@ -2134,6 +2134,142 @@ app.delete('/api/goods-received-notes/:id', validate(idParamSchema, 'params'), a
   }
 });
 
+// ─── Email Settings & Sending ─────────────────────────────────────────────────
+
+import { createTransporter, verifyConnection, sendEmail as smtpSendEmail } from './services/emailService';
+import type { SMTPSettings } from './services/emailService';
+
+const EMAIL_SETTINGS_KEY = 'email-smtp-settings';
+
+/** Mask the password field before returning to the client */
+function maskSettings(settings: SMTPSettings): Omit<SMTPSettings, 'password'> & { password: string } {
+  return { ...settings, password: settings.password ? '••••••••' : '' };
+}
+
+app.get('/api/email-settings', async (req, res) => {
+  try {
+    const rows = await db.select().from(schema.systemSettings)
+      .where(eq(schema.systemSettings.key, EMAIL_SETTINGS_KEY));
+    if (rows.length && rows[0].value) {
+      const settings: SMTPSettings = JSON.parse(rows[0].value);
+      res.json(maskSettings(settings));
+    } else {
+      res.json(null);
+    }
+  } catch (err) {
+    console.error('Failed to fetch email settings:', err);
+    res.status(500).json({ error: 'Failed to fetch email settings' });
+  }
+});
+
+app.put('/api/email-settings', async (req, res) => {
+  try {
+    const incoming: SMTPSettings = req.body;
+    // If the client sends the masked password, keep the stored password
+    const existing: SMTPSettings | null = await db.select().from(schema.systemSettings)
+      .where(eq(schema.systemSettings.key, EMAIL_SETTINGS_KEY))
+      .then(rows => rows.length && rows[0].value ? JSON.parse(rows[0].value) : null);
+
+    const isMasked = incoming.password === '••••••••'
+    if (!isMasked && !incoming.password) {
+      return res.status(400).json({ error: 'SMTP password is required' });
+    }
+    const toStore: SMTPSettings = {
+      ...incoming,
+      password: isMasked && existing ? existing.password : incoming.password,
+    };
+
+    const value = JSON.stringify(toStore);
+    try {
+      await db.insert(schema.systemSettings).values({
+        key: EMAIL_SETTINGS_KEY, value, category: 'email', description: 'SMTP email configuration',
+      });
+    } catch {
+      await db.update(schema.systemSettings)
+        .set({ value, updatedAt: new Date() })
+        .where(eq(schema.systemSettings.key, EMAIL_SETTINGS_KEY));
+    }
+    res.json(maskSettings(toStore));
+  } catch (err) {
+    console.error('Failed to save email settings:', err);
+    res.status(500).json({ error: 'Failed to save email settings' });
+  }
+});
+
+app.post('/api/email/verify', async (req, res) => {
+  try {
+    const rows = await db.select().from(schema.systemSettings)
+      .where(eq(schema.systemSettings.key, EMAIL_SETTINGS_KEY));
+    if (!rows.length || !rows[0].value) {
+      return res.status(400).json({ error: 'SMTP settings not configured' });
+    }
+    const settings: SMTPSettings = JSON.parse(rows[0].value);
+    const error = await verifyConnection(settings);
+    if (error) {
+      return res.status(422).json({ error });
+    }
+    res.json({ success: true, message: 'SMTP connection verified successfully' });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: msg });
+  }
+});
+
+app.post('/api/email/test', async (req, res) => {
+  try {
+    const { to, subject, html, text } = req.body as { to: string; subject?: string; html?: string; text?: string };
+    if (!to) return res.status(400).json({ error: 'Recipient email (to) is required' });
+
+    const rows = await db.select().from(schema.systemSettings)
+      .where(eq(schema.systemSettings.key, EMAIL_SETTINGS_KEY));
+    if (!rows.length || !rows[0].value) {
+      return res.status(400).json({ error: 'SMTP settings not configured. Please configure SMTP in Settings > Email SMTP.' });
+    }
+    const settings: SMTPSettings = JSON.parse(rows[0].value);
+    if (!settings.password) {
+      return res.status(400).json({ error: 'SMTP password is not configured' });
+    }
+
+    await smtpSendEmail(settings, {
+      to,
+      subject: subject || 'Test Email from W3 Hotel PMS',
+      html: html || `<p>This is a test email from <strong>W3 Hotel PMS</strong>.</p><p>Your SMTP configuration is working correctly.</p>`,
+      text: text || 'Test email from W3 Hotel PMS. Your SMTP configuration is working correctly.',
+    });
+    res.json({ success: true, message: `Test email sent to ${to}` });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('Failed to send test email:', msg);
+    res.status(500).json({ error: msg });
+  }
+});
+
+app.post('/api/email/send', async (req, res) => {
+  try {
+    const { to, subject, html, text, cc, bcc } = req.body;
+    if (!to || !subject || !html) {
+      return res.status(400).json({ error: 'to, subject, and html are required' });
+    }
+
+    const rows = await db.select().from(schema.systemSettings)
+      .where(eq(schema.systemSettings.key, EMAIL_SETTINGS_KEY));
+    if (!rows.length || !rows[0].value) {
+      return res.status(400).json({ error: 'SMTP settings not configured. Please configure SMTP in Settings > Email SMTP.' });
+    }
+    const settings: SMTPSettings = JSON.parse(rows[0].value);
+    if (!settings.password) {
+      return res.status(400).json({ error: 'SMTP password is not configured' });
+    }
+
+    await smtpSendEmail(settings, { to, subject, html, text, cc, bcc });
+    res.json({ success: true });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('Failed to send email:', msg);
+    res.status(500).json({ error: msg });
+  }
+});
+
 // 404 handler - must be after all routes
 app.use((req, res) => {
   res.status(404).json({

@@ -26,7 +26,7 @@ function lsGet<T>(key: string, fallback: T): T {
   try { return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback } catch { return fallback }
 }
 function lsSet(key: string, value: unknown) {
-  try { localStorage.setItem(key, JSON.stringify(value)) } catch { /* ignore */ }
+  try { localStorage.setItem(key, JSON.stringify(value)) } catch (e) { console.warn('localStorage write failed:', e) }
 }
 function nextId() { return parseInt(generateId().replace(/\D/g, '').slice(0, 12)) || Date.now() }
 
