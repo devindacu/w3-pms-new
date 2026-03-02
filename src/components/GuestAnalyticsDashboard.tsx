@@ -323,13 +323,13 @@ export function GuestAnalyticsDashboard({ guestProfiles, feedback }: GuestAnalyt
     if (type === 'bar') {
       return (
         <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.85 0.05 140)" />
-          <XAxis dataKey="name" stroke="oklch(0.45 0.08 140)" />
-          <YAxis stroke="oklch(0.45 0.08 140)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+          <XAxis dataKey="name" stroke="var(--muted-foreground)" />
+          <YAxis stroke="var(--muted-foreground)" />
           <Tooltip 
             contentStyle={{ 
-              backgroundColor: 'oklch(0.99 0.003 140)', 
-              border: '1px solid oklch(0.85 0.05 140)',
+              backgroundColor: 'var(--card)', 
+              border: '1px solid var(--border)',
               borderRadius: '0.5rem'
             }} 
           />
@@ -340,13 +340,13 @@ export function GuestAnalyticsDashboard({ guestProfiles, feedback }: GuestAnalyt
     } else if (type === 'line') {
       return (
         <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.85 0.05 140)" />
-          <XAxis dataKey="name" stroke="oklch(0.45 0.08 140)" />
-          <YAxis stroke="oklch(0.45 0.08 140)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+          <XAxis dataKey="name" stroke="var(--muted-foreground)" />
+          <YAxis stroke="var(--muted-foreground)" />
           <Tooltip 
             contentStyle={{ 
-              backgroundColor: 'oklch(0.99 0.003 140)', 
-              border: '1px solid oklch(0.85 0.05 140)',
+              backgroundColor: 'var(--card)', 
+              border: '1px solid var(--border)',
               borderRadius: '0.5rem'
             }} 
           />
@@ -357,13 +357,13 @@ export function GuestAnalyticsDashboard({ guestProfiles, feedback }: GuestAnalyt
     } else {
       return (
         <AreaChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.85 0.05 140)" />
-          <XAxis dataKey="name" stroke="oklch(0.45 0.08 140)" />
-          <YAxis stroke="oklch(0.45 0.08 140)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+          <XAxis dataKey="name" stroke="var(--muted-foreground)" />
+          <YAxis stroke="var(--muted-foreground)" />
           <Tooltip 
             contentStyle={{ 
-              backgroundColor: 'oklch(0.99 0.003 140)', 
-              border: '1px solid oklch(0.85 0.05 140)',
+              backgroundColor: 'var(--card)', 
+              border: '1px solid var(--border)',
               borderRadius: '0.5rem'
             }} 
           />
@@ -503,8 +503,8 @@ export function GuestAnalyticsDashboard({ guestProfiles, feedback }: GuestAnalyt
                   </Pie>
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'oklch(0.99 0.003 140)', 
-                      border: '1px solid oklch(0.85 0.05 140)',
+                      backgroundColor: 'var(--card)', 
+                      border: '1px solid var(--border)',
                       borderRadius: '0.5rem'
                     }} 
                   />
@@ -516,13 +516,13 @@ export function GuestAnalyticsDashboard({ guestProfiles, feedback }: GuestAnalyt
               <h3 className="text-lg font-semibold mb-4">Loyalty Tier Distribution</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={loyaltyTierData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.85 0.05 140)" />
-                  <XAxis type="number" stroke="oklch(0.45 0.08 140)" />
-                  <YAxis dataKey="name" type="category" stroke="oklch(0.45 0.08 140)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis type="number" stroke="var(--muted-foreground)" />
+                  <YAxis dataKey="name" type="category" stroke="var(--muted-foreground)" />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'oklch(0.99 0.003 140)', 
-                      border: '1px solid oklch(0.85 0.05 140)',
+                      backgroundColor: 'var(--card)', 
+                      border: '1px solid var(--border)',
                       borderRadius: '0.5rem'
                     }} 
                   />
@@ -535,13 +535,13 @@ export function GuestAnalyticsDashboard({ guestProfiles, feedback }: GuestAnalyt
               <h3 className="text-lg font-semibold mb-4">Age Group Distribution</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={ageGroupData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.85 0.05 140)" />
-                  <XAxis dataKey="name" stroke="oklch(0.45 0.08 140)" />
-                  <YAxis stroke="oklch(0.45 0.08 140)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="name" stroke="var(--muted-foreground)" />
+                  <YAxis stroke="var(--muted-foreground)" />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'oklch(0.99 0.003 140)', 
-                      border: '1px solid oklch(0.85 0.05 140)',
+                      backgroundColor: 'var(--card)', 
+                      border: '1px solid var(--border)',
                       borderRadius: '0.5rem'
                     }} 
                   />
@@ -571,8 +571,8 @@ export function GuestAnalyticsDashboard({ guestProfiles, feedback }: GuestAnalyt
                     </Pie>
                     <Tooltip 
                       contentStyle={{ 
-                        backgroundColor: 'oklch(0.99 0.003 140)', 
-                        border: '1px solid oklch(0.85 0.05 140)',
+                        backgroundColor: 'var(--card)', 
+                        border: '1px solid var(--border)',
                         borderRadius: '0.5rem'
                       }} 
                     />
@@ -601,8 +601,8 @@ export function GuestAnalyticsDashboard({ guestProfiles, feedback }: GuestAnalyt
                   </Pie>
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'oklch(0.99 0.003 140)', 
-                      border: '1px solid oklch(0.85 0.05 140)',
+                      backgroundColor: 'var(--card)', 
+                      border: '1px solid var(--border)',
                       borderRadius: '0.5rem'
                     }} 
                   />
@@ -630,13 +630,13 @@ export function GuestAnalyticsDashboard({ guestProfiles, feedback }: GuestAnalyt
               </div>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={feedbackTrendData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.85 0.05 140)" />
-                  <XAxis dataKey="month" stroke="oklch(0.45 0.08 140)" />
-                  <YAxis stroke="oklch(0.45 0.08 140)" domain={[0, 10]} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="month" stroke="var(--muted-foreground)" />
+                  <YAxis stroke="var(--muted-foreground)" domain={[0, 10]} />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'oklch(0.99 0.003 140)', 
-                      border: '1px solid oklch(0.85 0.05 140)',
+                      backgroundColor: 'var(--card)', 
+                      border: '1px solid var(--border)',
                       borderRadius: '0.5rem'
                     }} 
                   />
@@ -651,13 +651,13 @@ export function GuestAnalyticsDashboard({ guestProfiles, feedback }: GuestAnalyt
               <h3 className="text-lg font-semibold mb-4">Rating Distribution</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={ratingDistributionData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.85 0.05 140)" />
-                  <XAxis type="number" stroke="oklch(0.45 0.08 140)" />
-                  <YAxis dataKey="name" type="category" stroke="oklch(0.45 0.08 140)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis type="number" stroke="var(--muted-foreground)" />
+                  <YAxis dataKey="name" type="category" stroke="var(--muted-foreground)" />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'oklch(0.99 0.003 140)', 
-                      border: '1px solid oklch(0.85 0.05 140)',
+                      backgroundColor: 'var(--card)', 
+                      border: '1px solid var(--border)',
                       borderRadius: '0.5rem'
                     }} 
                   />
@@ -670,13 +670,13 @@ export function GuestAnalyticsDashboard({ guestProfiles, feedback }: GuestAnalyt
               <h3 className="text-lg font-semibold mb-4">Sentiment Analysis Over Time</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={sentimentTrendData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.85 0.05 140)" />
-                  <XAxis dataKey="month" stroke="oklch(0.45 0.08 140)" />
-                  <YAxis stroke="oklch(0.45 0.08 140)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="month" stroke="var(--muted-foreground)" />
+                  <YAxis stroke="var(--muted-foreground)" />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'oklch(0.99 0.003 140)', 
-                      border: '1px solid oklch(0.85 0.05 140)',
+                      backgroundColor: 'var(--card)', 
+                      border: '1px solid var(--border)',
                       borderRadius: '0.5rem'
                     }} 
                   />
@@ -692,14 +692,14 @@ export function GuestAnalyticsDashboard({ guestProfiles, feedback }: GuestAnalyt
               <h3 className="text-lg font-semibold mb-4">Category Ratings</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <RadarChart data={categoryRatingsData}>
-                  <PolarGrid stroke="oklch(0.85 0.05 140)" />
-                  <PolarAngleAxis dataKey="category" stroke="oklch(0.45 0.08 140)" />
-                  <PolarRadiusAxis angle={90} domain={[0, 10]} stroke="oklch(0.45 0.08 140)" />
+                  <PolarGrid stroke="var(--border)" />
+                  <PolarAngleAxis dataKey="category" stroke="var(--muted-foreground)" />
+                  <PolarRadiusAxis angle={90} domain={[0, 10]} stroke="var(--muted-foreground)" />
                   <Radar name="Rating" dataKey="rating" stroke={COLORS.chart1} fill={COLORS.chart1} fillOpacity={0.6} />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'oklch(0.99 0.003 140)', 
-                      border: '1px solid oklch(0.85 0.05 140)',
+                      backgroundColor: 'var(--card)', 
+                      border: '1px solid var(--border)',
                       borderRadius: '0.5rem'
                     }} 
                   />
@@ -711,13 +711,13 @@ export function GuestAnalyticsDashboard({ guestProfiles, feedback }: GuestAnalyt
               <h3 className="text-lg font-semibold mb-4">Reviews by Source</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={reviewSourceData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.85 0.05 140)" />
-                  <XAxis dataKey="name" stroke="oklch(0.45 0.08 140)" />
-                  <YAxis stroke="oklch(0.45 0.08 140)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="name" stroke="var(--muted-foreground)" />
+                  <YAxis stroke="var(--muted-foreground)" />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'oklch(0.99 0.003 140)', 
-                      border: '1px solid oklch(0.85 0.05 140)',
+                      backgroundColor: 'var(--card)', 
+                      border: '1px solid var(--border)',
                       borderRadius: '0.5rem'
                     }} 
                   />
@@ -753,13 +753,13 @@ export function GuestAnalyticsDashboard({ guestProfiles, feedback }: GuestAnalyt
                   
                   return Object.entries(distribution).map(([name, value]) => ({ name, value }))
                 })()}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.85 0.05 140)" />
-                  <XAxis dataKey="name" stroke="oklch(0.45 0.08 140)" />
-                  <YAxis stroke="oklch(0.45 0.08 140)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="name" stroke="var(--muted-foreground)" />
+                  <YAxis stroke="var(--muted-foreground)" />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'oklch(0.99 0.003 140)', 
-                      border: '1px solid oklch(0.85 0.05 140)',
+                      backgroundColor: 'var(--card)', 
+                      border: '1px solid var(--border)',
                       borderRadius: '0.5rem'
                     }} 
                   />
@@ -791,13 +791,13 @@ export function GuestAnalyticsDashboard({ guestProfiles, feedback }: GuestAnalyt
                   
                   return Object.entries(distribution).map(([name, value]) => ({ name, value }))
                 })()}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.85 0.05 140)" />
-                  <XAxis dataKey="name" stroke="oklch(0.45 0.08 140)" />
-                  <YAxis stroke="oklch(0.45 0.08 140)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="name" stroke="var(--muted-foreground)" />
+                  <YAxis stroke="var(--muted-foreground)" />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'oklch(0.99 0.003 140)', 
-                      border: '1px solid oklch(0.85 0.05 140)',
+                      backgroundColor: 'var(--card)', 
+                      border: '1px solid var(--border)',
                       borderRadius: '0.5rem'
                     }} 
                   />
@@ -813,13 +813,13 @@ export function GuestAnalyticsDashboard({ guestProfiles, feedback }: GuestAnalyt
             <h3 className="text-lg font-semibold mb-4">Top 10 Guests by Lifetime Value</h3>
             <ResponsiveContainer width="100%" height={400}>
               <BarChart data={guestValueData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.85 0.05 140)" />
-                <XAxis type="number" stroke="oklch(0.45 0.08 140)" />
-                <YAxis dataKey="name" type="category" stroke="oklch(0.45 0.08 140)" width={120} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis type="number" stroke="var(--muted-foreground)" />
+                <YAxis dataKey="name" type="category" stroke="var(--muted-foreground)" width={120} />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: 'oklch(0.99 0.003 140)', 
-                    border: '1px solid oklch(0.85 0.05 140)',
+                    backgroundColor: 'var(--card)', 
+                    border: '1px solid var(--border)',
                     borderRadius: '0.5rem'
                   }}
                   formatter={(value: number) => formatCurrency(value)}
@@ -835,13 +835,13 @@ export function GuestAnalyticsDashboard({ guestProfiles, feedback }: GuestAnalyt
               <h3 className="text-lg font-semibold mb-4">Top Guests - Stays vs Spend</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={guestValueData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.85 0.05 140)" />
-                  <XAxis dataKey="name" stroke="oklch(0.45 0.08 140)" angle={-45} textAnchor="end" height={100} />
-                  <YAxis stroke="oklch(0.45 0.08 140)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="name" stroke="var(--muted-foreground)" angle={-45} textAnchor="end" height={100} />
+                  <YAxis stroke="var(--muted-foreground)" />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'oklch(0.99 0.003 140)', 
-                      border: '1px solid oklch(0.85 0.05 140)',
+                      backgroundColor: 'var(--card)', 
+                      border: '1px solid var(--border)',
                       borderRadius: '0.5rem'
                     }} 
                   />
@@ -855,13 +855,13 @@ export function GuestAnalyticsDashboard({ guestProfiles, feedback }: GuestAnalyt
               <h3 className="text-lg font-semibold mb-4">Average Spend per Stay</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={guestValueData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.85 0.05 140)" />
-                  <XAxis dataKey="name" stroke="oklch(0.45 0.08 140)" angle={-45} textAnchor="end" height={100} />
-                  <YAxis stroke="oklch(0.45 0.08 140)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="name" stroke="var(--muted-foreground)" angle={-45} textAnchor="end" height={100} />
+                  <YAxis stroke="var(--muted-foreground)" />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'oklch(0.99 0.003 140)', 
-                      border: '1px solid oklch(0.85 0.05 140)',
+                      backgroundColor: 'var(--card)', 
+                      border: '1px solid var(--border)',
                       borderRadius: '0.5rem'
                     }}
                     formatter={(value: number) => formatCurrency(value)}

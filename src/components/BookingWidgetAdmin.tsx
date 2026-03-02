@@ -9,6 +9,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
+import { generateId } from '@/lib/helpers'
+
+// ─── localStorage helpers ─────────────────────────────────────────────────────
+
+export const BOOKING_LS_KEYS = {
+  widgetSettings: 'w3-booking-widget-settings',
+  ratePlans: 'w3-booking-rate-plans',
+  residentRules: 'w3-booking-resident-rules',
+  seasonalMultipliers: 'w3-booking-seasonal-multipliers',
+  promoCodes: 'w3-booking-promo-codes',
+}
+const LS_KEYS = BOOKING_LS_KEYS
+
+function lsGet<T>(key: string, fallback: T): T {
+  try { return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback } catch { return fallback }
+}
+function lsSet(key: string, value: unknown) {
+  try { localStorage.setItem(key, JSON.stringify(value)) } catch (e) { console.warn('localStorage write failed:', e) }
+}
+function nextId() { return parseInt(generateId().replace(/\D/g, '').slice(0, 12)) || Date.now() }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -111,24 +131,17 @@ function WidgetSettingsTab({ onCurrencyChange }: { onCurrencyChange?: (code: str
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    fetch('/api/booking/widget-settings')
-      .then(r => r.json())
-      .then(d => {
-        setSettings(s => ({ ...s, ...d }))
-        if (d.currencyCode && onCurrencyChange) onCurrencyChange(d.currencyCode)
-      })
-      .catch(() => {})
+    const saved = lsGet<Partial<WidgetSettings>>(LS_KEYS.widgetSettings, {})
+    if (Object.keys(saved).length) {
+      setSettings(s => ({ ...s, ...saved }))
+      if (saved.currencyCode && onCurrencyChange) onCurrencyChange(saved.currencyCode)
+    }
   }, [onCurrencyChange])
 
   async function save() {
     setSaving(true)
     try {
-      const resp = await fetch('/api/booking/widget-settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
-      })
-      if (!resp.ok) throw new Error('Save failed')
+      lsSet(LS_KEYS.widgetSettings, settings)
       toast.success('Widget settings saved')
       if (onCurrencyChange) onCurrencyChange(settings.currencyCode)
     } catch {
@@ -218,9 +231,8 @@ function RatePlansTab({ currencyCode }: { currencyCode: string }) {
   const [isNew, setIsNew] = useState(false)
   const [saving, setSaving] = useState(false)
 
-  const load = useCallback(async () => {
-    const r = await fetch('/api/booking/rate-plans')
-    if (r.ok) setPlans(await r.json())
+  const load = useCallback(() => {
+    setPlans(lsGet<RatePlan[]>(LS_KEYS.ratePlans, []))
   }, [])
 
   useEffect(() => { load() }, [load])
@@ -229,14 +241,13 @@ function RatePlansTab({ currencyCode }: { currencyCode: string }) {
     if (!editing) return
     setSaving(true)
     try {
-      const url = isNew ? '/api/booking/rate-plans' : `/api/booking/rate-plans/${editing.id}`
-      const method = isNew ? 'POST' : 'PUT'
-      const resp = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editing),
-      })
-      if (!resp.ok) throw new Error('Save failed')
+      const current = lsGet<RatePlan[]>(LS_KEYS.ratePlans, [])
+      if (isNew) {
+        const newPlan = { ...editing, id: nextId() } as RatePlan
+        lsSet(LS_KEYS.ratePlans, [...current, newPlan])
+      } else {
+        lsSet(LS_KEYS.ratePlans, current.map(p => p.id === editing.id ? { ...p, ...editing } : p))
+      }
       toast.success(isNew ? 'Rate plan created' : 'Rate plan updated')
       setEditing(null)
       load()
@@ -249,13 +260,10 @@ function RatePlansTab({ currencyCode }: { currencyCode: string }) {
 
   async function deletePlan(id: number) {
     if (!confirm('Delete this rate plan?')) return
-    const resp = await fetch(`/api/booking/rate-plans/${id}`, { method: 'DELETE' })
-    if (resp.ok) {
-      toast.success('Rate plan deleted')
-      load()
-    } else {
-      toast.error('Failed to delete rate plan')
-    }
+    const current = lsGet<RatePlan[]>(LS_KEYS.ratePlans, [])
+    lsSet(LS_KEYS.ratePlans, current.filter(p => p.id !== id))
+    toast.success('Rate plan deleted')
+    load()
   }
 
   function set(field: keyof RatePlan, value: string | boolean | number | null) {
@@ -398,13 +406,9 @@ function ResidentRulesTab() {
   const [form, setForm] = useState({ ratePlanId: '', countryCode: 'KE' })
   const [saving, setSaving] = useState(false)
 
-  const load = useCallback(async () => {
-    const [r1, r2] = await Promise.all([
-      fetch('/api/booking/resident-rules').then(r => r.json()),
-      fetch('/api/booking/rate-plans').then(r => r.json()),
-    ])
-    setRules(r1)
-    setPlans(r2)
+  const load = useCallback(() => {
+    setRules(lsGet<ResidentRule[]>(LS_KEYS.residentRules, []))
+    setPlans(lsGet<RatePlan[]>(LS_KEYS.ratePlans, []))
   }, [])
 
   useEffect(() => { load() }, [load])
@@ -414,17 +418,14 @@ function ResidentRulesTab() {
     setSaving(true)
     try {
       const country = COUNTRIES.find(c => c.code === form.countryCode)
-      const resp = await fetch('/api/booking/resident-rules', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ratePlanId: parseInt(form.ratePlanId),
-          countryCode: form.countryCode,
-          countryName: country?.name ?? form.countryCode,
-          isActive: true,
-        }),
-      })
-      if (!resp.ok) throw new Error('Failed')
+      const current = lsGet<ResidentRule[]>(LS_KEYS.residentRules, [])
+      lsSet(LS_KEYS.residentRules, [...current, {
+        id: nextId(),
+        ratePlanId: parseInt(form.ratePlanId),
+        countryCode: form.countryCode,
+        countryName: country?.name ?? form.countryCode,
+        isActive: true,
+      }])
       toast.success('Resident rule added')
       load()
     } catch {
@@ -435,9 +436,10 @@ function ResidentRulesTab() {
   }
 
   async function remove(id: number) {
-    const resp = await fetch(`/api/booking/resident-rules/${id}`, { method: 'DELETE' })
-    if (resp.ok) { toast.success('Rule removed'); load() }
-    else toast.error('Failed to remove rule')
+    const current = lsGet<ResidentRule[]>(LS_KEYS.residentRules, [])
+    lsSet(LS_KEYS.residentRules, current.filter(r => r.id !== id))
+    toast.success('Rule removed')
+    load()
   }
 
   return (
@@ -506,13 +508,9 @@ function SeasonalMultipliersTab() {
   const [form, setForm] = useState({ ratePlanId: '', name: '', startDate: '', endDate: '', multiplier: '1.000' })
   const [saving, setSaving] = useState(false)
 
-  const load = useCallback(async () => {
-    const [r1, r2] = await Promise.all([
-      fetch('/api/booking/seasonal-multipliers').then(r => r.json()),
-      fetch('/api/booking/rate-plans').then(r => r.json()),
-    ])
-    setMultipliers(r1)
-    setPlans(r2)
+  const load = useCallback(() => {
+    setMultipliers(lsGet<SeasonalMultiplier[]>(LS_KEYS.seasonalMultipliers, []))
+    setPlans(lsGet<RatePlan[]>(LS_KEYS.ratePlans, []))
   }, [])
 
   useEffect(() => { load() }, [load])
@@ -524,12 +522,8 @@ function SeasonalMultipliersTab() {
     }
     setSaving(true)
     try {
-      const resp = await fetch('/api/booking/seasonal-multipliers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, ratePlanId: parseInt(form.ratePlanId) }),
-      })
-      if (!resp.ok) throw new Error('Failed')
+      const current = lsGet<SeasonalMultiplier[]>(LS_KEYS.seasonalMultipliers, [])
+      lsSet(LS_KEYS.seasonalMultipliers, [...current, { ...form, id: nextId(), ratePlanId: parseInt(form.ratePlanId) }])
       toast.success('Seasonal multiplier added')
       setForm(f => ({ ...f, name: '', startDate: '', endDate: '', multiplier: '1.000' }))
       load()
@@ -541,9 +535,10 @@ function SeasonalMultipliersTab() {
   }
 
   async function remove(id: number) {
-    const resp = await fetch(`/api/booking/seasonal-multipliers/${id}`, { method: 'DELETE' })
-    if (resp.ok) { toast.success('Multiplier removed'); load() }
-    else toast.error('Failed to remove multiplier')
+    const current = lsGet<SeasonalMultiplier[]>(LS_KEYS.seasonalMultipliers, [])
+    lsSet(LS_KEYS.seasonalMultipliers, current.filter(m => m.id !== id))
+    toast.success('Multiplier removed')
+    load()
   }
 
   return (
@@ -618,9 +613,8 @@ function PromoCodesTab({ currencyCode }: { currencyCode: string }) {
   const [isNew, setIsNew] = useState(false)
   const [saving, setSaving] = useState(false)
 
-  const load = useCallback(async () => {
-    const r = await fetch('/api/booking/promo-codes')
-    if (r.ok) setCodes(await r.json())
+  const load = useCallback(() => {
+    setCodes(lsGet<PromoCode[]>(LS_KEYS.promoCodes, []))
   }, [])
 
   useEffect(() => { load() }, [load])
@@ -629,14 +623,12 @@ function PromoCodesTab({ currencyCode }: { currencyCode: string }) {
     if (!editing) return
     setSaving(true)
     try {
-      const url = isNew ? '/api/booking/promo-codes' : `/api/booking/promo-codes/${editing.id}`
-      const method = isNew ? 'POST' : 'PUT'
-      const resp = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editing),
-      })
-      if (!resp.ok) throw new Error('Save failed')
+      const current = lsGet<PromoCode[]>(LS_KEYS.promoCodes, [])
+      if (isNew) {
+        lsSet(LS_KEYS.promoCodes, [...current, { ...editing, id: nextId() } as PromoCode])
+      } else {
+        lsSet(LS_KEYS.promoCodes, current.map(c => c.id === editing.id ? { ...c, ...editing } : c))
+      }
       toast.success(isNew ? 'Promo code created' : 'Promo code updated')
       setEditing(null)
       load()
@@ -649,9 +641,10 @@ function PromoCodesTab({ currencyCode }: { currencyCode: string }) {
 
   async function deleteCode(id: number) {
     if (!confirm('Delete this promo code?')) return
-    const resp = await fetch(`/api/booking/promo-codes/${id}`, { method: 'DELETE' })
-    if (resp.ok) { toast.success('Promo code deleted'); load() }
-    else toast.error('Failed to delete promo code')
+    const current = lsGet<PromoCode[]>(LS_KEYS.promoCodes, [])
+    lsSet(LS_KEYS.promoCodes, current.filter(c => c.id !== id))
+    toast.success('Promo code deleted')
+    load()
   }
 
   function set(field: keyof PromoCode, value: string | boolean | number | null) {
@@ -772,13 +765,17 @@ function PromoCodesTab({ currencyCode }: { currencyCode: string }) {
 // ─── Widget Preview Tab ───────────────────────────────────────────────────────
 
 function WidgetPreviewTab() {
-  const [settings, setSettings] = useState<WidgetSettings | null>(null)
+  const defaultSettings: WidgetSettings = {
+    propertyId: 'default', primaryColor: '#1a56db', accentColor: '#0e9f6e',
+    logoUrl: null, propertyName: 'Hotel', welcomeMessage: null,
+    currencyCode: 'USD', currencySymbol: '$', residentLabel: 'Resident',
+    nonResidentLabel: 'Non-Resident', showAddOns: true, allowedOrigins: null,
+  }
+  const [settings, setSettings] = useState<WidgetSettings>(defaultSettings)
 
   useEffect(() => {
-    fetch('/api/booking/widget-settings')
-      .then(r => r.json())
-      .then(setSettings)
-      .catch(() => {})
+    const saved = lsGet<Partial<WidgetSettings>>(LS_KEYS.widgetSettings, {})
+    if (Object.keys(saved).length) setSettings(s => ({ ...s, ...saved }))
   }, [])
 
   if (!settings) return <p className="text-muted-foreground">Loading preview…</p>
@@ -959,14 +956,10 @@ function EmbedCodeTab() {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function BookingWidgetAdmin() {
-  const [currencyCode, setCurrencyCode] = useState('KES')
-
-  useEffect(() => {
-    fetch('/api/booking/widget-settings')
-      .then(r => r.json())
-      .then(d => { if (d.currencyCode) setCurrencyCode(d.currencyCode) })
-      .catch(() => {})
-  }, [])
+  const [currencyCode, setCurrencyCode] = useState(() => {
+    const saved = lsGet<Partial<WidgetSettings>>(LS_KEYS.widgetSettings, {})
+    return saved.currencyCode || 'USD'
+  })
 
   return (
     <div className="space-y-6">

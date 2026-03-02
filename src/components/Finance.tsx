@@ -788,7 +788,7 @@ export function Finance({
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList className="flex-wrap h-auto">
+        <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="invoices">Invoices</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
@@ -898,14 +898,14 @@ export function Finance({
               {trendData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={trendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.85 0.05 140)" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                     <XAxis 
                       dataKey="month" 
-                      stroke="oklch(0.45 0.08 140)"
+                      stroke="var(--muted-foreground)"
                       fontSize={12}
                     />
                     <YAxis 
-                      stroke="oklch(0.45 0.08 140)"
+                      stroke="var(--muted-foreground)"
                       fontSize={12}
                       tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                     />
@@ -922,8 +922,8 @@ export function Finance({
                         return label
                       }}
                       contentStyle={{
-                        backgroundColor: 'oklch(0.99 0.003 140)',
-                        border: '1px solid oklch(0.85 0.05 140)',
+                        backgroundColor: 'var(--card)',
+                        border: '1px solid var(--border)',
                         borderRadius: '8px'
                       }}
                     />
@@ -960,17 +960,17 @@ export function Finance({
               {topSuppliers.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={topSuppliers} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.85 0.05 140)" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                     <XAxis 
                       type="number"
-                      stroke="oklch(0.45 0.08 140)"
+                      stroke="var(--muted-foreground)"
                       fontSize={12}
                       tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                     />
                     <YAxis 
                       type="category"
                       dataKey="supplier" 
-                      stroke="oklch(0.45 0.08 140)"
+                      stroke="var(--muted-foreground)"
                       fontSize={11}
                       width={120}
                     />
@@ -980,8 +980,8 @@ export function Finance({
                         return [value, 'Invoice Count']
                       }}
                       contentStyle={{
-                        backgroundColor: 'oklch(0.99 0.003 140)',
-                        border: '1px solid oklch(0.85 0.05 140)',
+                        backgroundColor: 'var(--card)',
+                        border: '1px solid var(--border)',
                         borderRadius: '8px'
                       }}
                     />
@@ -2234,7 +2234,19 @@ export function Finance({
 
       <InvoiceDialog
         open={invoiceDialogOpen}
-        onOpenChange={setInvoiceDialogOpen}
+        onOpenChange={(open) => {
+          setInvoiceDialogOpen(open)
+          if (!open) setSelectedInvoice(undefined)
+        }}
+        invoice={selectedInvoice}
+        onSave={(inv) => {
+          if (selectedInvoice) {
+            setInvoices((prev) => prev.map((i) => (i.id === inv.id ? inv : i)))
+          } else {
+            setInvoices((prev) => [...prev, inv])
+          }
+        }}
+        currentUser={currentUser}
       />
 
       <PaymentDialog

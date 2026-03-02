@@ -54,6 +54,7 @@ interface NotificationPanelProps {
   onClearAll: () => void
   preferences?: NotificationPreferences
   onUpdatePreferences?: (preferences: NotificationPreferences) => void
+  inline?: boolean
 }
 
 const iconMap = {
@@ -116,6 +117,7 @@ export function NotificationPanel({
   onDismiss,
   onArchive,
   onClearAll,
+  inline = false,
 }: NotificationPanelProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [filter, setFilter] = useState<'all' | 'unread' | 'critical'>('all')
@@ -147,6 +149,170 @@ export function NotificationPanel({
       <Badge variant={variants[priority]} className="text-xs">
         {priority.toUpperCase()}
       </Badge>
+    )
+  }
+
+  const notificationContent = (
+    <>
+      <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)} className={inline ? '' : 'mt-6'}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="all">
+            All ({notifications.filter(n => n.status !== 'archived' && n.status !== 'dismissed').length})
+          </TabsTrigger>
+          <TabsTrigger value="unread">
+            Unread ({unreadCount})
+          </TabsTrigger>
+          <TabsTrigger value="critical">
+            Critical ({criticalCount})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value={filter} className="mt-4">
+          <ScrollArea className={inline ? 'h-[calc(100vh-20rem)]' : 'h-[calc(100vh-16rem)]'}>
+            {sortedNotifications.length === 0 ? (
+              <div className="text-center py-12">
+                <Bell size={48} className="mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  {filter === 'unread' ? 'No unread notifications' :
+                   filter === 'critical' ? 'No critical notifications' :
+                   'No notifications'}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {sortedNotifications.map((notification) => {
+                  const IconComponent = getIcon(notification)
+                  const colorClass = getNotificationColor(notification.priority)
+
+                  return (
+                    <div
+                      key={notification.id}
+                      className={`p-4 rounded-lg border-2 ${
+                        notification.status === 'unread'
+                          ? 'bg-accent/10 border-accent'
+                          : 'bg-card border-border'
+                      } hover:bg-accent/5 transition-colors`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`mt-0.5 ${colorClass}`}>
+                          <IconComponent size={20} weight="fill" />
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <h4 className="font-semibold text-sm leading-tight">
+                              {notification.title}
+                            </h4>
+                            {getPriorityBadge(notification.priority)}
+                          </div>
+
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {notification.message}
+                          </p>
+
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Badge variant="outline" className="text-xs">
+                              {notification.module}
+                            </Badge>
+                            <span>•</span>
+                            <span>
+                              {formatDistanceToNow(notification.createdAt, { addSuffix: true })}
+                            </span>
+                          </div>
+
+                          {notification.actionLabel && (
+                            <div className="mt-3">
+                              <Button size="sm" variant="outline">
+                                {notification.actionLabel}
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          {notification.status === 'unread' && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8"
+                              onClick={() => onMarkAsRead(notification.id)}
+                            >
+                              <Check size={16} />
+                            </Button>
+                          )}
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            onClick={() => onArchive(notification.id)}
+                          >
+                            <Archive size={16} />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            onClick={() => onDismiss(notification.id)}
+                          >
+                            <X size={16} />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </ScrollArea>
+        </TabsContent>
+      </Tabs>
+
+      {notifications.filter(n => n.status !== 'archived' && n.status !== 'dismissed').length > 0 && (
+        <>
+          <Separator className="my-4" />
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={onClearAll}
+            >
+              <Trash size={16} className="mr-2" />
+              Clear All
+            </Button>
+          </div>
+        </>
+      )}
+    </>
+  )
+
+  if (inline) {
+    return (
+      <div className="space-y-4 md:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-semibold flex items-center gap-2">
+              <Bell size={28} className="text-primary" />
+              Notifications
+            </h1>
+            <p className="text-muted-foreground mt-1 text-sm md:text-base">
+              {unreadCount === 0 ? 'All caught up!' : (
+                <>
+                  {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
+                  {criticalCount > 0 && ` • ${criticalCount} critical`}
+                </>
+              )}
+            </p>
+          </div>
+          {unreadCount > 0 && (
+            <Button variant="outline" size="sm" onClick={onMarkAllAsRead}>
+              <Check size={16} className="mr-2" />
+              Mark All Read
+            </Button>
+          )}
+        </div>
+        {notificationContent}
+      </div>
     )
   }
 
@@ -183,136 +349,7 @@ export function NotificationPanel({
             )}
           </SheetDescription>
         </SheetHeader>
-
-        <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)} className="mt-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="all">
-              All ({notifications.length})
-            </TabsTrigger>
-            <TabsTrigger value="unread">
-              Unread ({unreadCount})
-            </TabsTrigger>
-            <TabsTrigger value="critical">
-              Critical ({criticalCount})
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value={filter} className="mt-4">
-            <ScrollArea className="h-[calc(100vh-16rem)]">
-              {sortedNotifications.length === 0 ? (
-                <div className="text-center py-12">
-                  <Bell size={48} className="mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">
-                    {filter === 'unread' ? 'No unread notifications' :
-                     filter === 'critical' ? 'No critical notifications' :
-                     'No notifications'}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {sortedNotifications.map((notification) => {
-                    const IconComponent = getIcon(notification)
-                    const colorClass = getNotificationColor(notification.priority)
-
-                    return (
-                      <div
-                        key={notification.id}
-                        className={`p-4 rounded-lg border-2 ${
-                          notification.status === 'unread'
-                            ? 'bg-accent/10 border-accent'
-                            : 'bg-card border-border'
-                        } hover:bg-accent/5 transition-colors`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className={`mt-0.5 ${colorClass}`}>
-                            <IconComponent size={20} weight="fill" />
-                          </div>
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2 mb-1">
-                              <h4 className="font-semibold text-sm leading-tight">
-                                {notification.title}
-                              </h4>
-                              {getPriorityBadge(notification.priority)}
-                            </div>
-
-                            <p className="text-sm text-muted-foreground mb-2">
-                              {notification.message}
-                            </p>
-
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <Badge variant="outline" className="text-xs">
-                                {notification.module}
-                              </Badge>
-                              <span>•</span>
-                              <span>
-                                {formatDistanceToNow(notification.createdAt, { addSuffix: true })}
-                              </span>
-                            </div>
-
-                            {notification.actionLabel && (
-                              <div className="mt-3">
-                                <Button size="sm" variant="outline">
-                                  {notification.actionLabel}
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex flex-col gap-1">
-                            {notification.status === 'unread' && (
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8"
-                                onClick={() => onMarkAsRead(notification.id)}
-                              >
-                                <Check size={16} />
-                              </Button>
-                            )}
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8"
-                              onClick={() => onArchive(notification.id)}
-                            >
-                              <Archive size={16} />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8"
-                              onClick={() => onDismiss(notification.id)}
-                            >
-                              <X size={16} />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </ScrollArea>
-          </TabsContent>
-        </Tabs>
-
-        {notifications.length > 0 && (
-          <>
-            <Separator className="my-4" />
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={onClearAll}
-              >
-                <Trash size={16} className="mr-2" />
-                Clear All
-              </Button>
-            </div>
-          </>
-        )}
+        {notificationContent}
       </SheetContent>
     </Sheet>
   )

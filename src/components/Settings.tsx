@@ -12,6 +12,7 @@ import { BackupManagement } from '@/components/BackupManagement'
 import { GoogleAnalyticsSettings } from '@/components/GoogleAnalyticsSettings'
 import { SyncTestingPanel } from '@/components/SyncTestingPanel'
 import { CurrencyManagement } from '@/components/CurrencyManagement'
+import { EmailSMTPSettings } from '@/components/EmailSMTPSettings'
 import type { 
   HotelBranding, 
   TaxConfiguration, 
@@ -30,7 +31,8 @@ import {
   FloppyDisk,
   Globe,
   ArrowsClockwise,
-  CurrencyDollar
+  CurrencyDollar,
+  WifiHigh,
 } from '@phosphor-icons/react'
 
 interface SettingsProps {
@@ -82,7 +84,7 @@ export function Settings({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9 gap-1">
+        <TabsList className="flex flex-wrap h-auto gap-1">
           <TabsTrigger value="branding" className="gap-2">
             <Palette size={18} />
             <span className="hidden sm:inline">Branding</span>
@@ -106,6 +108,10 @@ export function Settings({
           <TabsTrigger value="email-templates" className="gap-2">
             <EnvelopeSimple size={18} />
             <span className="hidden sm:inline">Templates</span>
+          </TabsTrigger>
+          <TabsTrigger value="email-smtp" className="gap-2">
+            <WifiHigh size={18} />
+            <span className="hidden sm:inline">Email SMTP</span>
           </TabsTrigger>
           <TabsTrigger value="google-analytics" className="gap-2">
             <Globe size={18} />
@@ -191,6 +197,10 @@ export function Settings({
 
         <TabsContent value="google-analytics" className="mt-6">
           <GoogleAnalyticsSettings currentUser={currentUser} />
+        </TabsContent>
+
+        <TabsContent value="email-smtp" className="mt-6">
+          <EmailSMTPSettings />
         </TabsContent>
 
         <TabsContent value="version-control" className="mt-6">

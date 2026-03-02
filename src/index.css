@@ -8,6 +8,8 @@
   
   body {
     font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    color: var(--foreground);
+    background-color: var(--background);
   }
 }
 
@@ -37,26 +39,18 @@
    */
   
   [data-radix-dialog-content] {
-    @apply max-h-[95vh] sm:max-h-[92vh] md:max-h-[90vh] lg:max-h-[88vh] overflow-hidden flex flex-col;
-    width: 95vw !important;
-    max-width: min(1600px, 95vw) !important;
+    @apply max-h-[90vh] sm:max-h-[88vh] overflow-hidden flex flex-col;
+    width: min(95vw, 600px);
+    max-width: min(95vw, 600px);
     background: var(--card);
     border: 1px solid var(--border);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
   }
-  
-  @media (min-width: 1536px) {
-    [data-radix-dialog-content] {
-      width: 90vw !important;
-      max-width: 1800px !important;
-    }
-  }
-  
-  @media (min-width: 1920px) {
-    [data-radix-dialog-content] {
-      width: 85vw !important;
-      max-width: 2000px !important;
-    }
+
+  /* Allow individual dialogs to override with Tailwind max-w-* classes */
+  [data-radix-dialog-content][class*="max-w-"] {
+    width: 95vw;
+    max-width: inherit;
   }
   
   .dialog-content-wrapper {
@@ -506,6 +500,50 @@
     .mobile-card-label {
       @apply min-w-[80px] text-xs;
     }
+  }
+
+  /* ── Recharts dark-mode fixes ──────────────────────────────────────────── */
+  /* Axis tick labels */
+  .dark .recharts-text,
+  .dark .recharts-cartesian-axis-tick text,
+  .dark .recharts-polar-angle-axis-tick text,
+  .dark .recharts-polar-radius-axis-tick text {
+    fill: var(--muted-foreground) !important;
+  }
+  /* Axis lines */
+  .dark .recharts-cartesian-axis line,
+  .dark .recharts-cartesian-axis path {
+    stroke: var(--border) !important;
+  }
+  /* Grid lines */
+  .dark .recharts-cartesian-grid line {
+    stroke: var(--border) !important;
+    opacity: 0.6;
+  }
+  /* Legend text */
+  .dark .recharts-legend-item-text {
+    color: var(--muted-foreground) !important;
+  }
+  /* Default tooltip */
+  .dark .recharts-default-tooltip {
+    background-color: var(--card) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--card-foreground) !important;
+  }
+  .dark .recharts-default-tooltip .recharts-tooltip-label {
+    color: var(--card-foreground) !important;
+  }
+  .dark .recharts-tooltip-item {
+    color: var(--muted-foreground) !important;
+  }
+  /* Polar grid */
+  .dark .recharts-polar-grid line,
+  .dark .recharts-polar-grid path {
+    stroke: var(--border) !important;
+  }
+  /* Reference line */
+  .dark .recharts-reference-line line {
+    stroke: var(--border) !important;
   }
 }
 

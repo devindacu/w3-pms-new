@@ -1410,7 +1410,7 @@ function App() {
   )
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background text-foreground">
       {!currentUser?.id ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
@@ -1420,7 +1420,7 @@ function App() {
         </div>
       ) : (
         <>
-      <aside className="hidden lg:block w-64 border-r bg-card p-4 space-y-2 overflow-y-auto fixed left-0 top-0 bottom-0 z-40">
+      <aside className="hidden lg:block w-64 border-r bg-card text-card-foreground p-4 space-y-2 overflow-y-auto fixed left-0 top-0 bottom-0 z-40">
         <SidebarContent />
       </aside>
 
@@ -2044,12 +2044,15 @@ function App() {
           )}
           {currentModule === 'booking-engine' && (
             <Tabs defaultValue="widget">
-              <TabsList>
+              <TabsList className="flex-wrap h-auto">
                 <TabsTrigger value="widget">Booking Widget</TabsTrigger>
                 <TabsTrigger value="admin">Admin / Settings</TabsTrigger>
               </TabsList>
               <TabsContent value="widget" className="mt-4">
-                <BookingEngine />
+                <BookingEngine
+                  rooms={rooms || []}
+                  reservations={reservations || []}
+                />
               </TabsContent>
               <TabsContent value="admin" className="mt-4">
                 <BookingWidgetAdmin />
@@ -2064,6 +2067,7 @@ function App() {
               onDismiss={handleDismiss}
               onArchive={handleArchive}
               onClearAll={handleClearAll}
+              inline={true}
             />
           )}
         </div>
