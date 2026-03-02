@@ -347,6 +347,7 @@ export function Procurement({
                     </p>
                   )}
                   <Separator className="my-4" />
+                  <div className="overflow-x-auto">
                   <div className="space-y-2">
                     <div className="grid grid-cols-12 gap-3 px-2 text-xs font-medium text-muted-foreground">
                       <div className="col-span-4">Item</div>
@@ -385,6 +386,7 @@ export function Procurement({
                         </p>
                       </div>
                     </div>
+                  </div>
                   </div>
                 </div>
                 <div className="flex gap-2 ml-4">

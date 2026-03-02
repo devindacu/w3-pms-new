@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch'
 import { Card } from '@/components/ui/card'
 import { Plus, Trash, X, Star } from '@phosphor-icons/react'
 import { generateNumber } from '@/lib/helpers'
+import { toast } from 'sonner'
 
 interface SupplierDialogProps {
   open: boolean
@@ -141,10 +142,20 @@ export function SupplierDialog({ open, onClose, onSave, supplier }: SupplierDial
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.name.trim() || !formData.phone.trim()) {
+    if (!formData.name.trim()) {
+      toast.error('Please enter supplier name')
+      return
+    }
+    if (formData.contactPersons.length === 0 || !formData.contactPersons[0]?.name?.trim()) {
+      toast.error('Please add at least one contact person with a name')
+      return
+    }
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      toast.error('Please enter a valid email address')
       return
     }
     if (formData.category.length === 0) {
+      toast.error('Please select at least one category')
       return
     }
     onSave(formData)

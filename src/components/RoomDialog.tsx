@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge'
 import { X } from '@phosphor-icons/react'
 import type { Room, RoomStatus, RoomType, RoomTypeConfig } from '@/lib/types'
 import { formatCurrency } from '@/lib/helpers'
+import { toast } from 'sonner'
 
 interface RoomDialogProps {
   open: boolean
@@ -101,6 +102,23 @@ export function RoomDialog({ open, onOpenChange, room, onSave }: RoomDialogProps
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!formData.roomNumber?.trim()) {
+      toast.error('Please enter a room number')
+      return
+    }
+    if (!formData.roomType) {
+      toast.error('Please select a room type')
+      return
+    }
+    if (!formData.baseRate || formData.baseRate <= 0) {
+      toast.error('Base rate must be greater than 0')
+      return
+    }
+    if (formData.floor !== undefined && formData.floor < 0) {
+      toast.error('Floor must be 0 or greater')
+      return
+    }
 
     const roomData: Room = {
       id: room?.id || `room-${Date.now()}`,

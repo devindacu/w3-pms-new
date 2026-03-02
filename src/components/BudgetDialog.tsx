@@ -102,6 +102,16 @@ export function BudgetDialog({ open, onOpenChange, budget, onSave }: BudgetDialo
       return
     }
 
+    if (!formData.period) {
+      toast.error('Budget period is required')
+      return
+    }
+
+    if (!formData.totalBudget || formData.totalBudget <= 0) {
+      toast.error('Total budget amount must be greater than 0')
+      return
+    }
+
     if (categories.length === 0) {
       toast.error('At least one budget category is required')
       return

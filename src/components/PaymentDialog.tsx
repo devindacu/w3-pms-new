@@ -58,6 +58,16 @@ export function PaymentDialog({ open, onOpenChange, payment, invoices, onSave }:
       return
     }
 
+    if (!formData.method) {
+      toast.error('Please select a payment method')
+      return
+    }
+
+    if (!formData.processedAt) {
+      toast.error('Please provide a payment date')
+      return
+    }
+
     const newPayment: Payment = {
       id: payment?.id || `pay-${Date.now()}`,
       paymentNumber: formData.paymentNumber!,

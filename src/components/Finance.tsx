@@ -2095,6 +2095,7 @@ export function Finance({
               <ListChecks size={20} />
               Trial Balance
             </h3>
+            <div className="overflow-x-auto">
             <div className="space-y-2">
               <div className="grid grid-cols-4 gap-4 p-3 bg-primary/10 rounded-lg font-semibold text-sm">
                 <div>Account Code</div>
@@ -2125,6 +2126,7 @@ export function Finance({
                 <div className="text-right">{formatCurrency(chartOfAccounts.filter(a => a.normalBalance === 'debit').reduce((sum, a) => sum + a.currentBalance, 0))}</div>
                 <div className="text-right">{formatCurrency(chartOfAccounts.filter(a => a.normalBalance === 'credit').reduce((sum, a) => sum + a.currentBalance, 0))}</div>
               </div>
+            </div>
             </div>
           </Card>
         </TabsContent>
