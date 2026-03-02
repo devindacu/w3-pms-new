@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -824,6 +825,137 @@ function WidgetPreviewTab() {
   )
 }
 
+// ─── Embed Code Tab ───────────────────────────────────────────────────────────
+
+function EmbedCodeTab() {
+  const [settings, setSettings] = useState<{ propertyName?: string; primaryColor?: string; currencyCode?: string } | null>(null)
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://your-pms.example.com'
+
+  useEffect(() => {
+    fetch('/api/booking/widget-settings')
+      .then(r => r.json())
+      .then(setSettings)
+      .catch(() => {})
+  }, [])
+
+  const iframeCode = `<!-- Booking Widget by W3 Hotel PMS -->
+<iframe
+  src="${origin}/booking-widget"
+  width="100%"
+  height="620"
+  frameborder="0"
+  scrolling="no"
+  allow="payment"
+  title="Book Now – ${settings?.propertyName ?? 'Hotel'}"
+  style="border:none;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.12);">
+</iframe>`
+
+  const scriptCode = `<!-- Booking Widget Popup Button by W3 Hotel PMS -->
+<script>
+  (function() {
+    var btn = document.createElement('a');
+    btn.href = '${origin}/booking-widget';
+    btn.target = '_blank';
+    btn.rel = 'noopener noreferrer';
+    btn.textContent = 'Book Now';
+    btn.style.cssText = 'display:inline-block;padding:12px 28px;background:${settings?.primaryColor ?? '#1a56db'};color:#fff;font-family:sans-serif;font-weight:700;font-size:16px;border-radius:8px;text-decoration:none;cursor:pointer;';
+    document.getElementById('w3-booking-btn').appendChild(btn);
+  })();
+</script>
+<div id="w3-booking-btn"></div>`
+
+  const directLinkUrl = `${origin}/booking-widget`
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      toast.success(`${label} copied to clipboard!`)
+    }).catch(() => {
+      toast.error('Failed to copy. Please select and copy manually.')
+    })
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold">Embed Booking Widget</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Copy one of the code snippets below and paste it into your hotel's website to let guests book directly.
+        </p>
+      </div>
+
+      {/* Direct Link */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Direct Booking Link</CardTitle>
+          <p className="text-sm text-muted-foreground">Share this URL or use it as a "Book Now" button link on your website.</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex gap-2">
+            <Input readOnly value={directLinkUrl} className="font-mono text-xs" />
+            <Button variant="outline" onClick={() => copyToClipboard(directLinkUrl, 'Booking URL')}>
+              Copy URL
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* iFrame Embed */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">iFrame Embed</CardTitle>
+          <p className="text-sm text-muted-foreground">Paste this HTML snippet anywhere in your website's HTML to embed the full booking widget inline.</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Textarea
+            readOnly
+            value={iframeCode}
+            className="font-mono text-xs min-h-[140px] resize-none"
+          />
+          <Button onClick={() => copyToClipboard(iframeCode, 'iFrame code')}>
+            Copy iFrame Code
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Script / Button Embed */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Button Embed (Popup)</CardTitle>
+          <p className="text-sm text-muted-foreground">Paste this script into your website to add a styled "Book Now" button that opens the booking page.</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Textarea
+            readOnly
+            value={scriptCode}
+            className="font-mono text-xs min-h-[180px] resize-none"
+          />
+          <Button onClick={() => copyToClipboard(scriptCode, 'Button embed code')}>
+            Copy Button Code
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="pt-4">
+          <div className="flex items-start gap-3">
+            <div className="rounded-full bg-primary/10 p-2 mt-0.5">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <p className="font-medium text-foreground mb-1">Before you publish</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Go to <strong>Widget Settings</strong> and add your hotel domain to <em>Allowed Origins</em>.</li>
+                <li>Make sure at least one <strong>Rate Plan</strong> is active and published.</li>
+                <li>Test the widget preview before embedding on your live site.</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function BookingWidgetAdmin() {
@@ -850,6 +982,7 @@ export function BookingWidgetAdmin() {
           <TabsTrigger value="resident-rules">Resident Rules</TabsTrigger>
           <TabsTrigger value="seasonal">Seasonal Rates</TabsTrigger>
           <TabsTrigger value="promo-codes">Promo Codes</TabsTrigger>
+          <TabsTrigger value="embed-code">Embed Code</TabsTrigger>
           <TabsTrigger value="preview">Preview</TabsTrigger>
         </TabsList>
 
@@ -867,6 +1000,9 @@ export function BookingWidgetAdmin() {
         </TabsContent>
         <TabsContent value="promo-codes" className="mt-4">
           <PromoCodesTab currencyCode={currencyCode} />
+        </TabsContent>
+        <TabsContent value="embed-code" className="mt-4">
+          <EmbedCodeTab />
         </TabsContent>
         <TabsContent value="preview" className="mt-4">
           <WidgetPreviewTab />

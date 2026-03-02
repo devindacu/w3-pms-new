@@ -105,7 +105,7 @@ export function ChannelManager({
   const pendingSyncs = connections.filter(c => c.status === 'pending').length
   const errorConnections = connections.filter(c => c.status === 'error').length
 
-  const handleSync = (channelId: string, syncType: 'full' | 'availability' | 'rates' | 'reservations' | 'reviews') => {
+  const handleSync = async (channelId: string, syncType: 'full' | 'availability' | 'rates' | 'reservations' | 'reviews') => {
     const connection = connections.find(c => c.id === channelId)
     if (!connection) return
 
@@ -129,19 +129,34 @@ export function ChannelManager({
 
     setSyncLogs(prev => [syncLog, ...prev])
 
-    setTimeout(() => {
-      const recordsProcessed = Math.floor(Math.random() * 100) + 50
-      const recordsSuccessful = Math.floor(recordsProcessed * (0.85 + Math.random() * 0.15))
-      const recordsFailed = recordsProcessed - recordsSuccessful
+    const config = { apiKey: connection.apiKey, propertyId: connection.propertyId, accountId: connection.accountId }
+    const today = new Date().toISOString().split('T')[0]
+
+    try {
+      const endpoints: string[] = []
+      if (syncType === 'full' || syncType === 'availability') endpoints.push(`/api/channels/${channelId}/sync-availability`)
+      if (syncType === 'full' || syncType === 'rates') endpoints.push(`/api/channels/${channelId}/sync-rates`)
+      if (syncType === 'full' || syncType === 'reservations') endpoints.push(`/api/channels/${channelId}/sync-bookings`)
+
+      const results = await Promise.allSettled(
+        endpoints.map(ep => fetch(ep, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channelName: connection.name, config, roomType: 'all', date: today, rate: 0, available: 0, startDate: today, endDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0] }),
+        }))
+      )
+
+      const failed = results.filter(r => r.status === 'rejected').length
+      const succeeded = results.length - failed
 
       const completedLog: SyncLog = {
         ...syncLog,
-        status: recordsFailed === 0 ? 'success' : 'partial',
+        status: failed === 0 ? 'success' : failed === results.length ? 'failed' : 'partial',
         completedAt: Date.now(),
         duration: Date.now() - syncLog.startedAt,
-        recordsProcessed,
-        recordsSuccessful,
-        recordsFailed
+        recordsProcessed: results.length,
+        recordsSuccessful: succeeded,
+        recordsFailed: failed
       }
 
       setSyncLogs(prev => prev.map(log => log.id === syncLog.id ? completedLog : log))
@@ -155,12 +170,17 @@ export function ChannelManager({
         } : c
       ))
 
-      if (recordsFailed === 0) {
+      if (failed === 0) {
         toast.success(`${connection.name} synced successfully`)
       } else {
-        toast.warning(`${connection.name} sync completed with ${recordsFailed} errors`)
+        toast.warning(`${connection.name} sync completed with ${failed} errors`)
       }
-    }, 2000 + Math.random() * 2000)
+    } catch {
+      const failedLog: SyncLog = { ...syncLog, status: 'failed', completedAt: Date.now(), duration: Date.now() - syncLog.startedAt, recordsProcessed: 0, recordsSuccessful: 0, recordsFailed: 1 }
+      setSyncLogs(prev => prev.map(log => log.id === syncLog.id ? failedLog : log))
+      setConnections(prev => prev.map(c => c.id === channelId ? { ...c, status: 'error' as const } : c))
+      toast.error(`${connection.name} sync failed`)
+    }
   }
 
   const handleToggleConnection = (id: string) => {

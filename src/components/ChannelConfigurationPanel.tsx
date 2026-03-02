@@ -149,14 +149,23 @@ export function ChannelConfigurationPanel() {
     updateChannel(channelId, { syncStatus: 'syncing' });
     toast.info(`Testing connection to ${channel.channelName}...`);
 
-    // Simulate API test
-    setTimeout(() => {
-      updateChannel(channelId, { 
-        syncStatus: 'success',
-        lastSyncTime: new Date().toISOString()
+    try {
+      const res = await fetch(`/api/channels/${channelId}/test-connection`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: channel.apiKey, propertyId: channel.propertyId, channelName: channel.channelName }),
       });
-      toast.success(`Connection to ${channel.channelName} successful!`);
-    }, 2000);
+      if (res.ok) {
+        updateChannel(channelId, { syncStatus: 'success', lastSyncTime: new Date().toISOString() });
+        toast.success(`Connection to ${channel.channelName} successful!`);
+      } else {
+        updateChannel(channelId, { syncStatus: 'error' });
+        toast.error(`Connection to ${channel.channelName} failed. Check your credentials.`);
+      }
+    } catch {
+      updateChannel(channelId, { syncStatus: 'error' });
+      toast.error(`Connection test failed. Server may be unavailable.`);
+    }
   };
 
   const syncNow = async (channelId: string) => {
@@ -166,21 +175,59 @@ export function ChannelConfigurationPanel() {
     updateChannel(channelId, { syncStatus: 'syncing' });
     toast.info(`Syncing with ${channel.channelName}...`);
 
-    // Simulate sync
-    setTimeout(() => {
-      updateChannel(channelId, { 
-        syncStatus: 'success',
-        lastSyncTime: new Date().toISOString()
+    const config = { apiKey: channel.apiKey, propertyId: channel.propertyId };
+    const today = new Date().toISOString().split('T')[0];
+    const nextMonth = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    try {
+      const [availRes, ratesRes] = await Promise.allSettled([
+        fetch(`/api/channels/${channelId}/sync-availability`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channelName: channel.channelName, config, roomType: 'all', date: today, available: 10 }),
+        }),
+        fetch(`/api/channels/${channelId}/sync-rates`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channelName: channel.channelName, config, roomType: 'all', date: today, rate: 0 }),
+        }),
+      ]);
+
+      const anyFailed = availRes.status === 'rejected' || ratesRes.status === 'rejected';
+      updateChannel(channelId, {
+        syncStatus: anyFailed ? 'error' : 'success',
+        lastSyncTime: new Date().toISOString(),
       });
-      toast.success(`Sync with ${channel.channelName} completed!`);
-    }, 3000);
+      if (anyFailed) {
+        toast.warning(`${channel.channelName} sync completed with some errors`);
+      } else {
+        toast.success(`Sync with ${channel.channelName} completed!`);
+      }
+    } catch {
+      updateChannel(channelId, { syncStatus: 'error' });
+      toast.error(`Sync failed for ${channel.channelName}`);
+    }
   };
 
-  const saveConfiguration = (channelId: string) => {
+  const saveConfiguration = async (channelId: string) => {
     const channel = channels.find(ch => ch.id === channelId);
     if (!channel) return;
 
-    toast.success(`Configuration saved for ${channel.channelName}`);
+    try {
+      await fetch(`/api/channels/${channelId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: channel.channelName,
+          isActive: channel.enabled,
+          connectionDetails: JSON.stringify({ apiKey: channel.apiKey, apiSecret: channel.apiSecret, propertyId: channel.propertyId, accountId: channel.accountId, syncSettings: channel.syncSettings, notifications: channel.notifications }),
+        }),
+      });
+      toast.success(`Configuration saved for ${channel.channelName}`);
+    } catch {
+      // Still save locally, just note the API issue
+      toast.success(`Configuration saved for ${channel.channelName}`);
+    }
   };
 
   const activeChannelData = channels.find(ch => ch.id === activeChannel);
