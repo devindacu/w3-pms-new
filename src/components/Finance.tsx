@@ -1786,6 +1786,9 @@ export function Finance({
           <Card className="p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold">Chart of Accounts</h3>
+              <Badge variant="secondary" className="text-xs text-muted-foreground">
+                Managed in Settings
+              </Badge>
             </div>
 
             <div className="space-y-4">
