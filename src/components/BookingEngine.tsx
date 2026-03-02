@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -7,6 +7,9 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
+import type { Room, Reservation } from '@/lib/types'
+import { generateId } from '@/lib/helpers'
+import { BOOKING_LS_KEYS } from '@/components/BookingWidgetAdmin'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -516,7 +519,13 @@ function ConfirmationPage({
 
 type Step = 'search' | 'rooms' | 'addons' | 'checkout' | 'confirmation'
 
-export function BookingEngine() {
+interface BookingEngineProps {
+  rooms?: Room[]
+  reservations?: Reservation[]
+  onNewReservation?: (data: Omit<Reservation, 'id' | 'createdAt' | 'updatedAt'>) => void
+}
+
+export function BookingEngine({ rooms: hotelRooms = [], reservations: hotelReservations = [], onNewReservation }: BookingEngineProps) {
   const [step, setStep] = useState<Step>('search')
   const [searchParams, setSearchParams] = useState<SearchParams | null>(null)
   const [rooms, setRooms] = useState<RoomWithQuote[]>([])
@@ -526,7 +535,9 @@ export function BookingEngine() {
   const [addOns, setAddOns] = useState<string[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [bookingResult, setBookingResult] = useState<BookingResult | null>(null)
-  const [currency, setCurrency] = useState('KES')
+  const [currency] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(BOOKING_LS_KEYS.widgetSettings) || '{}').currencyCode || 'USD' } catch { return 'USD' }
+  })
   const [guestDetails, setGuestDetails] = useState<GuestDetails>({
     firstName: '',
     lastName: '',
@@ -535,34 +546,76 @@ export function BookingEngine() {
     specialRequests: '',
   })
 
-  useEffect(() => {
-    fetch('/api/booking/widget-settings')
-      .then(r => r.json())
-      .then(d => { if (d.currencyCode) setCurrency(d.currencyCode) })
-      .catch(() => {})
-  }, [])
-
-  async function fetchRooms(params: SearchParams, promo?: string) {
+  function calculateAvailability(params: SearchParams) {
     setLoadingRooms(true)
     try {
-      const qs = new URLSearchParams({
-        checkIn: params.checkIn,
-        checkOut: params.checkOut,
-        adults: String(params.adults),
-        guestCountry: params.guestCountry,
-        ...(promo ? { promoCode: promo } : {}),
-      })
-      const resp = await fetch(`/api/booking/availability?${qs}`)
-      if (!resp.ok) {
-        const err = await resp.json()
-        toast.error(err.error || 'Failed to fetch availability')
-        return
-      }
-      const data: RoomWithQuote[] = await resp.json()
-      setRooms(data)
+      const checkInTs = new Date(params.checkIn).getTime()
+      const checkOutTs = new Date(params.checkOut).getTime()
+      const nights = Math.max(1, Math.round((checkOutTs - checkInTs) / 86400000))
+
+      // Rooms already booked in this date range
+      const bookedRoomIds = new Set(
+        hotelReservations
+          .filter(r => ['confirmed', 'checked-in'].includes(r.status) && r.roomId)
+          .filter(r => r.checkInDate < checkOutTs && r.checkOutDate > checkInTs)
+          .map(r => r.roomId)
+      )
+
+      const TAX_RATE = 0.16
+      const SERVICE_CHARGE_RATE = 0.05
+
+      const availableRooms: RoomWithQuote[] = hotelRooms
+        .filter(room => !['out-of-order', 'maintenance'].includes(room.status) && !bookedRoomIds.has(room.id))
+        .filter(room => room.maxOccupancy >= params.adults)
+        .map((room, idx) => {
+          const numericId = parseInt(room.id) || (idx + 1)
+          const baseRate = room.baseRate
+          const subtotal = baseRate * nights
+          const serviceCharge = subtotal * SERVICE_CHARGE_RATE
+          const tax = (subtotal + serviceCharge) * TAX_RATE
+          const totalAmount = subtotal + serviceCharge + tax
+
+          return {
+            id: numericId,
+            number: room.roomNumber,
+            type: room.roomType,
+            floor: room.floor,
+            capacity: room.maxOccupancy,
+            baseRate: String(room.baseRate),
+            status: room.status,
+            amenities: room.amenities.join(', '),
+            description: null,
+            quote: {
+              roomId: numericId,
+              ratePlanId: 1,
+              ratePlanName: 'Standard Rate',
+              checkIn: params.checkIn,
+              checkOut: params.checkOut,
+              nights,
+              rateType: params.guestCountry === 'KE' ? 'resident' : 'nonResident',
+              baseRatePerNight: baseRate,
+              seasonalMultiplier: 1,
+              adjustedRatePerNight: baseRate,
+              subtotal,
+              promoDiscount: 0,
+              afterPromo: subtotal,
+              serviceCharge,
+              tax,
+              totalAmount,
+              currency,
+              breakdown: [
+                { label: `Room rate × ${nights} night${nights !== 1 ? 's' : ''}`, amount: subtotal },
+                { label: 'Service charge (5%)', amount: serviceCharge },
+                { label: 'Tax (16%)', amount: tax },
+              ],
+            },
+          }
+        })
+
+      setRooms(availableRooms)
       setStep('rooms')
     } catch {
-      toast.error('Network error fetching availability')
+      toast.error('Error calculating availability')
     } finally {
       setLoadingRooms(false)
     }
@@ -570,7 +623,7 @@ export function BookingEngine() {
 
   async function applyPromo() {
     if (!searchParams) return
-    await fetchRooms(searchParams, promoCode)
+    calculateAvailability(searchParams)
   }
 
   async function handleReserve() {
@@ -581,31 +634,35 @@ export function BookingEngine() {
     }
     setSubmitting(true)
     try {
-      const resp = await fetch('/api/booking/reserve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          checkIn: searchParams.checkIn,
-          checkOut: searchParams.checkOut,
-          roomId: selectedRoom.id,
-          guestCountry: searchParams.guestCountry,
-          promoCode: promoCode || undefined,
-          adults: searchParams.adults,
-          children: searchParams.children,
-          guestDetails,
-        }),
+      const confirmationNumber = `BK${generateId().toUpperCase()}`
+
+      onNewReservation?.({
+        guestId: '',
+        roomId: String(selectedRoom.id),
+        checkInDate: new Date(searchParams.checkIn).getTime(),
+        checkOutDate: new Date(searchParams.checkOut).getTime(),
+        adults: searchParams.adults,
+        children: searchParams.children,
+        status: 'confirmed',
+        ratePerNight: selectedRoom.quote.adjustedRatePerNight,
+        totalAmount: selectedRoom.quote.totalAmount,
+        advancePaid: 0,
+        source: 'booking-engine',
+        specialRequests: guestDetails.specialRequests,
+        createdBy: 'booking-engine',
       })
-      if (!resp.ok) {
-        const err = await resp.json()
-        toast.error(err.error || 'Booking failed')
-        return
-      }
-      const result: BookingResult = await resp.json()
-      setBookingResult(result)
+
+      setBookingResult({
+        success: true,
+        confirmationNumber,
+        reservationId: parseInt(generateId().replace(/\D/g, '').slice(0, 9)) || 1,
+        quote: selectedRoom.quote,
+        guestDetails,
+      })
       setStep('confirmation')
       toast.success('Booking confirmed!')
     } catch {
-      toast.error('Network error during booking')
+      toast.error('Booking failed. Please try again.')
     } finally {
       setSubmitting(false)
     }
@@ -671,7 +728,7 @@ export function BookingEngine() {
         <SearchPage
           onSearch={params => {
             setSearchParams(params)
-            fetchRooms(params)
+            calculateAvailability(params)
           }}
         />
       )}

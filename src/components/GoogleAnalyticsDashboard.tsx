@@ -271,13 +271,13 @@ export function GoogleAnalyticsDashboard({ onNavigateToSettings }: GoogleAnalyti
                       <stop offset="95%" stopColor="#06B6D4" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.28 0.020 265)" />
-                  <XAxis dataKey="date" stroke="oklch(0.68 0.015 265)" style={{ fontSize: '12px' }} />
-                  <YAxis stroke="oklch(0.68 0.015 265)" style={{ fontSize: '12px' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="date" stroke="var(--muted-foreground)" style={{ fontSize: '12px' }} />
+                  <YAxis stroke="var(--muted-foreground)" style={{ fontSize: '12px' }} />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'oklch(0.18 0.015 265)',
-                      border: '1px solid oklch(0.28 0.020 265)',
+                      backgroundColor: 'var(--card)',
+                      border: '1px solid var(--border)',
                       borderRadius: '8px'
                     }}
                   />
@@ -355,13 +355,13 @@ export function GoogleAnalyticsDashboard({ onNavigateToSettings }: GoogleAnalyti
             <h3 className="text-lg font-semibold mb-4">Traffic Channels</h3>
             <ResponsiveContainer width="100%" height={350}>
               <BarChart data={acquisitionData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.28 0.020 265)" />
-                <XAxis dataKey="channel" stroke="oklch(0.68 0.015 265)" style={{ fontSize: '12px' }} />
-                <YAxis stroke="oklch(0.68 0.015 265)" style={{ fontSize: '12px' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="channel" stroke="var(--muted-foreground)" style={{ fontSize: '12px' }} />
+                <YAxis stroke="var(--muted-foreground)" style={{ fontSize: '12px' }} />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: 'oklch(0.18 0.015 265)',
-                    border: '1px solid oklch(0.28 0.020 265)',
+                    backgroundColor: 'var(--card)',
+                    border: '1px solid var(--border)',
                     borderRadius: '8px'
                   }}
                 />

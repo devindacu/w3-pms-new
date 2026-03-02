@@ -393,9 +393,9 @@ export function TaxSummaryDialog({
                   <h3 className="text-lg font-semibold mb-4">Monthly Tax Trend</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={taxAnalysis.monthlyTrend}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.85 0.05 140)" />
-                      <XAxis dataKey="month" stroke="oklch(0.45 0.08 140)" fontSize={12} />
-                      <YAxis stroke="oklch(0.45 0.08 140)" fontSize={12} tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                      <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={12} />
+                      <YAxis stroke="var(--muted-foreground)" fontSize={12} tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} />
                       <Tooltip formatter={(value: number) => formatCurrency(value)} />
                       <Legend />
                       <Line type="monotone" dataKey="collected" stroke="oklch(0.60 0.18 155)" strokeWidth={2} name="Collected" />

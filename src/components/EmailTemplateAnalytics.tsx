@@ -310,21 +310,21 @@ export function EmailTemplateAnalyticsComponent({
           </h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={trendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.28 0.020 265)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis 
                 dataKey="date" 
-                stroke="oklch(0.68 0.015 265)" 
+                stroke="var(--muted-foreground)" 
                 style={{ fontSize: '12px' }}
               />
               <YAxis 
-                stroke="oklch(0.68 0.015 265)" 
+                stroke="var(--muted-foreground)" 
                 style={{ fontSize: '12px' }}
                 tickFormatter={(value) => `${value}%`}
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: 'oklch(0.18 0.015 265)',
-                  border: '1px solid oklch(0.28 0.020 265)',
+                  backgroundColor: 'var(--card)',
+                  border: '1px solid var(--border)',
                   borderRadius: '8px',
                 }}
                 labelStyle={{ color: 'oklch(0.98 0.008 265)' }}
@@ -361,24 +361,24 @@ export function EmailTemplateAnalyticsComponent({
           </h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData.slice(0, 8)}>
-              <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.28 0.020 265)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis 
                 dataKey="name" 
-                stroke="oklch(0.68 0.015 265)" 
+                stroke="var(--muted-foreground)" 
                 style={{ fontSize: '11px' }}
                 angle={-45}
                 textAnchor="end"
                 height={100}
               />
               <YAxis 
-                stroke="oklch(0.68 0.015 265)" 
+                stroke="var(--muted-foreground)" 
                 style={{ fontSize: '12px' }}
                 tickFormatter={(value) => `${value}%`}
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: 'oklch(0.18 0.015 265)',
-                  border: '1px solid oklch(0.28 0.020 265)',
+                  backgroundColor: 'var(--card)',
+                  border: '1px solid var(--border)',
                   borderRadius: '8px',
                 }}
                 labelStyle={{ color: 'oklch(0.98 0.008 265)' }}
@@ -418,23 +418,23 @@ export function EmailTemplateAnalyticsComponent({
           </h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData.slice(0, 6)} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.28 0.020 265)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis 
                 type="number" 
-                stroke="oklch(0.68 0.015 265)" 
+                stroke="var(--muted-foreground)" 
                 style={{ fontSize: '12px' }}
               />
               <YAxis 
                 dataKey="name" 
                 type="category" 
                 width={150}
-                stroke="oklch(0.68 0.015 265)" 
+                stroke="var(--muted-foreground)" 
                 style={{ fontSize: '11px' }}
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: 'oklch(0.18 0.015 265)',
-                  border: '1px solid oklch(0.28 0.020 265)',
+                  backgroundColor: 'var(--card)',
+                  border: '1px solid var(--border)',
                   borderRadius: '8px',
                 }}
                 labelStyle={{ color: 'oklch(0.98 0.008 265)' }}
@@ -466,24 +466,24 @@ export function EmailTemplateAnalyticsComponent({
           </h3>
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={chartData.slice(0, 10)}>
-              <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.28 0.020 265)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis 
                 dataKey="name" 
-                stroke="oklch(0.68 0.015 265)" 
+                stroke="var(--muted-foreground)" 
                 style={{ fontSize: '11px' }}
                 angle={-45}
                 textAnchor="end"
                 height={100}
               />
               <YAxis 
-                stroke="oklch(0.68 0.015 265)" 
+                stroke="var(--muted-foreground)" 
                 style={{ fontSize: '12px' }}
                 tickFormatter={(value) => `${value}%`}
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: 'oklch(0.18 0.015 265)',
-                  border: '1px solid oklch(0.28 0.020 265)',
+                  backgroundColor: 'var(--card)',
+                  border: '1px solid var(--border)',
                   borderRadius: '8px',
                 }}
                 labelStyle={{ color: 'oklch(0.98 0.008 265)' }}
