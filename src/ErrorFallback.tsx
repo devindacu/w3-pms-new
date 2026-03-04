@@ -3,8 +3,11 @@ import type { FallbackProps } from 'react-error-boundary';
 
 export const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
   const errorMessage = error instanceof Error ? error.message : String(error);
+  const errorStack = error instanceof Error ? error.stack : undefined;
 
-  if (import.meta.env.DEV) throw error;
+  if (import.meta.env.DEV) {
+    console.error('ErrorBoundary caught error:', error);
+  }
 
   return (
     <div style={{

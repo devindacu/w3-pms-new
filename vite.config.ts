@@ -37,7 +37,10 @@ export default defineConfig({
       'vaul',
       'embla-carousel-react',
       'sonner',
-      '@phosphor-icons/react'
+      '@phosphor-icons/react',
+      '@dnd-kit/core',
+      '@dnd-kit/sortable',
+      '@dnd-kit/utilities'
     ],
     esbuildOptions: {
       target: 'esnext',

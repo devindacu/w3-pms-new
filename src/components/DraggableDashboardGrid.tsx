@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -108,12 +108,23 @@ export function DraggableDashboardGrid({
   onLayoutChange,
   dragEnabled = false,
 }: DraggableDashboardGridProps) {
-  const [activeId, setActiveId] = useState<string | null>(null)
+  const [activeId, setActiveId] = React.useState<string | null>(null)
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor)
-  )
+  const sensors = React.useMemo(() => {
+    try {
+      return useSensors(
+        useSensor(PointerSensor, {
+          activationConstraint: {
+            distance: 8,
+          },
+        }),
+        useSensor(KeyboardSensor)
+      )
+    } catch (error) {
+      console.error('Error initializing drag sensors:', error)
+      return []
+    }
+  }, [])
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string)
@@ -161,7 +172,7 @@ export function DraggableDashboardGrid({
       ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-6'
       : 'grid-cols-1 sm:grid-cols-2 2xl:grid-cols-6'
 
-  if (!dragEnabled) {
+  if (!dragEnabled || sensors.length === 0) {
     return (
       <div className={`grid ${gridColumns} gap-4 sm:gap-5 lg:gap-6`}>
         {visibleWidgets.map((widget) => (
