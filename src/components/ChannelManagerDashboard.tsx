@@ -51,7 +51,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { toast } from 'sonner';
-import { useKV } from '@github/spark/hooks';
+import { useSettingState } from '@/hooks/use-api-state';
 import { cn } from '@/lib/utils';
 
 interface ChannelConfig {
@@ -93,7 +93,7 @@ interface ChannelPerformance {
 }
 
 export function ChannelManagerDashboard() {
-  const [channels, setChannels] = useKV<ChannelConfig[]>('channelConfigs', [
+  const [channels, setChannels] = useSettingState<ChannelConfig[]>('channelConfigs', [
     {
       id: 'booking-com',
       name: 'Booking.com',

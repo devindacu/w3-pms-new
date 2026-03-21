@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -104,7 +104,7 @@ const getTypeBadgeColor = (type: GuestInvoiceType) => {
 }
 
 export function InvoiceManagement({ invoices, setInvoices, branding, currentUser }: InvoiceManagementProps) {
-  const [payments, setPayments] = useKV<Payment[]>('w3-hotel-invoice-payments', [])
+  const [payments, setPayments] = useSettingState<Payment[]>('w3-hotel-invoice-payments', [])
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<GuestInvoiceStatus | 'all'>('all')
   const [typeFilter, setTypeFilter] = useState<GuestInvoiceType | 'all'>('all')

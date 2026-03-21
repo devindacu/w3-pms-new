@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -55,7 +55,7 @@ const COMMON_AMENITIES = [
 ]
 
 export function RoomDialog({ open, onOpenChange, room, onSave }: RoomDialogProps) {
-  const [roomTypes] = useKV<RoomTypeConfig[]>('w3-hotel-room-types', [])
+  const [roomTypes] = useSettingState<RoomTypeConfig[]>('w3-hotel-room-types', [])
   const [formData, setFormData] = useState<Partial<Room>>({
     roomNumber: '',
     floor: 1,

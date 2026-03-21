@@ -26,7 +26,7 @@ import {
   Calendar,
   MapPin,
 } from '@phosphor-icons/react';
-import { useKV } from '@github/spark/hooks';
+import { useSettingState } from '@/hooks/use-api-state';
 import { toast } from 'sonner';
 
 interface LostAndFoundItem {
@@ -49,7 +49,7 @@ interface LostAndFoundItem {
 }
 
 export function LostAndFoundManagement() {
-  const [items, setItems] = useKV<LostAndFoundItem[]>('lostAndFoundItems', []);
+  const [items, setItems] = useSettingState<LostAndFoundItem[]>('lostAndFoundItems', []);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);

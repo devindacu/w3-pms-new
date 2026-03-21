@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, timestamp, decimal, integer, boolean, date } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, timestamp, decimal, integer, boolean, date, jsonb, bigint } from 'drizzle-orm/pg-core';
 
 export const guests = pgTable('guests', {
   id: text('id').primaryKey(),
@@ -80,15 +80,14 @@ export const inventoryItems = pgTable('inventory_items', {
 export const housekeepingTasks = pgTable('housekeeping_tasks', {
   id: text('id').primaryKey(),
   roomId: text('room_id').references(() => rooms.id).notNull(),
-  type: varchar('type', { length: 50 }).notNull(),
+  taskType: text('task_type').notNull(),
   status: varchar('status', { length: 50 }).default('pending'),
   priority: varchar('priority', { length: 20 }).default('medium'),
-  assignedTo: varchar('assigned_to', { length: 100 }),
+  assignedTo: text('assigned_to'),
   notes: text('notes'),
-  scheduledDate: timestamp('scheduled_date'),
+  startedAt: timestamp('started_at'),
   completedAt: timestamp('completed_at'),
   createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
 export const menuItems = pgTable('menu_items', {
@@ -567,6 +566,120 @@ export const guestProfiles = pgTable('guest_profiles', {
   loyaltyTier: varchar('loyalty_tier', { length: 50 }).default('Bronze'),
   totalSpend: decimal('total_spend', { precision: 15, scale: 2 }).default('0'),
   totalVisits: integer('total_visits').default(0),
+  data: jsonb('data').default({}),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const dutyRosters = pgTable('duty_rosters', {
+  id: text('id').primaryKey(),
+  employeeId: text('employee_id').references(() => employees.id).notNull(),
+  shiftId: text('shift_id').references(() => shifts.id).notNull(),
+  date: timestamp('date').notNull(),
+  status: text('status').notNull().default('scheduled'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const costCenters = pgTable('cost_centers', {
+  id: text('id').primaryKey(),
+  code: text('code').notNull().unique(),
+  name: text('name').notNull(),
+  department: text('department'),
+  manager: text('manager'),
+  budget: decimal('budget', { precision: 12, scale: 2 }).notNull().default('0'),
+  spent: decimal('spent', { precision: 12, scale: 2 }).notNull().default('0'),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const profitCenters = pgTable('profit_centers', {
+  id: text('id').primaryKey(),
+  code: text('code').notNull().unique(),
+  name: text('name').notNull(),
+  department: text('department'),
+  manager: text('manager'),
+  targetRevenue: decimal('target_revenue', { precision: 12, scale: 2 }).notNull().default('0'),
+  actualRevenue: decimal('actual_revenue', { precision: 12, scale: 2 }).notNull().default('0'),
+  targetCost: decimal('target_cost', { precision: 12, scale: 2 }).notNull().default('0'),
+  actualCost: decimal('actual_cost', { precision: 12, scale: 2 }).notNull().default('0'),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const financialPayments = pgTable('payments', {
+  id: text('id').primaryKey(),
+  paymentNumber: text('payment_number').notNull(),
+  type: text('type').notNull(),
+  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+  method: text('method').notNull(),
+  status: text('status').notNull().default('pending'),
+  referenceId: text('reference_id'),
+  referenceType: text('reference_type'),
+  description: text('description'),
+  processedAt: timestamp('processed_at'),
+  processedBy: text('processed_by'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const activityLogs = pgTable('activity_logs', {
+  id: text('id').primaryKey(),
+  userId: text('user_id'),
+  action: text('action').notNull(),
+  entityType: text('entity_type').notNull(),
+  entityId: text('entity_id'),
+  details: jsonb('details'),
+  timestamp: timestamp('timestamp').defaultNow().notNull(),
+});
+
+export const folioCharges = pgTable('folio_charges', {
+  id: text('id').primaryKey(),
+  folioId: text('folio_id').references(() => folios.id).notNull(),
+  description: text('description').notNull(),
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  quantity: integer('quantity').notNull().default(1),
+  department: text('department').notNull(),
+  timestamp: timestamp('timestamp').defaultNow().notNull(),
+  postedBy: text('posted_by'),
+});
+
+export const folioPayments = pgTable('folio_payments', {
+  id: text('id').primaryKey(),
+  folioId: text('folio_id').references(() => folios.id).notNull(),
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  method: text('method').notNull(),
+  status: text('status').notNull().default('pending'),
+  reference: text('reference'),
+  timestamp: timestamp('timestamp').defaultNow().notNull(),
+  receivedBy: text('received_by'),
+});
+
+export const guestInvoices = pgTable('guest_invoices', {
+  id: text('id').primaryKey(),
+  invoiceNumber: text('invoice_number').notNull().unique(),
+  guestId: text('guest_id'),
+  status: text('status').notNull().default('draft'),
+  invoiceType: text('invoice_type').notNull().default('guest-folio'),
+  grandTotal: decimal('grand_total', { precision: 12, scale: 2 }).notNull().default('0'),
+  amountDue: decimal('amount_due', { precision: 12, scale: 2 }).notNull().default('0'),
+  invoiceDate: bigint('invoice_date', { mode: 'number' }).notNull().default(0),
+  data: jsonb('data').notNull().default({}),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const lostFoundItems = pgTable('lost_found_items', {
+  id: text('id').primaryKey(),
+  itemNumber: text('item_number').notNull().unique(),
+  status: text('status').notNull().default('reported'),
+  category: text('category'),
+  foundDate: bigint('found_date', { mode: 'number' }).notNull().default(0),
+  data: jsonb('data').notNull().default({}),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const extraSettings = pgTable('extra_settings', {
+  key: text('key').primaryKey(),
+  value: jsonb('value').notNull().default({}),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

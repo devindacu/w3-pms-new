@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import { useGitHubSync } from './use-github-sync'
 
 export interface AutoSaveConfig {
@@ -19,7 +19,8 @@ export function useAutoSave<T>(
   defaultValue: T,
   config: AutoSaveConfig = {}
 ) {
-  const [value, setValue, deleteValue] = useKV<T>(key, defaultValue)
+  const [value, setValue] = useSettingState<T>(key, defaultValue)
+  const deleteValue = useCallback(() => { setValue(defaultValue) }, [setValue, defaultValue])
   const { recordChange } = useGitHubSync({
     owner: config.gitHubConfig?.owner || '',
     repo: config.gitHubConfig?.repo || '',

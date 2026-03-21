@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import type { 
   GoogleAnalyticsConfig,
   GoogleAnalyticsAudienceMetrics,
@@ -102,7 +102,7 @@ const generateMockAcquisitionData = (): GoogleAnalyticsAcquisitionMetrics[] => {
 }
 
 export function GoogleAnalyticsDashboard({ onNavigateToSettings }: GoogleAnalyticsDashboardProps) {
-  const [config] = useKV<GoogleAnalyticsConfig | null>('ga-config', null)
+  const [config] = useSettingState<GoogleAnalyticsConfig | null>('ga-config', null)
   const [isLoading, setIsLoading] = useState(false)
   const [audienceData, setAudienceData] = useState<GoogleAnalyticsAudienceMetrics[]>([])
   const [acquisitionData, setAcquisitionData] = useState<GoogleAnalyticsAcquisitionMetrics[]>([])

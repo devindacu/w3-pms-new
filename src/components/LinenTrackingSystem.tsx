@@ -24,7 +24,7 @@ import {
   TrendUp,
   TrendDown,
 } from '@phosphor-icons/react';
-import { useKV } from '@github/spark/hooks';
+import { useSettingState } from '@/hooks/use-api-state';
 import { toast } from 'sonner';
 
 interface LinenItem {
@@ -59,8 +59,8 @@ interface LinenTransaction {
 }
 
 export function LinenTrackingSystem() {
-  const [items, setItems] = useKV<LinenItem[]>('linenItems', []);
-  const [transactions, setTransactions] = useKV<LinenTransaction[]>('linenTransactions', []);
+  const [items, setItems] = useSettingState<LinenItem[]>('linenItems', []);
+  const [transactions, setTransactions] = useSettingState<LinenTransaction[]>('linenTransactions', []);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<LinenItem | null>(null);

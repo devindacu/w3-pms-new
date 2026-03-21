@@ -36,7 +36,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { useKV } from '@github/spark/hooks';
+import { useSettingState } from '@/hooks/use-api-state';
 
 interface PricingStrategy {
   id: number;
@@ -77,7 +77,7 @@ interface RoomTypePricing {
 
 export function RevenueManagementSystem() {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
-  const [strategies] = useKV<PricingStrategy[]>('pricingStrategies', [
+  const [strategies] = useSettingState<PricingStrategy[]>('pricingStrategies', [
     {
       id: 1,
       name: 'High Occupancy Premium',

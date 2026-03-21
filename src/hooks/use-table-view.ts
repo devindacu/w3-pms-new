@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 
 export type ViewMode = 'table' | 'cards'
 
@@ -14,7 +14,7 @@ export function useTableView({
   defaultView = 'table',
   mobileBreakpoint = 768,
 }: UseTableViewOptions = {}) {
-  const [viewMode, setViewMode] = useKV<ViewMode>(storageKey, defaultView)
+  const [viewMode, setViewMode] = useSettingState<ViewMode>(storageKey, defaultView)
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {

@@ -2144,6 +2144,499 @@ app.delete('/api/goods-received-notes/:id', validate(idParamSchema, 'params'), a
   }
 });
 
+// ─── Attendances ──────────────────────────────────────────────────────────────
+
+app.get('/api/attendances', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.attendanceRecords).catch(() => []);
+    res.json(result);
+  } catch (error) { res.status(500).json({ error: 'Failed to fetch attendances' }); }
+});
+
+app.post('/api/attendances', async (req, res) => {
+  try {
+    const { id, employeeId, date, checkIn, checkOut, status, notes } = req.body;
+    const result = await db.insert(schema.attendanceRecords).values({
+      id: id || `att-${Date.now()}`, employeeId, date, checkIn, checkOut, status, notes
+    }).returning();
+    res.json(result[0]);
+  } catch (error) { res.status(500).json({ error: 'Failed to create attendance' }); }
+});
+
+app.put('/api/attendances/:id', async (req, res) => {
+  try {
+    const { employeeId, date, checkIn, checkOut, status, notes } = req.body;
+    const result = await db.update(schema.attendanceRecords)
+      .set({ employeeId, date, checkIn, checkOut, status, notes })
+      .where(eq(schema.attendanceRecords.id, req.params.id)).returning();
+    res.json(result[0]);
+  } catch (error) { res.status(500).json({ error: 'Failed to update attendance' }); }
+});
+
+app.delete('/api/attendances/:id', async (req, res) => {
+  try {
+    await db.delete(schema.attendanceRecords).where(eq(schema.attendanceRecords.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) { res.status(500).json({ error: 'Failed to delete attendance' }); }
+});
+
+// ─── Leave Requests ────────────────────────────────────────────────────────────
+
+app.get('/api/leave-requests', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.leaveRequests).catch(() => []);
+    res.json(result);
+  } catch (error) { res.status(500).json({ error: 'Failed to fetch leave requests' }); }
+});
+
+app.post('/api/leave-requests', async (req, res) => {
+  try {
+    const { id, employeeId, leaveType, startDate, endDate, reason, status, approvedBy } = req.body;
+    const result = await db.insert(schema.leaveRequests).values({
+      id: id || `lr-${Date.now()}`, employeeId, leaveType, startDate, endDate, reason, status, approvedBy
+    }).returning();
+    res.json(result[0]);
+  } catch (error) { res.status(500).json({ error: 'Failed to create leave request' }); }
+});
+
+app.put('/api/leave-requests/:id', async (req, res) => {
+  try {
+    const { employeeId, leaveType, startDate, endDate, reason, status, approvedBy } = req.body;
+    const result = await db.update(schema.leaveRequests)
+      .set({ employeeId, leaveType, startDate, endDate, reason, status, approvedBy, updatedAt: new Date() })
+      .where(eq(schema.leaveRequests.id, req.params.id)).returning();
+    res.json(result[0]);
+  } catch (error) { res.status(500).json({ error: 'Failed to update leave request' }); }
+});
+
+app.delete('/api/leave-requests/:id', async (req, res) => {
+  try {
+    await db.delete(schema.leaveRequests).where(eq(schema.leaveRequests.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) { res.status(500).json({ error: 'Failed to delete leave request' }); }
+});
+
+// ─── Duty Rosters ─────────────────────────────────────────────────────────────
+
+app.get('/api/duty-rosters', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.dutyRosters).catch(() => []);
+    res.json(result);
+  } catch (error) { res.status(500).json({ error: 'Failed to fetch duty rosters' }); }
+});
+
+app.post('/api/duty-rosters', async (req, res) => {
+  try {
+    const { id, employeeId, shiftId, date, status, notes } = req.body;
+    const result = await db.insert(schema.dutyRosters).values({
+      id: id || `dr-${Date.now()}`, employeeId, shiftId, date: new Date(date), status, notes
+    }).returning();
+    res.json(result[0]);
+  } catch (error) { res.status(500).json({ error: 'Failed to create duty roster' }); }
+});
+
+app.put('/api/duty-rosters/:id', async (req, res) => {
+  try {
+    const { employeeId, shiftId, date, status, notes } = req.body;
+    const result = await db.update(schema.dutyRosters)
+      .set({ employeeId, shiftId, date: new Date(date), status, notes })
+      .where(eq(schema.dutyRosters.id, req.params.id)).returning();
+    res.json(result[0]);
+  } catch (error) { res.status(500).json({ error: 'Failed to update duty roster' }); }
+});
+
+app.delete('/api/duty-rosters/:id', async (req, res) => {
+  try {
+    await db.delete(schema.dutyRosters).where(eq(schema.dutyRosters.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) { res.status(500).json({ error: 'Failed to delete duty roster' }); }
+});
+
+// ─── Cost Centers ──────────────────────────────────────────────────────────────
+
+app.get('/api/cost-centers', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.costCenters).catch(() => []);
+    res.json(result);
+  } catch (error) { res.status(500).json({ error: 'Failed to fetch cost centers' }); }
+});
+
+app.post('/api/cost-centers', async (req, res) => {
+  try {
+    const { id, code, name, department, manager, budget, spent, isActive } = req.body;
+    const result = await db.insert(schema.costCenters).values({
+      id: id || `cc-${Date.now()}`, code, name, department, manager, budget, spent, isActive
+    }).returning();
+    res.json(result[0]);
+  } catch (error) { res.status(500).json({ error: 'Failed to create cost center' }); }
+});
+
+app.put('/api/cost-centers/:id', async (req, res) => {
+  try {
+    const { code, name, department, manager, budget, spent, isActive } = req.body;
+    const result = await db.update(schema.costCenters)
+      .set({ code, name, department, manager, budget, spent, isActive })
+      .where(eq(schema.costCenters.id, req.params.id)).returning();
+    res.json(result[0]);
+  } catch (error) { res.status(500).json({ error: 'Failed to update cost center' }); }
+});
+
+app.delete('/api/cost-centers/:id', async (req, res) => {
+  try {
+    await db.delete(schema.costCenters).where(eq(schema.costCenters.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) { res.status(500).json({ error: 'Failed to delete cost center' }); }
+});
+
+// ─── Profit Centers ────────────────────────────────────────────────────────────
+
+app.get('/api/profit-centers', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.profitCenters).catch(() => []);
+    res.json(result);
+  } catch (error) { res.status(500).json({ error: 'Failed to fetch profit centers' }); }
+});
+
+app.post('/api/profit-centers', async (req, res) => {
+  try {
+    const { id, code, name, department, manager, targetRevenue, actualRevenue, targetCost, actualCost, isActive } = req.body;
+    const result = await db.insert(schema.profitCenters).values({
+      id: id || `pc-${Date.now()}`, code, name, department, manager, targetRevenue, actualRevenue, targetCost, actualCost, isActive
+    }).returning();
+    res.json(result[0]);
+  } catch (error) { res.status(500).json({ error: 'Failed to create profit center' }); }
+});
+
+app.put('/api/profit-centers/:id', async (req, res) => {
+  try {
+    const { code, name, department, manager, targetRevenue, actualRevenue, targetCost, actualCost, isActive } = req.body;
+    const result = await db.update(schema.profitCenters)
+      .set({ code, name, department, manager, targetRevenue, actualRevenue, targetCost, actualCost, isActive })
+      .where(eq(schema.profitCenters.id, req.params.id)).returning();
+    res.json(result[0]);
+  } catch (error) { res.status(500).json({ error: 'Failed to update profit center' }); }
+});
+
+app.delete('/api/profit-centers/:id', async (req, res) => {
+  try {
+    await db.delete(schema.profitCenters).where(eq(schema.profitCenters.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) { res.status(500).json({ error: 'Failed to delete profit center' }); }
+});
+
+// ─── Financial Payments ────────────────────────────────────────────────────────
+
+app.get('/api/payments', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.financialPayments).catch(() => []);
+    res.json(result);
+  } catch (error) { res.status(500).json({ error: 'Failed to fetch payments' }); }
+});
+
+app.post('/api/payments', async (req, res) => {
+  try {
+    const { id, paymentNumber, type, amount, method, status, referenceId, referenceType, description, processedAt, processedBy } = req.body;
+    const result = await db.insert(schema.financialPayments).values({
+      id: id || `pay-${Date.now()}`, paymentNumber: paymentNumber || `PAY-${Date.now()}`,
+      type: type || 'general', amount, method, status, referenceId, referenceType, description,
+      processedAt: processedAt ? new Date(processedAt) : null, processedBy
+    }).returning();
+    res.json(result[0]);
+  } catch (error) { res.status(500).json({ error: 'Failed to create payment' }); }
+});
+
+app.put('/api/payments/:id', async (req, res) => {
+  try {
+    const { paymentNumber, type, amount, method, status, referenceId, referenceType, description, processedAt, processedBy } = req.body;
+    const result = await db.update(schema.financialPayments)
+      .set({ paymentNumber, type, amount, method, status, referenceId, referenceType, description,
+        processedAt: processedAt ? new Date(processedAt) : null, processedBy })
+      .where(eq(schema.financialPayments.id, req.params.id)).returning();
+    res.json(result[0]);
+  } catch (error) { res.status(500).json({ error: 'Failed to update payment' }); }
+});
+
+app.delete('/api/payments/:id', async (req, res) => {
+  try {
+    await db.delete(schema.financialPayments).where(eq(schema.financialPayments.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) { res.status(500).json({ error: 'Failed to delete payment' }); }
+});
+
+// ─── Activity Logs ─────────────────────────────────────────────────────────────
+
+app.get('/api/activity-logs', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.activityLogs).catch(() => []);
+    res.json(result);
+  } catch (error) { res.status(500).json({ error: 'Failed to fetch activity logs' }); }
+});
+
+app.post('/api/activity-logs', async (req, res) => {
+  try {
+    const { id, userId, action, entityType, entityId, details } = req.body;
+    const result = await db.insert(schema.activityLogs).values({
+      id: id || `al-${Date.now()}`, userId, action, entityType, entityId, details
+    }).returning();
+    res.json(result[0]);
+  } catch (error) { res.status(500).json({ error: 'Failed to create activity log' }); }
+});
+
+app.delete('/api/activity-logs/:id', async (req, res) => {
+  try {
+    await db.delete(schema.activityLogs).where(eq(schema.activityLogs.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) { res.status(500).json({ error: 'Failed to delete activity log' }); }
+});
+
+// ─── Folio Charges ─────────────────────────────────────────────────────────────
+
+app.get('/api/folio-charges', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.folioCharges).catch(() => []);
+    res.json(result);
+  } catch (error) { res.status(500).json({ error: 'Failed to fetch folio charges' }); }
+});
+
+app.post('/api/folio-charges', async (req, res) => {
+  try {
+    const { id, folioId, description, amount, quantity, department, postedBy } = req.body;
+    const result = await db.insert(schema.folioCharges).values({
+      id: id || `fc-${Date.now()}`, folioId, description, amount, quantity: quantity || 1, department, postedBy
+    }).returning();
+    res.json(result[0]);
+  } catch (error) { res.status(500).json({ error: 'Failed to create folio charge' }); }
+});
+
+app.put('/api/folio-charges/:id', async (req, res) => {
+  try {
+    const { folioId, description, amount, quantity, department, postedBy } = req.body;
+    const result = await db.update(schema.folioCharges)
+      .set({ folioId, description, amount, quantity, department, postedBy })
+      .where(eq(schema.folioCharges.id, req.params.id)).returning();
+    res.json(result[0]);
+  } catch (error) { res.status(500).json({ error: 'Failed to update folio charge' }); }
+});
+
+app.delete('/api/folio-charges/:id', async (req, res) => {
+  try {
+    await db.delete(schema.folioCharges).where(eq(schema.folioCharges.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) { res.status(500).json({ error: 'Failed to delete folio charge' }); }
+});
+
+// ─── Folio Payments ────────────────────────────────────────────────────────────
+
+app.get('/api/folio-payments', async (req, res) => {
+  try {
+    const result = await db.select().from(schema.folioPayments).catch(() => []);
+    res.json(result);
+  } catch (error) { res.status(500).json({ error: 'Failed to fetch folio payments' }); }
+});
+
+app.post('/api/folio-payments', async (req, res) => {
+  try {
+    const { id, folioId, amount, method, status, reference, receivedBy } = req.body;
+    const result = await db.insert(schema.folioPayments).values({
+      id: id || `fp-${Date.now()}`, folioId, amount, method, status, reference, receivedBy
+    }).returning();
+    res.json(result[0]);
+  } catch (error) { res.status(500).json({ error: 'Failed to create folio payment' }); }
+});
+
+app.put('/api/folio-payments/:id', async (req, res) => {
+  try {
+    const { folioId, amount, method, status, reference, receivedBy } = req.body;
+    const result = await db.update(schema.folioPayments)
+      .set({ folioId, amount, method, status, reference, receivedBy })
+      .where(eq(schema.folioPayments.id, req.params.id)).returning();
+    res.json(result[0]);
+  } catch (error) { res.status(500).json({ error: 'Failed to update folio payment' }); }
+});
+
+app.delete('/api/folio-payments/:id', async (req, res) => {
+  try {
+    await db.delete(schema.folioPayments).where(eq(schema.folioPayments.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) { res.status(500).json({ error: 'Failed to delete folio payment' }); }
+});
+
+// ─── Guest Invoices ────────────────────────────────────────────────────────────
+
+app.get('/api/guest-invoices', async (req, res) => {
+  try {
+    const rows = await db.select().from(schema.guestInvoices).catch(() => []);
+    res.json(rows.map(r => ({ ...(r.data as object || {}), id: r.id, invoiceNumber: r.invoiceNumber, guestId: r.guestId, status: r.status, invoiceType: r.invoiceType, grandTotal: r.grandTotal, amountDue: r.amountDue, invoiceDate: r.invoiceDate })));
+  } catch (error) { res.status(500).json({ error: 'Failed to fetch guest invoices' }); }
+});
+
+app.post('/api/guest-invoices', async (req, res) => {
+  try {
+    const body = req.body;
+    const result = await db.insert(schema.guestInvoices).values({
+      id: body.id || `gi-${Date.now()}`,
+      invoiceNumber: body.invoiceNumber || `INV-${Date.now()}`,
+      guestId: body.guestId,
+      status: body.status || 'draft',
+      invoiceType: body.invoiceType || 'guest-folio',
+      grandTotal: String(body.grandTotal || 0),
+      amountDue: String(body.amountDue || 0),
+      invoiceDate: body.invoiceDate || Date.now(),
+      data: body,
+    }).returning();
+    res.json({ ...(result[0].data as object || {}), id: result[0].id, status: result[0].status });
+  } catch (error) { res.status(500).json({ error: 'Failed to create guest invoice' }); }
+});
+
+app.put('/api/guest-invoices/:id', async (req, res) => {
+  try {
+    const body = req.body;
+    const result = await db.update(schema.guestInvoices)
+      .set({
+        status: body.status,
+        grandTotal: String(body.grandTotal || 0),
+        amountDue: String(body.amountDue || 0),
+        invoiceDate: body.invoiceDate,
+        data: body,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.guestInvoices.id, req.params.id)).returning();
+    res.json({ ...(result[0]?.data as object || {}), id: result[0]?.id, status: result[0]?.status });
+  } catch (error) { res.status(500).json({ error: 'Failed to update guest invoice' }); }
+});
+
+app.delete('/api/guest-invoices/:id', async (req, res) => {
+  try {
+    await db.delete(schema.guestInvoices).where(eq(schema.guestInvoices.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) { res.status(500).json({ error: 'Failed to delete guest invoice' }); }
+});
+
+// ─── Lost & Found ──────────────────────────────────────────────────────────────
+
+app.get('/api/lost-found', async (req, res) => {
+  try {
+    const rows = await db.select().from(schema.lostFoundItems).catch(() => []);
+    res.json(rows.map(r => ({ ...(r.data as object || {}), id: r.id, itemNumber: r.itemNumber, status: r.status, category: r.category, foundDate: r.foundDate })));
+  } catch (error) { res.status(500).json({ error: 'Failed to fetch lost & found items' }); }
+});
+
+app.post('/api/lost-found', async (req, res) => {
+  try {
+    const body = req.body;
+    const result = await db.insert(schema.lostFoundItems).values({
+      id: body.id || `lf-${Date.now()}`,
+      itemNumber: body.itemNumber || `LF-${Date.now()}`,
+      status: body.status || 'reported',
+      category: body.category,
+      foundDate: body.foundDate || Date.now(),
+      data: body,
+    }).returning();
+    res.json({ ...(result[0].data as object || {}), id: result[0].id, status: result[0].status });
+  } catch (error) { res.status(500).json({ error: 'Failed to create lost & found item' }); }
+});
+
+app.put('/api/lost-found/:id', async (req, res) => {
+  try {
+    const body = req.body;
+    const result = await db.update(schema.lostFoundItems)
+      .set({ status: body.status, category: body.category, foundDate: body.foundDate, data: body })
+      .where(eq(schema.lostFoundItems.id, req.params.id)).returning();
+    res.json({ ...(result[0]?.data as object || {}), id: result[0]?.id, status: result[0]?.status });
+  } catch (error) { res.status(500).json({ error: 'Failed to update lost & found item' }); }
+});
+
+app.delete('/api/lost-found/:id', async (req, res) => {
+  try {
+    await db.delete(schema.lostFoundItems).where(eq(schema.lostFoundItems.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) { res.status(500).json({ error: 'Failed to delete lost & found item' }); }
+});
+
+// ─── Guest Profiles ────────────────────────────────────────────────────────────
+
+app.get('/api/guest-profiles', async (req, res) => {
+  try {
+    const rows = await db.select().from(schema.guestProfiles).catch(() => []);
+    res.json(rows.map(r => {
+      const data = typeof r.data === 'object' && r.data ? r.data as Record<string, unknown> : {};
+      return { ...data, id: r.id, guestId: r.guestId, vipStatus: r.vipStatus, loyaltyTier: r.loyaltyTier };
+    }));
+  } catch (error) { res.status(500).json({ error: 'Failed to fetch guest profiles' }); }
+});
+
+app.post('/api/guest-profiles', async (req, res) => {
+  try {
+    const body = req.body;
+    const result = await db.insert(schema.guestProfiles).values({
+      id: body.id || `gp-${Date.now()}`,
+      guestId: body.guestId,
+      vipStatus: body.vipStatus,
+      preferences: body.preferences ? JSON.stringify(body.preferences) : null,
+      dietaryRestrictions: body.dietaryRestrictions ? JSON.stringify(body.dietaryRestrictions) : null,
+      roomPreferences: body.roomPreferences ? JSON.stringify(body.roomPreferences) : null,
+      loyaltyTier: body.loyaltyTier || 'Bronze',
+      totalSpend: String(body.totalSpend || 0),
+      totalVisits: body.totalVisits || 0,
+    } as any).returning();
+    res.json({ ...body, id: result[0].id });
+  } catch (error) { res.status(500).json({ error: 'Failed to create guest profile' }); }
+});
+
+app.put('/api/guest-profiles/:id', async (req, res) => {
+  try {
+    const body = req.body;
+    const result = await db.update(schema.guestProfiles)
+      .set({
+        guestId: body.guestId,
+        vipStatus: body.vipStatus,
+        loyaltyTier: body.loyaltyTier || 'Bronze',
+        totalSpend: String(body.totalSpend || 0),
+        totalVisits: body.totalVisits || 0,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.guestProfiles.id, req.params.id)).returning();
+    res.json({ ...body, id: result[0]?.id });
+  } catch (error) { res.status(500).json({ error: 'Failed to update guest profile' }); }
+});
+
+app.delete('/api/guest-profiles/:id', async (req, res) => {
+  try {
+    await db.delete(schema.guestProfiles).where(eq(schema.guestProfiles.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) { res.status(500).json({ error: 'Failed to delete guest profile' }); }
+});
+
+// ─── Extra Settings (generic JSON store) ─────────────────────────────────────
+
+app.get('/api/extra-settings/:key', async (req, res) => {
+  try {
+    const rows = await db.select().from(schema.extraSettings)
+      .where(eq(schema.extraSettings.key, decodeURIComponent(req.params.key))).catch(() => []);
+    if (rows.length > 0) {
+      res.json({ key: rows[0].key, value: rows[0].value });
+    } else {
+      res.json(null);
+    }
+  } catch (error) { res.status(500).json({ error: 'Failed to fetch setting' }); }
+});
+
+app.put('/api/extra-settings/:key', async (req, res) => {
+  try {
+    const key = decodeURIComponent(req.params.key);
+    const { value } = req.body;
+    try {
+      const result = await db.insert(schema.extraSettings).values({ key, value, updatedAt: new Date() }).returning();
+      res.json(result[0]);
+    } catch {
+      const result = await db.update(schema.extraSettings)
+        .set({ value, updatedAt: new Date() })
+        .where(eq(schema.extraSettings.key, key)).returning();
+      res.json(result[0]);
+    }
+  } catch (error) { res.status(500).json({ error: 'Failed to save setting' }); }
+});
+
 // ─── Email Settings & Sending ─────────────────────────────────────────────────
 
 import { createTransporter, verifyConnection, sendEmail as smtpSendEmail } from './services/emailService';

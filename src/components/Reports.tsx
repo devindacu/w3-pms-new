@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -90,10 +90,10 @@ export function Reports({
   const [selectedCategory, setSelectedCategory] = useState<ReportCategory | 'all'>('all')
   const [selectedPeriod, setSelectedPeriod] = useState<ReportPeriod>('all')
   const [selectedDepartment, setSelectedDepartment] = useState<ReportDepartment>('all')
-  const [customReports, setCustomReports] = useKV<CustomReport[]>('w3-hotel-custom-reports', [])
-  const [reportSchedules, setReportSchedules] = useKV<ReportSchedule[]>('w3-hotel-report-schedules', [])
-  const [executionLogs, setExecutionLogs] = useKV<ScheduleExecutionLog[]>('w3-hotel-schedule-logs', [])
-  const [savedTemplates, setSavedTemplates] = useKV<ReportTemplate[]>('w3-hotel-report-templates', [])
+  const [customReports, setCustomReports] = useSettingState<CustomReport[]>('w3-hotel-custom-reports', [])
+  const [reportSchedules, setReportSchedules] = useSettingState<ReportSchedule[]>('w3-hotel-report-schedules', [])
+  const [executionLogs, setExecutionLogs] = useSettingState<ScheduleExecutionLog[]>('w3-hotel-schedule-logs', [])
+  const [savedTemplates, setSavedTemplates] = useSettingState<ReportTemplate[]>('w3-hotel-report-templates', [])
   const [reportBuilderOpen, setReportBuilderOpen] = useState(false)
   const [editingReport, setEditingReport] = useState<CustomReport | undefined>(undefined)
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)

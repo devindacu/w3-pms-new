@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -101,7 +101,7 @@ export function FrontOffice({
   setFolioExtraServices,
   currentUser
 }: FrontOfficeProps) {
-  const [guestInvoices, setGuestInvoices] = useKV<GuestInvoice[]>('w3-hotel-guest-invoices', [])
+  const [guestInvoices, setGuestInvoices] = useSettingState<GuestInvoice[]>('w3-hotel-guest-invoices', [])
   const [selectedGuestProfile, setSelectedGuestProfile] = useState<GuestProfile | null>(null)
   
   const [searchQuery, setSearchQuery] = useState('')

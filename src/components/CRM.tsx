@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -122,7 +122,7 @@ export function CRM({
   const [searchQuery, setSearchQuery] = useState('')
   const [feedbackSearchQuery, setFeedbackSearchQuery] = useState('')
 
-  const [reviewSources, setReviewSources] = useKV<ReviewSourceConfig[]>('w3-hotel-review-sources', [])
+  const [reviewSources, setReviewSources] = useSettingState<ReviewSourceConfig[]>('w3-hotel-review-sources', [])
   const [isSyncing, setIsSyncing] = useState(false)
 
   const [guestFilterTier, setGuestFilterTier] = useState<string>('all')

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -138,9 +138,9 @@ const DATA_MODULES: Omit<DataModuleSelection, 'selected' | 'recordCount'>[] = [
 ]
 
 export function RollbackWizard({ open, onOpenChange, currentUser }: RollbackWizardProps) {
-  const [backups, setBackups] = useKV<BackupMetadata[]>('w3-hotel-backups', [])
-  const [backupData, setBackupData] = useKV<Record<string, string>>('w3-hotel-backup-data', {})
-  const [rollbackLogs, setRollbackLogs] = useKV<RollbackLog[]>('w3-hotel-rollback-logs', [])
+  const [backups, setBackups] = useSettingState<BackupMetadata[]>('w3-hotel-backups', [])
+  const [backupData, setBackupData] = useSettingState<Record<string, string>>('w3-hotel-backup-data', {})
+  const [rollbackLogs, setRollbackLogs] = useSettingState<RollbackLog[]>('w3-hotel-rollback-logs', [])
   
   const [currentStep, setCurrentStep] = useState(1)
   const [selectedBackup, setSelectedBackup] = useState<BackupMetadata | null>(null)

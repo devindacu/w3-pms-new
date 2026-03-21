@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import {
   Dialog,
   DialogContent,
@@ -90,7 +90,7 @@ export function DepartmentUsageDialog({
   onOpenChange,
   item,
 }: DepartmentUsageDialogProps) {
-  const [usages, setUsages] = useKV<DepartmentUsage[]>('w3-hotel-department-usage', [])
+  const [usages, setUsages] = useSettingState<DepartmentUsage[]>('w3-hotel-department-usage', [])
   const [department, setDepartment] = useState<Department>('housekeeping')
   const [quantity, setQuantity] = useState('')
   const [usedBy, setUsedBy] = useState('')

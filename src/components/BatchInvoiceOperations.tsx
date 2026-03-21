@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -54,7 +54,7 @@ export function BatchInvoiceOperations({
   currentUser,
   onUpdate
 }: BatchInvoiceOperationsProps) {
-  const [templates] = useKV<EmailTemplate[]>('w3-hotel-email-templates', [])
+  const [templates] = useSettingState<EmailTemplate[]>('w3-hotel-email-templates', [])
   const [operation, setOperation] = useState<BatchOperation>(null)
   const [processing, setProcessing] = useState(false)
   const [progress, setProgress] = useState(0)

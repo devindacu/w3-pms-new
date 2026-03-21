@@ -32,11 +32,11 @@ export const securityHeaders = helmet({
  * Prevents brute force and DDoS attacks
  */
 export const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 2000, // Limit each IP to 2000 requests per minute (sufficient for multi-entity PMS)
   message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  standardHeaders: true,
+  legacyHeaders: false,
   handler: (req: Request, res: Response) => {
     res.status(429).json({
       error: 'Too many requests',
@@ -157,15 +157,21 @@ export const corsOptions = {
     
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
+    } else if (
+      process.env.NODE_ENV === 'development' ||
+      !process.env.NODE_ENV ||
+      origin.includes('.replit.dev') ||
+      origin.includes('.replit.app') ||
+      origin.includes('.sisko.replit.dev') ||
+      origin.includes('.janeway.replit.dev')
+    ) {
+      callback(null, true);
     } else {
-      // In development, allow all origins
-      if (process.env.NODE_ENV === 'development') {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
+      callback(new Error('Not allowed by CORS'));
     }
   },
+  methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
   optionsSuccessStatus: 200,
 };

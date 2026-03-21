@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { toast } from 'sonner'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -76,7 +76,7 @@ export function DashboardLayoutManager({
   onClose
 }: DashboardLayoutManagerProps) {
   const [open, setOpen] = useState(false)
-  const [savedLayouts, setSavedLayouts] = useKV<DashboardLayout[]>('w3-hotel-dashboard-layouts', [])
+  const [savedLayouts, setSavedLayouts] = useSettingState<DashboardLayout[]>('w3-hotel-dashboard-layouts', [])
   const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [layoutName, setLayoutName] = useState('')
   const [layoutDescription, setLayoutDescription] = useState('')

@@ -37,7 +37,7 @@ import { HousekeepingBatchOperations } from './HousekeepingBatchOperations'
 import { LinenTrackingSystem } from './LinenTrackingSystem'
 import { PrintButton } from '@/components/PrintButton'
 import { A4PrintWrapper } from '@/components/A4PrintWrapper'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 
 interface HousekeepingProps {
   rooms: Room[]
@@ -60,8 +60,8 @@ export function Housekeeping({ rooms, setRooms, tasks, setTasks, employees }: Ho
   const [selectedRoom, setSelectedRoom] = useState<Room | undefined>()
   const [selectedLostFoundItem, setSelectedLostFoundItem] = useState<LostFoundItem | undefined>()
   
-  const [maintenanceRequests, setMaintenanceRequests] = useKV<MaintenanceRequest[]>('w3-hotel-maintenance', [])
-  const [lostFoundItems, setLostFoundItems] = useKV<LostFoundItem[]>('w3-hotel-lost-found', [])
+  const [maintenanceRequests, setMaintenanceRequests] = useSettingState<MaintenanceRequest[]>('w3-hotel-maintenance', [])
+  const [lostFoundItems, setLostFoundItems] = useSettingState<LostFoundItem[]>('w3-hotel-lost-found', [])
 
   const safeTasks = tasks || []
   const safeRooms = rooms || []

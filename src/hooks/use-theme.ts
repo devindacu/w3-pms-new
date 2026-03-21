@@ -119,6 +119,9 @@ export function useTheme() {
     if (savedDarkMode !== null) {
       const isDark = savedDarkMode === 'true'
       applyDarkMode(isDark, false)
+    } else {
+      applyDarkMode(false, false)
+      localStorage.setItem('theme-dark-mode', 'false')
     }
   }, [])
 

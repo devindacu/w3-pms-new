@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import {
   Dialog,
   DialogContent,
@@ -77,7 +77,7 @@ export function BatchTrackingDialog({
   onOpenChange,
   item,
 }: BatchTrackingDialogProps) {
-  const [batches, setBatches] = useKV<BatchInfo[]>('w3-hotel-batch-tracking', [])
+  const [batches, setBatches] = useSettingState<BatchInfo[]>('w3-hotel-batch-tracking', [])
   const [batchNumber, setBatchNumber] = useState('')
   const [quantity, setQuantity] = useState('')
   const [expiryDate, setExpiryDate] = useState<Date>()

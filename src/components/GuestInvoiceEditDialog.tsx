@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -48,8 +48,8 @@ export function GuestInvoiceEditDialog({
     grandTotal: invoice.grandTotal
   })
   
-  const [currencyConfiguration] = useKV<CurrencyConfiguration | null>('w3-hotel-currency-config', null)
-  const [exchangeRates] = useKV<ExchangeRate[]>('w3-hotel-exchange-rates', [])
+  const [currencyConfiguration] = useSettingState<CurrencyConfiguration | null>('w3-hotel-currency-config', null)
+  const [exchangeRates] = useSettingState<ExchangeRate[]>('w3-hotel-exchange-rates', [])
 
   const handleLineItemChange = (index: number, field: keyof InvoiceLineItem, value: any) => {
     const updatedLineItems = [...editedInvoice.lineItems]

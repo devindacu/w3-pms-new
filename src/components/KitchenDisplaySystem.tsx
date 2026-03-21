@@ -14,7 +14,7 @@ import {
   Users,
   Timer,
 } from '@phosphor-icons/react';
-import { useKV } from '@github/spark/hooks';
+import { useSettingState } from '@/hooks/use-api-state';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -47,9 +47,9 @@ interface KDSOrderItem {
 }
 
 export function KitchenDisplaySystem() {
-  const [orders, setOrders] = useKV<KDSOrder[]>('kdsOrders', []);
+  const [orders, setOrders] = useSettingState<KDSOrder[]>('kdsOrders', []);
   const [selectedStation, setSelectedStation] = useState<string>('all');
-  const [soundEnabled, setSoundEnabled] = useKV<boolean>('kdsSoundEnabled', true);
+  const [soundEnabled, setSoundEnabled] = useSettingState<boolean>('kdsSoundEnabled', true);
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   // Auto-refresh every 5 seconds

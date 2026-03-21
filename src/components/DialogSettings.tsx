@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -16,7 +16,7 @@ import {
 } from '@/lib/dialog-settings'
 
 export function DialogSettings() {
-  const [settings, setSettings] = useKV<GlobalDialogSettings>(
+  const [settings, setSettings] = useSettingState<GlobalDialogSettings>(
     'w3-hotel-dialog-settings',
     DEFAULT_DIALOG_SETTINGS
   )

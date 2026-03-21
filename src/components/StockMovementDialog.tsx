@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import {
   Dialog,
   DialogContent,
@@ -77,7 +77,7 @@ export function StockMovementDialog({
   onOpenChange,
   item,
 }: StockMovementDialogProps) {
-  const [movements, setMovements] = useKV<StockMovement[]>('w3-hotel-stock-movements', [])
+  const [movements, setMovements] = useSettingState<StockMovement[]>('w3-hotel-stock-movements', [])
   const [movementType, setMovementType] = useState<'in' | 'out' | 'adjustment' | 'transfer' | 'waste'>('in')
   const [quantity, setQuantity] = useState('')
   const [fromLocation, setFromLocation] = useState(item.storeLocation)

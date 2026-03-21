@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -58,7 +58,7 @@ export function DashboardWidgetManager({
   const [activeTab, setActiveTab] = useState('widgets')
   const [tempLayout, setTempLayout] = useState<DashboardLayout | null>(null)
   const [templateManagerOpen, setTemplateManagerOpen] = useState(false)
-  const [savedTemplates, setSavedTemplates] = useKV<any[]>('dashboard-templates', [])
+  const [savedTemplates, setSavedTemplates] = useSettingState<any[]>('dashboard-templates', [])
 
   const availableWidgets = getAvailableWidgets()
   const rolePresets = getRoleWidgetPresets(userRole)

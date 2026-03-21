@@ -6,28 +6,7 @@ export const migration_2026_01_19_add_settings_table: Migration = {
   timestamp: 1737331200000,
   
   async up() {
-    console.log('Migration 1.1.0: Adding system settings support')
-    
-    const existingSettings = await window.spark.kv.get('w3-hotel-system-settings')
-    if (!existingSettings) {
-      const defaultSettings = {
-        id: 'system-settings',
-        maintenanceMode: false,
-        enableAutoBackup: true,
-        backupFrequency: 'daily',
-        dataRetentionDays: 365,
-        enableAuditLog: true,
-        featureFlags: {
-          enableAIForecasting: true,
-          enableChannelManager: true,
-          enableMobileApp: false,
-        },
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      }
-      
-      await window.spark.kv.set('w3-hotel-system-settings', defaultSettings)
-    }
+    console.log('Migration 1.1.0: System settings table already managed via PostgreSQL backend')
   },
   
   async down() {

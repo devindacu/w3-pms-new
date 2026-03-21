@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -50,7 +50,7 @@ export function ScheduleManagement({
   onToggleStatus,
   onRunNow
 }: ScheduleManagementProps) {
-  const [executionLogs, setExecutionLogs] = useKV<ScheduleExecutionLog[]>('w3-hotel-schedule-logs', [])
+  const [executionLogs, setExecutionLogs] = useSettingState<ScheduleExecutionLog[]>('w3-hotel-schedule-logs', [])
   const [selectedSchedule, setSelectedSchedule] = useState<string | null>(null)
 
   const getStatusColor = (status: ReportSchedule['status']) => {

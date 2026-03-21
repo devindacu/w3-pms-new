@@ -51,7 +51,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { cn } from '@/lib/utils';
-import { useKV } from '@github/spark/hooks';
+import { useSettingState } from '@/hooks/use-api-state';
 
 interface DashboardWidget {
   id: string;
@@ -115,7 +115,7 @@ function SortableWidget({ widget, children }: SortableWidgetProps) {
 }
 
 export function EnhancedDashboardWidgets() {
-  const [widgets, setWidgets, deleteWidgets] = useKV<DashboardWidget[]>('dashboardWidgets', [
+  const [widgets, setWidgets, deleteWidgets] = useSettingState<DashboardWidget[]>('dashboardWidgets', [
     {
       id: 'total-revenue',
       type: 'metric',

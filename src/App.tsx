@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useKV } from '@github/spark/hooks'
-import { useServerSync } from '@/hooks/use-server-sync'
+import { useApiSyncState, useSettingState } from '@/hooks/use-api-state'
 import { Toaster, toast } from 'sonner'
 import { useTheme } from '@/hooks/use-theme'
 import { useBrandingTheme } from '@/hooks/use-branding-theme'
@@ -239,195 +238,114 @@ import type {
 type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'revenue-management' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio' | 'floor-plan' | 'booking-engine'
 
 function App() {
-  const {
-    value: guests,
-    setValue: setGuests,
-    syncStatus: guestsSyncStatus,
-    pendingConflicts: guestsConflicts,
-    resolveConflict: resolveGuestsConflict,
-    ignoreConflict: ignoreGuestsConflict,
-    queueDepth: guestsQueueDepth,
-    lastSyncTime: guestsLastSyncTime,
-    forceSync: forceGuestsSync,
-  } = useServerSync<Guest[]>('w3-hotel-guests', [], {
-    syncInterval: 30000,
-    autoResolveStrategy: 'manual',
-    enableSync: true,
-  })
+  const { value: guests, setValue: setGuests, syncStatus: guestsSyncStatus, pendingConflicts: guestsConflicts, resolveConflict: resolveGuestsConflict, ignoreConflict: ignoreGuestsConflict, queueDepth: guestsQueueDepth, lastSyncTime: guestsLastSyncTime, forceSync: forceGuestsSync } = useApiSyncState<Guest>('guests', [])
+  const { value: rooms, setValue: setRooms, syncStatus: roomsSyncStatus, pendingConflicts: roomsConflicts, resolveConflict: resolveRoomsConflict, ignoreConflict: ignoreRoomsConflict, queueDepth: roomsQueueDepth, lastSyncTime: roomsLastSyncTime, forceSync: forceRoomsSync } = useApiSyncState<Room>('rooms', [])
+  const { value: reservations, setValue: setReservations, syncStatus: reservationsSyncStatus, pendingConflicts: reservationsConflicts, resolveConflict: resolveReservationsConflict, ignoreConflict: ignoreReservationsConflict, queueDepth: reservationsQueueDepth, lastSyncTime: reservationsLastSyncTime, forceSync: forceReservationsSync } = useApiSyncState<Reservation>('reservations', [])
+  const { value: employees, setValue: setEmployees, syncStatus: employeesSyncStatus, pendingConflicts: employeesConflicts, resolveConflict: resolveEmployeesConflict, ignoreConflict: ignoreEmployeesConflict, queueDepth: employeesQueueDepth, lastSyncTime: employeesLastSyncTime, forceSync: forceEmployeesSync } = useApiSyncState<Employee>('employees', [])
+  const { value: housekeepingTasks, setValue: setHousekeepingTasks, syncStatus: housekeepingSyncStatus, pendingConflicts: housekeepingConflicts, resolveConflict: resolveHousekeepingConflict, ignoreConflict: ignoreHousekeepingConflict, queueDepth: housekeepingQueueDepth, lastSyncTime: housekeepingLastSyncTime, forceSync: forceHousekeepingSync } = useApiSyncState<HousekeepingTask>('housekeeping-tasks', [])
 
-  const {
-    value: rooms,
-    setValue: setRooms,
-    syncStatus: roomsSyncStatus,
-    pendingConflicts: roomsConflicts,
-    resolveConflict: resolveRoomsConflict,
-    ignoreConflict: ignoreRoomsConflict,
-    queueDepth: roomsQueueDepth,
-    lastSyncTime: roomsLastSyncTime,
-    forceSync: forceRoomsSync,
-  } = useServerSync<Room[]>('w3-hotel-rooms', [], {
-    syncInterval: 30000,
-    autoResolveStrategy: 'manual',
-    enableSync: true,
-  })
+  const [invoices, setInvoices] = useSettingState<Invoice[]>('procurement-invoices', [])
+  const invoicesSyncStatus = 'synced' as const
+  const invoicesConflicts: never[] = []
+  const resolveInvoicesConflict = () => {}
+  const ignoreInvoicesConflict = () => {}
+  const invoicesQueueDepth = 0
+  const invoicesLastSyncTime = Date.now()
+  const forceInvoicesSync = () => {}
 
-  const {
-    value: reservations,
-    setValue: setReservations,
-    syncStatus: reservationsSyncStatus,
-    pendingConflicts: reservationsConflicts,
-    resolveConflict: resolveReservationsConflict,
-    ignoreConflict: ignoreReservationsConflict,
-    queueDepth: reservationsQueueDepth,
-    lastSyncTime: reservationsLastSyncTime,
-    forceSync: forceReservationsSync,
-  } = useServerSync<Reservation[]>('w3-hotel-reservations', [], {
-    syncInterval: 30000,
-    autoResolveStrategy: 'manual',
-    enableSync: true,
-  })
+  const [folios, setFolios] = useSettingState<Folio[]>('folios', [])
+  const [inventory, setInventory] = useSettingState<InventoryItem[]>('inventory', [])
+  const [menuItems, setMenuItems] = useSettingState<MenuItem[]>('menu-items', [])
+  const [menuCategories, setMenuCategories] = useSettingState<import('@/lib/types').MenuItemCategory[]>('menu-categories', [])
+  const [orders, setOrders] = useSettingState<Order[]>('orders', [])
+  const [suppliers, setSuppliers] = useSettingState<Supplier[]>('suppliers', [])
+  const [maintenanceRequests, setMaintenanceRequests] = useSettingState<MaintenanceRequest[]>('maintenance-requests', [])
+  const [foodItems, setFoodItems] = useSettingState<FoodItem[]>('food-items', [])
+  const [amenities, setAmenities] = useSettingState<Amenity[]>('amenities', [])
+  const [amenityUsageLogs, setAmenityUsageLogs] = useSettingState<AmenityUsageLog[]>('amenity-usage-logs', [])
+  const [amenityAutoOrders, setAmenityAutoOrders] = useSettingState<AmenityAutoOrder[]>('amenity-auto-orders', [])
+  const [constructionMaterials, setConstructionMaterials] = useSettingState<ConstructionMaterial[]>('construction-materials', [])
+  const [constructionProjects, setConstructionProjects] = useSettingState<ConstructionProject[]>('construction-projects', [])
+  const [contractors, setContractors] = useSettingState<Contractor[]>('contractors', [])
+  const [generalProducts, setGeneralProducts] = useSettingState<GeneralProduct[]>('general-products', [])
+  const [systemUsers, setSystemUsers] = useSettingState<SystemUser[]>('system-users', [])
+  const [activityLogs, setActivityLogs] = useSettingState<ActivityLog[]>('activity-logs', [])
+  const [attendance, setAttendance] = useSettingState<Attendance[]>('attendance', [])
+  const [leaveRequests, setLeaveRequests] = useSettingState<LeaveRequest[]>('leave-requests', [])
+  const [shifts, setShifts] = useSettingState<Shift[]>('shifts', [])
+  const [dutyRosters, setDutyRosters] = useSettingState<DutyRoster[]>('duty-rosters', [])
+  const [performanceReviews, setPerformanceReviews] = useSettingState<PerformanceReview[]>('performance-reviews', [])
+  const [requisitions, setRequisitions] = useSettingState<Requisition[]>('requisitions', [])
+  const [purchaseOrders, setPurchaseOrders] = useSettingState<PurchaseOrder[]>('purchase-orders', [])
+  const [grns, setGRNs] = useSettingState<GoodsReceivedNote[]>('goods-received-notes', [])
+  const [recipes, setRecipes] = useSettingState<Recipe[]>('recipes', [])
+  const [menus, setMenus] = useSettingState<Menu[]>('menus', [])
+  const [consumptionLogs, setConsumptionLogs] = useSettingState<KitchenConsumptionLog[]>('consumption-logs', [])
+  const [kitchenStations, setKitchenStations] = useSettingState<KitchenStation[]>('kitchen-stations', [])
+  const [kitchenStaff, setKitchenStaff] = useSettingState<KitchenStaff[]>('kitchen-staff', [])
+  const [productionSchedules, setProductionSchedules] = useSettingState<ProductionSchedule[]>('production-schedules', [])
+  const [inventoryIssues, setInventoryIssues] = useSettingState<KitchenInventoryIssue[]>('inventory-issues', [])
+  const [wasteTracking, setWasteTracking] = useSettingState<WasteTracking[]>('waste-tracking', [])
+  const [notifications, setNotifications] = useSettingState<Notification[]>('notifications', [])
+  const [forecasts, setForecasts] = useSettingState<DemandForecast[]>('forecasts', [])
+  const [guestProfiles, setGuestProfiles] = useSettingState<GuestProfile[]>('guest-profiles', [])
+  const [complaints, setComplaints] = useSettingState<GuestComplaint[]>('complaints', [])
+  const [guestFeedback, setGuestFeedback] = useSettingState<GuestFeedback[]>('guest-feedback', [])
+  const [marketingCampaigns, setMarketingCampaigns] = useSettingState<MarketingCampaign[]>('marketing-campaigns', [])
+  const [marketingTemplates, setMarketingTemplates] = useSettingState<MarketingTemplate[]>('marketing-templates', [])
+  const [upsellOffers, setUpsellOffers] = useSettingState<UpsellOffer[]>('upsell-offers', [])
+  const [upsellTransactions, setUpsellTransactions] = useSettingState<UpsellTransaction[]>('upsell-transactions', [])
+  const [loyaltyTransactions, setLoyaltyTransactions] = useSettingState<LoyaltyTransaction[]>('loyalty-transactions', [])
+  const [otaConnections, setOTAConnections] = useSettingState<OTAConnection[]>('ota-connections', [])
+  const [ratePlans, setRatePlans] = useSettingState<RatePlan[]>('rate-plans', [])
+  const [channelInventory, setChannelInventory] = useSettingState<ChannelInventory[]>('channel-inventory', [])
+  const [channelRates, setChannelRates] = useSettingState<ChannelRate[]>('channel-rates', [])
+  const [channelReservations, setChannelReservations] = useSettingState<ChannelReservation[]>('channel-reservations', [])
+  const [syncLogs, setSyncLogs] = useSettingState<SyncLog[]>('sync-logs', [])
+  const [channelPerformance, setChannelPerformance] = useSettingState<ChannelPerformance[]>('channel-performance', [])
+  const [channelReviews, setChannelReviews] = useSettingState<ChannelReview[]>('channel-reviews', [])
+  const [bulkOperations, setBulkOperations] = useSettingState<BulkUpdateOperation[]>('bulk-operations', [])
+  const [extraServices, setExtraServices] = useSettingState<ExtraService[]>('extra-services', [])
+  const [serviceCategories, setServiceCategories] = useSettingState<ExtraServiceCategory[]>('service-categories', [])
+  const [folioExtraServices, setFolioExtraServices] = useSettingState<FolioExtraService[]>('folio-extra-services', [])
 
-  const {
-    value: employees,
-    setValue: setEmployees,
-    syncStatus: employeesSyncStatus,
-    pendingConflicts: employeesConflicts,
-    resolveConflict: resolveEmployeesConflict,
-    ignoreConflict: ignoreEmployeesConflict,
-    queueDepth: employeesQueueDepth,
-    lastSyncTime: employeesLastSyncTime,
-    forceSync: forceEmployeesSync,
-  } = useServerSync<Employee[]>('w3-hotel-employees', [], {
-    syncInterval: 30000,
-    autoResolveStrategy: 'manual',
-    enableSync: true,
-  })
+  const [roomTypeConfigs, setRoomTypeConfigs] = useSettingState<RoomTypeConfig[]>('room-type-configs', [])
+  const [ratePlanConfigs, setRatePlanConfigs] = useSettingState<RatePlanConfig[]>('rate-plan-configs', [])
+  const [seasons, setSeasons] = useSettingState<Season[]>('seasons', [])
+  const [eventDays, setEventDays] = useSettingState<EventDay[]>('event-days', [])
+  const [corporateAccounts, setCorporateAccounts] = useSettingState<CorporateAccount[]>('corporate-accounts', [])
+  const [rateCalendar, setRateCalendar] = useSettingState<RateCalendar[]>('rate-calendar', [])
+  const [occupancyPricing, setOccupancyPricing] = useSettingState<OccupancyPricing[]>('occupancy-pricing', [])
+  const [guestInvoices, setGuestInvoices] = useSettingState<GuestInvoice[]>('guest-invoices', [])
+  const [branding, setBranding] = useSettingState<HotelBranding | null>('branding', null)
+  const [taxes, setTaxes] = useSettingState<TaxConfiguration[]>('taxes', [])
+  const [serviceCharge, setServiceCharge] = useSettingState<ServiceChargeConfiguration | null>('service-charge', null)
+  const [emailTemplates, setEmailTemplates] = useSettingState<import('@/lib/invoiceEmailTemplates').EmailTemplate[]>('email-templates', [])
+  const [emailAnalytics, setEmailAnalytics] = useSettingState<EmailTemplateAnalytics[]>('email-analytics', [])
+  const [campaignAnalytics, setCampaignAnalytics] = useSettingState<EmailCampaignAnalytics[]>('campaign-analytics', [])
+  const [emailRecords, setEmailRecords] = useSettingState<EmailSentRecord[]>('email-records', [])
 
-  const {
-    value: invoices,
-    setValue: setInvoices,
-    syncStatus: invoicesSyncStatus,
-    pendingConflicts: invoicesConflicts,
-    resolveConflict: resolveInvoicesConflict,
-    ignoreConflict: ignoreInvoicesConflict,
-    queueDepth: invoicesQueueDepth,
-    lastSyncTime: invoicesLastSyncTime,
-    forceSync: forceInvoicesSync,
-  } = useServerSync<Invoice[]>('w3-hotel-invoices', [], {
-    syncInterval: 30000,
-    autoResolveStrategy: 'manual',
-    enableSync: true,
-  })
-
-  const {
-    value: housekeepingTasks,
-    setValue: setHousekeepingTasks,
-    syncStatus: housekeepingSyncStatus,
-    pendingConflicts: housekeepingConflicts,
-    resolveConflict: resolveHousekeepingConflict,
-    ignoreConflict: ignoreHousekeepingConflict,
-    queueDepth: housekeepingQueueDepth,
-    lastSyncTime: housekeepingLastSyncTime,
-    forceSync: forceHousekeepingSync,
-  } = useServerSync<HousekeepingTask[]>('w3-hotel-housekeeping', [], {
-    syncInterval: 30000,
-    autoResolveStrategy: 'manual',
-    enableSync: true,
-  })
-
-  const [folios, setFolios] = useKV<Folio[]>('w3-hotel-folios', [])
-  const [inventory, setInventory] = useKV<InventoryItem[]>('w3-hotel-inventory', [])
-  const [menuItems, setMenuItems] = useKV<MenuItem[]>('w3-hotel-menu', [])
-  const [menuCategories, setMenuCategories] = useKV<import('@/lib/types').MenuItemCategory[]>('w3-hotel-menu-categories', [])
-  const [orders, setOrders] = useKV<Order[]>('w3-hotel-orders', [])
-  const [suppliers, setSuppliers] = useKV<Supplier[]>('w3-hotel-suppliers', [])
-  const [maintenanceRequests, setMaintenanceRequests] = useKV<MaintenanceRequest[]>('w3-hotel-maintenance', [])
-  const [foodItems, setFoodItems] = useKV<FoodItem[]>('w3-hotel-food-items', [])
-  const [amenities, setAmenities] = useKV<Amenity[]>('w3-hotel-amenities', [])
-  const [amenityUsageLogs, setAmenityUsageLogs] = useKV<AmenityUsageLog[]>('w3-hotel-amenity-usage', [])
-  const [amenityAutoOrders, setAmenityAutoOrders] = useKV<AmenityAutoOrder[]>('w3-hotel-amenity-auto-orders', [])
-  const [constructionMaterials, setConstructionMaterials] = useKV<ConstructionMaterial[]>('w3-hotel-construction-materials', [])
-  const [constructionProjects, setConstructionProjects] = useKV<ConstructionProject[]>('w3-hotel-construction-projects', [])
-  const [contractors, setContractors] = useKV<Contractor[]>('w3-hotel-contractors', [])
-  const [generalProducts, setGeneralProducts] = useKV<GeneralProduct[]>('w3-hotel-general-products', [])
-  const [systemUsers, setSystemUsers] = useKV<SystemUser[]>('w3-hotel-system-users', [])
-  const [activityLogs, setActivityLogs] = useKV<ActivityLog[]>('w3-hotel-activity-logs', [])
-  const [attendance, setAttendance] = useKV<Attendance[]>('w3-hotel-attendance', [])
-  const [leaveRequests, setLeaveRequests] = useKV<LeaveRequest[]>('w3-hotel-leave-requests', [])
-  const [shifts, setShifts] = useKV<Shift[]>('w3-hotel-shifts', [])
-  const [dutyRosters, setDutyRosters] = useKV<DutyRoster[]>('w3-hotel-duty-rosters', [])
-  const [performanceReviews, setPerformanceReviews] = useKV<PerformanceReview[]>('w3-hotel-performance-reviews', [])
-  const [requisitions, setRequisitions] = useKV<Requisition[]>('w3-hotel-requisitions', [])
-  const [purchaseOrders, setPurchaseOrders] = useKV<PurchaseOrder[]>('w3-hotel-purchase-orders', [])
-  const [grns, setGRNs] = useKV<GoodsReceivedNote[]>('w3-hotel-grns', [])
-  const [recipes, setRecipes] = useKV<Recipe[]>('w3-hotel-recipes', [])
-  const [menus, setMenus] = useKV<Menu[]>('w3-hotel-menus', [])
-  const [consumptionLogs, setConsumptionLogs] = useKV<KitchenConsumptionLog[]>('w3-hotel-consumption-logs', [])
-  const [kitchenStations, setKitchenStations] = useKV<KitchenStation[]>('w3-hotel-kitchen-stations', [])
-  const [kitchenStaff, setKitchenStaff] = useKV<KitchenStaff[]>('w3-hotel-kitchen-staff', [])
-  const [productionSchedules, setProductionSchedules] = useKV<ProductionSchedule[]>('w3-hotel-production-schedules', [])
-  const [inventoryIssues, setInventoryIssues] = useKV<KitchenInventoryIssue[]>('w3-hotel-inventory-issues', [])
-  const [wasteTracking, setWasteTracking] = useKV<WasteTracking[]>('w3-hotel-waste-tracking', [])
-  const [notifications, setNotifications] = useKV<Notification[]>('w3-hotel-notifications', [])
-  const [forecasts, setForecasts] = useKV<DemandForecast[]>('w3-hotel-forecasts', [])
-  const [guestProfiles, setGuestProfiles] = useKV<GuestProfile[]>('w3-hotel-guest-profiles', [])
-  const [complaints, setComplaints] = useKV<GuestComplaint[]>('w3-hotel-complaints', [])
-  const [guestFeedback, setGuestFeedback] = useKV<GuestFeedback[]>('w3-hotel-guest-feedback', [])
-  const [marketingCampaigns, setMarketingCampaigns] = useKV<MarketingCampaign[]>('w3-hotel-marketing-campaigns', [])
-  const [marketingTemplates, setMarketingTemplates] = useKV<MarketingTemplate[]>('w3-hotel-marketing-templates', [])
-  const [upsellOffers, setUpsellOffers] = useKV<UpsellOffer[]>('w3-hotel-upsell-offers', [])
-  const [upsellTransactions, setUpsellTransactions] = useKV<UpsellTransaction[]>('w3-hotel-upsell-transactions', [])
-  const [loyaltyTransactions, setLoyaltyTransactions] = useKV<LoyaltyTransaction[]>('w3-hotel-loyalty-transactions', [])
-  const [otaConnections, setOTAConnections] = useKV<OTAConnection[]>('w3-hotel-ota-connections', [])
-  const [ratePlans, setRatePlans] = useKV<RatePlan[]>('w3-hotel-rate-plans', [])
-  const [channelInventory, setChannelInventory] = useKV<ChannelInventory[]>('w3-hotel-channel-inventory', [])
-  const [channelRates, setChannelRates] = useKV<ChannelRate[]>('w3-hotel-channel-rates', [])
-  const [channelReservations, setChannelReservations] = useKV<ChannelReservation[]>('w3-hotel-channel-reservations', [])
-  const [syncLogs, setSyncLogs] = useKV<SyncLog[]>('w3-hotel-sync-logs', [])
-  const [channelPerformance, setChannelPerformance] = useKV<ChannelPerformance[]>('w3-hotel-channel-performance', [])
-  const [channelReviews, setChannelReviews] = useKV<ChannelReview[]>('w3-hotel-channel-reviews', [])
-  const [bulkOperations, setBulkOperations] = useKV<BulkUpdateOperation[]>('w3-hotel-bulk-operations', [])
-  const [extraServices, setExtraServices] = useKV<ExtraService[]>('w3-hotel-extra-services', [])
-  const [serviceCategories, setServiceCategories] = useKV<ExtraServiceCategory[]>('w3-hotel-service-categories', [])
-  const [folioExtraServices, setFolioExtraServices] = useKV<FolioExtraService[]>('w3-hotel-folio-extra-services', [])
-  
-  const [roomTypeConfigs, setRoomTypeConfigs] = useKV<RoomTypeConfig[]>('w3-hotel-room-type-configs', [])
-  const [ratePlanConfigs, setRatePlanConfigs] = useKV<RatePlanConfig[]>('w3-hotel-rate-plan-configs', [])
-  const [seasons, setSeasons] = useKV<Season[]>('w3-hotel-seasons', [])
-  const [eventDays, setEventDays] = useKV<EventDay[]>('w3-hotel-event-days', [])
-  const [corporateAccounts, setCorporateAccounts] = useKV<CorporateAccount[]>('w3-hotel-corporate-accounts', [])
-  const [rateCalendar, setRateCalendar] = useKV<RateCalendar[]>('w3-hotel-rate-calendar', [])
-  const [occupancyPricing, setOccupancyPricing] = useKV<OccupancyPricing[]>('w3-hotel-occupancy-pricing', [])
-  const [guestInvoices, setGuestInvoices] = useKV<GuestInvoice[]>('w3-hotel-guest-invoices', [])
-  const [branding, setBranding] = useKV<HotelBranding | null>('w3-hotel-branding', null)
-  const [taxes, setTaxes] = useKV<TaxConfiguration[]>('w3-hotel-taxes', [])
-  const [serviceCharge, setServiceCharge] = useKV<ServiceChargeConfiguration | null>('w3-hotel-service-charge', null)
-  const [emailTemplates, setEmailTemplates] = useKV<import('@/lib/invoiceEmailTemplates').EmailTemplate[]>('w3-hotel-email-templates', [])
-  const [emailAnalytics, setEmailAnalytics] = useKV<EmailTemplateAnalytics[]>('w3-hotel-email-analytics', [])
-  const [campaignAnalytics, setCampaignAnalytics] = useKV<EmailCampaignAnalytics[]>('w3-hotel-campaign-analytics', [])
-  const [emailRecords, setEmailRecords] = useKV<EmailSentRecord[]>('w3-hotel-email-records', [])
-  
-  const [payments, setPayments] = useKV<import('@/lib/types').Payment[]>('w3-hotel-payments', [])
-  const [expenses, setExpenses] = useKV<import('@/lib/types').Expense[]>('w3-hotel-expenses', [])
-  const [accounts, setAccounts] = useKV<import('@/lib/types').Account[]>('w3-hotel-accounts', [])
-  const [budgets, setBudgets] = useKV<import('@/lib/types').Budget[]>('w3-hotel-budgets', [])
-  const [journalEntries, setJournalEntries] = useKV<import('@/lib/types').JournalEntry[]>('w3-hotel-journal-entries', [])
-  const [chartOfAccounts, setChartOfAccounts] = useKV<import('@/lib/types').ChartOfAccount[]>('w3-hotel-chart-of-accounts', [])
-  const [glEntries, setGLEntries] = useKV<import('@/lib/types').GLEntry[]>('w3-hotel-gl-entries', [])
-  const [bankReconciliations, setBankReconciliations] = useKV<import('@/lib/types').BankReconciliation[]>('w3-hotel-bank-reconciliations', [])
-  const [costCenters, setCostCenters] = useKV<import('@/lib/types').CostCenter[]>('w3-hotel-cost-centers', [])
-  const [profitCenters, setProfitCenters] = useKV<import('@/lib/types').ProfitCenter[]>('w3-hotel-profit-centers', [])
-  const [costCenterReports, setCostCenterReports] = useKV<import('@/lib/types').CostCenterReport[]>('w3-hotel-cost-center-reports', [])
-  const [profitCenterReports, setProfitCenterReports] = useKV<import('@/lib/types').ProfitCenterReport[]>('w3-hotel-profit-center-reports', [])
-  const [dashboardLayout, setDashboardLayout] = useKV<DashboardLayout | null>('w3-hotel-active-dashboard-layout', null)
-  const [savedDashboardLayouts] = useKV<DashboardLayout[]>('w3-hotel-dashboard-layouts', [])
-  const [invoiceSequences, setInvoiceSequences] = useKV<import('@/lib/types').InvoiceNumberSequence[]>('w3-hotel-invoice-sequences', [])
-  const [nightAuditLogs, setNightAuditLogs] = useKV<import('@/lib/types').NightAuditLog[]>('w3-hotel-night-audit-logs', [])
-  const [mealCombos, setMealCombos] = useKV<import('@/lib/types').MealCombo[]>('w3-hotel-meal-combos', [])
-  const [currencyConfiguration, setCurrencyConfiguration] = useKV<import('@/lib/currencyTypes').CurrencyConfiguration | null>('w3-hotel-currency-config', null)
-  const [exchangeRates, setExchangeRates] = useKV<import('@/lib/currencyTypes').ExchangeRate[]>('w3-hotel-exchange-rates', [])
-  const [masterFolios, setMasterFolios] = useKV<MasterFolio[]>('w3-hotel-master-folios', [])
-  const [groupReservations, setGroupReservations] = useKV<GroupReservation[]>('w3-hotel-group-reservations', [])
+  const [payments, setPayments] = useSettingState<import('@/lib/types').Payment[]>('payments', [])
+  const [expenses, setExpenses] = useSettingState<import('@/lib/types').Expense[]>('expenses', [])
+  const [accounts, setAccounts] = useSettingState<import('@/lib/types').Account[]>('accounts', [])
+  const [budgets, setBudgets] = useSettingState<import('@/lib/types').Budget[]>('budgets', [])
+  const [journalEntries, setJournalEntries] = useSettingState<import('@/lib/types').JournalEntry[]>('journal-entries', [])
+  const [chartOfAccounts, setChartOfAccounts] = useSettingState<import('@/lib/types').ChartOfAccount[]>('chart-of-accounts', [])
+  const [glEntries, setGLEntries] = useSettingState<import('@/lib/types').GLEntry[]>('gl-entries', [])
+  const [bankReconciliations, setBankReconciliations] = useSettingState<import('@/lib/types').BankReconciliation[]>('bank-reconciliations', [])
+  const [costCenters, setCostCenters] = useSettingState<import('@/lib/types').CostCenter[]>('cost-centers', [])
+  const [profitCenters, setProfitCenters] = useSettingState<import('@/lib/types').ProfitCenter[]>('profit-centers', [])
+  const [costCenterReports, setCostCenterReports] = useSettingState<import('@/lib/types').CostCenterReport[]>('cost-center-reports', [])
+  const [profitCenterReports, setProfitCenterReports] = useSettingState<import('@/lib/types').ProfitCenterReport[]>('profit-center-reports', [])
+  const [dashboardLayout, setDashboardLayout] = useSettingState<DashboardLayout | null>('active-dashboard-layout', null)
+  const [savedDashboardLayouts] = useSettingState<DashboardLayout[]>('dashboard-layouts', [])
+  const [invoiceSequences, setInvoiceSequences] = useSettingState<import('@/lib/types').InvoiceNumberSequence[]>('invoice-sequences', [])
+  const [nightAuditLogs, setNightAuditLogs] = useSettingState<import('@/lib/types').NightAuditLog[]>('night-audit-logs', [])
+  const [mealCombos, setMealCombos] = useSettingState<import('@/lib/types').MealCombo[]>('meal-combos', [])
+  const [currencyConfiguration, setCurrencyConfiguration] = useSettingState<import('@/lib/currencyTypes').CurrencyConfiguration | null>('currency-config', null)
+  const [exchangeRates, setExchangeRates] = useSettingState<import('@/lib/currencyTypes').ExchangeRate[]>('exchange-rates', [])
+  const [masterFolios, setMasterFolios] = useSettingState<MasterFolio[]>('master-folios', [])
+  const [groupReservations, setGroupReservations] = useSettingState<GroupReservation[]>('group-reservations', [])
   
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false)

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -47,7 +47,7 @@ interface RoomManagementProps {
 }
 
 export function RoomManagement({ rooms, setRooms }: RoomManagementProps) {
-  const [roomTypes, setRoomTypes] = useKV<RoomTypeConfig[]>('w3-hotel-room-types', [])
+  const [roomTypes, setRoomTypes] = useSettingState<RoomTypeConfig[]>('w3-hotel-room-types', [])
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<RoomStatus | 'all'>('all')
   const [typeFilter, setTypeFilter] = useState<RoomType | 'all'>('all')

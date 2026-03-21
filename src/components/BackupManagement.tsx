@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -44,9 +44,9 @@ interface BackupManagementProps {
 }
 
 export function BackupManagement({ currentUser }: BackupManagementProps) {
-  const [backups, setBackups] = useKV<BackupMetadata[]>('w3-hotel-backups', [])
-  const [backupData, setBackupData] = useKV<Record<string, string>>('w3-hotel-backup-data', {})
-  const [settings, setSettings] = useKV<BackupSettings>('w3-hotel-backup-settings', {
+  const [backups, setBackups] = useSettingState<BackupMetadata[]>('w3-hotel-backups', [])
+  const [backupData, setBackupData] = useSettingState<Record<string, string>>('w3-hotel-backup-data', {})
+  const [settings, setSettings] = useSettingState<BackupSettings>('w3-hotel-backup-settings', {
     autoBackupEnabled: false,
     autoBackupInterval: 24 * 60 * 60 * 1000,
     maxBackups: 10,

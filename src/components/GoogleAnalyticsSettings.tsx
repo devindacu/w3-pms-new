@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 import { toast } from 'sonner'
 import type { GoogleAnalyticsConfig, SystemUser } from '@/lib/types'
 import {
@@ -25,7 +25,7 @@ interface GoogleAnalyticsSettingsProps {
 }
 
 export function GoogleAnalyticsSettings({ currentUser }: GoogleAnalyticsSettingsProps) {
-  const [config, setConfig] = useKV<GoogleAnalyticsConfig | null>('ga-config', null)
+  const [config, setConfig] = useSettingState<GoogleAnalyticsConfig | null>('ga-config', null)
   const [isEditing, setIsEditing] = useState(!config)
   const [isTesting, setIsTesting] = useState(false)
   const [showPrivateKey, setShowPrivateKey] = useState(false)

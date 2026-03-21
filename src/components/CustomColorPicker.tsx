@@ -26,7 +26,7 @@ import {
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { useTheme, type ThemeColors } from '@/hooks/use-theme'
-import { useKV } from '@github/spark/hooks'
+import { useSettingState } from '@/hooks/use-api-state'
 
 interface CustomColorMood {
   id: string
@@ -42,7 +42,7 @@ interface ColorPickerProps {
 
 export function CustomColorPicker({ open, onOpenChange }: ColorPickerProps) {
   const { applyTheme } = useTheme()
-  const [customMoods, setCustomMoods] = useKV<CustomColorMood[]>('custom-color-moods', [])
+  const [customMoods, setCustomMoods] = useSettingState<CustomColorMood[]>('custom-color-moods', [])
   
   const [moodName, setMoodName] = useState('')
   const [primaryL, setPrimaryL] = useState(65)
