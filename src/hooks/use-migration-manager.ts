@@ -34,8 +34,13 @@ export function useMigrationManager() {
       
       setIsInitialized(true)
     } catch (error) {
-      console.error('Failed to initialize system:', error)
-      toast.error('System initialization failed')
+      const msg = error instanceof Error ? error.message : String(error)
+      if (msg.toLowerCase().includes('too many requests') || msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('429')) {
+        setIsInitialized(true)
+      } else {
+        console.error('Failed to initialize system:', error)
+        toast.error('System initialization failed')
+      }
     }
   }
 

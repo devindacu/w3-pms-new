@@ -37,11 +37,12 @@ export class DataSyncService {
     this.isProcessing = true;
 
     try {
-      // Get pending items
-      const pendingItems = await db.query.dataSyncQueue.findMany({
-        where: eq(schema.dataSyncQueue.status, 'pending'),
-        limit: 100
-      });
+      // Get pending items (catch handles Neon HTTP driver null-on-empty-result bug)
+      const pendingItems = await db.select()
+        .from(schema.dataSyncQueue)
+        .where(eq(schema.dataSyncQueue.status, 'pending'))
+        .limit(100)
+        .catch(() => []);
 
       for (const item of pendingItems) {
         try {

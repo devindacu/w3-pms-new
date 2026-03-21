@@ -110,21 +110,14 @@ export function DraggableDashboardGrid({
 }: DraggableDashboardGridProps) {
   const [activeId, setActiveId] = React.useState<string | null>(null)
 
-  const sensors = React.useMemo(() => {
-    try {
-      return useSensors(
-        useSensor(PointerSensor, {
-          activationConstraint: {
-            distance: 8,
-          },
-        }),
-        useSensor(KeyboardSensor)
-      )
-    } catch (error) {
-      console.error('Error initializing drag sensors:', error)
-      return []
-    }
-  }, [])
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor)
+  )
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string)
