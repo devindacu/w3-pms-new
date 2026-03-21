@@ -174,7 +174,7 @@ app.post('/api/reservations', validate(reservationCreateSchema), async (req, res
 
 app.put('/api/reservations/:id', validate(idParamSchema, 'params'), validate(reservationUpdateSchema), async (req, res) => {
   try {
-    const result = await db.update(schema.reservations).set(req.body).where(eq(schema.reservations.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.reservations).set(req.body).where(eq(schema.reservations.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -184,7 +184,7 @@ app.put('/api/reservations/:id', validate(idParamSchema, 'params'), validate(res
 
 app.patch('/api/reservations/:id', async (req, res) => {
   try {
-    const result = await db.update(schema.reservations).set(req.body).where(eq(schema.reservations.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.reservations).set(req.body).where(eq(schema.reservations.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -194,7 +194,7 @@ app.patch('/api/reservations/:id', async (req, res) => {
 
 app.delete('/api/reservations/:id', async (req, res) => {
   try {
-    await db.delete(schema.reservations).where(eq(schema.reservations.id, parseInt(req.params.id)));
+    await db.delete(schema.reservations).where(eq(schema.reservations.id, req.params.id));
     res.json({ success: true });
   } catch (error) {
     console.error(error);
@@ -224,7 +224,7 @@ app.post('/api/folios', async (req, res) => {
 
 app.put('/api/folios/:id', async (req, res) => {
   try {
-    const result = await db.update(schema.folios).set(req.body).where(eq(schema.folios.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.folios).set(req.body).where(eq(schema.folios.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -234,7 +234,7 @@ app.put('/api/folios/:id', async (req, res) => {
 
 app.patch('/api/folios/:id', async (req, res) => {
   try {
-    const result = await db.update(schema.folios).set(req.body).where(eq(schema.folios.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.folios).set(req.body).where(eq(schema.folios.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -244,7 +244,7 @@ app.patch('/api/folios/:id', async (req, res) => {
 
 app.delete('/api/folios/:id', async (req, res) => {
   try {
-    await db.delete(schema.folios).where(eq(schema.folios.id, parseInt(req.params.id)));
+    await db.delete(schema.folios).where(eq(schema.folios.id, req.params.id));
     res.json({ success: true });
   } catch (error) {
     console.error(error);
@@ -274,7 +274,7 @@ app.post('/api/inventory', async (req, res) => {
 
 app.put('/api/inventory/:id', async (req, res) => {
   try {
-    const result = await db.update(schema.inventoryItems).set(req.body).where(eq(schema.inventoryItems.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.inventoryItems).set(req.body).where(eq(schema.inventoryItems.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -284,7 +284,7 @@ app.put('/api/inventory/:id', async (req, res) => {
 
 app.patch('/api/inventory/:id', async (req, res) => {
   try {
-    const result = await db.update(schema.inventoryItems).set(req.body).where(eq(schema.inventoryItems.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.inventoryItems).set(req.body).where(eq(schema.inventoryItems.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -294,7 +294,7 @@ app.patch('/api/inventory/:id', async (req, res) => {
 
 app.delete('/api/inventory/:id', async (req, res) => {
   try {
-    await db.delete(schema.inventoryItems).where(eq(schema.inventoryItems.id, parseInt(req.params.id)));
+    await db.delete(schema.inventoryItems).where(eq(schema.inventoryItems.id, req.params.id));
     res.json({ success: true });
   } catch (error) {
     console.error(error);
@@ -324,7 +324,7 @@ app.post('/api/housekeeping-tasks', async (req, res) => {
 
 app.put('/api/housekeeping-tasks/:id', async (req, res) => {
   try {
-    const result = await db.update(schema.housekeepingTasks).set(req.body).where(eq(schema.housekeepingTasks.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.housekeepingTasks).set(req.body).where(eq(schema.housekeepingTasks.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -334,7 +334,7 @@ app.put('/api/housekeeping-tasks/:id', async (req, res) => {
 
 app.patch('/api/housekeeping-tasks/:id', async (req, res) => {
   try {
-    const result = await db.update(schema.housekeepingTasks).set(req.body).where(eq(schema.housekeepingTasks.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.housekeepingTasks).set(req.body).where(eq(schema.housekeepingTasks.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -344,7 +344,7 @@ app.patch('/api/housekeeping-tasks/:id', async (req, res) => {
 
 app.delete('/api/housekeeping-tasks/:id', async (req, res) => {
   try {
-    await db.delete(schema.housekeepingTasks).where(eq(schema.housekeepingTasks.id, parseInt(req.params.id)));
+    await db.delete(schema.housekeepingTasks).where(eq(schema.housekeepingTasks.id, req.params.id));
     res.json({ success: true });
   } catch (error) {
     console.error(error);
@@ -374,7 +374,7 @@ app.post('/api/menu-items', async (req, res) => {
 
 app.put('/api/menu-items/:id', async (req, res) => {
   try {
-    const result = await db.update(schema.menuItems).set(req.body).where(eq(schema.menuItems.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.menuItems).set(req.body).where(eq(schema.menuItems.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -384,7 +384,7 @@ app.put('/api/menu-items/:id', async (req, res) => {
 
 app.patch('/api/menu-items/:id', async (req, res) => {
   try {
-    const result = await db.update(schema.menuItems).set(req.body).where(eq(schema.menuItems.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.menuItems).set(req.body).where(eq(schema.menuItems.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -394,7 +394,7 @@ app.patch('/api/menu-items/:id', async (req, res) => {
 
 app.delete('/api/menu-items/:id', async (req, res) => {
   try {
-    await db.delete(schema.menuItems).where(eq(schema.menuItems.id, parseInt(req.params.id)));
+    await db.delete(schema.menuItems).where(eq(schema.menuItems.id, req.params.id));
     res.json({ success: true });
   } catch (error) {
     console.error(error);
@@ -424,7 +424,7 @@ app.post('/api/orders', async (req, res) => {
 
 app.put('/api/orders/:id', async (req, res) => {
   try {
-    const result = await db.update(schema.orders).set(req.body).where(eq(schema.orders.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.orders).set(req.body).where(eq(schema.orders.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -434,7 +434,7 @@ app.put('/api/orders/:id', async (req, res) => {
 
 app.patch('/api/orders/:id', async (req, res) => {
   try {
-    const result = await db.update(schema.orders).set(req.body).where(eq(schema.orders.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.orders).set(req.body).where(eq(schema.orders.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -444,7 +444,7 @@ app.patch('/api/orders/:id', async (req, res) => {
 
 app.delete('/api/orders/:id', async (req, res) => {
   try {
-    await db.delete(schema.orders).where(eq(schema.orders.id, parseInt(req.params.id)));
+    await db.delete(schema.orders).where(eq(schema.orders.id, req.params.id));
     res.json({ success: true });
   } catch (error) {
     console.error(error);
@@ -474,7 +474,7 @@ app.post('/api/suppliers', async (req, res) => {
 
 app.put('/api/suppliers/:id', async (req, res) => {
   try {
-    const result = await db.update(schema.suppliers).set(req.body).where(eq(schema.suppliers.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.suppliers).set(req.body).where(eq(schema.suppliers.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -484,7 +484,7 @@ app.put('/api/suppliers/:id', async (req, res) => {
 
 app.patch('/api/suppliers/:id', async (req, res) => {
   try {
-    const result = await db.update(schema.suppliers).set(req.body).where(eq(schema.suppliers.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.suppliers).set(req.body).where(eq(schema.suppliers.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -494,7 +494,7 @@ app.patch('/api/suppliers/:id', async (req, res) => {
 
 app.delete('/api/suppliers/:id', async (req, res) => {
   try {
-    await db.delete(schema.suppliers).where(eq(schema.suppliers.id, parseInt(req.params.id)));
+    await db.delete(schema.suppliers).where(eq(schema.suppliers.id, req.params.id));
     res.json({ success: true });
   } catch (error) {
     console.error(error);
@@ -524,7 +524,7 @@ app.post('/api/employees', validate(employeeCreateSchema), async (req, res) => {
 
 app.put('/api/employees/:id', validate(idParamSchema, 'params'), validate(employeeUpdateSchema), async (req, res) => {
   try {
-    const result = await db.update(schema.employees).set(req.body).where(eq(schema.employees.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.employees).set(req.body).where(eq(schema.employees.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -534,7 +534,7 @@ app.put('/api/employees/:id', validate(idParamSchema, 'params'), validate(employ
 
 app.patch('/api/employees/:id', async (req, res) => {
   try {
-    const result = await db.update(schema.employees).set(req.body).where(eq(schema.employees.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.employees).set(req.body).where(eq(schema.employees.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -544,7 +544,7 @@ app.patch('/api/employees/:id', async (req, res) => {
 
 app.delete('/api/employees/:id', async (req, res) => {
   try {
-    await db.delete(schema.employees).where(eq(schema.employees.id, parseInt(req.params.id)));
+    await db.delete(schema.employees).where(eq(schema.employees.id, req.params.id));
     res.json({ success: true });
   } catch (error) {
     console.error(error);
@@ -814,7 +814,7 @@ app.post('/api/maintenance-requests', async (req, res) => {
 
 app.put('/api/maintenance-requests/:id', async (req, res) => {
   try {
-    const result = await db.update(schema.maintenanceRequests).set(req.body).where(eq(schema.maintenanceRequests.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.maintenanceRequests).set(req.body).where(eq(schema.maintenanceRequests.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -824,7 +824,7 @@ app.put('/api/maintenance-requests/:id', async (req, res) => {
 
 app.patch('/api/maintenance-requests/:id', async (req, res) => {
   try {
-    const result = await db.update(schema.maintenanceRequests).set(req.body).where(eq(schema.maintenanceRequests.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.maintenanceRequests).set(req.body).where(eq(schema.maintenanceRequests.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -834,7 +834,7 @@ app.patch('/api/maintenance-requests/:id', async (req, res) => {
 
 app.delete('/api/maintenance-requests/:id', async (req, res) => {
   try {
-    await db.delete(schema.maintenanceRequests).where(eq(schema.maintenanceRequests.id, parseInt(req.params.id)));
+    await db.delete(schema.maintenanceRequests).where(eq(schema.maintenanceRequests.id, req.params.id));
     res.json({ success: true });
   } catch (error) {
     console.error(error);
@@ -1211,7 +1211,7 @@ app.get('/api/channel-bookings', async (req, res) => {
 // Sync bookings from a specific channel
 app.post('/api/channels/:id/sync-bookings', async (req, res) => {
   try {
-    const channelId = parseInt(req.params.id);
+    const channelId = req.params.id;
     const { startDate, endDate, channelName, config } = req.body;
 
     let service;
@@ -1552,7 +1552,7 @@ app.post('/api/backup/restore', async (req, res) => {
 
 app.delete('/api/backup/:id', async (req, res) => {
   try {
-    await backupService.deleteBackup(parseInt(req.params.id));
+    await backupService.deleteBackup(req.params.id);
     res.json({ success: true });
   } catch (error) {
     console.error(error);
@@ -1616,7 +1616,7 @@ app.post('/api/booking/rate-plans', async (req, res) => {
 
 app.put('/api/booking/rate-plans/:id', async (req, res) => {
   try {
-    const result = await db.update(schema.ratePlans).set({ ...req.body, updatedAt: new Date() }).where(eq(schema.ratePlans.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.ratePlans).set({ ...req.body, updatedAt: new Date() }).where(eq(schema.ratePlans.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -1626,7 +1626,7 @@ app.put('/api/booking/rate-plans/:id', async (req, res) => {
 
 app.delete('/api/booking/rate-plans/:id', async (req, res) => {
   try {
-    await db.delete(schema.ratePlans).where(eq(schema.ratePlans.id, parseInt(req.params.id)));
+    await db.delete(schema.ratePlans).where(eq(schema.ratePlans.id, req.params.id));
     res.json({ success: true });
   } catch (error) {
     console.error(error);
@@ -1657,7 +1657,7 @@ app.post('/api/booking/resident-rules', async (req, res) => {
 
 app.delete('/api/booking/resident-rules/:id', async (req, res) => {
   try {
-    await db.delete(schema.residentRules).where(eq(schema.residentRules.id, parseInt(req.params.id)));
+    await db.delete(schema.residentRules).where(eq(schema.residentRules.id, req.params.id));
     res.json({ success: true });
   } catch (error) {
     console.error(error);
@@ -1688,7 +1688,7 @@ app.post('/api/booking/seasonal-multipliers', async (req, res) => {
 
 app.delete('/api/booking/seasonal-multipliers/:id', async (req, res) => {
   try {
-    await db.delete(schema.seasonalMultipliers).where(eq(schema.seasonalMultipliers.id, parseInt(req.params.id)));
+    await db.delete(schema.seasonalMultipliers).where(eq(schema.seasonalMultipliers.id, req.params.id));
     res.json({ success: true });
   } catch (error) {
     console.error(error);
@@ -1721,7 +1721,7 @@ app.post('/api/booking/promo-codes', async (req, res) => {
 app.put('/api/booking/promo-codes/:id', async (req, res) => {
   try {
     const data = { ...req.body, updatedAt: new Date() };
-    const result = await db.update(schema.promoCodes).set(data).where(eq(schema.promoCodes.id, parseInt(req.params.id))).returning();
+    const result = await db.update(schema.promoCodes).set(data).where(eq(schema.promoCodes.id, req.params.id)).returning();
     res.json(result[0]);
   } catch (error) {
     console.error(error);
@@ -1731,7 +1731,7 @@ app.put('/api/booking/promo-codes/:id', async (req, res) => {
 
 app.delete('/api/booking/promo-codes/:id', async (req, res) => {
   try {
-    await db.delete(schema.promoCodes).where(eq(schema.promoCodes.id, parseInt(req.params.id)));
+    await db.delete(schema.promoCodes).where(eq(schema.promoCodes.id, req.params.id));
     res.json({ success: true });
   } catch (error) {
     console.error(error);
