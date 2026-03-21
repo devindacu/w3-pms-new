@@ -39,12 +39,14 @@ async function syncArrayToApi<T extends { id?: string | number }>(
 export function useApiState<T extends { id?: string | number }>(
   endpoint: string,
   defaultValue: T[] = []
-): [T[], React.Dispatch<React.SetStateAction<T[]>>, () => void] {
+): [T[], React.Dispatch<React.SetStateAction<T[]>>, () => void, boolean] {
   const [items, setItemsLocal] = useState<T[]>(defaultValue)
+  const [isLoading, setIsLoading] = useState(true)
   const prevRef = useRef<T[]>(defaultValue)
   const loadedRef = useRef(false)
 
   const fetchData = useCallback(() => {
+    setIsLoading(true)
     fetch(`/api/${endpoint}`)
       .then(r => (r.ok ? r.json() : []))
       .then(data => {
@@ -53,9 +55,11 @@ export function useApiState<T extends { id?: string | number }>(
           prevRef.current = data
           loadedRef.current = true
         }
+        setIsLoading(false)
       })
       .catch(() => {
         loadedRef.current = true
+        setIsLoading(false)
       })
   }, [endpoint])
 
@@ -77,7 +81,7 @@ export function useApiState<T extends { id?: string | number }>(
     [endpoint]
   )
 
-  return [items, setItems as React.Dispatch<React.SetStateAction<T[]>>, fetchData]
+  return [items, setItems as React.Dispatch<React.SetStateAction<T[]>>, fetchData, isLoading]
 }
 
 export function useApiSyncState<T extends { id?: string | number }>(
@@ -93,9 +97,10 @@ export function useApiSyncState<T extends { id?: string | number }>(
   queueDepth: number
   lastSyncTime: number
   forceSync: () => void
+  isLoading: boolean
 } {
-  const [value, setValue, forceSync] = useApiState<T>(endpoint, defaultValue)
-  const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'offline' | 'conflict' | 'error'>('synced')
+  const [value, setValue, forceSync, isLoading] = useApiState<T>(endpoint, defaultValue)
+  const [syncStatus] = useState<'synced' | 'syncing' | 'offline' | 'conflict' | 'error'>('synced')
   const lastSyncTime = useRef(Date.now())
 
   return {
@@ -108,6 +113,7 @@ export function useApiSyncState<T extends { id?: string | number }>(
     queueDepth: 0,
     lastSyncTime: lastSyncTime.current,
     forceSync,
+    isLoading,
   }
 }
 

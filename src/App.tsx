@@ -238,11 +238,11 @@ import type {
 type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'revenue-management' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio' | 'floor-plan' | 'booking-engine'
 
 function App() {
-  const { value: guests, setValue: setGuests, syncStatus: guestsSyncStatus, pendingConflicts: guestsConflicts, resolveConflict: resolveGuestsConflict, ignoreConflict: ignoreGuestsConflict, queueDepth: guestsQueueDepth, lastSyncTime: guestsLastSyncTime, forceSync: forceGuestsSync } = useApiSyncState<Guest>('guests', [])
-  const { value: rooms, setValue: setRooms, syncStatus: roomsSyncStatus, pendingConflicts: roomsConflicts, resolveConflict: resolveRoomsConflict, ignoreConflict: ignoreRoomsConflict, queueDepth: roomsQueueDepth, lastSyncTime: roomsLastSyncTime, forceSync: forceRoomsSync } = useApiSyncState<Room>('rooms', [])
-  const { value: reservations, setValue: setReservations, syncStatus: reservationsSyncStatus, pendingConflicts: reservationsConflicts, resolveConflict: resolveReservationsConflict, ignoreConflict: ignoreReservationsConflict, queueDepth: reservationsQueueDepth, lastSyncTime: reservationsLastSyncTime, forceSync: forceReservationsSync } = useApiSyncState<Reservation>('reservations', [])
-  const { value: employees, setValue: setEmployees, syncStatus: employeesSyncStatus, pendingConflicts: employeesConflicts, resolveConflict: resolveEmployeesConflict, ignoreConflict: ignoreEmployeesConflict, queueDepth: employeesQueueDepth, lastSyncTime: employeesLastSyncTime, forceSync: forceEmployeesSync } = useApiSyncState<Employee>('employees', [])
-  const { value: housekeepingTasks, setValue: setHousekeepingTasks, syncStatus: housekeepingSyncStatus, pendingConflicts: housekeepingConflicts, resolveConflict: resolveHousekeepingConflict, ignoreConflict: ignoreHousekeepingConflict, queueDepth: housekeepingQueueDepth, lastSyncTime: housekeepingLastSyncTime, forceSync: forceHousekeepingSync } = useApiSyncState<HousekeepingTask>('housekeeping-tasks', [])
+  const { value: guests, setValue: setGuests, syncStatus: guestsSyncStatus, pendingConflicts: guestsConflicts, resolveConflict: resolveGuestsConflict, ignoreConflict: ignoreGuestsConflict, queueDepth: guestsQueueDepth, lastSyncTime: guestsLastSyncTime, forceSync: forceGuestsSync, isLoading: guestsLoading } = useApiSyncState<Guest>('guests', [])
+  const { value: rooms, setValue: setRooms, syncStatus: roomsSyncStatus, pendingConflicts: roomsConflicts, resolveConflict: resolveRoomsConflict, ignoreConflict: ignoreRoomsConflict, queueDepth: roomsQueueDepth, lastSyncTime: roomsLastSyncTime, forceSync: forceRoomsSync, isLoading: roomsLoading } = useApiSyncState<Room>('rooms', [])
+  const { value: reservations, setValue: setReservations, syncStatus: reservationsSyncStatus, pendingConflicts: reservationsConflicts, resolveConflict: resolveReservationsConflict, ignoreConflict: ignoreReservationsConflict, queueDepth: reservationsQueueDepth, lastSyncTime: reservationsLastSyncTime, forceSync: forceReservationsSync, isLoading: reservationsLoading } = useApiSyncState<Reservation>('reservations', [])
+  const { value: employees, setValue: setEmployees, syncStatus: employeesSyncStatus, pendingConflicts: employeesConflicts, resolveConflict: resolveEmployeesConflict, ignoreConflict: ignoreEmployeesConflict, queueDepth: employeesQueueDepth, lastSyncTime: employeesLastSyncTime, forceSync: forceEmployeesSync, isLoading: employeesLoading } = useApiSyncState<Employee>('employees', [])
+  const { value: housekeepingTasks, setValue: setHousekeepingTasks, syncStatus: housekeepingSyncStatus, pendingConflicts: housekeepingConflicts, resolveConflict: resolveHousekeepingConflict, ignoreConflict: ignoreHousekeepingConflict, queueDepth: housekeepingQueueDepth, lastSyncTime: housekeepingLastSyncTime, forceSync: forceHousekeepingSync, isLoading: housekeepingLoading } = useApiSyncState<HousekeepingTask>('housekeeping-tasks', [])
 
   const [invoices, setInvoices] = useSettingState<Invoice[]>('procurement-invoices', [])
   const invoicesSyncStatus = 'synced' as const
@@ -568,16 +568,7 @@ function App() {
     loadBranding();
   }, [])
 
-  useEffect(() => {
-    const hasAnyData = (rooms || []).length > 0 || 
-                       (guests || []).length > 0 || 
-                       (reservations || []).length > 0 || 
-                       (employees || []).length > 0
-
-    if (!hasAnyData) {
-      loadSampleData()
-    }
-  }, [])
+  const coreDataLoading = guestsLoading || roomsLoading || reservationsLoading || employeesLoading || housekeepingLoading
 
   useEffect(() => {
     const refreshNotifications = () => {
@@ -758,7 +749,7 @@ function App() {
 
   const historicalComparison = calculateHistoricalComparison(orders || [])
 
-  const hasData = (rooms || []).length > 0
+  const hasData = coreDataLoading || (rooms || []).length > 0
 
   const initializeDefaultLayout = () => {
     if (!currentUser?.id || !currentUser?.role) {
@@ -952,7 +943,7 @@ function App() {
             <Gauge size={48} className="mx-auto text-primary mb-4 sm:w-16 sm:h-16" />
             <h3 className="text-lg sm:text-xl md:text-2xl font-semibold mb-2">Welcome to W3 Hotel PMS</h3>
             <p className="text-muted-foreground mb-6 mobile-text-responsive">
-              Your comprehensive hotel management solution integrating all operations in one platform
+              No hotel data found. Load sample data to explore the system, or start by adding rooms and guests.
             </p>
             <Button onClick={loadSampleData} size="lg" className="w-full sm:w-auto mobile-optimized-button">
               <Database size={20} className="mr-2" />
