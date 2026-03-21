@@ -904,16 +904,26 @@ app.delete('/api/system-settings/:key', async (req, res) => {
 
 // Branding endpoints
 app.get('/api/branding', async (req, res) => {
+  const defaultBranding = {
+    hotelName: 'W3 Hotel',
+    tagline: 'Your Comfortable Stay',
+    primaryColor: '#1a56db',
+    secondaryColor: '#0e9f6e',
+    currency: 'LKR',
+    currencySymbol: 'LKR',
+    timezone: 'Asia/Colombo',
+    logo: null
+  };
   try {
     const result = await db.select().from(schema.systemSettings).where(eq(schema.systemSettings.key, 'branding'));
-    if (result.length > 0 && result[0].value) {
+    if (result && result.length > 0 && result[0].value) {
       res.json(JSON.parse(result[0].value));
     } else {
-      res.json(null);
+      res.json(defaultBranding);
     }
   } catch (error) {
     console.error('Failed to fetch branding:', error);
-    res.status(500).json({ error: 'Failed to fetch branding' });
+    res.json(defaultBranding);
   }
 });
 
