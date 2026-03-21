@@ -111,7 +111,22 @@ Settings: Stored in `system_settings` table, never hard-coded
 - **GitHub Sync**: Automatic backup to GitHub repository (configurable in Settings)
 - **Default branch**: `primary` for GitHub sync operations
 
+### Database ID Types (IMPORTANT)
+- **ALL major tables use `text` primary keys** (not serial/integer): guests, rooms, reservations, folios, employees, suppliers, inventory_items, menu_items, orders, housekeeping_tasks, accounts, system_users, shifts, expenses, purchase_orders, requisitions, goods_received_notes, extra_service_categories, extra_services, amenities, leave_requests, attendances, folio_charges, folio_payments, maintenance_requests
+- **Integer primary keys** only in: system_settings, system_versions, transactions, rate_calendar, channels, audit_logs, recipes, recipe_ingredients
+- Drizzle schema has been aligned to use `text('id')` for text-ID tables — **do NOT run db:push** as it could generate destructive ALTER TABLE statements
+- Foreign key references must also use `text()` for text-ID tables (already fixed in schema.ts)
+
+### Drizzle Schema vs DB Column Names (Fixed)
+Key renames applied in shared/schema.ts to match actual DB:
+- `guests.city/country/dateOfBirth/loyaltyTier/totalVisits/notes` → removed (don't exist in DB); `totalVisits` → `totalStays`
+- `rooms.number` → `roomNumber` (DB: `room_number`); `rooms.type` → `roomType` (DB: `room_type`); `rooms.capacity` → `maxOccupancy` (DB: `max_occupancy`)
+- `suppliers.contactPerson/status` → removed; `supplierId` added
+- `employees.status` → `isActive` (DB: `is_active`, boolean); `role` added
+- `attendanceRecords` table name corrected to `attendances` (actual DB table name)
+
 ### Known GitHub Sync Issues
 - **CRITICAL**: `.npmrc` file with `legacy-peer-deps=true` must exist for deployment
 - This file may be removed during GitHub pulls and needs to be recreated
 - Backend files (`server/`, `shared/`) may also need recreation after GitHub sync
+- `nodemailer` package required by `server/services/emailService.ts` — reinstall after sync
