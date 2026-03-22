@@ -163,10 +163,13 @@ export const systemUsers = pgTable('system_users', {
   id: text('id').primaryKey(),
   username: varchar('username', { length: 100 }).unique().notNull(),
   email: varchar('email', { length: 255 }),
+  passwordHash: varchar('password_hash', { length: 255 }),
   role: varchar('role', { length: 50 }).default('staff'),
   department: varchar('department', { length: 100 }),
   isActive: boolean('is_active').default(true),
   lastLogin: timestamp('last_login'),
+  passwordResetToken: varchar('password_reset_token', { length: 255 }),
+  passwordResetExpires: timestamp('password_reset_expires'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });

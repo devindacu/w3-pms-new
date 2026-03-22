@@ -44,7 +44,8 @@ import {
   Moon,
   Layout,
   ArrowsOutCardinal,
-  Ticket
+  Ticket,
+  SignOut
 } from '@phosphor-icons/react'
 import { ServerSyncStatusIndicator } from '@/components/ServerSyncStatusIndicator'
 import { ServerSyncConflictDialog } from '@/components/ServerSyncConflictDialog'
@@ -198,6 +199,8 @@ import { VisualFloorPlan } from '@/components/VisualFloorPlan'
 import { RevenueManagementSystem } from '@/components/RevenueManagementSystem'
 import { BookingEngine } from '@/components/BookingEngine'
 import { BookingWidgetAdmin } from '@/components/BookingWidgetAdmin'
+import { LoginPage } from '@/components/LoginPage'
+import { ForgotPasswordPage } from '@/components/ForgotPasswordPage'
 import { fetchFromAPI } from '@/lib/api-sync'
 import type {
   DashboardLayout,
@@ -238,6 +241,72 @@ import type {
 type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'revenue-management' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio' | 'floor-plan' | 'booking-engine'
 
 function App() {
+  // ─── Authentication State ────────────────────────────────────────────────────
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    const token = localStorage.getItem('w3-auth-token')
+    if (!token) return false
+    // Basic token expiry check (JWT payload is base64 encoded)
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      return payload.exp * 1000 > Date.now()
+    } catch {
+      // demo-token or malformed → allow
+      return token === 'demo-token'
+    }
+  })
+  const [authView, setAuthView] = useState<'login' | 'forgot-password'>('login')
+
+  const handleLogin = async (identifier: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier, password }),
+      })
+      const data = await response.json()
+      if (response.ok && data.success) {
+        localStorage.setItem('w3-auth-token', data.token)
+        setIsAuthenticated(true)
+        return { success: true }
+      }
+      return { success: false, error: data.error || 'Invalid credentials' }
+    } catch {
+      // If API is unavailable, fall back to sample users for demo mode
+      const sampleCreds: Record<string, string> = {
+        'admin': 'admin123',
+        'admin@w3hotel.com': 'admin123',
+      }
+      const normalizedId = identifier.toLowerCase()
+      if (sampleCreds[normalizedId] === password) {
+        localStorage.setItem('w3-auth-token', 'demo-token')
+        setIsAuthenticated(true)
+        return { success: true }
+      }
+      return { success: false, error: 'Unable to connect to server. Use admin / admin123 for demo.' }
+    }
+  }
+
+  const handleForgotPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const data = await response.json()
+      return { success: response.ok, error: data.error }
+    } catch {
+      // Return success even if API is down (avoids info leakage)
+      return { success: true }
+    }
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('w3-auth-token')
+    setIsAuthenticated(false)
+    setAuthView('login')
+  }
+
   const { value: guests, setValue: setGuests, syncStatus: guestsSyncStatus, pendingConflicts: guestsConflicts, resolveConflict: resolveGuestsConflict, ignoreConflict: ignoreGuestsConflict, queueDepth: guestsQueueDepth, lastSyncTime: guestsLastSyncTime, forceSync: forceGuestsSync, isLoading: guestsLoading } = useApiSyncState<Guest>('guests', [])
   const { value: rooms, setValue: setRooms, syncStatus: roomsSyncStatus, pendingConflicts: roomsConflicts, resolveConflict: resolveRoomsConflict, ignoreConflict: ignoreRoomsConflict, queueDepth: roomsQueueDepth, lastSyncTime: roomsLastSyncTime, forceSync: forceRoomsSync, isLoading: roomsLoading } = useApiSyncState<Room>('rooms', [])
   const { value: reservations, setValue: setReservations, syncStatus: reservationsSyncStatus, pendingConflicts: reservationsConflicts, resolveConflict: resolveReservationsConflict, ignoreConflict: ignoreReservationsConflict, queueDepth: reservationsQueueDepth, lastSyncTime: reservationsLastSyncTime, forceSync: forceReservationsSync, isLoading: reservationsLoading } = useApiSyncState<Reservation>('reservations', [])
@@ -1319,8 +1388,22 @@ function App() {
   )
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
-      {!currentUser?.id ? (
+    <div className={`${!isAuthenticated ? 'contents' : 'flex min-h-screen bg-background text-foreground'}`}>
+      {!isAuthenticated ? (
+        authView === 'forgot-password' ? (
+          <ForgotPasswordPage
+            onBack={() => setAuthView('login')}
+            onSubmit={handleForgotPassword}
+            branding={branding || null}
+          />
+        ) : (
+          <LoginPage
+            onLogin={handleLogin}
+            onForgotPassword={() => setAuthView('forgot-password')}
+            branding={branding || null}
+          />
+        )
+      ) : !currentUser?.id ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <Gauge size={64} className="mx-auto text-primary mb-4 animate-spin-slow" />
@@ -1383,6 +1466,15 @@ function App() {
                   onArchive={handleArchive}
                   onClearAll={handleClearAll}
                 />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 sm:h-10 sm:w-10"
+                  onClick={handleLogout}
+                  title={`Sign out (${currentUser?.username || ''})`}
+                >
+                  <SignOut size={18} className="sm:w-5 sm:h-5" />
+                </Button>
               </div>
             </div>
           </div>

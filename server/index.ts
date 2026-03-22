@@ -1,5 +1,8 @@
 import express from 'express';
 import cors from 'cors';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { db } from './db';
 import * as schema from '../shared/schema';
 import { eq, and, lte, gte, ne, sql } from 'drizzle-orm';
@@ -7,6 +10,7 @@ import { computeRateQuote } from './services/rateEngine';
 import { 
   securityHeaders, 
   apiLimiter, 
+  authLimiter,
   requestSizeLimiter,
   errorLogger,
   requestLogger,
@@ -2770,6 +2774,206 @@ app.post('/api/email/send', async (req, res) => {
     const msg = err instanceof Error ? err.message : String(err);
     console.error('Failed to send email:', msg);
     res.status(500).json({ error: msg });
+  }
+});
+
+// ─── Authentication Endpoints ─────────────────────────────────────────────────
+
+const JWT_SECRET = process.env.JWT_SECRET || 'w3-hotel-pms-secret-key-change-in-production';
+const JWT_EXPIRES_IN = '8h';
+const BCRYPT_ROUNDS = 12;
+
+/**
+ * POST /api/auth/login
+ * Authenticate user with username/email and password
+ */
+app.post('/api/auth/login', authLimiter, async (req, res) => {
+  try {
+    const { identifier, password } = req.body;
+    if (!identifier || !password) {
+      return res.status(400).json({ error: 'Username/email and password are required' });
+    }
+
+    // Find user by username or email
+    const users = await db.select().from(schema.systemUsers);
+    const user = users.find(u =>
+      u.username.toLowerCase() === identifier.toLowerCase() ||
+      (u.email && u.email.toLowerCase() === identifier.toLowerCase())
+    );
+
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({ error: 'Account is disabled. Please contact your administrator.' });
+    }
+
+    // If no password hash set, allow "admin" default password for initial setup
+    let passwordValid = false;
+    if (!user.passwordHash) {
+      // Default password for initial setup: "admin123" for admin, "password" for others
+      const defaultPassword = user.role === 'admin' ? 'admin123' : 'password';
+      passwordValid = password === defaultPassword;
+    } else {
+      passwordValid = await bcrypt.compare(password, user.passwordHash);
+    }
+
+    if (!passwordValid) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Update last login
+    await db.update(schema.systemUsers)
+      .set({ lastLogin: new Date(), updatedAt: new Date() })
+      .where(eq(schema.systemUsers.id, user.id));
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user.id, username: user.username, role: user.role },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        department: user.department,
+      },
+    });
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ error: 'Authentication failed' });
+  }
+});
+
+/**
+ * POST /api/auth/forgot-password
+ * Send password reset email
+ */
+app.post('/api/auth/forgot-password', authLimiter, async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    // Always return success to avoid user enumeration
+    const users = await db.select().from(schema.systemUsers);
+    const user = users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+
+    if (user && user.isActive) {
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+
+      await db.update(schema.systemUsers)
+        .set({
+          passwordResetToken: resetToken,
+          passwordResetExpires: resetExpires,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.systemUsers.id, user.id));
+
+      // Attempt to send email via SMTP if configured
+      try {
+        const settingsRows = await db.select().from(schema.systemSettings)
+          .where(eq(schema.systemSettings.key, 'email-smtp-settings'));
+
+        if (settingsRows.length && settingsRows[0].value) {
+          const smtpSettings = JSON.parse(settingsRows[0].value);
+          const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5000'}?reset_token=${resetToken}`;
+          await smtpSendEmail(smtpSettings, {
+            to: user.email!,
+            subject: 'Password Reset Request - W3 Hotel PMS',
+            html: `
+              <h2>Password Reset Request</h2>
+              <p>Hello ${user.username},</p>
+              <p>You requested a password reset. Click the link below to reset your password:</p>
+              <p><a href="${resetUrl}" style="background:#1a56db;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;display:inline-block;">Reset Password</a></p>
+              <p>This link expires in 30 minutes.</p>
+              <p>If you didn't request this, please ignore this email.</p>
+              <hr/>
+              <p style="color:#666;font-size:12px;">W3 Hotel PMS | Developed by W3 Media</p>
+            `,
+            text: `Reset your password by visiting: ${resetUrl}\n\nThis link expires in 30 minutes.`,
+          });
+        }
+      } catch {
+        // Silently fail email send - token is still stored
+      }
+    }
+
+    res.json({ success: true, message: 'If an account with that email exists, a reset link has been sent.' });
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({ error: 'Failed to process password reset request' });
+  }
+});
+
+/**
+ * POST /api/auth/reset-password
+ * Reset password using token
+ */
+app.post('/api/auth/reset-password', authLimiter, async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password) {
+      return res.status(400).json({ error: 'Token and new password are required' });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+    }
+
+    const users = await db.select().from(schema.systemUsers);
+    const user = users.find(u =>
+      u.passwordResetToken === token &&
+      u.passwordResetExpires &&
+      u.passwordResetExpires > new Date()
+    );
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+
+    await db.update(schema.systemUsers)
+      .set({
+        passwordHash,
+        passwordResetToken: null,
+        passwordResetExpires: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.systemUsers.id, user.id));
+
+    res.json({ success: true, message: 'Password reset successfully. You can now sign in.' });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    res.status(500).json({ error: 'Failed to reset password' });
+  }
+});
+
+/**
+ * GET /api/auth/verify
+ * Verify JWT token validity
+ */
+app.get('/api/auth/verify', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+    const token = authHeader.slice(7);
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; username: string; role: string };
+    res.json({ valid: true, userId: decoded.userId, username: decoded.username, role: decoded.role });
+  } catch {
+    res.status(401).json({ valid: false, error: 'Invalid or expired token' });
   }
 });
 
