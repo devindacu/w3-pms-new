@@ -47,7 +47,7 @@ import {
   type SystemUser,
   type Invoice
 } from '@/lib/types'
-import { formatCurrency, formatDate, formatDateTime } from '@/lib/helpers'
+import { formatCurrency, formatDate, formatDateTime, generateId, generateNumber } from '@/lib/helpers'
 import { RequisitionDialog } from '@/components/RequisitionDialog'
 import { PurchaseOrderDialog } from '@/components/PurchaseOrderDialog'
 import { GRNDialog } from '@/components/GRNDialog'
@@ -151,6 +151,39 @@ export function Procurement({
 
   const handlePOStatusChange = (newStatus: 'approved' | 'ordered', updatedPO: PurchaseOrder) => {
     setPurchaseOrders(purchaseOrders.map(po => po.id === updatedPO.id ? updatedPO : po))
+  }
+
+  const handleCreatePOFromRequisition = (requisition: Requisition) => {
+    // Pre-fill a new PO from the approved requisition
+    const poItems = requisition.items.map(item => ({
+      id: generateId(),
+      inventoryItemId: item.inventoryItemId,
+      name: item.name,
+      quantity: item.quantity,
+      unit: item.unit,
+      unitPrice: item.unitPrice || 0,
+      total: item.quantity * (item.unitPrice || 0),
+    }))
+    const subtotal = poItems.reduce((sum, i) => sum + i.total, 0)
+    const tax = subtotal * 0.1
+    const newPO: PurchaseOrder = {
+      id: generateId(),
+      poNumber: generateNumber('PO'),
+      supplierId: requisition.items[0]?.supplierId || '',
+      requisitionId: requisition.id,
+      items: poItems,
+      subtotal,
+      tax,
+      total: subtotal + tax,
+      status: 'draft',
+      revisionNumber: 1,
+      notes: `Created from Requisition ${requisition.requisitionNumber}${requisition.notes ? ': ' + requisition.notes : ''}`.trim(),
+      createdAt: Date.now(),
+      createdBy: currentUser.username,
+    }
+    setSelectedPO(newPO)
+    setPODialogOpen(true)
+    toast.success(`Purchase order pre-filled from requisition ${requisition.requisitionNumber}`)
   }
 
   const stats = {
@@ -1381,6 +1414,7 @@ export function Procurement({
         constructionMaterials={constructionMaterials}
         generalProducts={generalProducts}
         suppliers={suppliers}
+        onCreatePO={handleCreatePOFromRequisition}
       />
 
       <PurchaseOrderDialog

@@ -19,7 +19,7 @@ import {
   TrendingUp,
   TrendingDown
 } from 'lucide-react'
-import { useSettingState } from '@/hooks/use-kv'
+import { useSettingState } from '@/hooks/use-api-state'
 
 interface ErrorLog {
   id: string
@@ -41,7 +41,7 @@ interface ErrorMetrics {
 }
 
 export default function ErrorMonitoringDashboard() {
-  const { value: errorLogs = [], setValue: setErrorLogs } = useSettingState<ErrorLog[]>('error-logs', [])
+  const [errorLogs = [], setErrorLogs] = useSettingState<ErrorLog[]>('error-logs', [])
   const [filteredLogs, setFilteredLogs] = useState<ErrorLog[]>([])
   const [selectedLevel, setSelectedLevel] = useState<'all' | 'error' | 'warning' | 'info'>('all')
   const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d' | 'all'>('24h')

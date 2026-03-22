@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import type { ReactElement } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
@@ -46,7 +47,7 @@ export function GuestInvoiceViewDialog({
   const contentRef = useRef<HTMLDivElement>(null)
 
   const getStatusBadge = () => {
-    const config: Record<string, { variant: 'secondary' | 'default' | 'destructive' | 'outline', icon: JSX.Element, label: string }> = {
+    const config: Record<string, { variant: 'secondary' | 'default' | 'destructive' | 'outline', icon: ReactElement, label: string }> = {
       draft: { variant: 'secondary', icon: <Clock size={14} />, label: 'Draft' },
       interim: { variant: 'secondary', icon: <Clock size={14} />, label: 'Interim' },
       final: { variant: 'default', icon: <CheckCircle size={14} />, label: 'Final' },

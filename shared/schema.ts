@@ -163,10 +163,13 @@ export const systemUsers = pgTable('system_users', {
   id: text('id').primaryKey(),
   username: varchar('username', { length: 100 }).unique().notNull(),
   email: varchar('email', { length: 255 }),
+  passwordHash: varchar('password_hash', { length: 512 }),
   role: varchar('role', { length: 50 }).default('staff'),
   department: varchar('department', { length: 100 }),
   isActive: boolean('is_active').default(true),
   lastLogin: timestamp('last_login'),
+  passwordResetToken: varchar('password_reset_token', { length: 255 }),
+  passwordResetExpires: timestamp('password_reset_expires'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -682,4 +685,169 @@ export const extraSettings = pgTable('extra_settings', {
   key: text('key').primaryKey(),
   value: jsonb('value').notNull().default({}),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// ─── Channel Manager Microservice Schema ─────────────────────────────────────
+
+/**
+ * Maps internal room types/rooms to OTA-specific room type codes.
+ * Each OTA has its own room identifier scheme.
+ */
+export const channelRoomMappings = pgTable('channel_room_mappings', {
+  id: serial('id').primaryKey(),
+  channelId: integer('channel_id').references(() => channels.id).notNull(),
+  channelName: varchar('channel_name', { length: 50 }).notNull(),
+  internalRoomType: varchar('internal_room_type', { length: 100 }).notNull(),
+  internalRoomId: text('internal_room_id'),
+  otaRoomTypeCode: varchar('ota_room_type_code', { length: 100 }).notNull(),
+  otaRoomTypeName: varchar('ota_room_type_name', { length: 200 }),
+  otaRatePlanCode: varchar('ota_rate_plan_code', { length: 100 }),
+  otaRatePlanName: varchar('ota_rate_plan_name', { length: 200 }),
+  isActive: boolean('is_active').default(true),
+  mappingMetadata: jsonb('mapping_metadata').default({}),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+/**
+ * Real-time inventory (allotment) per OTA per room per date.
+ * Controls how many rooms are available to each channel on each night.
+ */
+export const channelInventory = pgTable('channel_inventory', {
+  id: serial('id').primaryKey(),
+  channelId: integer('channel_id').references(() => channels.id).notNull(),
+  channelName: varchar('channel_name', { length: 50 }).notNull(),
+  internalRoomType: varchar('internal_room_type', { length: 100 }).notNull(),
+  otaRoomTypeCode: varchar('ota_room_type_code', { length: 100 }).notNull(),
+  date: date('date').notNull(),
+  totalInventory: integer('total_inventory').default(0).notNull(),
+  availableInventory: integer('available_inventory').default(0).notNull(),
+  bookedInventory: integer('booked_inventory').default(0).notNull(),
+  isBlocked: boolean('is_blocked').default(false),
+  minStay: integer('min_stay').default(1),
+  maxStay: integer('max_stay'),
+  cta: boolean('cta').default(false),  // Closed To Arrival
+  ctd: boolean('ctd').default(false),  // Closed To Departure
+  lastSyncedAt: timestamp('last_synced_at'),
+  syncStatus: varchar('sync_status', { length: 20 }).default('pending'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+/**
+ * Rate (pricing) per OTA per room per date in LKR (default).
+ * Supports multiple rate plan types.
+ */
+export const channelRates = pgTable('channel_rates', {
+  id: serial('id').primaryKey(),
+  channelId: integer('channel_id').references(() => channels.id).notNull(),
+  channelName: varchar('channel_name', { length: 50 }).notNull(),
+  internalRoomType: varchar('internal_room_type', { length: 100 }).notNull(),
+  otaRoomTypeCode: varchar('ota_room_type_code', { length: 100 }).notNull(),
+  otaRatePlanCode: varchar('ota_rate_plan_code', { length: 100 }),
+  date: date('date').notNull(),
+  baseRate: decimal('base_rate', { precision: 12, scale: 2 }).notNull(),
+  currency: varchar('currency', { length: 10 }).default('LKR').notNull(),
+  rateType: varchar('rate_type', { length: 20 }).default('BAR'),  // BAR, NET, GROSS
+  extraAdultRate: decimal('extra_adult_rate', { precision: 10, scale: 2 }),
+  extraChildRate: decimal('extra_child_rate', { precision: 10, scale: 2 }),
+  mealPlan: varchar('meal_plan', { length: 50 }).default('room_only'),
+  taxIncluded: boolean('tax_included').default(false),
+  taxPercent: decimal('tax_percent', { precision: 5, scale: 2 }).default('0'),
+  lastSyncedAt: timestamp('last_synced_at'),
+  syncStatus: varchar('sync_status', { length: 20 }).default('pending'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+/**
+ * Enhanced job queue for channel manager operations.
+ * Supports priority, retry with exponential backoff, dead letter.
+ */
+export const channelSyncJobs = pgTable('channel_sync_jobs', {
+  id: serial('id').primaryKey(),
+  jobType: varchar('job_type', { length: 50 }).notNull(),
+  channelId: integer('channel_id').references(() => channels.id),
+  channelName: varchar('channel_name', { length: 50 }),
+  payload: jsonb('payload').notNull().default({}),
+  priority: integer('priority').default(5),       // 1 (highest) to 10 (lowest)
+  status: varchar('status', { length: 20 }).default('pending').notNull(),
+  attempts: integer('attempts').default(0).notNull(),
+  maxAttempts: integer('max_attempts').default(3).notNull(),
+  nextRunAt: timestamp('next_run_at').defaultNow(),
+  startedAt: timestamp('started_at'),
+  completedAt: timestamp('completed_at'),
+  failedAt: timestamp('failed_at'),
+  lastError: text('last_error'),
+  errorHistory: jsonb('error_history').default([]),
+  result: jsonb('result'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+/**
+ * Webhook event log for all incoming OTA notifications.
+ */
+export const channelWebhookLogs = pgTable('channel_webhook_logs', {
+  id: serial('id').primaryKey(),
+  channelName: varchar('channel_name', { length: 50 }).notNull(),
+  eventType: varchar('event_type', { length: 100 }).notNull(),
+  externalBookingId: varchar('external_booking_id', { length: 100 }),
+  rawPayload: text('raw_payload'),
+  headers: jsonb('headers').default({}),
+  processingStatus: varchar('processing_status', { length: 20 }).default('received'),
+  processingError: text('processing_error'),
+  processedAt: timestamp('processed_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+/**
+ * Channel health monitoring - tracks connection status per OTA.
+ */
+export const channelHealth = pgTable('channel_health', {
+  id: serial('id').primaryKey(),
+  channelId: integer('channel_id').references(() => channels.id).notNull(),
+  channelName: varchar('channel_name', { length: 50 }).notNull(),
+  status: varchar('status', { length: 20 }).default('unknown').notNull(),
+  lastCheckedAt: timestamp('last_checked_at'),
+  lastSuccessAt: timestamp('last_success_at'),
+  lastFailureAt: timestamp('last_failure_at'),
+  consecutiveFailures: integer('consecutive_failures').default(0),
+  responseTimeMs: integer('response_time_ms'),
+  errorMessage: text('error_message'),
+  metadata: jsonb('metadata').default({}),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+/**
+ * Channel-specific rate plan configurations.
+ * Maps PMS internal rate plans to OTA rate plan codes,
+ * with optional markup/discount rules per channel.
+ */
+export const channelRatePlans = pgTable('channel_rate_plans', {
+  id: serial('id').primaryKey(),
+  channelId: integer('channel_id').references(() => channels.id).notNull(),
+  channelName: varchar('channel_name', { length: 50 }).notNull(),
+  /** Internal PMS rate plan identifier */
+  internalRatePlanId: varchar('internal_rate_plan_id', { length: 100 }).notNull(),
+  internalRatePlanName: varchar('internal_rate_plan_name', { length: 200 }),
+  /** OTA-specific rate plan code sent in API calls */
+  otaRatePlanCode: varchar('ota_rate_plan_code', { length: 100 }).notNull(),
+  otaRatePlanName: varchar('ota_rate_plan_name', { length: 200 }),
+  /** Rate plan category: standard, non-refundable, advance-purchase, package, etc. */
+  ratePlanType: varchar('rate_plan_type', { length: 50 }).default('standard'),
+  /** Positive percentage added on top of base rate (e.g. 10 = +10%) */
+  markupPercent: decimal('markup_percent', { precision: 8, scale: 4 }),
+  /** Positive percentage deducted from base rate (e.g. 15 = -15%) */
+  discountPercent: decimal('discount_percent', { precision: 8, scale: 4 }),
+  currency: varchar('currency', { length: 10 }).default('LKR').notNull(),
+  mealPlan: varchar('meal_plan', { length: 50 }).default('room_only'),
+  minStay: integer('min_stay').default(1),
+  maxStay: integer('max_stay'),
+  /** Free-text cancellation policy description */
+  cancellationPolicy: text('cancellation_policy'),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });

@@ -91,9 +91,9 @@ export function useApiSyncState<T extends { id?: string | number }>(
   value: T[]
   setValue: React.Dispatch<React.SetStateAction<T[]>>
   syncStatus: 'synced' | 'syncing' | 'offline' | 'conflict' | 'error'
-  pendingConflicts: never[]
-  resolveConflict: () => void
-  ignoreConflict: () => void
+  pendingConflicts: { id: string; [key: string]: unknown }[]
+  resolveConflict: (conflictId: string, strategy?: unknown, customValue?: unknown) => void
+  ignoreConflict: (conflictId: string) => void
   queueDepth: number
   lastSyncTime: number
   forceSync: () => void
@@ -107,9 +107,9 @@ export function useApiSyncState<T extends { id?: string | number }>(
     value,
     setValue,
     syncStatus,
-    pendingConflicts: [],
-    resolveConflict: (..._args: unknown[]) => {},
-    ignoreConflict: (..._args: unknown[]) => {},
+    pendingConflicts: [] as { id: string; [key: string]: unknown }[],
+    resolveConflict: (_conflictId: string, ..._args: unknown[]) => {},
+    ignoreConflict: (_conflictId: string) => {},
     queueDepth: 0,
     lastSyncTime: lastSyncTime.current,
     forceSync,

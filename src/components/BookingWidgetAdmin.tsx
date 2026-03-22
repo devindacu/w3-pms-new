@@ -121,8 +121,8 @@ function WidgetSettingsTab({ onCurrencyChange }: { onCurrencyChange?: (code: str
     logoUrl: null,
     propertyName: 'Hotel',
     welcomeMessage: null,
-    currencyCode: 'KES',
-    currencySymbol: 'KES',
+    currencyCode: 'LKR',
+    currencySymbol: 'LKR',
     residentLabel: 'Resident',
     nonResidentLabel: 'Non-Resident',
     showAddOns: true,
@@ -768,7 +768,7 @@ function WidgetPreviewTab() {
   const defaultSettings: WidgetSettings = {
     propertyId: 'default', primaryColor: '#1a56db', accentColor: '#0e9f6e',
     logoUrl: null, propertyName: 'Hotel', welcomeMessage: null,
-    currencyCode: 'USD', currencySymbol: '$', residentLabel: 'Resident',
+    currencyCode: 'LKR', currencySymbol: 'LKR', residentLabel: 'Resident',
     nonResidentLabel: 'Non-Resident', showAddOns: true, allowedOrigins: null,
   }
   const [settings, setSettings] = useState<WidgetSettings>(defaultSettings)
@@ -958,7 +958,7 @@ function EmbedCodeTab() {
 export function BookingWidgetAdmin() {
   const [currencyCode, setCurrencyCode] = useState(() => {
     const saved = lsGet<Partial<WidgetSettings>>(LS_KEYS.widgetSettings, {})
-    return saved.currencyCode || 'USD'
+    return saved.currencyCode || 'LKR'
   })
 
   return (

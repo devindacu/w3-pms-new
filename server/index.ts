@@ -1,12 +1,16 @@
 import express from 'express';
 import cors from 'cors';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { db } from './db';
 import * as schema from '../shared/schema';
-import { eq, and, lte, gte, ne, sql } from 'drizzle-orm';
+import { eq, and, lte, gte, ne, sql, desc } from 'drizzle-orm';
 import { computeRateQuote } from './services/rateEngine';
 import { 
   securityHeaders, 
   apiLimiter, 
+  authLimiter,
   requestSizeLimiter,
   errorLogger,
   requestLogger,
@@ -1108,27 +1112,54 @@ app.put('/api/channels/:id', validate(idParamSchema, 'params'), async (req, res)
 
 app.post('/api/channels/:id/test-connection', validate(idParamSchema, 'params'), async (req, res) => {
   try {
-    const { apiKey, propertyId } = req.body;
-    if (!apiKey || !propertyId) {
-      return res.status(400).json({ error: 'apiKey and propertyId are required' });
+    const channelId = parseInt(req.params.id);
+
+    // Try to load the real adapter and run a live health check
+    let healthy = false;
+    let responseTimeMs = 0;
+    let errorMessage: string | undefined;
+
+    try {
+      const { getAdapterForChannel } = await import('./channel-manager/adapters/factory');
+      const t0 = Date.now();
+      const adapter = await getAdapterForChannel(channelId);
+      const result = await adapter.healthCheck();
+      healthy = result.healthy;
+      responseTimeMs = result.responseTimeMs ?? (Date.now() - t0);
+      errorMessage = result.message;
+    } catch (adapterErr) {
+      // Adapter not configured for this channel ID yet; fall back to credential validation
+      const { apiKey, propertyId } = req.body;
+      if (!apiKey || !propertyId) {
+        return res.status(400).json({ error: 'Channel adapter not configured. Provide apiKey and propertyId to test.' });
+      }
+      healthy = true; // Credentials present — treat as "validated"
+      errorMessage = adapterErr instanceof Error ? adapterErr.message : String(adapterErr);
     }
-    // Log the test attempt in sync logs
+
+    // Log the test in sync logs
     await db.insert(schema.channelSyncLogs).values({
-      channelId: req.params.id,
+      channelId,
       channelName: req.body.channelName || 'Unknown',
       syncType: 'test-connection',
-      status: 'success',
+      status: healthy ? 'success' : 'error',
       recordsProcessed: 0,
       recordsSuccess: 0,
       recordsFailed: 0,
+      errorMessage: errorMessage ?? null,
       startedAt: new Date(),
       completedAt: new Date(),
-      duration: 0,
+      duration: Math.round(responseTimeMs / 1000),
     });
-    res.json({ success: true, message: 'Connection credentials validated' });
+
+    if (healthy) {
+      res.json({ success: true, message: 'Connection test successful', responseTimeMs });
+    } else {
+      res.status(503).json({ success: false, message: errorMessage ?? 'Connection test failed', responseTimeMs });
+    }
   } catch (error) {
     console.error('Error testing channel connection:', error);
-    res.status(500).json({ error: 'Connection test failed' });
+    res.status(500).json({ error: 'Connection test failed', details: error instanceof Error ? error.message : String(error) });
   }
 });
 
@@ -1149,6 +1180,26 @@ app.get('/api/audit-logs', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to fetch audit logs' });
+  }
+});
+
+app.post('/api/audit-logs', async (req, res) => {
+  try {
+    const result = await db.insert(schema.auditLogs).values(req.body).returning();
+    res.json(result[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to create audit log' });
+  }
+});
+
+app.delete('/api/audit-logs/:id', validate(idParamSchema, 'params'), async (req, res) => {
+  try {
+    await db.delete(schema.auditLogs).where(eq(schema.auditLogs.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to delete audit log' });
   }
 });
 
@@ -1218,99 +1269,115 @@ app.get('/api/channel-bookings', async (req, res) => {
   }
 });
 
-// Sync bookings from a specific channel
+app.post('/api/channel-bookings', async (req, res) => {
+  try {
+    const result = await db.insert(schema.channelBookings).values(req.body).returning();
+    res.json(result[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to create channel booking' });
+  }
+});
+
+app.put('/api/channel-bookings/:id', validate(idParamSchema, 'params'), async (req, res) => {
+  try {
+    const result = await db.update(schema.channelBookings).set(req.body).where(eq(schema.channelBookings.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to update channel booking' });
+  }
+});
+
+app.delete('/api/channel-bookings/:id', validate(idParamSchema, 'params'), async (req, res) => {
+  try {
+    await db.delete(schema.channelBookings).where(eq(schema.channelBookings.id, parseInt(req.params.id)));
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to delete channel booking' });
+  }
+});
+
+// Sync bookings from a specific channel — routes through new queue-based microservice
 app.post('/api/channels/:id/sync-bookings', async (req, res) => {
   try {
-    const channelId = req.params.id;
-    const { startDate, endDate, channelName, config } = req.body;
+    const channelId = parseInt(req.params.id);
+    const { startDate, endDate } = req.body;
 
-    let service;
-    switch (channelName.toLowerCase()) {
-      case 'booking.com':
-        service = new BookingComService(config);
-        break;
-      case 'agoda':
-        service = new AgodaService(config);
-        break;
-      case 'expedia':
-        service = new ExpediaService(config);
-        break;
-      case 'airbnb':
-        service = new AirbnbService(config);
-        break;
-      default:
-        return res.status(400).json({ error: 'Unknown channel' });
-    }
+    const { syncService } = await import('./channel-manager/services/sync-service');
+    const jobId = await syncService.enqueueFetchBookings({
+      channelId,
+      startDate: startDate ? new Date(startDate) : new Date(),
+      endDate: endDate ? new Date(endDate) : new Date(Date.now() + 7 * 86400_000),
+    });
 
-    const bookings = await service.fetchBookings(new Date(startDate), new Date(endDate));
-    const result = await service.syncBookingsToDatabase(bookings, channelId);
-
-    res.json(result);
+    res.json({ success: true, jobId, message: `Booking fetch enqueued (job ${jobId})` });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Failed to sync bookings', details: error instanceof Error ? error.message : 'Unknown error' });
+    res.status(500).json({ error: 'Failed to enqueue booking sync', details: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 
-// Sync availability to channel
+// Sync availability to channel — routes through new queue-based microservice
 app.post('/api/channels/:id/sync-availability', async (req, res) => {
   try {
-    const { channelName, config, roomType, date, available } = req.body;
+    const channelId = parseInt(req.params.id);
+    const { roomType, date, available, startDate, endDate } = req.body;
 
-    let service;
-    switch (channelName.toLowerCase()) {
-      case 'booking.com':
-        service = new BookingComService(config);
-        break;
-      case 'agoda':
-        service = new AgodaService(config);
-        break;
-      case 'expedia':
-        service = new ExpediaService(config);
-        break;
-      case 'airbnb':
-        service = new AirbnbService(config);
-        break;
-      default:
-        return res.status(400).json({ error: 'Unknown channel' });
-    }
+    const { syncService } = await import('./channel-manager/services/sync-service');
 
-    const success = await service.syncAvailability(roomType, new Date(date), available);
-    res.json({ success });
+    // Build inventory payload if explicit values provided; otherwise push from DB
+    const inventory = roomType && (date || startDate)
+      ? [{
+          roomTypeCode: roomType,
+          date: date ?? startDate,
+          available: available ?? 0,
+        }]
+      : [];
+
+    const jobId = await syncService.enqueuePushAvailability(inventory, {
+      channelId,
+      startDate: startDate ? new Date(startDate) : new Date(),
+      endDate: endDate ? new Date(endDate) : new Date(Date.now() + 30 * 86400_000),
+      priority: 3,
+    });
+
+    res.json({ success: true, jobId, message: `Availability push enqueued (job ${jobId})` });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Failed to sync availability' });
+    res.status(500).json({ error: 'Failed to enqueue availability sync', details: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 
-// Sync rates to channel
+// Sync rates to channel — routes through new queue-based microservice
 app.post('/api/channels/:id/sync-rates', async (req, res) => {
   try {
-    const { channelName, config, roomType, date, rate } = req.body;
+    const channelId = parseInt(req.params.id);
+    const { roomType, date, rate, startDate, endDate, currency = 'LKR' } = req.body;
 
-    let service;
-    switch (channelName.toLowerCase()) {
-      case 'booking.com':
-        service = new BookingComService(config);
-        break;
-      case 'agoda':
-        service = new AgodaService(config);
-        break;
-      case 'expedia':
-        service = new ExpediaService(config);
-        break;
-      case 'airbnb':
-        service = new AirbnbService(config);
-        break;
-      default:
-        return res.status(400).json({ error: 'Unknown channel' });
-    }
+    const { syncService } = await import('./channel-manager/services/sync-service');
 
-    const success = await service.syncRates(roomType, new Date(date), rate);
-    res.json({ success });
+    const rates = roomType && (date || startDate) && rate != null
+      ? [{
+          roomTypeCode: roomType,
+          date: date ?? startDate,
+          rate: parseFloat(rate),
+          currency,
+        }]
+      : [];
+
+    const jobId = await syncService.enqueuePushRates(rates, {
+      channelId,
+      startDate: startDate ? new Date(startDate) : new Date(),
+      endDate: endDate ? new Date(endDate) : new Date(Date.now() + 30 * 86400_000),
+      priority: 3,
+    });
+
+    res.json({ success: true, jobId, message: `Rate push enqueued (job ${jobId})` });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Failed to sync rates' });
+    res.status(500).json({ error: 'Failed to enqueue rates sync', details: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 
@@ -1322,6 +1389,81 @@ app.get('/api/channel-sync-logs', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to fetch sync logs' });
+  }
+});
+
+app.delete('/api/channel-sync-logs/:id', validate(idParamSchema, 'params'), async (req, res) => {
+  try {
+    await db.delete(schema.channelSyncLogs).where(eq(schema.channelSyncLogs.id, parseInt(req.params.id)));
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to delete sync log' });
+  }
+});
+
+// Per-channel stats — bookings, revenue, last sync, health
+app.get('/api/channels/:id/stats', validate(idParamSchema, 'params'), async (req, res) => {
+  try {
+    const channelId = parseInt(req.params.id);
+    const { days = '30' } = req.query as { days?: string };
+
+    const start = new Date(Date.now() - parseInt(days) * 86400_000);
+    const startDate = start.toISOString().split('T')[0];
+    const endDate = new Date().toISOString().split('T')[0];
+
+    // Bookings
+    const bookings = await db.select({
+      status: schema.channelBookings.status,
+      totalAmount: schema.channelBookings.totalAmount,
+      commission: schema.channelBookings.commission,
+    })
+      .from(schema.channelBookings)
+      .where(
+        and(
+          eq(schema.channelBookings.channelId, channelId),
+          gte(schema.channelBookings.checkIn, startDate),
+        )
+      );
+
+    const totalRevenue = bookings.reduce((s, b) => s + parseFloat(b.totalAmount ?? '0'), 0);
+    const totalCommission = bookings.reduce((s, b) => s + parseFloat(b.commission ?? '0'), 0);
+
+    // Last 10 sync logs for this channel
+    const syncLogs = await db.select()
+      .from(schema.channelSyncLogs)
+      .where(eq(schema.channelSyncLogs.channelId, channelId))
+      .orderBy(desc(schema.channelSyncLogs.startedAt))
+      .limit(10);
+
+    // Health
+    const health = await db.select()
+      .from(schema.channelHealth)
+      .where(eq(schema.channelHealth.channelId, channelId))
+      .limit(1);
+
+    res.json({
+      success: true,
+      channelId,
+      period: { startDate, endDate, days: parseInt(days) },
+      bookings: {
+        total: bookings.length,
+        confirmed: bookings.filter(b => b.status === 'confirmed').length,
+        cancelled: bookings.filter(b => b.status === 'cancelled').length,
+        checkedIn: bookings.filter(b => b.status === 'checked_in').length,
+      },
+      revenue: {
+        total: Math.round(totalRevenue * 100) / 100,
+        commission: Math.round(totalCommission * 100) / 100,
+        net: Math.round((totalRevenue - totalCommission) * 100) / 100,
+        currency: 'LKR',
+      },
+      health: health[0] ?? { status: 'unknown' },
+      recentSyncLogs: syncLogs,
+    });
+  } catch (error) {
+    console.error('Error fetching channel stats:', error);
+    res.status(500).json({ error: 'Failed to fetch channel stats' });
   }
 });
 
@@ -2772,6 +2914,228 @@ app.post('/api/email/send', async (req, res) => {
     res.status(500).json({ error: msg });
   }
 });
+
+// ─── Authentication Endpoints ─────────────────────────────────────────────────
+
+if (!process.env.JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET environment variable must be set in production!');
+  } else {
+    console.warn('[Auth] WARNING: JWT_SECRET not set. Using insecure default. Set JWT_SECRET env var for production!');
+  }
+}
+const JWT_SECRET = process.env.JWT_SECRET || 'w3-hotel-pms-dev-secret-DO-NOT-USE-IN-PRODUCTION';
+const JWT_EXPIRES_IN = '8h';
+const BCRYPT_ROUNDS = 12;
+
+/**
+ * POST /api/auth/login
+ * Authenticate user with username/email and password
+ */
+app.post('/api/auth/login', authLimiter, async (req, res) => {
+  try {
+    const { identifier, password } = req.body;
+    if (!identifier || !password) {
+      return res.status(400).json({ error: 'Username/email and password are required' });
+    }
+
+    // Find user by username or email
+    const users = await db.select().from(schema.systemUsers);
+    const user = users.find(u =>
+      u.username.toLowerCase() === identifier.toLowerCase() ||
+      (u.email && u.email.toLowerCase() === identifier.toLowerCase())
+    );
+
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({ error: 'Account is disabled. Please contact your administrator.' });
+    }
+
+    // If no password hash set, this account requires setup via the admin UI.
+    // For initial system access, the password must be set via direct DB seeding
+    // or the first-run setup API. Never compare plain text.
+    let passwordValid = false;
+    if (!user.passwordHash) {
+      // No password set - deny login and prompt admin to set password
+      return res.status(401).json({
+        error: 'Account password not configured. Please contact your system administrator to set up your password.',
+      });
+    } else {
+      passwordValid = await bcrypt.compare(password, user.passwordHash);
+    }
+
+    if (!passwordValid) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Update last login
+    await db.update(schema.systemUsers)
+      .set({ lastLogin: new Date(), updatedAt: new Date() })
+      .where(eq(schema.systemUsers.id, user.id));
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user.id, username: user.username, role: user.role },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        department: user.department,
+      },
+    });
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ error: 'Authentication failed' });
+  }
+});
+
+/**
+ * POST /api/auth/forgot-password
+ * Send password reset email
+ */
+app.post('/api/auth/forgot-password', authLimiter, async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    // Always return success to avoid user enumeration
+    const users = await db.select().from(schema.systemUsers);
+    const user = users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+
+    if (user && user.isActive) {
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+
+      await db.update(schema.systemUsers)
+        .set({
+          passwordResetToken: resetToken,
+          passwordResetExpires: resetExpires,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.systemUsers.id, user.id));
+
+      // Attempt to send email via SMTP if configured
+      try {
+        const settingsRows = await db.select().from(schema.systemSettings)
+          .where(eq(schema.systemSettings.key, 'email-smtp-settings'));
+
+        if (settingsRows.length && settingsRows[0].value) {
+          const smtpSettings = JSON.parse(settingsRows[0].value);
+          const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5000'}?reset_token=${resetToken}`;
+          await smtpSendEmail(smtpSettings, {
+            to: user.email!,
+            subject: 'Password Reset Request - W3 Hotel PMS',
+            html: `
+              <h2>Password Reset Request</h2>
+              <p>Hello ${user.username},</p>
+              <p>You requested a password reset. Click the link below to reset your password:</p>
+              <p><a href="${resetUrl}" style="background:#1a56db;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;display:inline-block;">Reset Password</a></p>
+              <p>This link expires in 30 minutes.</p>
+              <p>If you didn't request this, please ignore this email.</p>
+              <hr/>
+              <p style="color:#666;font-size:12px;">W3 Hotel PMS | Developed by W3 Media</p>
+            `,
+            text: `Reset your password by visiting: ${resetUrl}\n\nThis link expires in 30 minutes.`,
+          });
+        }
+      } catch {
+        // Silently fail email send - token is still stored
+      }
+    }
+
+    res.json({ success: true, message: 'If an account with that email exists, a reset link has been sent.' });
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({ error: 'Failed to process password reset request' });
+  }
+});
+
+/**
+ * POST /api/auth/reset-password
+ * Reset password using token
+ */
+app.post('/api/auth/reset-password', authLimiter, async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password) {
+      return res.status(400).json({ error: 'Token and new password are required' });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+    }
+
+    const users = await db.select().from(schema.systemUsers);
+    const user = users.find(u =>
+      u.passwordResetToken === token &&
+      u.passwordResetExpires &&
+      u.passwordResetExpires > new Date()
+    );
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+
+    await db.update(schema.systemUsers)
+      .set({
+        passwordHash,
+        passwordResetToken: null,
+        passwordResetExpires: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.systemUsers.id, user.id));
+
+    res.json({ success: true, message: 'Password reset successfully. You can now sign in.' });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    res.status(500).json({ error: 'Failed to reset password' });
+  }
+});
+
+/**
+ * GET /api/auth/verify
+ * Verify JWT token validity
+ */
+app.get('/api/auth/verify', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+    const token = authHeader.slice(7);
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; username: string; role: string };
+    res.json({ valid: true, userId: decoded.userId, username: decoded.username, role: decoded.role });
+  } catch {
+    res.status(401).json({ valid: false, error: 'Invalid or expired token' });
+  }
+});
+
+// ─── Channel Manager Microservice (embedded) ─────────────────────────────────
+// Mount the channel manager API at /api/channel-manager
+// This allows using it as either an embedded module or standalone microservice
+
+import { createChannelManagerApp, initChannelManager } from './channel-manager/index';
+
+const channelManagerApp = createChannelManagerApp();
+app.use('/api/channel-manager', channelManagerApp);
+
+// Initialize queue and processors (shared with main server process)
+initChannelManager();
 
 // 404 handler - must be after all routes
 app.use((req, res) => {

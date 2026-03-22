@@ -25,6 +25,7 @@ import {
   Calendar,
   FilePlus,
   Check,
+  CheckCircle,
   Package,
   Buildings,
   Trash
@@ -307,6 +308,15 @@ export function Finance({
   const handleEditExpense = (expense: Expense) => {
     setSelectedExpense(expense)
     setExpenseDialogOpen(true)
+  }
+
+  const handleApproveExpense = (expense: Expense) => {
+    setExpenses((prev) => (prev || []).map(e =>
+      e.id === expense.id
+        ? { ...e, approvedBy: currentUser.id, approvedAt: Date.now(), updatedAt: Date.now() }
+        : e
+    ))
+    toast.success(`Expense ${expense.expenseNumber} approved`)
   }
 
   const handleDeleteExpense = (expenseId: string) => {
@@ -1390,6 +1400,17 @@ export function Finance({
                       </div>
                       <div className="flex items-center gap-2 border-t sm:border-t-0 pt-3 sm:pt-0">
                         <p className="text-lg md:text-xl lg:text-2xl font-semibold text-destructive">{formatCurrency(expense.amount)}</p>
+                        {!expense.approvedBy && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-success hover:text-success px-2"
+                            title="Approve expense"
+                            onClick={() => handleApproveExpense(expense)}
+                          >
+                            <CheckCircle size={14} />
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="ghost"

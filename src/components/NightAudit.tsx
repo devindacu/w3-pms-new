@@ -509,12 +509,139 @@ export function NightAudit({
 
   const exportDailyReport = () => {
     if (!currentAudit) return
-    toast.success('Report export functionality will be implemented')
+
+    const auditDate = formatDate(currentAudit.auditDate)
+    const runBy = currentAudit.startedBy
+    const lines: string[] = [
+      `NIGHT AUDIT REPORT`,
+      `Date: ${auditDate}`,
+      `Run By: ${runBy}`,
+      `Status: ${currentAudit.status.toUpperCase()}`,
+      ``,
+      `=== REVENUE SUMMARY ===`,
+      `Room Revenue:      ${formatCurrency(currentAudit.summary.roomRevenue)}`,
+      `F&B Revenue:       ${formatCurrency(currentAudit.summary.fnbRevenue)}`,
+      `Extra Revenue:     ${formatCurrency(currentAudit.summary.extraRevenue)}`,
+      `Total Revenue:     ${formatCurrency(currentAudit.totalRevenue)}`,
+      ``,
+      `=== TAX & CHARGES ===`,
+      `Total Tax:         ${formatCurrency(currentAudit.summary.totalTax)}`,
+      `Service Charge:    ${formatCurrency(currentAudit.summary.totalServiceCharge)}`,
+      `Outstanding:       ${formatCurrency(currentAudit.summary.outstandingBalance)}`,
+      ``,
+      `=== STATISTICS ===`,
+      `Room Charges:      ${currentAudit.roomChargesPosted}`,
+      `Invoices:          ${currentAudit.invoicesGenerated}`,
+      `Payments:          ${currentAudit.paymentsReconciled}`,
+      ``,
+      `=== OPERATIONS ===`,
+      ...(currentAudit.operations || []).map(op =>
+        `[${op.status.toUpperCase()}] ${op.operationType}`
+      ),
+      ``,
+      `=== ERRORS ===`,
+      ...(currentAudit.errors.length > 0
+        ? currentAudit.errors.map(e => `• ${e.message}`)
+        : ['None']),
+    ]
+
+    const content = lines.join('\n')
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `night-audit-${auditDate}.txt`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    toast.success('Night audit report exported successfully')
   }
 
   const printDailyReport = () => {
     if (!currentAudit) return
-    toast.success('Report printing functionality will be implemented')
+
+    const auditDate = formatDate(currentAudit.auditDate)
+    const runBy = currentAudit.startedBy
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) {
+      toast.error('Please allow popups to print the report')
+      return
+    }
+
+    const rows = (currentAudit.operations || []).map(op => `
+      <tr>
+        <td style="padding:4px 8px;border:1px solid #ddd;">${op.operationType}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;">${op.recordsProcessed} records</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;text-align:center;">
+          <span style="color:${op.status === 'completed' ? 'green' : op.status === 'failed' ? 'red' : 'orange'}">
+            ${op.status.toUpperCase()}
+          </span>
+        </td>
+      </tr>
+    `).join('')
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Night Audit Report - ${auditDate}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; font-size: 13px; }
+            h1 { font-size: 20px; margin-bottom: 4px; }
+            .meta { color: #555; margin-bottom: 16px; }
+            .section { margin-bottom: 16px; }
+            .section h2 { font-size: 14px; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-bottom: 8px; }
+            .row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+            .row span:last-child { font-weight: bold; }
+            table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+            th { background: #f0f0f0; padding: 6px 8px; border: 1px solid #ddd; text-align: left; }
+            @media print { button { display: none; } }
+          </style>
+        </head>
+        <body>
+          <h1>Night Audit Report</h1>
+          <div class="meta">
+            Date: ${auditDate} | Status: ${currentAudit.status.toUpperCase()} | Run by: ${runBy}
+          </div>
+          <div class="section">
+            <h2>Revenue Summary</h2>
+            <div class="row"><span>Room Revenue</span><span>${formatCurrency(currentAudit.summary.roomRevenue)}</span></div>
+            <div class="row"><span>F&amp;B Revenue</span><span>${formatCurrency(currentAudit.summary.fnbRevenue)}</span></div>
+            <div class="row"><span>Extra Revenue</span><span>${formatCurrency(currentAudit.summary.extraRevenue)}</span></div>
+            <div class="row"><span><strong>Total Revenue</strong></span><span><strong>${formatCurrency(currentAudit.totalRevenue)}</strong></span></div>
+          </div>
+          <div class="section">
+            <h2>Tax &amp; Charges</h2>
+            <div class="row"><span>Total Tax</span><span>${formatCurrency(currentAudit.summary.totalTax)}</span></div>
+            <div class="row"><span>Service Charge</span><span>${formatCurrency(currentAudit.summary.totalServiceCharge)}</span></div>
+            <div class="row"><span>Outstanding Balance</span><span>${formatCurrency(currentAudit.summary.outstandingBalance)}</span></div>
+          </div>
+          <div class="section">
+            <h2>Statistics</h2>
+            <div class="row"><span>Room Charges Posted</span><span>${currentAudit.roomChargesPosted}</span></div>
+            <div class="row"><span>Invoices Generated</span><span>${currentAudit.invoicesGenerated}</span></div>
+            <div class="row"><span>Payments Reconciled</span><span>${currentAudit.paymentsReconciled}</span></div>
+          </div>
+          <div class="section">
+            <h2>Operations</h2>
+            <table>
+              <thead><tr><th>Operation</th><th>Records</th><th>Status</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+          ${currentAudit.errors.length > 0 ? `
+          <div class="section">
+            <h2>Errors</h2>
+            ${currentAudit.errors.map(e => `<div style="color:red">• ${e.message}</div>`).join('')}
+          </div>
+          ` : ''}
+          <script>window.onload = () => { window.print(); }</script>
+        </body>
+      </html>
+    `)
+    printWindow.document.close()
+    toast.success('Print dialog opened')
   }
 
   const calculateOccupancy = () => {
