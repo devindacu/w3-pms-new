@@ -953,7 +953,7 @@ export function FnBPOS({ menuItems, setMenuItems, menuCategories, setMenuCategor
                   onChange={(e) => setMiniBarRoom(rooms.find(r => r.id === e.target.value) || null)}
                 >
                   <option value="">Select room…</option>
-                  {rooms.filter(r => r.status === 'occupied').map(r => (
+                  {rooms.filter(r => r.status === 'occupied-clean' || r.status === 'occupied-dirty').map(r => (
                     <option key={r.id} value={r.id}>Room {r.roomNumber}</option>
                   ))}
                 </select>
