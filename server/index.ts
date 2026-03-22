@@ -2950,7 +2950,8 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    if (!user.isActive) {
+    // Use strict false check — null/undefined isActive defaults to active
+    if (user.isActive === false) {
       return res.status(403).json({ error: 'Account is disabled. Please contact your administrator.' });
     }
 
