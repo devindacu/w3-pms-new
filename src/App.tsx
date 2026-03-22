@@ -2077,8 +2077,10 @@ function App() {
           <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 md:gap-3">
               <p className="text-xs sm:text-sm font-medium text-foreground/80 text-center">
-                © {new Date().getFullYear()} {branding?.hotelName || 'W3 Hotel'} - Design & Developed by
+                © {new Date().getFullYear()} {branding?.hotelName || 'W3 Hotel'}. All Rights Reserved.
               </p>
+              <span className="hidden sm:inline text-foreground/40 text-xs">·</span>
+              <span className="text-xs sm:text-sm text-foreground/60">Developed by</span>
               <a 
                 href="https://www.w3media.lk/" 
                 target="_blank" 
