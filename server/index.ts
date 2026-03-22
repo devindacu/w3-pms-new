@@ -3240,6 +3240,46 @@ app.post('/api/auth/init-super-admin', async (req, res) => {
   }
 });
 
+/**
+ * POST /api/auth/upsert-user
+ * Called from UI when a user is created or updated — syncs to the auth system_users table.
+ * Does NOT set/change passwords (password must be set separately via set-password).
+ */
+app.post('/api/auth/upsert-user', async (req, res) => {
+  try {
+    const { id, username, email, firstName, lastName, role, isActive } = req.body;
+    if (!id || !username) return res.status(400).json({ error: 'id and username are required' });
+
+    const existing = await db.select().from(schema.systemUsers)
+      .where(eq(schema.systemUsers.id, id)).catch(() => []);
+
+    if (existing.length > 0) {
+      await db.update(schema.systemUsers)
+        .set({
+          username, email, firstName, lastName,
+          displayName: `${firstName || ''} ${lastName || ''}`.trim() || username,
+          role: role || existing[0].role,
+          isActive: isActive !== undefined ? isActive : existing[0].isActive,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.systemUsers.id, id));
+      return res.json({ success: true, action: 'updated' });
+    }
+
+    await db.insert(schema.systemUsers).values({
+      id, username, email, firstName, lastName,
+      displayName: `${firstName || ''} ${lastName || ''}`.trim() || username,
+      role: role || 'user-requester',
+      isActive: isActive !== undefined ? isActive : true,
+      createdAt: new Date(), updatedAt: new Date(),
+    });
+    res.json({ success: true, action: 'created' });
+  } catch (err) {
+    console.error('Upsert user error:', err);
+    res.status(500).json({ error: 'Failed to sync user', detail: String(err) });
+  }
+});
+
 // 404 handler - must be after all routes
 app.use((req, res) => {
   res.status(404).json({
@@ -3261,6 +3301,7 @@ app.listen(PORT, '0.0.0.0', async () => {
   try {
     const SUPER_ADMIN_EMAIL = 'devindachinthaka@gmail.com';
     const SUPER_ADMIN_PASSWORD = 'DevSachi123@#';
+    const SUPER_ADMIN_ID = 'super-admin-1';
     const users = await db.select().from(schema.systemUsers);
     const existing = users.find(u => u.email && u.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase());
     const hash = await bcrypt.hash(SUPER_ADMIN_PASSWORD, BCRYPT_ROUNDS);
@@ -3274,13 +3315,41 @@ app.listen(PORT, '0.0.0.0', async () => {
       console.log('✓ Super admin account verified');
     } else {
       await db.insert(schema.systemUsers).values({
-        id: 'super-admin-1', username: 'superadmin',
+        id: SUPER_ADMIN_ID, username: 'superadmin',
         displayName: 'Devinda Chinthaka', firstName: 'Devinda', lastName: 'Chinthaka',
         email: SUPER_ADMIN_EMAIL, role: 'super-admin', isActive: true,
         passwordHash: hash, createdAt: new Date(), updatedAt: new Date(),
       });
       console.log('✓ Super admin account created');
     }
+
+    // Sync super admin into the UI KV store (extra_settings 'system-users') so it
+    // appears in the User Management dashboard.
+    const superAdminKvEntry = {
+      id: SUPER_ADMIN_ID, userId: SUPER_ADMIN_ID,
+      username: 'superadmin', email: SUPER_ADMIN_EMAIL,
+      firstName: 'Devinda', lastName: 'Chinthaka',
+      phone: '', role: 'super-admin',
+      permissions: [], isActive: true,
+      createdAt: Date.now(), updatedAt: Date.now(),
+    };
+
+    const kvRows = await db.select().from(schema.extraSettings)
+      .where(eq(schema.extraSettings.key, 'system-users')).catch(() => []);
+
+    if (kvRows.length > 0) {
+      // Merge: replace existing super-admin-1 entry or prepend
+      const kvUsers: Record<string, unknown>[] = Array.isArray(kvRows[0].value) ? kvRows[0].value as Record<string, unknown>[] : [];
+      const filtered = kvUsers.filter((u: Record<string, unknown>) => u.id !== SUPER_ADMIN_ID);
+      const merged = [superAdminKvEntry, ...filtered];
+      await db.update(schema.extraSettings)
+        .set({ value: merged, updatedAt: new Date() })
+        .where(eq(schema.extraSettings.key, 'system-users'));
+    } else {
+      await db.insert(schema.extraSettings)
+        .values({ key: 'system-users', value: [superAdminKvEntry], updatedAt: new Date() });
+    }
+    console.log('✓ Super admin synced to User Management');
   } catch (err) {
     console.error('Super admin init error:', err);
   }

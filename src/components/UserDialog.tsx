@@ -71,7 +71,31 @@ export function UserDialog({ open, onOpenChange, user, users, setUsers, currentU
     }
   }, [user, open])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const syncUserToAuthDb = async (id: string, userData: Partial<SystemUser>) => {
+    try {
+      const token = localStorage.getItem('w3-auth-token')
+      await fetch('/api/auth/upsert-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          id,
+          username: userData.username,
+          email: userData.email,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          role: userData.role,
+          isActive: userData.isActive,
+        }),
+      })
+    } catch {
+      // Non-critical — user still saved in UI store
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!formData.username.trim()) {
@@ -112,7 +136,8 @@ export function UserDialog({ open, onOpenChange, user, users, setUsers, currentU
       }
 
       setUsers(prev => prev.map(u => u.id === user.id ? newUser : u))
-      
+      await syncUserToAuthDb(user.id, newUser)
+
       const log = createActivityLog(
         currentUser,
         'user-updated',
@@ -138,7 +163,8 @@ export function UserDialog({ open, onOpenChange, user, users, setUsers, currentU
       }
 
       setUsers(prev => [newUser, ...prev])
-      
+      await syncUserToAuthDb(newUser.id, newUser)
+
       const log = createActivityLog(
         currentUser,
         'user-created',
