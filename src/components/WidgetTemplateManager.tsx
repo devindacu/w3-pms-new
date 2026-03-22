@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Download, Upload, Eye, Star, Layout } from '@phosphor-icons/react'
-import type { DashboardLayout, DashboardWidget, SystemRole } from '@/lib/types'
+import type { DashboardLayout, DashboardWidget, SystemRole, UserRole } from '@/lib/types'
 import { toast } from 'sonner'
 
 interface WidgetTemplate {
@@ -21,7 +21,7 @@ interface WidgetTemplate {
   author: string
   isPublic: boolean
   isDefault: boolean
-  targetRoles: SystemRole[]
+  targetRoles: (SystemRole | UserRole)[]
   widgets: DashboardWidget[]
   columns: number
   category: 'executive' | 'operational' | 'departmental' | 'analytical' | 'custom'
@@ -35,7 +35,7 @@ interface WidgetTemplate {
 interface WidgetTemplateManagerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  currentRole: SystemRole
+  currentRole: SystemRole | UserRole
   currentLayout?: DashboardLayout | null
   onApplyTemplate: (layout: DashboardLayout) => void
   onSaveAsTemplate?: (template: WidgetTemplate) => void

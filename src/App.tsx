@@ -319,10 +319,10 @@ function App() {
   const { value: housekeepingTasks, setValue: setHousekeepingTasks, syncStatus: housekeepingSyncStatus, pendingConflicts: housekeepingConflicts, resolveConflict: resolveHousekeepingConflict, ignoreConflict: ignoreHousekeepingConflict, queueDepth: housekeepingQueueDepth, lastSyncTime: housekeepingLastSyncTime, forceSync: forceHousekeepingSync, isLoading: housekeepingLoading } = useApiSyncState<HousekeepingTask>('housekeeping-tasks', [])
 
   const [invoices, setInvoices] = useSettingState<Invoice[]>('procurement-invoices', [])
-  const invoicesSyncStatus = 'synced' as const
-  const invoicesConflicts: never[] = []
-  const resolveInvoicesConflict = () => {}
-  const ignoreInvoicesConflict = () => {}
+  const invoicesSyncStatus: 'synced' | 'syncing' | 'offline' | 'error' | 'conflict' = 'synced'
+  const invoicesConflicts: { id: string; [key: string]: unknown }[] = []
+  const resolveInvoicesConflict = (_conflictId: string, _strategy?: unknown, _customValue?: unknown) => {}
+  const ignoreInvoicesConflict = (_conflictId: string) => {}
   const invoicesQueueDepth = 0
   const invoicesLastSyncTime = Date.now()
   const forceInvoicesSync = () => {}
@@ -441,15 +441,15 @@ function App() {
       return 'conflict'
     }
     if (guestsSyncStatus === 'syncing' || roomsSyncStatus === 'syncing' || reservationsSyncStatus === 'syncing' ||
-        employeesSyncStatus === 'syncing' || invoicesSyncStatus === 'syncing' || housekeepingSyncStatus === 'syncing') {
+        employeesSyncStatus === 'syncing' || (invoicesSyncStatus as string) === 'syncing' || housekeepingSyncStatus === 'syncing') {
       return 'syncing'
     }
     if (guestsSyncStatus === 'offline' || roomsSyncStatus === 'offline' || reservationsSyncStatus === 'offline' ||
-        employeesSyncStatus === 'offline' || invoicesSyncStatus === 'offline' || housekeepingSyncStatus === 'offline') {
+        employeesSyncStatus === 'offline' || (invoicesSyncStatus as string) === 'offline' || housekeepingSyncStatus === 'offline') {
       return 'offline'
     }
     if (guestsSyncStatus === 'error' || roomsSyncStatus === 'error' || reservationsSyncStatus === 'error' ||
-        employeesSyncStatus === 'error' || invoicesSyncStatus === 'error' || housekeepingSyncStatus === 'error') {
+        employeesSyncStatus === 'error' || (invoicesSyncStatus as string) === 'error' || housekeepingSyncStatus === 'error') {
       return 'error'
     }
     return 'synced'
@@ -2107,7 +2107,7 @@ function App() {
       <ServerSyncConflictDialog
         open={showSyncConflicts}
         onOpenChange={setShowSyncConflicts}
-        conflicts={allConflicts}
+        conflicts={allConflicts as unknown as import('@/hooks/use-server-sync').SyncConflict<unknown>[]}
         onResolve={handleResolveConflict}
         onIgnore={handleIgnoreConflict}
       />

@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Plus, Trash, CheckCircle, XCircle } from '@phosphor-icons/react'
+import { Plus, Trash, CheckCircle, XCircle, ShoppingCart } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { 
   type Requisition, 
@@ -36,6 +36,7 @@ interface RequisitionDialogProps {
   constructionMaterials: ConstructionMaterial[]
   generalProducts: GeneralProduct[]
   suppliers: Supplier[]
+  onCreatePO?: (requisition: Requisition) => void
 }
 
 export function RequisitionDialog({
@@ -50,7 +51,8 @@ export function RequisitionDialog({
   amenities,
   constructionMaterials,
   generalProducts,
-  suppliers
+  suppliers,
+  onCreatePO
 }: RequisitionDialogProps) {
   const [department, setDepartment] = useState<Department>('front-office')
   const [priority, setPriority] = useState<'normal' | 'high' | 'urgent'>('normal')
@@ -426,6 +428,12 @@ export function RequisitionDialog({
                     Approve
                   </Button>
                 </>
+              )}
+              {requisition?.status === 'approved' && onCreatePO && (
+                <Button variant="default" onClick={() => { onCreatePO(requisition); onOpenChange(false) }}>
+                  <ShoppingCart size={18} className="mr-2" />
+                  Create Purchase Order
+                </Button>
               )}
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Close

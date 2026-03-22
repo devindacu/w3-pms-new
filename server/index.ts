@@ -1183,6 +1183,26 @@ app.get('/api/audit-logs', async (req, res) => {
   }
 });
 
+app.post('/api/audit-logs', async (req, res) => {
+  try {
+    const result = await db.insert(schema.auditLogs).values(req.body).returning();
+    res.json(result[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to create audit log' });
+  }
+});
+
+app.delete('/api/audit-logs/:id', validate(idParamSchema, 'params'), async (req, res) => {
+  try {
+    await db.delete(schema.auditLogs).where(eq(schema.auditLogs.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to delete audit log' });
+  }
+});
+
 app.get('/api/recipes', async (req, res) => {
   try {
     const result = await db.select().from(schema.recipes);
@@ -1246,6 +1266,36 @@ app.get('/api/channel-bookings', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to fetch channel bookings' });
+  }
+});
+
+app.post('/api/channel-bookings', async (req, res) => {
+  try {
+    const result = await db.insert(schema.channelBookings).values(req.body).returning();
+    res.json(result[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to create channel booking' });
+  }
+});
+
+app.put('/api/channel-bookings/:id', validate(idParamSchema, 'params'), async (req, res) => {
+  try {
+    const result = await db.update(schema.channelBookings).set(req.body).where(eq(schema.channelBookings.id, parseInt(req.params.id))).returning();
+    res.json(result[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to update channel booking' });
+  }
+});
+
+app.delete('/api/channel-bookings/:id', validate(idParamSchema, 'params'), async (req, res) => {
+  try {
+    await db.delete(schema.channelBookings).where(eq(schema.channelBookings.id, parseInt(req.params.id)));
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to delete channel booking' });
   }
 });
 
@@ -1339,6 +1389,16 @@ app.get('/api/channel-sync-logs', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to fetch sync logs' });
+  }
+});
+
+app.delete('/api/channel-sync-logs/:id', validate(idParamSchema, 'params'), async (req, res) => {
+  try {
+    await db.delete(schema.channelSyncLogs).where(eq(schema.channelSyncLogs.id, parseInt(req.params.id)));
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to delete sync log' });
   }
 });
 
