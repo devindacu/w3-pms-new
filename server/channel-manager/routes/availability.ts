@@ -186,4 +186,158 @@ router.post('/block', async (req: Request, res: Response) => {
   }
 });
 
+// POST /availability/bulk — Bulk availability update across channels + date range
+//
+// Sets the same availability value (or delta) across multiple channels,
+// multiple room types, and a date range.
+//
+// Body:
+//   channels: number[]       - Channel IDs (empty = all active)
+//   roomTypes: string[]      - Room type codes to update
+//   startDate: string        - ISO date (inclusive)
+//   endDate: string          - ISO date (inclusive)
+//   available: number        - Rooms to mark available
+//   totalInventory?: number  - Total capacity (defaults to available if not set)
+//   isBlocked?: boolean      - Block the dates instead of setting availability
+//   minStay?: number
+//   maxStay?: number
+//   cta?: boolean            - Closed To Arrival
+//   ctd?: boolean            - Closed To Departure
+//   daysOfWeek?: number[]    - 0=Sun … 6=Sat. If set, only update those days.
+
+router.post('/bulk', async (req: Request, res: Response) => {
+  try {
+    const {
+      channels: channelIds = [],
+      roomTypes = [],
+      startDate,
+      endDate,
+      available,
+      totalInventory,
+      isBlocked = false,
+      minStay = 1,
+      maxStay,
+      cta = false,
+      ctd = false,
+      daysOfWeek,
+    } = req.body as {
+      channels?: number[];
+      roomTypes?: string[];
+      startDate: string;
+      endDate: string;
+      available: number;
+      totalInventory?: number;
+      isBlocked?: boolean;
+      minStay?: number;
+      maxStay?: number;
+      cta?: boolean;
+      ctd?: boolean;
+      daysOfWeek?: number[];
+    };
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ error: 'startDate and endDate are required' });
+    }
+    if (available == null || isNaN(available)) {
+      return res.status(400).json({ error: 'available rooms count is required' });
+    }
+
+    // Resolve channels
+    let targetChannels: { id: number; name: string }[];
+    if (channelIds.length > 0) {
+      const all = await db.select({ id: schema.channels.id, name: schema.channels.name })
+        .from(schema.channels)
+        .where(eq(schema.channels.isActive, true));
+      targetChannels = all.filter(c => channelIds.includes(c.id));
+    } else {
+      targetChannels = await db.select({ id: schema.channels.id, name: schema.channels.name })
+        .from(schema.channels)
+        .where(eq(schema.channels.isActive, true));
+    }
+
+    if (!targetChannels.length) {
+      return res.status(400).json({ error: 'No active channels found for the given IDs' });
+    }
+
+    const total = totalInventory ?? available;
+    let totalUpserted = 0;
+    const jobIds: Record<number, string> = {};
+
+    for (const channel of targetChannels) {
+      const invUpdates: InventoryUpdate[] = [];
+
+      for (const roomTypeCode of (roomTypes.length > 0 ? roomTypes : ['default'])) {
+        for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
+          // Filter by day-of-week if specified
+          if (daysOfWeek && daysOfWeek.length > 0 && !daysOfWeek.includes(d.getDay())) continue;
+
+          const dateStr = d.toISOString().split('T')[0];
+          const booked = Math.max(0, total - available);
+
+          invUpdates.push({
+            roomTypeCode,
+            date: dateStr,
+            available,
+            totalInventory: total,
+            isBlocked,
+            minStay,
+            maxStay,
+            cta,
+            ctd,
+          });
+
+          // Upsert in DB
+          const existing = await db.select({ id: schema.channelInventory.id })
+            .from(schema.channelInventory)
+            .where(and(
+              eq(schema.channelInventory.channelId, channel.id),
+              eq(schema.channelInventory.otaRoomTypeCode, roomTypeCode),
+              eq(schema.channelInventory.date, dateStr),
+            ))
+            .limit(1);
+
+          const record = {
+            channelId: channel.id,
+            channelName: channel.name,
+            internalRoomType: roomTypeCode,
+            otaRoomTypeCode: roomTypeCode,
+            date: dateStr,
+            totalInventory: total,
+            availableInventory: available,
+            bookedInventory: booked,
+            isBlocked,
+            minStay,
+            maxStay: maxStay ?? null,
+            cta,
+            ctd,
+            syncStatus: 'pending',
+            updatedAt: new Date(),
+          };
+
+          if (existing.length > 0) {
+            await db.update(schema.channelInventory).set(record).where(eq(schema.channelInventory.id, existing[0].id));
+          } else {
+            await db.insert(schema.channelInventory).values({ ...record, createdAt: new Date() });
+          }
+          totalUpserted++;
+        }
+      }
+
+      // Enqueue push job
+      const jobId = await syncService.enqueuePushAvailability(invUpdates, { channelId: channel.id, priority: 3 });
+      jobIds[channel.id] = jobId;
+    }
+
+    res.json({
+      success: true,
+      totalUpserted,
+      channelsTargeted: targetChannels.length,
+      jobIds,
+      message: `Bulk availability update: ${totalUpserted} records, ${targetChannels.length} push jobs enqueued`,
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to bulk update availability', details: err instanceof Error ? err.message : String(err) });
+  }
+});
+
 export default router;

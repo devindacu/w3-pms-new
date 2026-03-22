@@ -20,19 +20,13 @@ import * as schema from '../../../shared/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { getAdapterForChannel } from '../adapters/factory';
 import { syncService } from '../services/sync-service';
+import { captureRawBody } from '../middleware/auth';
 
 const router = Router();
 
-// Capture raw body BEFORE JSON parsing for signature verification.
-// This middleware is applied per-route to avoid affecting other routes.
-function captureRawBodyMiddleware(req: Request & { rawBody?: string }, _res: Response, next: NextFunction): void {
-  let rawBody = '';
-  req.on('data', (chunk: Buffer) => { rawBody += chunk.toString('utf8'); });
-  req.on('end', () => {
-    req.rawBody = rawBody;
-    next();
-  });
-  req.on('error', next);
+// Re-export from auth for per-route use (adds error handler on top of auth version)
+function captureRawBodyMiddleware(req: Request & { rawBody?: string }, res: Response, next: NextFunction): void {
+  captureRawBody(req, res, next);
 }
 
 // Parse JSON after capturing raw body

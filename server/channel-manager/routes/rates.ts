@@ -141,4 +141,225 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
+// POST /rates/bulk — Bulk rate update across multiple channels, rooms, dates
+//
+// Accepts a grid of { roomTypeCode, ratePlanCode?, rate, currency? } and
+// a date range + channel list, then:
+//   1. Upserts all records in DB
+//   2. Enqueues a push job per target channel
+//
+// Body:
+//   channels: number[]              - Channel IDs to push to (empty = all active)
+//   roomTypes: string[]             - Room type codes to update
+//   startDate: string               - ISO date (inclusive)
+//   endDate: string                 - ISO date (inclusive)
+//   rate: number                    - New base rate (LKR)
+//   ratePlanCode?: string           - OTA rate plan code (optional)
+//   currency?: string               - Defaults to LKR
+//   mealPlan?: string               - room_only | breakfast | half_board | full_board
+//   extraAdultRate?: number
+//   extraChildRate?: number
+//   adjustmentType?: 'fixed' | 'percent_increase' | 'percent_decrease'
+//   adjustmentValue?: number        - Used when adjustmentType != 'fixed'
+
+router.post('/bulk', async (req: Request, res: Response) => {
+  try {
+    const {
+      channels: channelIds = [],
+      roomTypes = [],
+      startDate,
+      endDate,
+      rate,
+      ratePlanCode,
+      currency = 'LKR',
+      mealPlan = 'room_only',
+      extraAdultRate,
+      extraChildRate,
+      adjustmentType = 'fixed',
+      adjustmentValue,
+    } = req.body as {
+      channels?: number[];
+      roomTypes?: string[];
+      startDate: string;
+      endDate: string;
+      rate?: number;
+      ratePlanCode?: string;
+      currency?: string;
+      mealPlan?: string;
+      extraAdultRate?: number;
+      extraChildRate?: number;
+      adjustmentType?: 'fixed' | 'percent_increase' | 'percent_decrease';
+      adjustmentValue?: number;
+    };
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ error: 'startDate and endDate are required' });
+    }
+    if (adjustmentType === 'fixed' && (rate == null || isNaN(rate))) {
+      return res.status(400).json({ error: 'rate is required when adjustmentType is fixed' });
+    }
+    if (adjustmentType !== 'fixed' && (adjustmentValue == null || isNaN(adjustmentValue))) {
+      return res.status(400).json({ error: 'adjustmentValue is required for percent adjustments' });
+    }
+
+    // Resolve target channels
+    let targetChannels: { id: number; name: string }[];
+    if (channelIds.length > 0) {
+      const rows = await db.select({ id: schema.channels.id, name: schema.channels.name })
+        .from(schema.channels)
+        .where(and(eq(schema.channels.isActive, true)));
+      targetChannels = rows.filter(c => channelIds.includes(c.id));
+    } else {
+      targetChannels = await db.select({ id: schema.channels.id, name: schema.channels.name })
+        .from(schema.channels)
+        .where(eq(schema.channels.isActive, true));
+    }
+
+    if (!targetChannels.length) {
+      return res.status(400).json({ error: 'No active channels found for the given IDs' });
+    }
+
+    // Build date list
+    const dates: string[] = [];
+    for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
+      dates.push(d.toISOString().split('T')[0]);
+    }
+
+    let totalUpserted = 0;
+    const jobIds: Record<number, string> = {};
+
+    for (const channel of targetChannels) {
+      const rateUpdates: RateUpdate[] = [];
+
+      for (const roomTypeCode of (roomTypes.length > 0 ? roomTypes : ['default'])) {
+        for (const date of dates) {
+          let finalRate: number;
+
+          if (adjustmentType === 'fixed') {
+            finalRate = rate!;
+          } else {
+            // Fetch existing rate for this channel/room/date
+            const existing = await db.select({ baseRate: schema.channelRates.baseRate })
+              .from(schema.channelRates)
+              .where(and(
+                eq(schema.channelRates.channelId, channel.id),
+                eq(schema.channelRates.otaRoomTypeCode, roomTypeCode),
+                eq(schema.channelRates.date, date),
+              ))
+              .limit(1);
+
+            const base = existing[0] ? parseFloat(existing[0].baseRate) : 0;
+            if (adjustmentType === 'percent_increase') {
+              finalRate = base * (1 + adjustmentValue! / 100);
+            } else {
+              finalRate = base * (1 - adjustmentValue! / 100);
+            }
+          }
+
+          finalRate = Math.max(0, Math.round(finalRate * 100) / 100);
+
+          rateUpdates.push({
+            roomTypeCode,
+            ratePlanCode,
+            date,
+            rate: finalRate,
+            currency,
+            mealPlan,
+            extraAdultRate,
+            extraChildRate,
+          });
+
+          // Upsert in DB
+          const existing = await db.select({ id: schema.channelRates.id })
+            .from(schema.channelRates)
+            .where(and(
+              eq(schema.channelRates.channelId, channel.id),
+              eq(schema.channelRates.otaRoomTypeCode, roomTypeCode),
+              eq(schema.channelRates.date, date),
+            ))
+            .limit(1);
+
+          const record = {
+            channelId: channel.id,
+            channelName: channel.name,
+            internalRoomType: roomTypeCode,
+            otaRoomTypeCode: roomTypeCode,
+            otaRatePlanCode: ratePlanCode ?? null,
+            date,
+            baseRate: finalRate.toFixed(2),
+            currency,
+            rateType: 'BAR',
+            extraAdultRate: extraAdultRate?.toFixed(2) ?? null,
+            extraChildRate: extraChildRate?.toFixed(2) ?? null,
+            mealPlan,
+            syncStatus: 'pending',
+            updatedAt: new Date(),
+          };
+
+          if (existing.length > 0) {
+            await db.update(schema.channelRates).set(record).where(eq(schema.channelRates.id, existing[0].id));
+          } else {
+            await db.insert(schema.channelRates).values({ ...record, createdAt: new Date() });
+          }
+          totalUpserted++;
+        }
+      }
+
+      // Enqueue push for this channel
+      const jobId = await syncService.enqueuePushRates(rateUpdates, { channelId: channel.id, priority: 3 });
+      jobIds[channel.id] = jobId;
+    }
+
+    res.json({
+      success: true,
+      totalUpserted,
+      channelsTargeted: targetChannels.length,
+      datesTargeted: dates.length,
+      roomTypesTargeted: roomTypes.length || 1,
+      jobIds,
+      message: `Bulk rate update complete: ${totalUpserted} records, ${targetChannels.length} push jobs enqueued`,
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to perform bulk rate update', details: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+// GET /rates/summary — Aggregated rate summary across channels
+router.get('/summary', async (req: Request, res: Response) => {
+  try {
+    const { startDate, endDate, roomType } = req.query as Record<string, string>;
+    const now = new Date();
+    const start = startDate ?? now.toISOString().split('T')[0];
+    const end = endDate ?? new Date(now.getTime() + 14 * 86400_000).toISOString().split('T')[0];
+
+    const conditions = [
+      gte(schema.channelRates.date, start),
+      lte(schema.channelRates.date, end),
+    ];
+    if (roomType) conditions.push(eq(schema.channelRates.otaRoomTypeCode, roomType));
+
+    const rates = await db.select()
+      .from(schema.channelRates)
+      .where(and(...conditions))
+      .orderBy(schema.channelRates.date, schema.channelRates.channelName);
+
+    // Group by date + room type
+    const byDate = new Map<string, { date: string; channels: Record<string, number> }>();
+    for (const r of rates) {
+      if (!byDate.has(r.date)) byDate.set(r.date, { date: r.date, channels: {} });
+      byDate.get(r.date)!.channels[r.channelName] = parseFloat(r.baseRate);
+    }
+
+    res.json({
+      success: true,
+      period: { startDate: start, endDate: end },
+      currency: 'LKR',
+      data: Array.from(byDate.values()),
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch rate summary', details: err instanceof Error ? err.message : String(err) });
+  }
+});
+
 export default router;
+

@@ -329,4 +329,120 @@ router.post('/full-sync', async (_req: Request, res: Response) => {
   }
 });
 
+// ─── Admin Dashboard Overview ──────────────────────────────────────────────────
+//
+// GET /admin/dashboard — Single endpoint returning everything the admin UI needs:
+//   - Active channel list with health
+//   - Queue stats
+//   - Recent sync activity
+//   - Booking & revenue summary (30-day)
+//   - Webhook log stats
+
+router.get('/dashboard', async (_req: Request, res: Response) => {
+  try {
+    const now = new Date();
+    const window30 = new Date(now.getTime() - 30 * 86400_000);
+    const window7 = new Date(now.getTime() - 7 * 86400_000);
+    const startDate30 = window30.toISOString().split('T')[0];
+    const endDate = now.toISOString().split('T')[0];
+
+    // 1) Channels + health
+    const channels = await db.select().from(schema.channels).orderBy(schema.channels.name);
+    const healthRows = await db.select().from(schema.channelHealth);
+    const healthMap = new Map(healthRows.map(h => [h.channelId, h]));
+
+    const channelSummary = channels.map(c => ({
+      id: c.id,
+      name: c.name,
+      type: c.type,
+      isActive: c.isActive,
+      commission: c.commission,
+      health: healthMap.get(c.id) ?? { status: 'unknown' },
+    }));
+
+    // 2) Queue stats
+    const queue = getQueue();
+    const queueStats = await queue.getStats();
+
+    // 3) Recent jobs (top 10)
+    const recentJobs = await db.select()
+      .from(schema.channelSyncJobs)
+      .orderBy(desc(schema.channelSyncJobs.createdAt))
+      .limit(10);
+
+    // 4) Booking / revenue summary
+    const bookings = await db.select({
+      status: schema.channelBookings.status,
+      channelName: schema.channelBookings.channelName,
+      totalAmount: schema.channelBookings.totalAmount,
+      commission: schema.channelBookings.commission,
+    })
+      .from(schema.channelBookings)
+      .where(gte(schema.channelBookings.checkIn, startDate30));
+
+    const totalRevenue = bookings.reduce((s, b) => s + parseFloat(b.totalAmount ?? '0'), 0);
+    const totalCommission = bookings.reduce((s, b) => s + parseFloat(b.commission ?? '0'), 0);
+
+    // Revenue by channel
+    const revenueByChannel: Record<string, number> = {};
+    for (const b of bookings) {
+      revenueByChannel[b.channelName] = (revenueByChannel[b.channelName] ?? 0) + parseFloat(b.totalAmount ?? '0');
+    }
+
+    // 5) Recent sync log summary
+    const recentSyncLogs = await db.select()
+      .from(schema.channelSyncLogs)
+      .where(gte(schema.channelSyncLogs.startedAt, window7))
+      .orderBy(desc(schema.channelSyncLogs.startedAt))
+      .limit(20);
+
+    const syncSuccessRate = recentSyncLogs.length > 0
+      ? (recentSyncLogs.filter(l => l.status === 'success').length / recentSyncLogs.length * 100).toFixed(1)
+      : '0';
+
+    // 6) Webhook log stats
+    const webhookLogs = await db.select({ processingStatus: schema.channelWebhookLogs.processingStatus })
+      .from(schema.channelWebhookLogs)
+      .where(gte(schema.channelWebhookLogs.createdAt, window7));
+
+    res.json({
+      success: true,
+      generatedAt: now.toISOString(),
+      channels: channelSummary,
+      queue: queueStats,
+      recentJobs,
+      bookings: {
+        total: bookings.length,
+        confirmed: bookings.filter(b => b.status === 'confirmed').length,
+        cancelled: bookings.filter(b => b.status === 'cancelled').length,
+        checkedIn: bookings.filter(b => b.status === 'checked_in').length,
+        period: '30d',
+      },
+      revenue: {
+        total: Math.round(totalRevenue * 100) / 100,
+        commission: Math.round(totalCommission * 100) / 100,
+        net: Math.round((totalRevenue - totalCommission) * 100) / 100,
+        byChannel: revenueByChannel,
+        currency: 'LKR',
+        period: '30d',
+      },
+      syncHealth: {
+        successRate: `${syncSuccessRate}%`,
+        recentLogsCount: recentSyncLogs.length,
+        recentLogs: recentSyncLogs.slice(0, 5),
+        period: '7d',
+      },
+      webhooks: {
+        total: webhookLogs.length,
+        received: webhookLogs.filter(w => w.processingStatus === 'received').length,
+        completed: webhookLogs.filter(w => w.processingStatus === 'completed').length,
+        failed: webhookLogs.filter(w => w.processingStatus === 'failed').length,
+        period: '7d',
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch dashboard data', details: err instanceof Error ? err.message : String(err) });
+  }
+});
+
 export default router;

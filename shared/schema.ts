@@ -163,7 +163,7 @@ export const systemUsers = pgTable('system_users', {
   id: text('id').primaryKey(),
   username: varchar('username', { length: 100 }).unique().notNull(),
   email: varchar('email', { length: 255 }),
-  passwordHash: varchar('password_hash', { length: 255 }),
+  passwordHash: varchar('password_hash', { length: 512 }),
   role: varchar('role', { length: 50 }).default('staff'),
   department: varchar('department', { length: 100 }),
   isActive: boolean('is_active').default(true),
@@ -816,6 +816,38 @@ export const channelHealth = pgTable('channel_health', {
   responseTimeMs: integer('response_time_ms'),
   errorMessage: text('error_message'),
   metadata: jsonb('metadata').default({}),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+/**
+ * Channel-specific rate plan configurations.
+ * Maps PMS internal rate plans to OTA rate plan codes,
+ * with optional markup/discount rules per channel.
+ */
+export const channelRatePlans = pgTable('channel_rate_plans', {
+  id: serial('id').primaryKey(),
+  channelId: integer('channel_id').references(() => channels.id).notNull(),
+  channelName: varchar('channel_name', { length: 50 }).notNull(),
+  /** Internal PMS rate plan identifier */
+  internalRatePlanId: varchar('internal_rate_plan_id', { length: 100 }).notNull(),
+  internalRatePlanName: varchar('internal_rate_plan_name', { length: 200 }),
+  /** OTA-specific rate plan code sent in API calls */
+  otaRatePlanCode: varchar('ota_rate_plan_code', { length: 100 }).notNull(),
+  otaRatePlanName: varchar('ota_rate_plan_name', { length: 200 }),
+  /** Rate plan category: standard, non-refundable, advance-purchase, package, etc. */
+  ratePlanType: varchar('rate_plan_type', { length: 50 }).default('standard'),
+  /** Positive percentage added on top of base rate (e.g. 10 = +10%) */
+  markupPercent: decimal('markup_percent', { precision: 8, scale: 4 }),
+  /** Positive percentage deducted from base rate (e.g. 15 = -15%) */
+  discountPercent: decimal('discount_percent', { precision: 8, scale: 4 }),
+  currency: varchar('currency', { length: 10 }).default('LKR').notNull(),
+  mealPlan: varchar('meal_plan', { length: 50 }).default('room_only'),
+  minStay: integer('min_stay').default(1),
+  maxStay: integer('max_stay'),
+  /** Free-text cancellation policy description */
+  cancellationPolicy: text('cancellation_policy'),
+  isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });

@@ -29,6 +29,8 @@ import availabilityRouter from './routes/availability';
 import bookingsRouter from './routes/bookings';
 import adminRouter from './routes/admin';
 import webhooksRouter from './routes/webhooks';
+import ratePlansRouter from './routes/rate-plans';
+import statsRouter from './routes/stats';
 
 // ─── Rate Limiting ────────────────────────────────────────────────────────────
 
@@ -78,6 +80,8 @@ export function createChannelManagerApp(): Express {
   app.use('/availability', apiLimiter, channelManagerAuth, availabilityRouter);
   app.use('/bookings', apiLimiter, channelManagerAuth, bookingsRouter);
   app.use('/admin', apiLimiter, channelManagerAuth, adminRouter);
+  app.use('/rate-plans', apiLimiter, channelManagerAuth, ratePlansRouter);
+  app.use('/stats', apiLimiter, channelManagerAuth, statsRouter);
 
   // ── Webhooks (no API key, but OTA signature verification)
   app.use('/webhooks', webhookLimiter, webhooksRouter);
@@ -182,7 +186,7 @@ export async function start(): Promise<void> {
     console.log(`
 ╔═══════════════════════════════════════════════════════╗
 ║          W3 Hotel PMS - Channel Manager               ║
-║          Microservice v1.0.0                          ║
+║          Microservice v1.1.0                          ║
 ╠═══════════════════════════════════════════════════════╣
 ║  Port:     ${String(PORT).padEnd(43)}║
 ║  Queue:    ${(process.env.REDIS_URL ? 'Redis/Bull' : 'In-Memory (set REDIS_URL for production)').padEnd(43)}║
@@ -192,9 +196,17 @@ export async function start(): Promise<void> {
 ║  API Endpoints:                                       ║
 ║    GET  /health                                       ║
 ║    POST /rates/push                                   ║
+║    POST /rates/bulk                                   ║
+║    GET  /rates/summary                                ║
 ║    POST /availability/push                            ║
+║    POST /availability/bulk                            ║
 ║    POST /bookings/fetch                               ║
 ║    GET  /admin/channels                               ║
+║    GET  /admin/stats (dashboard)                      ║
+║    GET  /stats                                        ║
+║    GET  /stats/rate-parity                            ║
+║    GET  /rate-plans                                   ║
+║    POST /rate-plans/:id/apply                         ║
 ║    POST /webhooks/{channel}                           ║
 ╚═══════════════════════════════════════════════════════╝
     `);
