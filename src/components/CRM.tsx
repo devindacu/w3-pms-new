@@ -26,7 +26,8 @@ import {
   SortAscending,
   SortDescending,
   X,
-  ChartBar
+  ChartBar,
+  CheckCircle
 } from '@phosphor-icons/react'
 import type {
   GuestProfile,
@@ -345,6 +346,15 @@ export function CRM({
     if (!window.confirm('Delete this complaint? This cannot be undone.')) return
     setComplaints((current) => (current || []).filter(c => c.id !== complaintId))
     toast.success('Complaint deleted')
+  }
+
+  const handleResolveComplaint = (complaintId: string) => {
+    setComplaints((current) => (current || []).map(c =>
+      c.id === complaintId
+        ? { ...c, status: 'resolved' as const, resolvedAt: Date.now() }
+        : c
+    ))
+    toast.success('Complaint marked as resolved')
   }
 
   const handleDeleteFeedback = (feedbackId: string) => {
@@ -1415,6 +1425,17 @@ export function CRM({
                         >
                           <X size={16} />
                         </Button>
+                        {complaint.status !== 'resolved' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-success hover:text-success"
+                            title="Mark as resolved"
+                            onClick={() => handleResolveComplaint(complaint.id)}
+                          >
+                            <CheckCircle size={16} />
+                          </Button>
+                        )}
                       </div>
                     </Card>
                   )
