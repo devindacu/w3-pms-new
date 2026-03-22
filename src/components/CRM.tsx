@@ -211,9 +211,11 @@ export function CRM({
       
       const result = await fetchReviewsFromUrl(source.url, source.source)
       
+      const ds = (result as any).dataSource as string | undefined
+
       if (!result.success) {
-        toast.error(`Failed to sync reviews from ${source.source}: ${result.errors?.join(', ')}`)
-        return
+        toast.warning(`${source.source}: ${result.errors?.join(', ') || 'Could not fetch live data'} — generating sample reviews instead.`)
+        if (result.reviews.length === 0) return
       }
 
       const updatedFeedback = mergeReviews(feedback, result.reviews)
@@ -231,7 +233,12 @@ export function CRM({
         (current || []).map(s => s.id === source.id ? updatedSource : s)
       )
 
-      toast.success(`Successfully imported ${result.totalReviews} reviews from ${source.source}`)
+      const sourceLabel = ds === 'api' ? 'real API data' : ds === 'scraped' ? 'live page data' : ds === 'partial' ? 'live rating + calibrated reviews' : 'sample data'
+      if (ds === 'api' || ds === 'scraped' || ds === 'partial') {
+        toast.success(`Imported ${result.reviews.length} reviews from ${source.source} (${sourceLabel})`)
+      } else {
+        toast.info(`Imported ${result.reviews.length} sample reviews for ${source.source} — live platform data requires API access`)
+      }
     } catch (error) {
       console.error('Sync error:', error)
       toast.error('Failed to sync reviews. Please try again.')

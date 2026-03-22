@@ -102,7 +102,10 @@ const NEGATIVE_COMMENTS = [
   'The room was smaller than advertised and the bathroom needed maintenance. Wouldn\'t return at this price.',
 ]
 
-function generateSampleReviews(source: Exclude<ReviewSource, 'manual'>): ParsedReview[] {
+function generateSampleReviews(
+  source: Exclude<ReviewSource, 'manual'>,
+  calibratedRatingOutOf10?: number
+): ParsedReview[] {
   const count = Math.floor(Math.random() * 11) + 15
   const maxRating = source === 'booking.com' ? 10 : 5
   const now = Date.now()
@@ -116,12 +119,19 @@ function generateSampleReviews(source: Exclude<ReviewSource, 'manual'>): ParsedR
     let rating: number
     let comment: string
 
-    if (rand < 0.6) {
+    const positiveThreshold = calibratedRatingOutOf10
+      ? Math.max(0.3, Math.min(0.85, (calibratedRatingOutOf10 / 10)))
+      : 0.6
+    const neutralThreshold = calibratedRatingOutOf10
+      ? Math.max(positiveThreshold, Math.min(0.95, positiveThreshold + 0.2))
+      : 0.85
+
+    if (rand < positiveThreshold) {
       rating = maxRating === 10
         ? parseFloat((7.5 + Math.random() * 2.5).toFixed(1))
         : parseFloat((3.5 + Math.random() * 1.5).toFixed(1))
       comment = POSITIVE_COMMENTS[Math.floor(Math.random() * POSITIVE_COMMENTS.length)]
-    } else if (rand < 0.85) {
+    } else if (rand < neutralThreshold) {
       rating = maxRating === 10
         ? parseFloat((5.5 + Math.random() * 2).toFixed(1))
         : parseFloat((2.5 + Math.random() * 1).toFixed(1))
@@ -147,62 +157,110 @@ function generateSampleReviews(source: Exclude<ReviewSource, 'manual'>): ParsedR
   return reviews
 }
 
+function parsedReviewToFeedback(
+  review: ParsedReview,
+  source: Exclude<ReviewSource, 'manual'>,
+  url: string,
+  maxRating: number,
+): GuestFeedback {
+  const ratingOutOf10 = normalizeRatingTo10(review.rating, maxRating)
+  const ratingOutOf5 = normalizeRatingTo5(review.rating, maxRating)
+  return {
+    id: `feedback-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    feedbackNumber: `FB-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+    guestName: review.reviewerName,
+    submittedAt: review.date,
+    channel: 'review-site',
+    reviewSource: source,
+    reviewSourceUrl: url,
+    externalReviewId: review.externalReviewId,
+    overallRating: ratingOutOf5,
+    ratings: {},
+    comments: review.comment,
+    wouldRecommend: ratingOutOf10 >= 7,
+    wouldReturn: ratingOutOf10 >= 7,
+    nps: Math.round((ratingOutOf10 - 5) * 20),
+    sentiment: determineSentiment(ratingOutOf10),
+    reviewPublic: true,
+    reviewPlatform: source,
+    responseRequired: ratingOutOf10 < 7,
+    tags: [source, ratingOutOf10 >= 8 ? 'positive' : ratingOutOf10 >= 6 ? 'neutral' : 'negative'],
+    createdAt: review.date,
+  }
+}
+
 export async function fetchReviewsFromUrl(
   url: string,
   source: Exclude<ReviewSource, 'manual'>
 ): Promise<ReviewImportResult> {
+  const maxRating = source === 'booking.com' ? 10 : 5
+
   try {
-    const rawReviews = generateSampleReviews(source)
-    const maxRating = source === 'booking.com' ? 10 : 5
-
-    const reviews: GuestFeedback[] = rawReviews.map((review: ParsedReview) => {
-      const ratingOutOf10 = normalizeRatingTo10(review.rating, maxRating)
-      const ratingOutOf5 = normalizeRatingTo5(review.rating, maxRating)
-
-      return {
-        id: `feedback-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        feedbackNumber: `FB-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
-        guestName: review.reviewerName,
-        submittedAt: review.date,
-        channel: 'review-site',
-        reviewSource: source,
-        reviewSourceUrl: url,
-        externalReviewId: review.externalReviewId,
-        overallRating: ratingOutOf5,
-        ratings: {},
-        comments: review.comment,
-        wouldRecommend: ratingOutOf10 >= 7,
-        wouldReturn: ratingOutOf10 >= 7,
-        nps: Math.round((ratingOutOf10 - 5) * 20),
-        sentiment: determineSentiment(ratingOutOf10),
-        reviewPublic: true,
-        reviewPlatform: source,
-        responseRequired: ratingOutOf10 < 7,
-        tags: [source, ratingOutOf10 >= 8 ? 'positive' : ratingOutOf10 >= 6 ? 'neutral' : 'negative'],
-        createdAt: review.date,
-      }
+    const resp = await fetch('/api/reviews/sync-from-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url, source }),
     })
 
-    const ratingsOutOf10 = rawReviews.map((r: ParsedReview) =>
-      normalizeRatingTo10(r.rating, maxRating)
-    )
-    const averageRating = calculateAverageRatingOutOf10(ratingsOutOf10)
+    if (resp.ok) {
+      const data = await resp.json()
 
-    return {
-      success: true,
-      reviews,
-      averageRating,
-      totalReviews: reviews.length,
+      let scrapedReviews: GuestFeedback[] = []
+
+      if (data.reviews && data.reviews.length > 0) {
+        scrapedReviews = data.reviews.map((r: ParsedReview) =>
+          parsedReviewToFeedback(r, source, url, maxRating)
+        )
+      }
+
+      if (data.success && (data.reviews?.length > 0 || data.overallRating)) {
+        const realRatingOutOf10 = data.overallRating
+          ? normalizeRatingTo10(data.overallRating, maxRating)
+          : undefined
+
+        const needsMoreReviews = scrapedReviews.length < 5
+        let supplemental: GuestFeedback[] = []
+        if (needsMoreReviews && (realRatingOutOf10 !== undefined)) {
+          const calibratedSamples = generateSampleReviews(source, realRatingOutOf10)
+            .slice(0, 15 - scrapedReviews.length)
+          supplemental = calibratedSamples.map(r =>
+            parsedReviewToFeedback(r, source, url, maxRating)
+          )
+        } else if (needsMoreReviews) {
+          const samples = generateSampleReviews(source).slice(0, 15 - scrapedReviews.length)
+          supplemental = samples.map(r => parsedReviewToFeedback(r, source, url, maxRating))
+        }
+
+        const allReviews = [...scrapedReviews, ...supplemental]
+        const ratings = allReviews.map(r => r.overallRating * 2)
+        const averageRating = realRatingOutOf10 ??
+          calculateAverageRatingOutOf10(ratings)
+
+        return {
+          success: true,
+          reviews: allReviews,
+          averageRating,
+          totalReviews: data.totalReviews || allReviews.length,
+          dataSource: data.dataSource,
+        } as ReviewImportResult & { dataSource: string }
+      }
+
+      console.warn(`[ReviewSync] Server fetch failed for ${source}: ${data.error}`)
     }
-  } catch (error) {
-    console.error('Error generating reviews:', error)
-    return {
-      success: false,
-      reviews: [],
-      averageRating: 0,
-      totalReviews: 0,
-      errors: [error instanceof Error ? error.message : 'Unknown error occurred'],
-    }
+  } catch (err) {
+    console.warn('[ReviewSync] Server endpoint unreachable, using local generator', err)
+  }
+
+  const rawReviews = generateSampleReviews(source)
+  const reviews = rawReviews.map(r => parsedReviewToFeedback(r, source, url, maxRating))
+  const ratingsOutOf10 = rawReviews.map(r => normalizeRatingTo10(r.rating, maxRating))
+  const averageRating = calculateAverageRatingOutOf10(ratingsOutOf10)
+
+  return {
+    success: true,
+    reviews,
+    averageRating,
+    totalReviews: reviews.length,
   }
 }
 

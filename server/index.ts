@@ -16,6 +16,7 @@ import { db } from './db';
 import * as schema from '../shared/schema';
 import { eq, and, lte, gte, ne, sql, desc } from 'drizzle-orm';
 import { computeRateQuote } from './services/rateEngine';
+import { scrapeReviewsFromUrl } from './services/reviewScraper.js';
 import { 
   securityHeaders, 
   apiLimiter, 
@@ -3289,6 +3290,24 @@ app.post('/api/auth/upsert-user', async (req, res) => {
   } catch (err) {
     console.error('Upsert user error:', err);
     res.status(500).json({ error: 'Failed to sync user', detail: String(err) });
+  }
+});
+
+// ── Review sync from external platforms ──────────────────────────────────────
+app.post('/api/reviews/sync-from-url', async (req, res) => {
+  const { url, source } = req.body;
+  if (!url || !source) {
+    return res.status(400).json({ error: 'url and source are required' });
+  }
+
+  try {
+    console.log(`[ReviewSync] Fetching real reviews from ${source}: ${url}`);
+    const data = await scrapeReviewsFromUrl(url, source);
+    console.log(`[ReviewSync] ${source} → dataSource=${data.dataSource} reviews=${data.reviews.length} rating=${data.overallRating}`);
+    res.json(data);
+  } catch (err: any) {
+    console.error('[ReviewSync] Error:', err.message);
+    res.status(500).json({ success: false, dataSource: 'sample', reviews: [], error: err.message });
   }
 });
 
