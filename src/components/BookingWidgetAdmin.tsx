@@ -772,6 +772,7 @@ function WidgetPreviewTab() {
     nonResidentLabel: 'Non-Resident', showAddOns: true, allowedOrigins: null,
   }
   const [settings, setSettings] = useState<WidgetSettings>(defaultSettings)
+  const [layout, setLayout] = useState<'vertical' | 'horizontal'>('vertical')
 
   useEffect(() => {
     const saved = lsGet<Partial<WidgetSettings>>(LS_KEYS.widgetSettings, {})
@@ -780,44 +781,166 @@ function WidgetPreviewTab() {
 
   if (!settings) return <p className="text-muted-foreground">Loading preview…</p>
 
+  const primaryColor = settings.primaryColor || '#1a56db'
+  const accentColor = settings.accentColor || '#0e9f6e'
+
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">Live preview of the booking widget appearance.</p>
-      <div
-        className="rounded-xl border p-6 max-w-sm shadow"
-        style={{ borderColor: settings.primaryColor }}
-      >
-        {settings.logoUrl && (
-          <img src={settings.logoUrl} alt="logo" className="h-10 mb-3 object-contain" />
-        )}
-        <h3 className="font-bold text-lg" style={{ color: settings.primaryColor }}>
-          {settings.propertyName}
-        </h3>
-        {settings.welcomeMessage && (
-          <p className="text-sm text-muted-foreground mt-1">{settings.welcomeMessage}</p>
-        )}
-        <Separator className="my-3" />
-        <div className="space-y-2">
-          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Check-in / Check-out</div>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="rounded border p-2 text-sm text-muted-foreground">Select date</div>
-            <div className="rounded border p-2 text-sm text-muted-foreground">Select date</div>
-          </div>
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            <div className="rounded border p-2 text-sm text-muted-foreground">Adults: 1</div>
-            <div className="rounded border p-2 text-sm text-muted-foreground">{settings.residentLabel}</div>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">Live preview of the booking widget appearance.</p>
+        <div className="flex gap-1 rounded-lg border p-1 bg-muted">
+          <button
+            onClick={() => setLayout('vertical')}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${layout === 'vertical' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            Vertical
+          </button>
+          <button
+            onClick={() => setLayout('horizontal')}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${layout === 'horizontal' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            Horizontal
+          </button>
+        </div>
+      </div>
+
+      {/* ── Vertical Widget ── */}
+      {layout === 'vertical' && (
+        <div className="flex justify-center">
+          <div
+            className="rounded-2xl border shadow-lg overflow-hidden"
+            style={{ width: 320, borderColor: primaryColor }}
+          >
+            {/* Header */}
+            <div className="px-5 py-4 text-white" style={{ backgroundColor: primaryColor }}>
+              {settings.logoUrl && (
+                <img src={settings.logoUrl} alt="logo" className="h-8 mb-2 object-contain" />
+              )}
+              <h3 className="font-bold text-lg leading-tight">{settings.propertyName || 'Hotel'}</h3>
+              {settings.welcomeMessage && (
+                <p className="text-xs opacity-80 mt-0.5">{settings.welcomeMessage}</p>
+              )}
+            </div>
+
+            {/* Body */}
+            <div className="px-5 py-4 bg-background space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Check-in</label>
+                <div className="mt-1 rounded-lg border px-3 py-2 text-sm text-muted-foreground flex items-center gap-2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  Select date
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Check-out</label>
+                <div className="mt-1 rounded-lg border px-3 py-2 text-sm text-muted-foreground flex items-center gap-2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  Select date
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Guests</label>
+                  <div className="mt-1 rounded-lg border px-3 py-2 text-sm text-muted-foreground">
+                    1 Adult
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Rate</label>
+                  <div className="mt-1 rounded-lg border px-3 py-2 text-sm text-muted-foreground">
+                    {settings.residentLabel}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Rooms</label>
+                <div className="mt-1 rounded-lg border px-3 py-2 text-sm text-muted-foreground">1 Room</div>
+              </div>
+              <button
+                className="w-full py-2.5 rounded-xl font-semibold text-white text-sm transition-opacity hover:opacity-90"
+                style={{ backgroundColor: primaryColor }}
+              >
+                Search Availability
+              </button>
+              <p className="text-xs text-muted-foreground text-center">
+                Rates in {settings.currencyCode} · Powered by W3 PMS
+              </p>
+            </div>
           </div>
         </div>
-        <button
-          className="mt-4 w-full py-2 rounded font-semibold text-white text-sm transition"
-          style={{ backgroundColor: settings.primaryColor }}
+      )}
+
+      {/* ── Horizontal Widget ── */}
+      {layout === 'horizontal' && (
+        <div
+          className="rounded-2xl border shadow-lg overflow-hidden"
+          style={{ borderColor: primaryColor }}
         >
-          Search Availability
-        </button>
-        <p className="text-xs text-muted-foreground mt-2 text-center">
-          Rates in {settings.currencyCode} ({settings.currencySymbol})
-        </p>
-      </div>
+          {/* Thin brand header bar */}
+          <div className="px-5 py-2.5 flex items-center justify-between text-white" style={{ backgroundColor: primaryColor }}>
+            <div className="flex items-center gap-3">
+              {settings.logoUrl && (
+                <img src={settings.logoUrl} alt="logo" className="h-6 object-contain" />
+              )}
+              <span className="font-bold text-sm">{settings.propertyName || 'Hotel'}</span>
+              {settings.welcomeMessage && (
+                <span className="text-xs opacity-80 hidden sm:inline">— {settings.welcomeMessage}</span>
+              )}
+            </div>
+            <span className="text-xs opacity-70">Rates in {settings.currencyCode}</span>
+          </div>
+
+          {/* Horizontal fields row */}
+          <div className="px-4 py-4 bg-background">
+            <div className="flex flex-wrap gap-3 items-end">
+              <div className="flex-1 min-w-[130px]">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Check-in</label>
+                <div className="rounded-lg border px-3 py-2 text-sm text-muted-foreground flex items-center gap-2">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  Select date
+                </div>
+              </div>
+              <div className="flex-1 min-w-[130px]">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Check-out</label>
+                <div className="rounded-lg border px-3 py-2 text-sm text-muted-foreground flex items-center gap-2">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  Select date
+                </div>
+              </div>
+              <div className="w-[110px]">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Rooms</label>
+                <div className="rounded-lg border px-3 py-2 text-sm text-muted-foreground">1</div>
+              </div>
+              <div className="w-[110px]">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Adults</label>
+                <div className="rounded-lg border px-3 py-2 text-sm text-muted-foreground">1</div>
+              </div>
+              <div className="w-[130px]">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Rate Type</label>
+                <div className="rounded-lg border px-3 py-2 text-sm text-muted-foreground">{settings.residentLabel}</div>
+              </div>
+              <div className="shrink-0">
+                <button
+                  className="px-6 py-2 rounded-xl font-semibold text-white text-sm transition-opacity hover:opacity-90 whitespace-nowrap"
+                  style={{ backgroundColor: accentColor }}
+                >
+                  Search
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Card className="border-dashed">
+        <CardContent className="pt-4">
+          <p className="text-sm text-muted-foreground">
+            <strong className="text-foreground">Tip:</strong> Use the <strong>Vertical</strong> layout for sidebars or landing page cards,
+            and the <strong>Horizontal</strong> layout as a full-width booking bar at the top of your website.
+            Both layouts adapt to your Widget Settings (colours, logo, currency, etc.).
+          </p>
+        </CardContent>
+      </Card>
     </div>
   )
 }
@@ -825,7 +948,8 @@ function WidgetPreviewTab() {
 // ─── Embed Code Tab ───────────────────────────────────────────────────────────
 
 function EmbedCodeTab() {
-  const [settings, setSettings] = useState<{ propertyName?: string; primaryColor?: string; currencyCode?: string } | null>(null)
+  const [settings, setSettings] = useState<{ propertyName?: string; primaryColor?: string; accentColor?: string; currencyCode?: string } | null>(null)
+  const [widgetLayout, setWidgetLayout] = useState<'vertical' | 'horizontal'>('vertical')
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://your-pms.example.com'
 
   useEffect(() => {
@@ -835,17 +959,37 @@ function EmbedCodeTab() {
       .catch(() => {})
   }, [])
 
-  const iframeCode = `<!-- Booking Widget by W3 Hotel PMS -->
+  const primaryColor = settings?.primaryColor ?? '#1a56db'
+  const accentColor = settings?.accentColor ?? '#0e9f6e'
+  const propertyName = settings?.propertyName ?? 'Hotel'
+
+  // Vertical widget iframe — narrow card
+  const iframeVerticalCode = `<!-- Vertical Booking Widget by W3 Hotel PMS -->
 <iframe
-  src="${origin}/booking-widget"
-  width="100%"
-  height="620"
+  src="${origin}/booking-widget?layout=vertical"
+  width="340"
+  height="520"
   frameborder="0"
   scrolling="no"
   allow="payment"
-  title="Book Now – ${settings?.propertyName ?? 'Hotel'}"
-  style="border:none;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.12);">
+  title="Book Now – ${propertyName}"
+  style="border:none;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.12);display:block;">
 </iframe>`
+
+  // Horizontal widget iframe — full-width bar
+  const iframeHorizontalCode = `<!-- Horizontal Booking Bar by W3 Hotel PMS -->
+<iframe
+  src="${origin}/booking-widget?layout=horizontal"
+  width="100%"
+  height="120"
+  frameborder="0"
+  scrolling="no"
+  allow="payment"
+  title="Book Now – ${propertyName}"
+  style="border:none;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.10);display:block;width:100%;">
+</iframe>`
+
+  const activeIframeCode = widgetLayout === 'vertical' ? iframeVerticalCode : iframeHorizontalCode
 
   const scriptCode = `<!-- Booking Widget Popup Button by W3 Hotel PMS -->
 <script>
@@ -855,7 +999,7 @@ function EmbedCodeTab() {
     btn.target = '_blank';
     btn.rel = 'noopener noreferrer';
     btn.textContent = 'Book Now';
-    btn.style.cssText = 'display:inline-block;padding:12px 28px;background:${settings?.primaryColor ?? '#1a56db'};color:#fff;font-family:sans-serif;font-weight:700;font-size:16px;border-radius:8px;text-decoration:none;cursor:pointer;';
+    btn.style.cssText = 'display:inline-block;padding:12px 28px;background:${primaryColor};color:#fff;font-family:sans-serif;font-weight:700;font-size:16px;border-radius:8px;text-decoration:none;cursor:pointer;';
     document.getElementById('w3-booking-btn').appendChild(btn);
   })();
 </script>
@@ -896,20 +1040,48 @@ function EmbedCodeTab() {
         </CardContent>
       </Card>
 
-      {/* iFrame Embed */}
+      {/* iFrame Embed — layout selector */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">iFrame Embed</CardTitle>
-          <p className="text-sm text-muted-foreground">Paste this HTML snippet anywhere in your website's HTML to embed the full booking widget inline.</p>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <CardTitle className="text-base">iFrame Embed</CardTitle>
+              <p className="text-sm text-muted-foreground mt-0.5">Paste this HTML snippet anywhere in your website's HTML to embed the booking widget inline.</p>
+            </div>
+            {/* Layout toggle */}
+            <div className="flex gap-1 rounded-lg border p-1 bg-muted shrink-0">
+              <button
+                onClick={() => setWidgetLayout('vertical')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${widgetLayout === 'vertical' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                Vertical
+              </button>
+              <button
+                onClick={() => setWidgetLayout('horizontal')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${widgetLayout === 'horizontal' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                Horizontal
+              </button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
+          {widgetLayout === 'vertical' ? (
+            <p className="text-xs text-muted-foreground rounded-lg bg-muted px-3 py-2">
+              <strong>Vertical layout</strong> — a compact 340 × 520 px card. Ideal for sidebars, floating buttons, or landing page sections.
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground rounded-lg bg-muted px-3 py-2">
+              <strong>Horizontal layout</strong> — a full-width 120 px booking bar. Ideal as a sticky header bar or above-the-fold banner on your website.
+            </p>
+          )}
           <Textarea
             readOnly
-            value={iframeCode}
+            value={activeIframeCode}
             className="font-mono text-xs min-h-[140px] resize-none"
           />
-          <Button onClick={() => copyToClipboard(iframeCode, 'iFrame code')}>
-            Copy iFrame Code
+          <Button onClick={() => copyToClipboard(activeIframeCode, `${widgetLayout === 'vertical' ? 'Vertical' : 'Horizontal'} iFrame code`)}>
+            Copy {widgetLayout === 'vertical' ? 'Vertical' : 'Horizontal'} iFrame Code
           </Button>
         </CardContent>
       </Card>
@@ -943,7 +1115,7 @@ function EmbedCodeTab() {
               <ul className="list-disc list-inside space-y-1">
                 <li>Go to <strong>Widget Settings</strong> and add your hotel domain to <em>Allowed Origins</em>.</li>
                 <li>Make sure at least one <strong>Rate Plan</strong> is active and published.</li>
-                <li>Test the widget preview before embedding on your live site.</li>
+                <li>Use the <strong>Preview</strong> tab to check both layouts before embedding on your live site.</li>
               </ul>
             </div>
           </div>
