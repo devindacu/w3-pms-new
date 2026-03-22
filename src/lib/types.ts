@@ -207,6 +207,8 @@ export type ProjectType = 'renovation' | 'new-construction' | 'repair' | 'upgrad
 export type InventorySegment = 'regular-maintenance' | 'project-construction' | 'emergency-stock'
 export type ExtraServiceStatus = 'active' | 'inactive' | 'archived'
 
+export type ExtraServiceChargeMode = 'per_booking' | 'per_room' | 'per_guest' | 'per_night'
+
 export interface ExtraServiceCategory {
   id: string
   name: string
@@ -226,6 +228,7 @@ export interface ExtraService {
   basePrice: number
   taxRate: number
   unit: string
+  chargeMode: ExtraServiceChargeMode
   status: ExtraServiceStatus
   department: Department
   requiresApproval: boolean
