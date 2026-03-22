@@ -186,9 +186,6 @@ function SearchPage({ onSearch, layout = 'vertical' }: { onSearch: (p: SearchPar
     setParams(p => ({
       ...p,
       rooms: p.rooms.map((r, i) => i === index ? { ...r, [field]: value } : r),
-      // Sync first room into top-level adults/children
-      ...(index === 0 && field === 'adults' ? { adults: value } : {}),
-      ...(index === 0 && field === 'children' ? { children: value } : {}),
     }))
   }
 

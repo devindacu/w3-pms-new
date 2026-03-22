@@ -245,13 +245,18 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     const token = localStorage.getItem('w3-auth-token')
     if (!token) return false
-    // Basic token expiry check (JWT payload is base64 encoded)
+    // For demo-token (no-server mode), trust it directly
+    if (token === 'demo-token') return true
+    // For real JWTs: only check expiry client-side as a UX optimization.
+    // The server will re-validate on every API call (401 → logout).
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      return payload.exp * 1000 > Date.now()
+      const parts = token.split('.')
+      if (parts.length !== 3) return false
+      const payload = JSON.parse(atob(parts[1]))
+      // Reject if clearly expired
+      return typeof payload.exp === 'number' ? payload.exp * 1000 > Date.now() : false
     } catch {
-      // demo-token or malformed → allow
-      return token === 'demo-token'
+      return false
     }
   })
   const [authView, setAuthView] = useState<'login' | 'forgot-password'>('login')

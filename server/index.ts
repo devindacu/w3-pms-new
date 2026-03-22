@@ -2779,7 +2779,14 @@ app.post('/api/email/send', async (req, res) => {
 
 // ─── Authentication Endpoints ─────────────────────────────────────────────────
 
-const JWT_SECRET = process.env.JWT_SECRET || 'w3-hotel-pms-secret-key-change-in-production';
+if (!process.env.JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET environment variable must be set in production!');
+  } else {
+    console.warn('[Auth] WARNING: JWT_SECRET not set. Using insecure default. Set JWT_SECRET env var for production!');
+  }
+}
+const JWT_SECRET = process.env.JWT_SECRET || 'w3-hotel-pms-dev-secret-DO-NOT-USE-IN-PRODUCTION';
 const JWT_EXPIRES_IN = '8h';
 const BCRYPT_ROUNDS = 12;
 
@@ -2809,12 +2816,15 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
       return res.status(403).json({ error: 'Account is disabled. Please contact your administrator.' });
     }
 
-    // If no password hash set, allow "admin" default password for initial setup
+    // If no password hash set, this account requires setup via the admin UI.
+    // For initial system access, the password must be set via direct DB seeding
+    // or the first-run setup API. Never compare plain text.
     let passwordValid = false;
     if (!user.passwordHash) {
-      // Default password for initial setup: "admin123" for admin, "password" for others
-      const defaultPassword = user.role === 'admin' ? 'admin123' : 'password';
-      passwordValid = password === defaultPassword;
+      // No password set - deny login and prompt admin to set password
+      return res.status(401).json({
+        error: 'Account password not configured. Please contact your system administrator to set up your password.',
+      });
     } else {
       passwordValid = await bcrypt.compare(password, user.passwordHash);
     }
@@ -2976,6 +2986,18 @@ app.get('/api/auth/verify', async (req, res) => {
     res.status(401).json({ valid: false, error: 'Invalid or expired token' });
   }
 });
+
+// ─── Channel Manager Microservice (embedded) ─────────────────────────────────
+// Mount the channel manager API at /api/channel-manager
+// This allows using it as either an embedded module or standalone microservice
+
+import { createChannelManagerApp, initChannelManager } from './channel-manager/index';
+
+const channelManagerApp = createChannelManagerApp();
+app.use('/api/channel-manager', channelManagerApp);
+
+// Initialize queue and processors (shared with main server process)
+initChannelManager();
 
 // 404 handler - must be after all routes
 app.use((req, res) => {
