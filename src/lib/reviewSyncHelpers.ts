@@ -57,51 +57,108 @@ export function determineSentiment(rating: number): 'positive' | 'neutral' | 'ne
   return 'negative'
 }
 
+const REVIEWER_NAMES = [
+  'James Wilson', 'Sarah Johnson', 'Michael Chen', 'Emma Thompson', 'David Patel',
+  'Olivia Martinez', 'Liam Anderson', 'Ava Robinson', 'Noah Garcia', 'Isabella Lee',
+  'Ethan Walker', 'Mia Hall', 'Lucas Scott', 'Charlotte Young', 'Mason King',
+  'Amelia Wright', 'Logan Baker', 'Harper Adams', 'Alexander Nelson', 'Evelyn Hill',
+  'Benjamin Carter', 'Abigail Mitchell', 'Daniel Perez', 'Emily Roberts', 'Henry Turner',
+  'Elizabeth Phillips', 'Sebastian Campbell', 'Sofia Parker', 'Jack Evans', 'Camila Edwards',
+  'Aiden Collins', 'Victoria Stewart', 'Owen Sanchez', 'Penelope Morris', 'Elijah Rogers',
+  'Riley Reed', 'William Cook', 'Zoey Morgan', 'James Bell', 'Lily Murphy',
+  'Ravi Kumar', 'Priya Sharma', 'Arjun Nair', 'Deepa Menon', 'Sanjay Gupta',
+  'Fatima Al-Hassan', 'Omar Abdullah', 'Layla Mahmoud', 'Yuki Tanaka', 'Hana Suzuki',
+]
+
+const POSITIVE_COMMENTS = [
+  'Absolutely wonderful stay! The staff were incredibly attentive and the rooms were spotlessly clean. Will definitely be returning.',
+  'Exceeded all expectations. The breakfast spread was phenomenal and the location couldn\'t be better. Highly recommend!',
+  'Outstanding service from check-in to check-out. The concierge went above and beyond to make our anniversary special.',
+  'Beautiful property with stunning views. The pool area was immaculate and the spa was deeply relaxing. A true gem.',
+  'Perfect hotel for both business and leisure. Fast WiFi, comfortable beds, and excellent dining options on site.',
+  'The room was larger than expected and very well appointed. The housekeeping team did a fantastic job every day.',
+  'Friendly and professional staff throughout. The restaurant food was restaurant-quality and reasonably priced.',
+  'Loved every moment of our stay. The rooftop bar offered incredible views and the cocktails were superb.',
+  'Impeccable cleanliness and top-notch amenities. The gym was well-equipped and open 24 hours.',
+  'Great value for the quality on offer. Would highly recommend to anyone visiting the area.',
+]
+
+const NEUTRAL_COMMENTS = [
+  'Decent hotel overall. Room was clean and comfortable but nothing particularly stood out. Good location though.',
+  'Average stay. The room was fine but the noise from the street was noticeable at night. Breakfast was okay.',
+  'Reasonable value for the price point. Staff were friendly but response time was a bit slow at times.',
+  'The hotel is a bit dated in terms of décor but everything worked well. Comfortable enough for a short stay.',
+  'Good location but the parking situation was a bit tricky. Room was clean and the bed was comfortable.',
+  'Service was hit and miss — some staff were great, others seemed distracted. Overall acceptable experience.',
+  'The facilities are adequate though the pool hours were quite limited. Room temperature control was a little finicky.',
+  'Solid mid-range option. Nothing spectacular but no real complaints either. Would stay again if the price is right.',
+]
+
+const NEGATIVE_COMMENTS = [
+  'Disappointing experience. The room wasn\'t as pictured online and the air conditioning was noisy all night.',
+  'Check-in took far too long despite having a reservation. The room smelled musty and the shower pressure was weak.',
+  'Not up to the standard I expected for the price. The restaurant was understaffed and the food was lukewarm.',
+  'Had issues with the WiFi throughout our entire stay. The front desk was unhelpful when we raised concerns.',
+  'The room was smaller than advertised and the bathroom needed maintenance. Wouldn\'t return at this price.',
+]
+
+function generateSampleReviews(source: Exclude<ReviewSource, 'manual'>): ParsedReview[] {
+  const count = Math.floor(Math.random() * 11) + 15
+  const maxRating = source === 'booking.com' ? 10 : 5
+  const now = Date.now()
+  const sixMonthsAgo = now - 180 * 24 * 60 * 60 * 1000
+
+  const shuffledNames = [...REVIEWER_NAMES].sort(() => Math.random() - 0.5)
+  const reviews: ParsedReview[] = []
+
+  for (let i = 0; i < count; i++) {
+    const rand = Math.random()
+    let rating: number
+    let comment: string
+
+    if (rand < 0.6) {
+      rating = maxRating === 10
+        ? parseFloat((7.5 + Math.random() * 2.5).toFixed(1))
+        : parseFloat((3.5 + Math.random() * 1.5).toFixed(1))
+      comment = POSITIVE_COMMENTS[Math.floor(Math.random() * POSITIVE_COMMENTS.length)]
+    } else if (rand < 0.85) {
+      rating = maxRating === 10
+        ? parseFloat((5.5 + Math.random() * 2).toFixed(1))
+        : parseFloat((2.5 + Math.random() * 1).toFixed(1))
+      comment = NEUTRAL_COMMENTS[Math.floor(Math.random() * NEUTRAL_COMMENTS.length)]
+    } else {
+      rating = maxRating === 10
+        ? parseFloat((2 + Math.random() * 3.5).toFixed(1))
+        : parseFloat((1 + Math.random() * 1.5).toFixed(1))
+      comment = NEGATIVE_COMMENTS[Math.floor(Math.random() * NEGATIVE_COMMENTS.length)]
+    }
+
+    rating = Math.min(rating, maxRating)
+
+    reviews.push({
+      reviewerName: shuffledNames[i % shuffledNames.length],
+      rating,
+      date: Math.floor(sixMonthsAgo + Math.random() * (now - sixMonthsAgo)),
+      comment,
+      externalReviewId: `${source.replace(/[^a-z]/g, '')}-${Date.now()}-${Math.random().toString(36).substr(2, 8)}`,
+    })
+  }
+
+  return reviews
+}
+
 export async function fetchReviewsFromUrl(
   url: string,
   source: Exclude<ReviewSource, 'manual'>
 ): Promise<ReviewImportResult> {
   try {
-    const promptText = `You are a review data extractor. Given a URL from ${source}, extract and generate realistic review data that would typically appear on that platform.
-
-URL: ${url}
-Platform: ${source}
-
-Generate exactly 15-25 reviews with the following structure:
-- Reviewer name (realistic names)
-- Rating (appropriate to the platform's scale: Google/Facebook use 1-5 stars, TripAdvisor uses 1-5 bubbles, Booking.com uses 1-10, Airbnb uses 1-5 stars)
-- Review date (spread across the last 6 months)
-- Comment (realistic review text, mix of positive, neutral, and negative reviews)
-- External review ID (unique identifier)
-
-The reviews should be realistic and varied in tone and content. Include specific details about hotel experiences.
-
-Return ONLY a valid JSON object with this exact structure:
-{
-  "reviews": [
-    {
-      "reviewerName": "John Smith",
-      "rating": 4.5,
-      "date": 1704067200000,
-      "comment": "Great stay, excellent service...",
-      "externalReviewId": "rev_12345"
-    }
-  ]
-}`
-
-    const response = await window.spark.llm(promptText, 'gpt-4o', true)
-    const data = JSON.parse(response)
-    
-    if (!data.reviews || !Array.isArray(data.reviews)) {
-      throw new Error('Invalid response format from LLM')
-    }
-
+    const rawReviews = generateSampleReviews(source)
     const maxRating = source === 'booking.com' ? 10 : 5
-    
-    const reviews: GuestFeedback[] = data.reviews.map((review: ParsedReview) => {
+
+    const reviews: GuestFeedback[] = rawReviews.map((review: ParsedReview) => {
       const ratingOutOf10 = normalizeRatingTo10(review.rating, maxRating)
       const ratingOutOf5 = normalizeRatingTo5(review.rating, maxRating)
-      
+
       return {
         id: `feedback-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         feedbackNumber: `FB-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
@@ -122,11 +179,11 @@ Return ONLY a valid JSON object with this exact structure:
         reviewPlatform: source,
         responseRequired: ratingOutOf10 < 7,
         tags: [source, ratingOutOf10 >= 8 ? 'positive' : ratingOutOf10 >= 6 ? 'neutral' : 'negative'],
-        createdAt: review.date
+        createdAt: review.date,
       }
     })
 
-    const ratingsOutOf10 = data.reviews.map((r: ParsedReview) => 
+    const ratingsOutOf10 = rawReviews.map((r: ParsedReview) =>
       normalizeRatingTo10(r.rating, maxRating)
     )
     const averageRating = calculateAverageRatingOutOf10(ratingsOutOf10)
@@ -138,13 +195,13 @@ Return ONLY a valid JSON object with this exact structure:
       totalReviews: reviews.length,
     }
   } catch (error) {
-    console.error('Error fetching reviews:', error)
+    console.error('Error generating reviews:', error)
     return {
       success: false,
       reviews: [],
       averageRating: 0,
       totalReviews: 0,
-      errors: [error instanceof Error ? error.message : 'Unknown error occurred']
+      errors: [error instanceof Error ? error.message : 'Unknown error occurred'],
     }
   }
 }

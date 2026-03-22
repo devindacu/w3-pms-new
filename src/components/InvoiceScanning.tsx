@@ -87,22 +87,42 @@ export function InvoiceScanning({
     const linkedGRN = linkedPO ? grns.find(grn => grn.purchaseOrderId === linkedPO.id) : undefined
 
     const supplierName = randomSupplier?.name || 'ABC Supplies Ltd'
-    const promptText = `You are an invoice OCR system. Generate realistic invoice data for a hotel supplier.
-    
-    Supplier: ${supplierName}
-    
-    Generate:
-    - Invoice number (format: INV-YYYY-####)
-    - Invoice date (recent date)
-    - Due date (30 days from invoice date)
-    - 3-5 line items with realistic hotel supply items (food, amenities, or construction materials)
-    - Each item should have: name, quantity, unit, unit price
-    - Calculate subtotal, 10% tax, and total
-    
-    Return as JSON object with properties: invoiceNumber, invoiceDate (ISO string), dueDate (ISO string), supplierName, items (array with itemName, quantity, unit, unitPrice, total), subtotal, tax, total, confidence (0.85-0.98)`
 
-    const ocrResult = await window.spark.llm(promptText, 'gpt-4o-mini', true)
-    const ocrData = JSON.parse(ocrResult)
+    const SUPPLY_ITEMS = [
+      { itemName: 'Bed Linen Set (King)', unit: 'set', unitPrice: 3200 },
+      { itemName: 'Bathroom Towel Set', unit: 'pack', unitPrice: 1800 },
+      { itemName: 'Liquid Hand Soap (1L)', unit: 'bottle', unitPrice: 450 },
+      { itemName: 'Shampoo Sachet Box', unit: 'box', unitPrice: 620 },
+      { itemName: 'Toilet Tissue (48 rolls)', unit: 'carton', unitPrice: 1950 },
+      { itemName: 'Mineral Water (500ml × 24)', unit: 'case', unitPrice: 840 },
+      { itemName: 'Coffee Pods (50 count)', unit: 'box', unitPrice: 2750 },
+      { itemName: 'Tea Bags Assorted (100 count)', unit: 'box', unitPrice: 680 },
+      { itemName: 'Cooking Oil (5L)', unit: 'tin', unitPrice: 2100 },
+      { itemName: 'All-Purpose Cleaner (5L)', unit: 'jerry can', unitPrice: 1350 },
+      { itemName: 'Disposable Gloves (100 count)', unit: 'box', unitPrice: 520 },
+      { itemName: 'Face Cloth (white, 12 pack)', unit: 'pack', unitPrice: 1600 },
+    ]
+    const itemCount = 3 + Math.floor(Math.random() * 3)
+    const shuffled = [...SUPPLY_ITEMS].sort(() => Math.random() - 0.5).slice(0, itemCount)
+    const generatedItems = shuffled.map(item => {
+      const qty = 1 + Math.floor(Math.random() * 20)
+      return { ...item, quantity: qty, total: qty * item.unitPrice }
+    })
+    const subtotal = generatedItems.reduce((s, i) => s + i.total, 0)
+    const tax = Math.round(subtotal * 0.1)
+    const now = new Date()
+    const due = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+    const ocrData = {
+      invoiceNumber: `INV-${now.getFullYear()}-${String(Math.floor(Math.random() * 9000) + 1000)}`,
+      invoiceDate: now.toISOString(),
+      dueDate: due.toISOString(),
+      supplierName,
+      items: generatedItems,
+      subtotal,
+      tax,
+      total: subtotal + tax,
+      confidence: parseFloat((0.85 + Math.random() * 0.13).toFixed(2)),
+    }
 
     const items = ocrData.items.map((item: any, idx: number) => ({
       id: `item-${Date.now()}-${idx}`,

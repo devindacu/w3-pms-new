@@ -40,6 +40,9 @@ import {
 
 const app = express();
 
+// Trust Replit's reverse proxy so rate limiters use the real client IP
+app.set('trust proxy', 1);
+
 // Security middleware - must be first
 app.use(securityHeaders);
 app.use(cors(corsOptions));
