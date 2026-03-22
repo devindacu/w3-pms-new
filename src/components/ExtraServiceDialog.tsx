@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
-import type { ExtraService, ExtraServiceCategory, Department, ExtraServiceStatus } from '@/lib/types'
+import type { ExtraService, ExtraServiceCategory, Department, ExtraServiceStatus, ExtraServiceChargeMode } from '@/lib/types'
 import { ulid } from 'ulid'
 
 interface ExtraServiceDialogProps {
@@ -30,6 +30,13 @@ const departments: Department[] = [
   'admin'
 ]
 
+const chargeModeLabels: Record<ExtraServiceChargeMode, string> = {
+  per_booking: 'Per Booking (one-time charge per reservation)',
+  per_room: 'Per Room (charged once per room)',
+  per_guest: 'Per Guest (charged for each guest)',
+  per_night: 'Per Night (charged for each night of stay)',
+}
+
 export function ExtraServiceDialog({
   open,
   onOpenChange,
@@ -49,7 +56,8 @@ export function ExtraServiceDialog({
         taxRate: 0,
         requiresApproval: false,
         department: 'front-office',
-        unit: 'item'
+        unit: 'item',
+        chargeMode: 'per_booking'
       })
     }
   }, [service, open])
@@ -80,6 +88,7 @@ export function ExtraServiceDialog({
       basePrice: formData.basePrice,
       taxRate: formData.taxRate || 0,
       unit: formData.unit || 'item',
+      chargeMode: formData.chargeMode || 'per_booking',
       status: formData.status || 'active',
       department: formData.department || 'front-office',
       requiresApproval: formData.requiresApproval || false,
@@ -183,6 +192,27 @@ export function ExtraServiceDialog({
             </div>
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="service-charge-mode">Charge Mode</Label>
+            <Select
+              value={formData.chargeMode || 'per_booking'}
+              onValueChange={(value) => setFormData({ ...formData, chargeMode: value as ExtraServiceChargeMode })}
+            >
+              <SelectTrigger id="service-charge-mode">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="per_booking">Per Booking</SelectItem>
+                <SelectItem value="per_room">Per Room</SelectItem>
+                <SelectItem value="per_guest">Per Guest</SelectItem>
+                <SelectItem value="per_night">Per Night</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {chargeModeLabels[formData.chargeMode || 'per_booking']}
+            </p>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="service-department">Department</Label>
@@ -266,3 +296,4 @@ export function ExtraServiceDialog({
     </Dialog>
   )
 }
+

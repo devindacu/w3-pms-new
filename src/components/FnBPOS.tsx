@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Table,
@@ -38,10 +39,11 @@ import {
   SquaresFour,
   ListBullets,
   Image as ImageIcon,
-  Package
+  Package,
+  Bed
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
-import type { MenuItem, Order, OrderItem, Guest, Room } from '@/lib/types'
+import type { MenuItem, Order, OrderItem, Guest, Room, MiniBarBillingMode } from '@/lib/types'
 import { formatCurrency } from '@/lib/helpers'
 import { OrderDialog } from './OrderDialog'
 import { MenuItemDialogEnhanced } from './MenuItemDialogEnhanced'
@@ -64,7 +66,7 @@ interface FnBPOSProps {
 }
 
 export function FnBPOS({ menuItems, setMenuItems, menuCategories, setMenuCategories, orders, setOrders, guests, rooms, mealCombos, setMealCombos, currentUser }: FnBPOSProps) {
-  const [currentView, setCurrentView] = useState<'pos' | 'orders' | 'menu' | 'categories' | 'combos'>('pos')
+  const [currentView, setCurrentView] = useState<'pos' | 'orders' | 'menu' | 'categories' | 'combos' | 'minibar'>('pos')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('All')
   const [cart, setCart] = useState<OrderItem[]>([])
@@ -80,6 +82,10 @@ export function FnBPOS({ menuItems, setMenuItems, menuCategories, setMenuCategor
   const [editingMenuItem, setEditingMenuItem] = useState<MenuItem | undefined>(undefined)
   const [editingCategory, setEditingCategory] = useState<import('@/lib/types').MenuItemCategory | undefined>(undefined)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  // Mini Bar state
+  const [miniBarRoom, setMiniBarRoom] = useState<Room | null>(null)
+  const [miniBarBillingMode, setMiniBarBillingMode] = useState<MiniBarBillingMode>('per_consumption')
+  const [miniBarCart, setMiniBarCart] = useState<{ item: MenuItem; qty: number }[]>([])
 
   const categories = ['All', ...menuCategories.filter(c => c.isActive).map(c => c.name)]
 
@@ -835,6 +841,196 @@ export function FnBPOS({ menuItems, setMenuItems, menuCategories, setMenuCategor
     </div>
   )
 
+  const miniBarBillingLabels: Record<MiniBarBillingMode, string> = {
+    per_consumption: 'Per Consumption (charge each item individually)',
+    per_room: 'Per Room (flat rate per room)',
+    per_night: 'Per Night (charge multiplied by number of nights)',
+    per_guest: 'Per Guest (charge multiplied by number of guests)',
+    per_booking: 'Per Booking (one-time flat charge for the stay)',
+  }
+
+  const renderMiniBar = () => {
+    const miniBarItems = menuItems.filter(i => i.isMiniBar && i.available)
+    const miniBarTotal = miniBarCart.reduce((sum, { item, qty }) => sum + item.price * qty, 0)
+
+    const addToMiniBarCart = (item: MenuItem) => {
+      setMiniBarCart(prev => {
+        const existing = prev.find(e => e.item.id === item.id)
+        if (existing) return prev.map(e => e.item.id === item.id ? { ...e, qty: e.qty + 1 } : e)
+        return [...prev, { item, qty: 1 }]
+      })
+    }
+    const updateMiniBarQty = (itemId: string, delta: number) => {
+      setMiniBarCart(prev =>
+        prev.map(e => e.item.id === itemId ? { ...e, qty: Math.max(0, e.qty + delta) } : e)
+            .filter(e => e.qty > 0)
+      )
+    }
+    const billMiniBar = () => {
+      if (!miniBarRoom) { toast.error('Please select a room'); return }
+      if (miniBarCart.length === 0) { toast.error('Cart is empty'); return }
+      toast.success(
+        `Mini Bar billed to Room ${miniBarRoom.roomNumber} — ${miniBarBillingLabels[miniBarBillingMode].split(' (')[0]} · Total: ${formatCurrency(miniBarTotal)}`
+      )
+      setMiniBarCart([])
+      setMiniBarRoom(null)
+    }
+
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-semibold">Mini Bar Billing</h2>
+          <p className="text-muted-foreground">Charge mini bar items consumed by guests in their room</p>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Item catalogue */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Package size={16} />
+              <span>{miniBarItems.length} mini bar items available</span>
+              <Button
+                size="sm"
+                variant="link"
+                className="ml-auto p-0 h-auto text-xs"
+                onClick={() => {
+                  setEditingMenuItem(undefined)
+                  setIsMenuItemDialogOpen(true)
+                }}
+              >
+                + Add Mini Bar Item
+              </Button>
+            </div>
+            {miniBarItems.length === 0 ? (
+              <Card className="p-12 text-center">
+                <Bed size={48} className="mx-auto mb-3 text-muted-foreground/40" />
+                <p className="font-semibold mb-1">No mini bar items configured</p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Mark menu items as "Mini Bar" items in the Menu Items tab to have them appear here.
+                </p>
+                <Button onClick={() => { setCurrentView('menu') }} variant="outline">
+                  Go to Menu Items
+                </Button>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {miniBarItems.map(item => (
+                  <Card
+                    key={item.id}
+                    className="p-4 cursor-pointer hover:shadow-md hover:ring-2 hover:ring-primary transition-all"
+                    onClick={() => addToMiniBarCart(item)}
+                  >
+                    <p className="font-medium text-sm leading-tight">{item.name}</p>
+                    {item.description && (
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{item.description}</p>
+                    )}
+                    <p className="text-primary font-semibold mt-2">{formatCurrency(item.price)}</p>
+                    <Badge variant="secondary" className="mt-1 text-xs">
+                      {item.miniBarBillingMode
+                        ? miniBarBillingLabels[item.miniBarBillingMode].split(' (')[0]
+                        : 'Per Consumption'}
+                    </Badge>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Billing panel */}
+          <div className="space-y-4">
+            <Card className="p-4 space-y-4">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Bed size={18} />
+                Billing Details
+              </h3>
+
+              {/* Room selector */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Room</label>
+                <select
+                  className="w-full px-3 py-2 border rounded-md text-sm"
+                  value={miniBarRoom?.id || ''}
+                  onChange={(e) => setMiniBarRoom(rooms.find(r => r.id === e.target.value) || null)}
+                >
+                  <option value="">Select room…</option>
+                  {rooms.filter(r => r.status === 'occupied-clean' || r.status === 'occupied-dirty').map(r => (
+                    <option key={r.id} value={r.id}>Room {r.roomNumber}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Billing mode */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Billing Mode</label>
+                <Select
+                  value={miniBarBillingMode}
+                  onValueChange={(v) => setMiniBarBillingMode(v as MiniBarBillingMode)}
+                >
+                  <SelectTrigger className="text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="per_consumption">Per Consumption</SelectItem>
+                    <SelectItem value="per_room">Per Room</SelectItem>
+                    <SelectItem value="per_night">Per Night</SelectItem>
+                    <SelectItem value="per_guest">Per Guest</SelectItem>
+                    <SelectItem value="per_booking">Per Booking</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {miniBarBillingLabels[miniBarBillingMode].replace(/^[^(]+\(/, '').replace(/\)$/, '')}
+                </p>
+              </div>
+
+              <Separator />
+
+              {/* Cart */}
+              {miniBarCart.length === 0 ? (
+                <p className="text-sm text-center text-muted-foreground py-4">
+                  Click items on the left to add them
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {miniBarCart.map(({ item, qty }) => (
+                    <div key={item.id} className="flex items-center justify-between gap-2 text-sm">
+                      <span className="flex-1 font-medium truncate">{item.name}</span>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button size="sm" variant="outline" className="h-6 w-6 p-0"
+                          onClick={() => updateMiniBarQty(item.id, -1)}>
+                          <Minus size={12} />
+                        </Button>
+                        <span className="w-5 text-center">{qty}</span>
+                        <Button size="sm" variant="outline" className="h-6 w-6 p-0"
+                          onClick={() => updateMiniBarQty(item.id, 1)}>
+                          <Plus size={12} />
+                        </Button>
+                      </div>
+                      <span className="w-16 text-right font-semibold">{formatCurrency(item.price * qty)}</span>
+                    </div>
+                  ))}
+                  <Separator />
+                  <div className="flex justify-between font-bold">
+                    <span>Total</span>
+                    <span className="text-primary">{formatCurrency(miniBarTotal)}</span>
+                  </div>
+                </div>
+              )}
+
+              <Button
+                className="w-full"
+                onClick={billMiniBar}
+                disabled={miniBarCart.length === 0 || !miniBarRoom}
+              >
+                <Receipt size={18} className="mr-2" />
+                Post to Room Bill
+              </Button>
+            </Card>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -863,6 +1059,10 @@ export function FnBPOS({ menuItems, setMenuItems, menuCategories, setMenuCategor
           <TabsTrigger value="combos">
             <Package size={18} className="mr-2" />
             Meal Combos
+          </TabsTrigger>
+          <TabsTrigger value="minibar">
+            <Bed size={18} className="mr-2" />
+            Mini Bar
           </TabsTrigger>
         </TabsList>
 
@@ -972,6 +1172,10 @@ export function FnBPOS({ menuItems, setMenuItems, menuCategories, setMenuCategor
             menuItems={menuItems}
             currentUser={currentUser}
           />
+        </TabsContent>
+
+        <TabsContent value="minibar" className="mt-6">
+          {renderMiniBar()}
         </TabsContent>
       </Tabs>
 

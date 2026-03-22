@@ -207,6 +207,8 @@ export type ProjectType = 'renovation' | 'new-construction' | 'repair' | 'upgrad
 export type InventorySegment = 'regular-maintenance' | 'project-construction' | 'emergency-stock'
 export type ExtraServiceStatus = 'active' | 'inactive' | 'archived'
 
+export type ExtraServiceChargeMode = 'per_booking' | 'per_room' | 'per_guest' | 'per_night'
+
 export interface ExtraServiceCategory {
   id: string
   name: string
@@ -226,6 +228,7 @@ export interface ExtraService {
   basePrice: number
   taxRate: number
   unit: string
+  chargeMode: ExtraServiceChargeMode
   status: ExtraServiceStatus
   department: Department
   requiresApproval: boolean
@@ -498,6 +501,8 @@ export interface MenuItemCategory {
   updatedAt: number
 }
 
+export type MiniBarBillingMode = 'per_consumption' | 'per_room' | 'per_night' | 'per_guest' | 'per_booking'
+
 export interface MenuItem {
   id: string
   name: string
@@ -519,6 +524,8 @@ export interface MenuItem {
   calories?: number
   servingSize?: string
   sortOrder?: number
+  isMiniBar?: boolean
+  miniBarBillingMode?: MiniBarBillingMode
   createdAt?: number
   updatedAt?: number
   createdBy?: string
