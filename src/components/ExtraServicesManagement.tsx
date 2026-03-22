@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Table,
@@ -19,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Plus, MagnifyingGlass, DotsThree, PencilSimple, Trash, Tag, Sparkle } from '@phosphor-icons/react'
-import type { ExtraService, ExtraServiceCategory } from '@/lib/types'
+import type { ExtraService, ExtraServiceCategory, ExtraServiceChargeMode } from '@/lib/types'
 import { ExtraServiceCategoryDialog } from '@/components/ExtraServiceCategoryDialog'
 import { ExtraServiceDialog } from '@/components/ExtraServiceDialog'
 import { formatCurrency } from '@/lib/helpers'
@@ -46,6 +47,24 @@ export function ExtraServicesManagement({
   const [selectedService, setSelectedService] = useState<ExtraService | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [activeTab, setActiveTab] = useState('services')
+  const [selectedServiceIds, setSelectedServiceIds] = useState<Set<string>>(new Set())
+
+  const toggleServiceSelection = (id: string) => {
+    setSelectedServiceIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+  const toggleSelectAllServices = (ids: string[]) => {
+    setSelectedServiceIds(prev => prev.size === ids.length ? new Set() : new Set(ids))
+  }
+  const bulkDeleteServices = () => {
+    if (!window.confirm(`Delete ${selectedServiceIds.size} service(s)? This cannot be undone.`)) return
+    setServices(prev => (prev || []).filter(s => !selectedServiceIds.has(s.id)))
+    toast.success(`${selectedServiceIds.size} service(s) deleted`)
+    setSelectedServiceIds(new Set())
+  }
 
   const handleSaveCategory = (category: ExtraServiceCategory) => {
     setCategories((current) => {
@@ -113,6 +132,13 @@ export function ExtraServicesManagement({
     }
   }
 
+  const chargeModeLabel: Record<ExtraServiceChargeMode, string> = {
+    per_booking: 'Per Booking',
+    per_room: 'Per Room',
+    per_guest: 'Per Guest',
+    per_night: 'Per Night',
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -146,6 +172,12 @@ export function ExtraServicesManagement({
                   className="pl-10"
                 />
               </div>
+              {selectedServiceIds.size > 0 && (
+                <Button variant="destructive" onClick={bulkDeleteServices}>
+                  <Trash size={18} className="mr-2" />
+                  Delete {selectedServiceIds.size} selected
+                </Button>
+              )}
               <Button onClick={() => {
                 setSelectedService(null)
                 setServiceDialogOpen(true)
@@ -160,9 +192,16 @@ export function ExtraServicesManagement({
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={filteredServices.length > 0 && selectedServiceIds.size === filteredServices.length}
+                      onCheckedChange={() => toggleSelectAllServices(filteredServices.map(s => s.id))}
+                    />
+                  </TableHead>
                   <TableHead>Service Name</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Price</TableHead>
+                  <TableHead>Charge Mode</TableHead>
                   <TableHead>Tax Rate</TableHead>
                   <TableHead>Department</TableHead>
                   <TableHead>Status</TableHead>
@@ -172,7 +211,7 @@ export function ExtraServicesManagement({
               <TableBody>
                 {filteredServices.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                       {searchTerm ? 'No services found' : 'No services created yet'}
                     </TableCell>
                   </TableRow>
@@ -180,7 +219,13 @@ export function ExtraServicesManagement({
                   filteredServices.map((service) => {
                     const category = getServiceCategory(service.categoryId)
                     return (
-                      <TableRow key={service.id}>
+                      <TableRow key={service.id} className={selectedServiceIds.has(service.id) ? 'bg-primary/5' : ''}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedServiceIds.has(service.id)}
+                            onCheckedChange={() => toggleServiceSelection(service.id)}
+                          />
+                        </TableCell>
                         <TableCell>
                           <div>
                             <p className="font-medium">{service.name}</p>
@@ -197,6 +242,11 @@ export function ExtraServicesManagement({
                             {formatCurrency(service.basePrice)}
                             <span className="text-muted-foreground text-sm"> / {service.unit}</span>
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">
+                            {chargeModeLabel[service.chargeMode ?? 'per_booking']}
+                          </Badge>
                         </TableCell>
                         <TableCell>{service.taxRate}%</TableCell>
                         <TableCell className="capitalize">{service.department.replace('-', ' ')}</TableCell>

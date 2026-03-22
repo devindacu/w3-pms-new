@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
 import { ulid } from 'ulid'
 import {
   Users,
@@ -27,7 +28,8 @@ import {
   SortDescending,
   X,
   ChartBar,
-  CheckCircle
+  CheckCircle,
+  Trash
 } from '@phosphor-icons/react'
 import type {
   GuestProfile,
@@ -137,6 +139,65 @@ export function CRM({
   const [feedbackFilterSource, setFeedbackFilterSource] = useState<string>('all')
   const [feedbackSortBy, setFeedbackSortBy] = useState<string>('date')
   const [feedbackSortOrder, setFeedbackSortOrder] = useState<'asc' | 'desc'>('desc')
+
+  // Bulk selection state
+  const [selectedGuestIds, setSelectedGuestIds] = useState<Set<string>>(new Set())
+  const [selectedFeedbackIds, setSelectedFeedbackIds] = useState<Set<string>>(new Set())
+  const [selectedComplaintIds, setSelectedComplaintIds] = useState<Set<string>>(new Set())
+
+  // Bulk operation helpers — Guests
+  const toggleGuestSelection = (id: string) => {
+    setSelectedGuestIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+  const toggleSelectAllGuests = (ids: string[]) => {
+    setSelectedGuestIds(prev => prev.size === ids.length ? new Set() : new Set(ids))
+  }
+  const bulkDeleteGuests = () => {
+    if (!window.confirm(`Delete ${selectedGuestIds.size} guest profile(s)? This cannot be undone.`)) return
+    setGuestProfiles(prev => (prev || []).filter(g => !selectedGuestIds.has(g.id)))
+    toast.success(`${selectedGuestIds.size} guest profile(s) deleted`)
+    setSelectedGuestIds(new Set())
+  }
+
+  // Bulk operation helpers — Feedback
+  const toggleFeedbackSelection = (id: string) => {
+    setSelectedFeedbackIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+  const toggleSelectAllFeedback = (ids: string[]) => {
+    setSelectedFeedbackIds(prev => prev.size === ids.length ? new Set() : new Set(ids))
+  }
+  const bulkDeleteFeedback = () => {
+    if (!window.confirm(`Delete ${selectedFeedbackIds.size} feedback record(s)? This cannot be undone.`)) return
+    setFeedback(prev => (prev || []).filter(f => !selectedFeedbackIds.has(f.id)))
+    toast.success(`${selectedFeedbackIds.size} feedback record(s) deleted`)
+    setSelectedFeedbackIds(new Set())
+  }
+
+  // Bulk operation helpers — Complaints
+  const toggleComplaintSelection = (id: string) => {
+    setSelectedComplaintIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+  const toggleSelectAllComplaints = (ids: string[]) => {
+    setSelectedComplaintIds(prev => prev.size === ids.length ? new Set() : new Set(ids))
+  }
+  const bulkDeleteComplaints = () => {
+    if (!window.confirm(`Delete ${selectedComplaintIds.size} complaint(s)? This cannot be undone.`)) return
+    setComplaints(prev => (prev || []).filter(c => !selectedComplaintIds.has(c.id)))
+    toast.success(`${selectedComplaintIds.size} complaint(s) deleted`)
+    setSelectedComplaintIds(new Set())
+  }
 
   const syncReviewsFromSource = async (source: ReviewSourceConfig) => {
     try {
@@ -730,9 +791,27 @@ export function CRM({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Funnel size={16} />
-              <span>Showing {filteredAndSortedGuests.length} of {guestProfiles.length} guests</span>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Funnel size={16} />
+                <span>Showing {filteredAndSortedGuests.length} of {guestProfiles.length} guests</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="select-all-guests"
+                  checked={filteredAndSortedGuests.length > 0 && selectedGuestIds.size === filteredAndSortedGuests.length}
+                  onCheckedChange={() => toggleSelectAllGuests(filteredAndSortedGuests.map(g => g.id))}
+                />
+                <label htmlFor="select-all-guests" className="text-sm text-muted-foreground cursor-pointer">
+                  Select all
+                </label>
+                {selectedGuestIds.size > 0 && (
+                  <Button variant="destructive" size="sm" onClick={bulkDeleteGuests}>
+                    <Trash size={16} className="mr-1" />
+                    Delete {selectedGuestIds.size} selected
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -740,9 +819,15 @@ export function CRM({
             {filteredAndSortedGuests.map((guest) => (
               <Card
                 key={guest.id}
-                className="p-6 hover:shadow-md transition-shadow"
+                className={`p-6 hover:shadow-md transition-shadow ${selectedGuestIds.has(guest.id) ? 'ring-2 ring-primary' : ''}`}
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3 justify-between">
+                  <Checkbox
+                    checked={selectedGuestIds.has(guest.id)}
+                    onCheckedChange={() => toggleGuestSelection(guest.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="mt-1 shrink-0"
+                  />
                   <div className="flex-1 cursor-pointer" onClick={() => { setSelectedGuest(guest); setGuestDialogOpen(true) }}>
                     <div className="flex items-center gap-3">
                       <h3 className="text-lg font-semibold">
@@ -1267,9 +1352,27 @@ export function CRM({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Funnel size={16} />
-                  <span>Showing {filteredAndSortedFeedback.length} of {feedback.length} feedback entries</span>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Funnel size={16} />
+                    <span>Showing {filteredAndSortedFeedback.length} of {feedback.length} feedback entries</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="select-all-feedback"
+                      checked={filteredAndSortedFeedback.length > 0 && selectedFeedbackIds.size === filteredAndSortedFeedback.length}
+                      onCheckedChange={() => toggleSelectAllFeedback(filteredAndSortedFeedback.map(f => f.id))}
+                    />
+                    <label htmlFor="select-all-feedback" className="text-sm text-muted-foreground cursor-pointer">
+                      Select all
+                    </label>
+                    {selectedFeedbackIds.size > 0 && (
+                      <Button variant="destructive" size="sm" onClick={bulkDeleteFeedback}>
+                        <Trash size={16} className="mr-1" />
+                        Delete {selectedFeedbackIds.size} selected
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -1289,9 +1392,15 @@ export function CRM({
                   return (
                     <Card
                       key={fb.id}
-                      className="p-6 hover:shadow-md transition-shadow"
+                      className={`p-6 hover:shadow-md transition-shadow ${selectedFeedbackIds.has(fb.id) ? 'ring-2 ring-primary' : ''}`}
                     >
-                      <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-start gap-3 justify-between mb-3">
+                        <Checkbox
+                          checked={selectedFeedbackIds.has(fb.id)}
+                          onCheckedChange={() => toggleFeedbackSelection(fb.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-1 shrink-0"
+                        />
                         <div className="flex-1 cursor-pointer" onClick={() => { setSelectedFeedback(fb); setFeedbackDialogOpen(true) }}>
                           <div className="flex items-center gap-3">
                             <h3 className="text-lg font-semibold">{fb.guestName}</h3>
@@ -1373,7 +1482,23 @@ export function CRM({
             </TabsContent>
 
             <TabsContent value="complaints" className="space-y-4 mt-6">
-              <div className="flex justify-end">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="select-all-complaints"
+                    checked={complaints.length > 0 && selectedComplaintIds.size === complaints.length}
+                    onCheckedChange={() => toggleSelectAllComplaints(complaints.map(c => c.id))}
+                  />
+                  <label htmlFor="select-all-complaints" className="text-sm text-muted-foreground cursor-pointer">
+                    Select all
+                  </label>
+                  {selectedComplaintIds.size > 0 && (
+                    <Button variant="destructive" size="sm" onClick={bulkDeleteComplaints}>
+                      <Trash size={16} className="mr-1" />
+                      Delete {selectedComplaintIds.size} selected
+                    </Button>
+                  )}
+                </div>
                 <Button onClick={() => {
                   setSelectedComplaint(undefined)
                   setComplaintDialogOpen(true)
@@ -1389,9 +1514,15 @@ export function CRM({
                   return (
                     <Card
                       key={complaint.id}
-                      className={`p-6 border-l-4 hover:shadow-md transition-shadow ${getComplaintPriorityColor(complaint.priority)}`}
+                      className={`p-6 border-l-4 hover:shadow-md transition-shadow ${getComplaintPriorityColor(complaint.priority)} ${selectedComplaintIds.has(complaint.id) ? 'ring-2 ring-primary' : ''}`}
                     >
-                      <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-start gap-3 justify-between mb-3">
+                        <Checkbox
+                          checked={selectedComplaintIds.has(complaint.id)}
+                          onCheckedChange={() => toggleComplaintSelection(complaint.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-1 shrink-0"
+                        />
                         <div className="flex-1 cursor-pointer" onClick={() => { setSelectedComplaint(complaint); setComplaintDialogOpen(true) }}>
                           <div className="flex items-center gap-3">
                             <h3 className="font-semibold">{complaint.complaintNumber}</h3>

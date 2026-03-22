@@ -1393,7 +1393,7 @@ function App() {
   )
 
   return (
-    <div className={`${!isAuthenticated ? 'contents' : 'flex min-h-screen bg-background text-foreground'}`}>
+    <div className={`${!isAuthenticated ? 'contents' : 'flex h-screen overflow-hidden bg-background text-foreground'}`}>
       {!isAuthenticated ? (
         authView === 'forgot-password' ? (
           <ForgotPasswordPage
@@ -1426,7 +1426,7 @@ function App() {
           <SidebarContent />
         </SheetContent>
 
-        <main className="flex-1 flex flex-col lg:ml-64 min-h-screen">
+        <main className="flex-1 flex flex-col lg:ml-64 h-screen overflow-hidden">
           <div className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
             <div className="px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-3">
               <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
@@ -1494,7 +1494,7 @@ function App() {
             />
           </div>
 
-        <div className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8">{currentModule === 'dashboard' && renderDashboard()}
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-8 min-h-0">{currentModule === 'dashboard' && renderDashboard()}
           {currentModule === 'front-office' && (
             <FrontOffice
               guests={guests || []}

@@ -501,6 +501,8 @@ export interface MenuItemCategory {
   updatedAt: number
 }
 
+export type MiniBarBillingMode = 'per_consumption' | 'per_room' | 'per_night' | 'per_guest' | 'per_booking'
+
 export interface MenuItem {
   id: string
   name: string
@@ -522,6 +524,8 @@ export interface MenuItem {
   calories?: number
   servingSize?: string
   sortOrder?: number
+  isMiniBar?: boolean
+  miniBarBillingMode?: MiniBarBillingMode
   createdAt?: number
   updatedAt?: number
   createdBy?: string
