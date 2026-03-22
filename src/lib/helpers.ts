@@ -764,7 +764,25 @@ export function getDaysUntilProjectDeadline(project: { endDate?: number }): numb
 }
 
 export function getRolePermissions(role: SystemRole): UserPermission[] {
+  const allPermissions: UserPermission[] = [
+    { resource: 'users', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+    { resource: 'suppliers', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+    { resource: 'food-items', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+    { resource: 'amenities', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+    { resource: 'construction-materials', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+    { resource: 'general-products', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+    { resource: 'purchase-orders', actions: ['create', 'read', 'update', 'delete', 'approve', 'issue', 'manage'] },
+    { resource: 'requisitions', actions: ['create', 'read', 'update', 'delete', 'approve', 'manage'] },
+    { resource: 'stock', actions: ['create', 'read', 'update', 'delete', 'receive', 'manage'] },
+    { resource: 'invoices', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+    { resource: 'payments', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+    { resource: 'projects', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+    { resource: 'reports', actions: ['read', 'manage'] },
+    { resource: 'system-settings', actions: ['read', 'update', 'manage'] }
+  ]
+
   const permissionsByRole: Record<SystemRole, UserPermission[]> = {
+    'super-admin': allPermissions,
     'admin': [
       { resource: 'users', actions: ['create', 'read', 'update', 'delete', 'manage'] },
       { resource: 'suppliers', actions: ['create', 'read', 'update', 'delete', 'manage'] },
@@ -834,6 +852,7 @@ export function getRolePermissions(role: SystemRole): UserPermission[] {
 
 export function hasPermission(user: SystemUser, resource: PermissionResource, action: PermissionAction): boolean {
   if (!user.isActive) return false
+  if (user.role === 'super-admin') return true
   
   const resourcePermission = user.permissions.find(p => p.resource === resource)
   if (!resourcePermission) return false
@@ -843,6 +862,7 @@ export function hasPermission(user: SystemUser, resource: PermissionResource, ac
 
 export function canAccessModule(user: SystemUser, module: string): boolean {
   if (!user.isActive) return false
+  if (user.role === 'super-admin') return true
   
   const moduleResourceMap: Record<string, PermissionResource> = {
     'users': 'users',
@@ -864,6 +884,7 @@ export function canAccessModule(user: SystemUser, module: string): boolean {
 
 export function getRoleColor(role: SystemRole): string {
   const colors: Record<SystemRole, string> = {
+    'super-admin': 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/30 dark:text-purple-300',
     'admin': 'bg-destructive/10 text-destructive border-destructive/20',
     'procurement-manager': 'bg-primary/10 text-primary border-primary/20',
     'department-head': 'bg-accent/10 text-accent border-accent/20',
@@ -876,6 +897,7 @@ export function getRoleColor(role: SystemRole): string {
 
 export function getRoleLabel(role: SystemRole): string {
   const labels: Record<SystemRole, string> = {
+    'super-admin': 'Super Administrator',
     'admin': 'Administrator',
     'procurement-manager': 'Procurement Manager',
     'department-head': 'Department Head',

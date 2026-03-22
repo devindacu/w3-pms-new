@@ -231,6 +231,14 @@ export function UserDialog({ open, onOpenChange, user, users, setUsers, currentU
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
+                    {currentUser.role === 'super-admin' && (
+                      <SelectItem value="super-admin">
+                        <span className="flex items-center gap-2">
+                          <span className="inline-block w-2 h-2 rounded-full bg-purple-500" />
+                          Super Administrator
+                        </span>
+                      </SelectItem>
+                    )}
                     <SelectItem value="admin">Administrator</SelectItem>
                     <SelectItem value="procurement-manager">Procurement Manager</SelectItem>
                     <SelectItem value="department-head">Department Head</SelectItem>

@@ -142,7 +142,7 @@ export function UserManagement({ users, setUsers, currentUser, activityLogs, set
     total: users.length,
     active: users.filter(u => u.isActive).length,
     inactive: users.filter(u => !u.isActive).length,
-    admins: users.filter(u => u.role === 'admin').length,
+    admins: users.filter(u => u.role === 'admin' || u.role === 'super-admin').length,
   }
 
   return (
@@ -218,6 +218,7 @@ export function UserManagement({ users, setUsers, currentUser, activityLogs, set
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Roles</SelectItem>
+              <SelectItem value="super-admin">Super Administrator</SelectItem>
               <SelectItem value="admin">Administrator</SelectItem>
               <SelectItem value="procurement-manager">Procurement Manager</SelectItem>
               <SelectItem value="department-head">Department Head</SelectItem>

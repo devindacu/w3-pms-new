@@ -2992,6 +2992,9 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
         email: user.email,
         role: user.role,
         department: user.department,
+        firstName: user.firstName || user.displayName?.split(' ')[0] || user.username,
+        lastName: user.lastName || user.displayName?.split(' ').slice(1).join(' ') || '',
+        displayName: user.displayName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username,
       },
     });
   } catch (err) {
@@ -3137,6 +3140,105 @@ app.use('/api/channel-manager', channelManagerApp);
 // Initialize queue and processors (shared with main server process)
 initChannelManager();
 
+/**
+ * POST /api/auth/set-password
+ * Set or change password for authenticated user (or by super-admin for any user)
+ */
+app.post('/api/auth/set-password', authLimiter, async (req, res) => {
+  try {
+    const { userId, currentPassword, newPassword, adminOverride } = req.body;
+    if (!userId || !newPassword) {
+      return res.status(400).json({ error: 'User ID and new password are required' });
+    }
+
+    const passwordStrengthRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+    if (!passwordStrengthRegex.test(newPassword)) {
+      return res.status(400).json({
+        error: 'Password must be at least 8 characters and contain uppercase, lowercase, number, and special character'
+      });
+    }
+
+    const users = await db.select().from(schema.systemUsers);
+    const user = users.find(u => u.id === userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (!adminOverride) {
+      if (!currentPassword) {
+        return res.status(400).json({ error: 'Current password is required' });
+      }
+      if (!user.passwordHash) {
+        return res.status(400).json({ error: 'No password set for this account' });
+      }
+      const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+      if (!valid) {
+        return res.status(401).json({ error: 'Current password is incorrect' });
+      }
+    }
+
+    const newHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+    await db.update(schema.systemUsers)
+      .set({ passwordHash: newHash, updatedAt: new Date() })
+      .where(eq(schema.systemUsers.id, userId));
+
+    res.json({ success: true, message: 'Password updated successfully' });
+  } catch (err) {
+    console.error('Set password error:', err);
+    res.status(500).json({ error: 'Failed to update password' });
+  }
+});
+
+/**
+ * POST /api/auth/init-super-admin
+ * Initialize the super admin account (idempotent - safe to call multiple times)
+ */
+app.post('/api/auth/init-super-admin', async (req, res) => {
+  try {
+    const SUPER_ADMIN_EMAIL = 'devindachinthaka@gmail.com';
+    const SUPER_ADMIN_PASSWORD = 'DevSachi123@#';
+    const hash = await bcrypt.hash(SUPER_ADMIN_PASSWORD, BCRYPT_ROUNDS);
+
+    const users = await db.select().from(schema.systemUsers);
+    const existing = users.find(u => u.email && u.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase());
+
+    if (existing) {
+      await db.update(schema.systemUsers)
+        .set({
+          passwordHash: hash,
+          role: 'super-admin',
+          isActive: true,
+          username: 'superadmin',
+          firstName: 'Devinda',
+          lastName: 'Chinthaka',
+          displayName: 'Devinda Chinthaka',
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.systemUsers.id, existing.id));
+      return res.json({ success: true, action: 'updated', id: existing.id });
+    }
+
+    const result = await db.insert(schema.systemUsers).values({
+      id: 'super-admin-1',
+      username: 'superadmin',
+      displayName: 'Devinda Chinthaka',
+      firstName: 'Devinda',
+      lastName: 'Chinthaka',
+      email: SUPER_ADMIN_EMAIL,
+      role: 'super-admin',
+      isActive: true,
+      passwordHash: hash,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }).returning();
+
+    res.json({ success: true, action: 'created', id: result[0]?.id });
+  } catch (err) {
+    console.error('Init super admin error:', err);
+    res.status(500).json({ error: 'Failed to initialize super admin', detail: String(err) });
+  }
+});
+
 // 404 handler - must be after all routes
 app.use((req, res) => {
   res.status(404).json({
@@ -3149,8 +3251,36 @@ app.use((req, res) => {
 app.use(errorLogger);
 
 const PORT = 3001;
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', async () => {
   console.log(`API Server running on http://localhost:${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`Security features enabled: ✓ Helmet ✓ CORS ✓ Rate limiting`);
+
+  // Auto-initialize super admin on startup (idempotent)
+  try {
+    const SUPER_ADMIN_EMAIL = 'devindachinthaka@gmail.com';
+    const SUPER_ADMIN_PASSWORD = 'DevSachi123@#';
+    const users = await db.select().from(schema.systemUsers);
+    const existing = users.find(u => u.email && u.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase());
+    const hash = await bcrypt.hash(SUPER_ADMIN_PASSWORD, BCRYPT_ROUNDS);
+
+    if (existing) {
+      await db.update(schema.systemUsers)
+        .set({ passwordHash: hash, role: 'super-admin', isActive: true,
+               firstName: 'Devinda', lastName: 'Chinthaka',
+               displayName: 'Devinda Chinthaka', username: 'superadmin', updatedAt: new Date() })
+        .where(eq(schema.systemUsers.id, existing.id));
+      console.log('✓ Super admin account verified');
+    } else {
+      await db.insert(schema.systemUsers).values({
+        id: 'super-admin-1', username: 'superadmin',
+        displayName: 'Devinda Chinthaka', firstName: 'Devinda', lastName: 'Chinthaka',
+        email: SUPER_ADMIN_EMAIL, role: 'super-admin', isActive: true,
+        passwordHash: hash, createdAt: new Date(), updatedAt: new Date(),
+      });
+      console.log('✓ Super admin account created');
+    }
+  } catch (err) {
+    console.error('Super admin init error:', err);
+  }
 });

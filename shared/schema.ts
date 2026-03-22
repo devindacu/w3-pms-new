@@ -162,6 +162,10 @@ export const accounts = pgTable('accounts', {
 export const systemUsers = pgTable('system_users', {
   id: text('id').primaryKey(),
   username: varchar('username', { length: 100 }).unique().notNull(),
+  displayName: varchar('display_name', { length: 255 }),
+  firstName: varchar('first_name', { length: 100 }),
+  lastName: varchar('last_name', { length: 100 }),
+  phone: varchar('phone', { length: 50 }),
   email: varchar('email', { length: 255 }),
   passwordHash: varchar('password_hash', { length: 512 }),
   role: varchar('role', { length: 50 }).default('staff'),

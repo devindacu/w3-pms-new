@@ -1501,7 +1501,7 @@ export interface DashboardMetrics {
   }
 }
 
-export type SystemRole = 'admin' | 'procurement-manager' | 'department-head' | 'storekeeper' | 'accounts' | 'user-requester'
+export type SystemRole = 'super-admin' | 'admin' | 'procurement-manager' | 'department-head' | 'storekeeper' | 'accounts' | 'user-requester'
 
 export interface SystemUser {
   id: string

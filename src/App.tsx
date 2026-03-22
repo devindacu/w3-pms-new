@@ -73,6 +73,7 @@ import {
   type Contractor,
   type GeneralProduct,
   type SystemUser,
+  type SystemRole,
   type ActivityLog,
   type Attendance,
   type LeaveRequest,
@@ -109,7 +110,8 @@ import {
   getUrgentFoodItems,
   getExpiringFoodItems,
   getUrgentAmenities,
-  calculateHistoricalComparison
+  calculateHistoricalComparison,
+  getRolePermissions
 } from '@/lib/helpers'
 import { PercentageChangeIndicator } from '@/components/PercentageChangeIndicator'
 import {
@@ -271,6 +273,9 @@ function App() {
       const data = await response.json()
       if (response.ok && data.success) {
         localStorage.setItem('w3-auth-token', data.token)
+        if (data.user) {
+          localStorage.setItem('w3-auth-user', JSON.stringify(data.user))
+        }
         setIsAuthenticated(true)
         return { success: true }
       }
@@ -308,6 +313,7 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('w3-auth-token')
+    localStorage.removeItem('w3-auth-user')
     setIsAuthenticated(false)
     setAuthView('login')
   }
@@ -566,7 +572,36 @@ function App() {
     pendingMigrations: systemPendingMigrations
   } = useMigrationManager()
 
-  const currentUser = React.useMemo(() => {
+  const currentUser = React.useMemo((): SystemUser => {
+    // Try to get the authenticated user from JWT storage
+    try {
+      const storedUser = localStorage.getItem('w3-auth-user')
+      if (storedUser) {
+        const authData = JSON.parse(storedUser)
+        // Find this user in systemUsers by id or username
+        const found = (systemUsers || []).find(
+          u => u.id === authData.id || u.username === authData.username
+        )
+        if (found) return found
+        // Build a SystemUser from auth data if not in local store
+        if (authData.id && authData.role) {
+          return {
+            id: authData.id,
+            userId: authData.id,
+            username: authData.username || 'user',
+            email: authData.email || '',
+            firstName: authData.firstName || authData.username || 'User',
+            lastName: authData.lastName || '',
+            role: authData.role as SystemRole,
+            department: authData.department,
+            permissions: getRolePermissions(authData.role as SystemRole),
+            isActive: true,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          }
+        }
+      }
+    } catch { /* ignore parse errors */ }
     return (systemUsers || [])[0] || sampleSystemUsers[0]
   }, [systemUsers])
 
