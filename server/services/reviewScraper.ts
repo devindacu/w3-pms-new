@@ -176,8 +176,8 @@ function extractHotelName(html: string, url: string): string | undefined {
   return undefined
 }
 
-export async function scrapeGoogleMapsReviews(url: string): Promise<ScrapedReviewData> {
-  const apiKey = process.env.GOOGLE_PLACES_API_KEY
+export async function scrapeGoogleMapsReviews(url: string, injectedApiKey?: string): Promise<ScrapedReviewData> {
+  const apiKey = injectedApiKey || process.env.GOOGLE_PLACES_API_KEY
 
   if (apiKey) {
     return scrapeGoogleWithPlacesApi(url, apiKey)
@@ -537,14 +537,37 @@ function findAllDeep(obj: any, key: string, depth = 0): any[] {
 
 export async function scrapeReviewsFromUrl(
   url: string,
-  source: string
+  source: string,
+  apiKey?: string
 ): Promise<ScrapedReviewData> {
   switch (source) {
-    case 'google-maps': return scrapeGoogleMapsReviews(url)
+    case 'google-maps': return scrapeGoogleMapsReviews(url, apiKey)
     case 'tripadvisor': return scrapeTripAdvisorReviews(url)
     case 'booking.com': return scrapeBookingReviews(url)
     case 'airbnb': return scrapeAirbnbReviews(url)
     default:
       return { success: false, dataSource: 'sample', reviews: [], error: `Unsupported source: ${source}` }
+  }
+}
+
+export async function testGooglePlacesApiKey(apiKey: string): Promise<{ success: boolean; detail?: string; error?: string }> {
+  try {
+    const searchUrl = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=hotel&inputtype=textquery&fields=place_id,name&key=${apiKey}`
+    const resp = await fetch(searchUrl)
+    const data = await resp.json()
+
+    if (data.status === 'OK' || data.status === 'ZERO_RESULTS') {
+      return { success: true, detail: 'API key is valid and Places API is enabled' }
+    }
+    if (data.status === 'REQUEST_DENIED') {
+      const msg = data.error_message || 'API key is invalid or Places API is not enabled in your Google Cloud project'
+      return { success: false, error: msg }
+    }
+    if (data.status === 'INVALID_REQUEST') {
+      return { success: true, detail: 'API key authenticated (invalid test query, but key is accepted)' }
+    }
+    return { success: false, error: `Unexpected status from Google: ${data.status}` }
+  } catch (err: any) {
+    return { success: false, error: `Could not reach Google Places API: ${err.message}` }
   }
 }

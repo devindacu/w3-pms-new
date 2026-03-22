@@ -14,6 +14,7 @@ import { SyncTestingPanel } from '@/components/SyncTestingPanel'
 import { CurrencyManagement } from '@/components/CurrencyManagement'
 import { EmailSMTPSettings } from '@/components/EmailSMTPSettings'
 import { AIConfigurationSettings } from '@/components/AIConfigurationSettings'
+import { ApiIntegrationsSettings } from '@/components/ApiIntegrationsSettings'
 import type { 
   HotelBranding, 
   TaxConfiguration, 
@@ -35,6 +36,7 @@ import {
   CurrencyDollar,
   WifiHigh,
   Brain,
+  Plugs,
 } from '@phosphor-icons/react'
 
 interface SettingsProps {
@@ -114,6 +116,10 @@ export function Settings({
           <TabsTrigger value="email-smtp" className="gap-2">
             <WifiHigh size={18} />
             <span className="hidden sm:inline">Email SMTP</span>
+          </TabsTrigger>
+          <TabsTrigger value="api-integrations" className="gap-2">
+            <Plugs size={18} />
+            <span className="hidden sm:inline">API Keys</span>
           </TabsTrigger>
           <TabsTrigger value="google-analytics" className="gap-2">
             <Globe size={18} />
@@ -199,6 +205,10 @@ export function Settings({
               currentUser={currentUser}
             />
           </div>
+        </TabsContent>
+
+        <TabsContent value="api-integrations" className="mt-6">
+          <ApiIntegrationsSettings currentUser={currentUser} />
         </TabsContent>
 
         <TabsContent value="google-analytics" className="mt-6">

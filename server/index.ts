@@ -16,7 +16,7 @@ import { db } from './db';
 import * as schema from '../shared/schema';
 import { eq, and, lte, gte, ne, sql, desc } from 'drizzle-orm';
 import { computeRateQuote } from './services/rateEngine';
-import { scrapeReviewsFromUrl } from './services/reviewScraper.js';
+import { scrapeReviewsFromUrl, testGooglePlacesApiKey } from './services/reviewScraper.js';
 import { 
   securityHeaders, 
   apiLimiter, 
@@ -3294,6 +3294,31 @@ app.post('/api/auth/upsert-user', async (req, res) => {
 });
 
 // ── Review sync from external platforms ──────────────────────────────────────
+
+async function getGooglePlacesApiKey(): Promise<string | undefined> {
+  if (process.env.GOOGLE_PLACES_API_KEY) return process.env.GOOGLE_PLACES_API_KEY;
+  try {
+    const rows = await db.select().from(schema.extraSettings)
+      .where(eq(schema.extraSettings.key, 'api-integrations')).catch(() => []);
+    if (rows.length > 0 && rows[0].value) {
+      const cfg = rows[0].value as any;
+      return cfg?.googlePlacesApiKey || undefined;
+    }
+  } catch {}
+  return undefined;
+}
+
+app.post('/api/reviews/test-google-places-key', async (req, res) => {
+  const { apiKey } = req.body;
+  if (!apiKey) return res.status(400).json({ success: false, error: 'apiKey is required' });
+  try {
+    const result = await testGooglePlacesApiKey(apiKey);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.post('/api/reviews/sync-from-url', async (req, res) => {
   const { url, source } = req.body;
   if (!url || !source) {
@@ -3301,8 +3326,9 @@ app.post('/api/reviews/sync-from-url', async (req, res) => {
   }
 
   try {
-    console.log(`[ReviewSync] Fetching real reviews from ${source}: ${url}`);
-    const data = await scrapeReviewsFromUrl(url, source);
+    const googleApiKey = source === 'google-maps' ? await getGooglePlacesApiKey() : undefined;
+    console.log(`[ReviewSync] Fetching reviews from ${source}: ${url} (key=${googleApiKey ? 'set' : 'none'})`);
+    const data = await scrapeReviewsFromUrl(url, source, googleApiKey);
     console.log(`[ReviewSync] ${source} → dataSource=${data.dataSource} reviews=${data.reviews.length} rating=${data.overallRating}`);
     res.json(data);
   } catch (err: any) {
