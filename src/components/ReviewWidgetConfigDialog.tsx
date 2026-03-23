@@ -17,6 +17,7 @@ import {
   SquaresFour,
   Medal,
   CheckCircle,
+  Info,
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { ulid } from 'ulid'
@@ -29,6 +30,147 @@ import type {
   ReviewWidgetSort,
 } from '@/lib/types'
 import { ReviewWidget } from '@/components/ReviewWidget'
+
+// ─── Sample / demo data (shown when no real reviews are synced yet) ────────────
+
+const NOW = Date.now()
+const DAY = 86_400_000
+
+const SAMPLE_REVIEWS: NormalizedReview[] = [
+  {
+    id: 'sample-1',
+    source: 'google-maps',
+    sourceId: 'g-1',
+    authorName: 'Sarah Mitchell',
+    rating: 5,
+    reviewText: 'Absolutely stunning property! The staff went above and beyond to make our anniversary stay unforgettable. The room was immaculate, the breakfast was superb, and the location is unbeatable. Will definitely be back!',
+    reviewDate: NOW - 2 * DAY,
+    verified: true,
+    sentiment: 'positive',
+    importedAt: NOW,
+  },
+  {
+    id: 'sample-2',
+    source: 'booking.com',
+    sourceId: 'b-1',
+    authorName: 'James Thornton',
+    rating: 4,
+    reviewText: 'Great hotel overall. Clean rooms, friendly reception, and excellent facilities. The pool area was a highlight. Minor issue with Wi-Fi speed in the room, but nothing that ruined the trip.',
+    reviewDate: NOW - 5 * DAY,
+    verified: true,
+    sentiment: 'positive',
+    importedAt: NOW,
+  },
+  {
+    id: 'sample-3',
+    source: 'tripadvisor',
+    sourceId: 't-1',
+    authorName: 'Priya Nair',
+    rating: 5,
+    reviewText: 'One of the best hotels I have ever stayed in. The spa treatments were exceptional, room service was prompt, and the ocean view from our suite was breathtaking. Highly recommend the chef\'s tasting menu!',
+    reviewDate: NOW - 8 * DAY,
+    verified: true,
+    sentiment: 'positive',
+    importedAt: NOW,
+  },
+  {
+    id: 'sample-4',
+    source: 'airbnb',
+    sourceId: 'a-1',
+    authorName: 'Lucas Fernandez',
+    rating: 4,
+    reviewText: 'Lovely villa with a private pool and beautiful gardens. The host was incredibly responsive and helpful. Check-in was smooth. Only small note: the kitchen could use a few more utensils. Would stay again.',
+    reviewDate: NOW - 11 * DAY,
+    verified: true,
+    sentiment: 'positive',
+    importedAt: NOW,
+  },
+  {
+    id: 'sample-5',
+    source: 'google-maps',
+    sourceId: 'g-2',
+    authorName: 'Emma Clarke',
+    rating: 3,
+    reviewText: 'Decent stay but room was smaller than the photos suggested. The rooftop bar is fantastic and staff were very polite. Might have been an off-season thing, but the restaurant was quite slow at lunch.',
+    reviewDate: NOW - 15 * DAY,
+    verified: true,
+    sentiment: 'neutral',
+    importedAt: NOW,
+  },
+  {
+    id: 'sample-6',
+    source: 'facebook',
+    sourceId: 'f-1',
+    authorName: 'Ahmed Al-Rashid',
+    rating: 5,
+    reviewText: 'Exceptional service from start to finish. The concierge arranged everything for our honeymoon — private dinner, flower decorations, and sunset tour. Could not have asked for more. Perfect in every way.',
+    reviewDate: NOW - 18 * DAY,
+    verified: true,
+    sentiment: 'positive',
+    importedAt: NOW,
+  },
+  {
+    id: 'sample-7',
+    source: 'booking.com',
+    sourceId: 'b-2',
+    authorName: 'Chen Wei',
+    rating: 4,
+    reviewText: 'Very comfortable beds and excellent housekeeping. Breakfast buffet had a wide variety including Asian options which we appreciated. The shuttle service to the city was convenient and on time.',
+    reviewDate: NOW - 22 * DAY,
+    verified: true,
+    sentiment: 'positive',
+    importedAt: NOW,
+  },
+  {
+    id: 'sample-8',
+    source: 'tripadvisor',
+    sourceId: 't-2',
+    authorName: 'Olivia Bennett',
+    rating: 2,
+    reviewText: 'Unfortunately our room had a noise issue from the street. When we asked to move, the alternative room wasn\'t ready for several hours. The pool and breakfast were nice but the service let us down.',
+    reviewDate: NOW - 25 * DAY,
+    verified: true,
+    sentiment: 'negative',
+    importedAt: NOW,
+  },
+  {
+    id: 'sample-9',
+    source: 'google-maps',
+    sourceId: 'g-3',
+    authorName: 'Ravi Shankar',
+    rating: 5,
+    reviewText: 'Stayed here for a business trip and the meeting facilities were top-notch. Fast internet, well-equipped gym, and the executive lounge made long working days much easier. Great property for corporate travellers.',
+    reviewDate: NOW - 30 * DAY,
+    verified: true,
+    sentiment: 'positive',
+    importedAt: NOW,
+  },
+  {
+    id: 'sample-10',
+    source: 'airbnb',
+    sourceId: 'a-2',
+    authorName: 'Isabella Romano',
+    rating: 4,
+    reviewText: 'Charming boutique property with great character. The terrace with its vineyard views made every morning special. Staff knew all the local gems — thanks for the restaurant recommendations! Parking could be tricky.',
+    reviewDate: NOW - 35 * DAY,
+    verified: true,
+    sentiment: 'positive',
+    importedAt: NOW,
+  },
+]
+
+const SAMPLE_AGGREGATE: ReviewAggregate = {
+  overallRating: 4.1,
+  totalReviews: 10,
+  distribution: { 5: 5, 4: 3, 3: 1, 2: 1, 1: 0 },
+  bySource: {
+    'google-maps': { count: 3, avgRating: 4.3 },
+    'booking.com': { count: 2, avgRating: 4.0 },
+    'tripadvisor': { count: 2, avgRating: 3.5 },
+    'airbnb': { count: 2, avgRating: 4.0 },
+    'facebook': { count: 1, avgRating: 5.0 },
+  },
+}
 
 interface ReviewWidgetConfigDialogProps {
   open: boolean
@@ -116,6 +258,11 @@ export function ReviewWidgetConfigDialog({
   const [activeTab, setActiveTab] = useState<'settings' | 'preview' | 'embed'>('settings')
   const [copiedJs, setCopiedJs] = useState(false)
   const [copiedIframe, setCopiedIframe] = useState(false)
+
+  // Use real reviews when available; fall back to sample demo data for preview
+  const usingDemoData = reviews.length === 0
+  const previewReviews = usingDemoData ? SAMPLE_REVIEWS : reviews
+  const previewAggregate = usingDemoData ? SAMPLE_AGGREGATE : aggregate
 
   useEffect(() => {
     if (config) {
@@ -291,26 +438,40 @@ export function ReviewWidgetConfigDialog({
 
           {/* ── Preview tab ───────────────────────────────────────────── */}
           <TabsContent value="preview" className="flex-1 overflow-y-auto py-4 space-y-3">
-            <div className="flex items-center gap-2 mb-2">
+            {/* Demo data banner */}
+            {usingDemoData && (
+              <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950 px-3 py-2.5">
+                <Info size={16} className="text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+                  <strong>Demo preview</strong> — sample reviews are shown because no real reviews have been synced yet.
+                  Sync a review source to see your actual data here.
+                </p>
+              </div>
+            )}
+
+            {/* Active-filter badges */}
+            <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="outline">{cfg.layout} layout</Badge>
               <Badge variant="outline">{cfg.theme} theme</Badge>
               <Badge variant="outline">limit: {cfg.limit}</Badge>
               {cfg.hideNegative && <Badge variant="secondary">hiding negative</Badge>}
               {cfg.minRating > 1 && <Badge variant="secondary">min {cfg.minRating}★</Badge>}
+              <Badge variant="outline">
+                {{ latest: 'Latest first', highest: 'Highest rated', lowest: 'Lowest rated' }[cfg.sort]}
+              </Badge>
             </div>
-            <Card className="p-4 overflow-auto">
-              <ReviewWidget
-                reviews={reviews}
-                aggregate={aggregate}
-                config={cfg}
-                forceTheme={cfg.theme === 'auto' ? 'light' : cfg.theme}
-              />
+
+            {/* Widget preview */}
+            <Card className={`overflow-auto ${cfg.layout === 'vertical' ? 'max-h-[420px]' : ''}`}>
+              <div className={`p-4 ${cfg.theme === 'dark' ? 'bg-gray-900 rounded-lg' : ''}`}>
+                <ReviewWidget
+                  reviews={previewReviews}
+                  aggregate={previewAggregate}
+                  config={cfg}
+                  forceTheme={cfg.theme === 'auto' ? 'light' : cfg.theme}
+                />
+              </div>
             </Card>
-            {reviews.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center">
-                Sync some reviews first to see a live preview here.
-              </p>
-            )}
           </TabsContent>
 
           {/* ── Embed code tab ────────────────────────────────────────── */}
