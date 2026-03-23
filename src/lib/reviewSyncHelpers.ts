@@ -200,3 +200,66 @@ export function calculateOverallRatingFromSources(
   
   return Math.round((weightedSum / totalReviews) * 10) / 10
 }
+
+// ─── Normalisation & Aggregation ─────────────────────────────────────────────
+
+import type { NormalizedReview, ReviewAggregate } from './types'
+
+/**
+ * Converts stored GuestFeedback records into the platform-agnostic
+ * NormalizedReview format used by the public widget.
+ */
+export function normalizeToStandardFormat(feedback: GuestFeedback[]): NormalizedReview[] {
+  return feedback.map(f => ({
+    id: f.id,
+    source: f.reviewSource,
+    sourceId: f.externalReviewId ?? f.id,
+    authorName: f.guestName,
+    /** overallRating is stored as 1-5; expose as-is */
+    rating: f.overallRating,
+    reviewText: f.comments ?? '',
+    reviewDate: f.submittedAt,
+    reviewUrl: f.reviewSourceUrl,
+    verified: true,
+    sentiment: f.sentiment,
+    importedAt: f.createdAt,
+  }))
+}
+
+/**
+ * Calculates aggregate statistics from a list of NormalizedReview records.
+ * Ratings are on a 1-5 scale.
+ */
+export function calculateReviewAggregate(reviews: NormalizedReview[]): ReviewAggregate {
+  const dist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+  const bySource: Record<string, { count: number; avgRating: number }> = {}
+
+  if (reviews.length === 0) {
+    return { overallRating: 0, totalReviews: 0, distribution: dist, bySource }
+  }
+
+  let totalRating = 0
+
+  for (const r of reviews) {
+    const star = Math.max(1, Math.min(5, Math.round(r.rating))) as 1 | 2 | 3 | 4 | 5
+    dist[star]++
+    totalRating += r.rating
+
+    const src = r.source ?? 'manual'
+    if (!bySource[src]) bySource[src] = { count: 0, avgRating: 0 }
+    bySource[src].count++
+    bySource[src].avgRating += r.rating
+  }
+
+  // Finalise per-source averages
+  Object.keys(bySource).forEach(src => {
+    bySource[src].avgRating = Math.round((bySource[src].avgRating / bySource[src].count) * 10) / 10
+  })
+
+  return {
+    overallRating: Math.round((totalRating / reviews.length) * 10) / 10,
+    totalReviews: reviews.length,
+    distribution: dist,
+    bySource,
+  }
+}

@@ -4783,3 +4783,61 @@ export interface GoogleAnalyticsRealtimeData {
   }[]
   timestamp: number
 }
+
+// ─── Review Aggregation & Widget System ─────────────────────────────────────
+
+/** A review normalised to a single platform-agnostic format. */
+export interface NormalizedReview {
+  id: string
+  source: ReviewSource
+  sourceId: string
+  authorName: string
+  authorAvatar?: string
+  /** Always 1–5 scale. */
+  rating: number
+  reviewText: string
+  reviewDate: number
+  reviewUrl?: string
+  verified?: boolean
+  sentiment?: 'positive' | 'neutral' | 'negative'
+  importedAt: number
+}
+
+/** Aggregate stats computed across all synced reviews. */
+export interface ReviewAggregate {
+  /** Weighted average on 1–5 scale (rounded to 1 dp). */
+  overallRating: number
+  totalReviews: number
+  distribution: {
+    5: number
+    4: number
+    3: number
+    2: number
+    1: number
+  }
+  bySource: Record<string, { count: number; avgRating: number }>
+}
+
+export type ReviewWidgetLayout = 'horizontal' | 'vertical' | 'badge'
+export type ReviewWidgetTheme = 'light' | 'dark' | 'auto'
+export type ReviewWidgetSort = 'latest' | 'highest' | 'lowest'
+
+export interface ReviewWidgetConfig {
+  id: string
+  name: string
+  layout: ReviewWidgetLayout
+  theme: ReviewWidgetTheme
+  /** How many reviews to display (1-50). */
+  limit: number
+  /** Minimum star rating to show (1-5). */
+  minRating: number
+  /** When true, reviews with rating < 3 are hidden. */
+  hideNegative: boolean
+  showSource: boolean
+  showAvatar: boolean
+  /** Auto-scroll only for horizontal layout. */
+  autoScroll: boolean
+  sort: ReviewWidgetSort
+  createdAt: number
+  updatedAt: number
+}
