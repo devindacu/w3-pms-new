@@ -2947,6 +2947,7 @@ export interface OTAConnection {
   totalRevenue: number
   averageRating?: number
   reviewCount?: number
+  reviewUrl?: string
   commission: number
   syncSettings: {
     syncAvailability: boolean
