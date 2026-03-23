@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useSettingState } from '@/hooks/use-api-state'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -29,7 +29,8 @@ import {
   X,
   ChartBar,
   CheckCircle,
-  Trash
+  Trash,
+  Code,
 } from '@phosphor-icons/react'
 import type {
   GuestProfile,
@@ -41,6 +42,7 @@ import type {
   UpsellTransaction,
   LoyaltyTransaction,
   ReviewSourceConfig,
+  ReviewWidgetConfig,
   Reservation,
   Room,
   Order,
@@ -55,9 +57,10 @@ import { MarketingTemplateDialog } from '@/components/MarketingTemplateDialog'
 import { UpsellOfferDialog } from '@/components/UpsellOfferDialog'
 import { UpsellTransactionDialog } from '@/components/UpsellTransactionDialog'
 import { ReviewSourceDialog } from '@/components/ReviewSourceDialog'
+import { ReviewWidgetConfigDialog } from '@/components/ReviewWidgetConfigDialog'
 import { GuestAnalyticsDashboard } from '@/components/GuestAnalyticsDashboard'
 import { formatCurrency, formatDate } from '@/lib/helpers'
-import { fetchReviewsFromUrl, mergeReviews, calculateOverallRatingFromSources } from '@/lib/reviewSyncHelpers'
+import { fetchReviewsFromUrl, mergeReviews, normalizeToStandardFormat, calculateReviewAggregate } from '@/lib/reviewSyncHelpers'
 import { toast } from 'sonner'
 
 interface CRMProps {
@@ -122,10 +125,12 @@ export function CRM({
   const [selectedTransaction, setSelectedTransaction] = useState<UpsellTransaction | undefined>()
   const [reviewSourceDialogOpen, setReviewSourceDialogOpen] = useState(false)
   const [selectedReviewSource, setSelectedReviewSource] = useState<ReviewSourceConfig | undefined>()
+  const [reviewWidgetConfigDialogOpen, setReviewWidgetConfigDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [feedbackSearchQuery, setFeedbackSearchQuery] = useState('')
 
   const [reviewSources, setReviewSources] = useSettingState<ReviewSourceConfig[]>('w3-hotel-review-sources', [])
+  const [reviewWidgetConfig, setReviewWidgetConfig] = useSettingState<ReviewWidgetConfig | null>('w3-hotel-review-widget-config', null)
   const [isSyncing, setIsSyncing] = useState(false)
 
   const [guestFilterTier, setGuestFilterTier] = useState<string>('all')
@@ -303,6 +308,10 @@ export function CRM({
 
     return sourceStats
   }
+
+  // ── Normalised reviews & aggregate (memoised) ──────────────────────────────
+  const normalizedReviews = useMemo(() => normalizeToStandardFormat(feedback), [feedback])
+  const reviewAggregate = useMemo(() => calculateReviewAggregate(normalizedReviews), [normalizedReviews])
 
   const buildBookingHistory = (guestId: string): GuestBookingHistory[] => {
     const guestReservations = reservations.filter(r => r.guestId === guestId && r.status === 'checked-out')
@@ -1590,14 +1599,21 @@ export function CRM({
           </Tabs>
         </TabsContent>
 
-        <TabsContent value="reviews" className="space-y-4 mt-6">
-          <div className="flex items-center justify-between mb-4">
+        <TabsContent value="reviews" className="space-y-6 mt-6">
+          {/* ── Header ───────────────────────────────────────────────── */}
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
               <h3 className="text-lg font-semibold">Review Source Configuration</h3>
               <p className="text-sm text-muted-foreground">Add review website links to import reviews automatically</p>
-              <p className="text-xs text-muted-foreground mt-1">Overall Average: <span className="font-semibold">{calculateOverallRatingFromSources(reviewSources || []).toFixed(1)}/10</span> from all sources</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                onClick={() => setReviewWidgetConfigDialogOpen(true)}
+                variant="outline"
+              >
+                <Code size={20} className="mr-2" />
+                Embed Widget
+              </Button>
               <Button 
                 onClick={syncAllActiveSources}
                 disabled={isSyncing || (reviewSources || []).filter(s => s.isActive).length === 0}
@@ -1616,6 +1632,68 @@ export function CRM({
             </div>
           </div>
 
+          {/* ── Aggregate stats panel ─────────────────────────────────── */}
+          {normalizedReviews.length > 0 && (
+            <Card className="p-5">
+              <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+                {/* Overall score */}
+                <div className="text-center">
+                  <p className="text-5xl font-extrabold leading-none">{reviewAggregate.overallRating.toFixed(1)}</p>
+                  <div className="flex justify-center gap-0.5 mt-1">
+                    {[1,2,3,4,5].map(i => (
+                      <Star
+                        key={i}
+                        size={18}
+                        weight={i <= Math.round(reviewAggregate.overallRating) ? 'fill' : 'regular'}
+                        className={i <= Math.round(reviewAggregate.overallRating) ? 'text-yellow-400' : 'text-muted-foreground'}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">{reviewAggregate.totalReviews} reviews</p>
+                </div>
+
+                <div className="h-16 w-px bg-border hidden sm:block" />
+
+                {/* Distribution bars */}
+                <div className="flex-1 space-y-1 w-full max-w-[280px]">
+                  {([5,4,3,2,1] as const).map(s => {
+                    const pct = reviewAggregate.totalReviews > 0
+                      ? Math.round((reviewAggregate.distribution[s] / reviewAggregate.totalReviews) * 100)
+                      : 0
+                    return (
+                      <div key={s} className="flex items-center gap-1.5 text-xs">
+                        <span className="w-4 text-right text-muted-foreground">{s}</span>
+                        <Star size={11} weight="fill" className="text-yellow-400 shrink-0" />
+                        <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                          <div className="h-full rounded-full bg-yellow-400 transition-all" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="w-8 text-muted-foreground">{reviewAggregate.distribution[s]}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                <div className="h-16 w-px bg-border hidden sm:block" />
+
+                {/* Per-source breakdown */}
+                <div className="space-y-1 text-sm">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">By Source</p>
+                  {Object.entries(reviewAggregate.bySource).map(([src, stat]) => (
+                    <div key={src} className="flex items-center gap-3">
+                      <span className="capitalize text-foreground/80 min-w-[90px]">{src.replace('-', ' ')}</span>
+                      <span className="flex items-center gap-1 font-semibold">
+                        <Star size={12} weight="fill" className="text-yellow-400" />
+                        {stat.avgRating.toFixed(1)}
+                      </span>
+                      <span className="text-muted-foreground">({stat.count})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* ── Source cards ──────────────────────────────────────────── */}
           <div className="grid gap-4">
             {(reviewSources || []).map((source) => (
               <Card
@@ -1822,6 +1900,15 @@ export function CRM({
           
           return result.reviews
         }}
+      />
+
+      <ReviewWidgetConfigDialog
+        open={reviewWidgetConfigDialogOpen}
+        onOpenChange={setReviewWidgetConfigDialogOpen}
+        reviews={normalizedReviews}
+        aggregate={reviewAggregate}
+        config={reviewWidgetConfig ?? undefined}
+        onSave={(cfg) => setReviewWidgetConfig(cfg)}
       />
     </div>
   )

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { ArrowsClockwise, Link as LinkIcon } from '@phosphor-icons/react'
-import type { OTAConnection, ChannelReview, ReviewSource, OTAChannel } from '@/lib/types'
+import type { OTAConnection, ChannelReview, OTAChannel, ReviewSource } from '@/lib/types'
+import { fetchReviewsFromUrl, detectReviewSource } from '@/lib/reviewSyncHelpers'
 
 interface ReviewSyncDialogProps {
   open: boolean
@@ -15,10 +16,36 @@ interface ReviewSyncDialogProps {
   onSync: (reviews: ChannelReview[]) => void
 }
 
+/** Map an OTAChannel to the closest ReviewSource understood by fetchReviewsFromUrl */
+function channelToReviewSource(channel: OTAChannel): Exclude<ReviewSource, 'manual'> {
+  switch (channel) {
+    case 'booking.com': return 'booking.com'
+    case 'airbnb': return 'airbnb'
+    case 'tripadvisor': return 'tripadvisor'
+    case 'agoda':
+    case 'expedia':
+    case 'makemytrip':
+    case 'goibibo':
+    case 'hotels.com':
+    case 'direct-website': return 'tripadvisor'
+    default: return 'tripadvisor'
+  }
+}
+
 export function ReviewSyncDialog({ open, onOpenChange, connections, onSync }: ReviewSyncDialogProps) {
   const [url, setUrl] = useState('')
   const [selectedChannel, setSelectedChannel] = useState<OTAChannel | ''>('')
   const [syncing, setSyncing] = useState(false)
+
+  // Pre-fill review URL from the selected connection's configured reviewUrl
+  useEffect(() => {
+    if (selectedChannel) {
+      const conn = connections.find(c => c.channel === selectedChannel)
+      if (conn?.reviewUrl) {
+        setUrl(conn.reviewUrl)
+      }
+    }
+  }, [selectedChannel, connections])
 
   const handleSync = async () => {
     if (!url || !selectedChannel) {
@@ -27,56 +54,45 @@ export function ReviewSyncDialog({ open, onOpenChange, connections, onSync }: Re
     }
 
     setSyncing(true)
-    
-    try {
-      const mockReviews: ChannelReview[] = []
-      const reviewCount = Math.floor(Math.random() * 10) + 5
 
-      for (let i = 0; i < reviewCount; i++) {
-        const rating = Math.floor(Math.random() * 3) + 3
-        const review: ChannelReview = {
-          id: `review-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          channel: selectedChannel as OTAChannel,
-          externalReviewId: `ext-${Math.random().toString(36).substr(2, 9)}`,
-          guestName: ['John Smith', 'Jane Doe', 'Robert Johnson', 'Emily Williams', 'Michael Brown'][Math.floor(Math.random() * 5)],
-          guestCountry: ['USA', 'UK', 'Canada', 'Australia', 'Germany'][Math.floor(Math.random() * 5)],
-          rating: rating as 3 | 4 | 5,
-          reviewTitle: rating >= 4 ? 'Great Stay!' : 'Good Experience',
-          reviewText: rating >= 4 
-            ? 'Excellent hotel with great service and clean rooms. Would definitely recommend to friends and family.'
-            : 'Nice hotel overall. Room was clean and staff was helpful. Some minor issues but nothing major.',
-          positiveComments: 'Clean rooms, friendly staff, good location',
-          negativeComments: rating < 4 ? 'WiFi could be better' : undefined,
-          submittedAt: Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000,
-          stayDate: Date.now() - Math.floor(Math.random() * 45) * 24 * 60 * 60 * 1000,
-          tripType: ['business', 'leisure', 'family', 'couple'][Math.floor(Math.random() * 4)] as any,
-          verified: Math.random() > 0.3,
-          sentiment: rating >= 4 ? 'positive' : 'neutral',
-          categories: {
-            cleanliness: rating,
-            comfort: rating,
-            location: rating,
-            facilities: rating - 1,
-            staff: rating,
-            valueForMoney: rating - 1
-          },
-          helpful: Math.floor(Math.random() * 20),
-          notHelpful: Math.floor(Math.random() * 3),
-          isPublic: true,
-          syncedToFeedback: false,
-          importedAt: Date.now(),
-          lastSyncedAt: Date.now()
-        }
-        mockReviews.push(review)
+    try {
+      // Detect platform from URL first; fall back to the selected channel mapping
+      const detectedSource = detectReviewSource(url) ?? channelToReviewSource(selectedChannel as OTAChannel)
+
+      const result = await fetchReviewsFromUrl(url, detectedSource)
+
+      if (!result.success || result.reviews.length === 0) {
+        toast.error(result.errors?.[0] ?? 'No reviews found for the provided URL')
+        return
       }
 
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Convert GuestFeedback[] → ChannelReview[] for the channel-manager view
+      const channelReviews: ChannelReview[] = result.reviews.map(feedback => ({
+        id: feedback.id,
+        channel: selectedChannel as OTAChannel,
+        externalReviewId: feedback.externalReviewId ?? `ext-${feedback.id}`,
+        guestName: feedback.guestName,
+        rating: feedback.overallRating,
+        reviewText: feedback.comments ?? '',
+        submittedAt: feedback.submittedAt,
+        verified: true,
+        sentiment: feedback.sentiment,
+        categories: {},
+        helpful: 0,
+        notHelpful: 0,
+        isPublic: feedback.reviewPublic ?? true,
+        syncedToFeedback: false,
+        importedAt: Date.now(),
+        lastSyncedAt: Date.now(),
+        tags: feedback.tags
+      }))
 
-      onSync(mockReviews)
+      onSync(channelReviews)
       onOpenChange(false)
       setUrl('')
       setSelectedChannel('')
-    } catch (error) {
+      toast.success(`Synced ${channelReviews.length} reviews from ${url}`)
+    } catch {
       toast.error('Failed to sync reviews')
     } finally {
       setSyncing(false)
