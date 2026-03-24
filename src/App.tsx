@@ -2131,7 +2131,46 @@ function App() {
         </div>
         
         <footer className="border-t border-border overflow-hidden mt-auto bg-card">
-          <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5">
+          <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5 space-y-2">
+            {/* Knowledge Base links */}
+            <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+              <a
+                href="/docs/index.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-primary hover:underline font-medium"
+              >
+                📚 Knowledge Base
+              </a>
+              <span className="text-foreground/30 text-xs hidden sm:inline">·</span>
+              <a
+                href="/docs/index.html#help"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-muted-foreground hover:text-primary hover:underline"
+              >
+                Help &amp; FAQ
+              </a>
+              <span className="text-foreground/30 text-xs hidden sm:inline">·</span>
+              <a
+                href="/docs/index.html#roadmap"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-muted-foreground hover:text-primary hover:underline"
+              >
+                Roadmap
+              </a>
+              <span className="text-foreground/30 text-xs hidden sm:inline">·</span>
+              <a
+                href="/docs/index.html#changelog"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-muted-foreground hover:text-primary hover:underline"
+              >
+                Changelog
+              </a>
+            </div>
+            {/* Copyright row */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 md:gap-3">
               <p className="text-xs sm:text-sm font-medium text-foreground/80 text-center">
                 © {new Date().getFullYear()} {branding?.hotelName || 'W3 Hotel'}. All Rights Reserved.

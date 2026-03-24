@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>W3 Hotel PMS — Knowledge Base</title>
+  <style>
+    /* ─── Reset & Base ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary:  #16a34a;
+      --primary-light: #dcfce7;
+      --primary-dark:  #15803d;
+      --accent:   #0ea5e9;
+      --surface:  #f8fafc;
+      --card:     #ffffff;
+      --border:   #e2e8f0;
+      --text:     #0f172a;
+      --muted:    #64748b;
+      --sidebar-w: 280px;
+      --header-h:  60px;
+      --radius:    8px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--surface);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+    a { color: var(--primary-dark); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    h1, h2, h3, h4 { font-weight: 700; line-height: 1.3; }
+    p { margin: 0.6em 0; }
+    ul, ol { padding-left: 1.4em; margin: 0.6em 0; }
+    li { margin: 0.35em 0; }
+    code { background: #f1f5f9; border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; font-size: 0.88em; font-family: "Fira Code", Consolas, monospace; }
+    pre { background: #1e293b; color: #e2e8f0; border-radius: var(--radius); padding: 1.1em 1.3em; overflow-x: auto; margin: 0.8em 0; font-size: 0.88em; }
+    pre code { background: none; border: none; padding: 0; color: inherit; }
+    table { border-collapse: collapse; width: 100%; margin: 0.8em 0; }
+    th, td { border: 1px solid var(--border); padding: 0.55em 0.85em; text-align: left; font-size: 0.9em; }
+    th { background: #f1f5f9; font-weight: 600; }
+    tr:nth-child(even) td { background: #f8fafc; }
+
+    /* ─── Header ─────────────────────────────────────────────────── */
+    #top-header {
+      position: fixed; top: 0; left: 0; right: 0; height: var(--header-h);
+      background: var(--primary); color: #fff;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 1.5rem; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    }
+    #top-header .brand { display: flex; align-items: center; gap: 0.6rem; font-size: 1.15rem; font-weight: 700; }
+    #top-header .brand span { opacity: .85; font-weight: 400; font-size: 0.88rem; }
+    #top-header nav { display: flex; gap: 1.2rem; align-items: center; }
+    #top-header nav a { color: rgba(255,255,255,.85); font-size: 0.88rem; font-weight: 500; }
+    #top-header nav a:hover { color: #fff; text-decoration: none; }
+    #menu-toggle { display: none; background: none; border: none; color: #fff; cursor: pointer; font-size: 1.4rem; }
+
+    /* ─── Layout ─────────────────────────────────────────────────── */
+    #layout { display: flex; padding-top: var(--header-h); min-height: 100vh; }
+
+    /* ─── Sidebar ────────────────────────────────────────────────── */
+    #sidebar {
+      width: var(--sidebar-w); min-width: var(--sidebar-w);
+      background: var(--card); border-right: 1px solid var(--border);
+      position: fixed; top: var(--header-h); bottom: 0; left: 0;
+      overflow-y: auto; padding: 1.2rem 0;
+      transition: transform .25s ease;
+      z-index: 90;
+    }
+    #sidebar .section-label {
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--muted);
+      padding: 1rem 1.2rem 0.3rem;
+    }
+    #sidebar a {
+      display: block; padding: 0.4rem 1.2rem; color: var(--text);
+      border-left: 3px solid transparent; font-size: 0.88rem;
+      transition: background .15s, border-color .15s;
+    }
+    #sidebar a:hover, #sidebar a.active {
+      background: var(--primary-light); border-left-color: var(--primary);
+      color: var(--primary-dark); text-decoration: none;
+    }
+
+    /* ─── Main Content ───────────────────────────────────────────── */
+    #main {
+      flex: 1; margin-left: var(--sidebar-w);
+      padding: 2.2rem 2.5rem; max-width: 960px;
+    }
+
+    /* ─── Sections ───────────────────────────────────────────────── */
+    .doc-section { margin-bottom: 3.5rem; scroll-margin-top: calc(var(--header-h) + 16px); }
+    .doc-section > h2 {
+      font-size: 1.55rem; border-bottom: 2px solid var(--primary);
+      padding-bottom: 0.5rem; margin-bottom: 1.2rem; color: var(--primary-dark);
+    }
+    .doc-section h3 { font-size: 1.1rem; margin: 1.4rem 0 0.5rem; color: #1e3a5f; }
+    .doc-section h4 { font-size: 0.95rem; margin: 1rem 0 0.4rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+
+    /* ─── Cards ──────────────────────────────────────────────────── */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.4rem; margin: 0.7rem 0; }
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; margin: 1rem 0; }
+
+    /* ─── Badges ─────────────────────────────────────────────────── */
+    .badge {
+      display: inline-block; font-size: 0.72rem; font-weight: 600; padding: 2px 8px;
+      border-radius: 999px; text-transform: uppercase; letter-spacing: .05em;
+    }
+    .badge-green  { background: #dcfce7; color: #15803d; }
+    .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+    .badge-amber  { background: #fef3c7; color: #92400e; }
+    .badge-violet { background: #ede9fe; color: #6d28d9; }
+    .badge-red    { background: #fee2e2; color: #b91c1c; }
+    .badge-slate  { background: #f1f5f9; color: #475569; }
+
+    /* ─── Callouts ───────────────────────────────────────────────── */
+    .callout { border-left: 4px solid; border-radius: 0 var(--radius) var(--radius) 0; padding: .7rem 1rem; margin: .8rem 0; }
+    .callout-tip   { border-color: var(--primary); background: var(--primary-light); }
+    .callout-warn  { border-color: #f59e0b; background: #fef3c7; }
+    .callout-info  { border-color: var(--accent); background: #e0f2fe; }
+    .callout-title { font-weight: 700; margin-bottom: .25rem; }
+
+    /* ─── Feature Grid ───────────────────────────────────────────── */
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin: 1rem 0; }
+    .feature-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.2rem; }
+    .feature-card h4 { color: var(--primary-dark); margin: 0 0 .4rem; font-size: .95rem; }
+    .feature-card p { font-size: .87rem; color: var(--muted); margin: 0; }
+
+    /* ─── Changelog ──────────────────────────────────────────────── */
+    .cl-entry { border-left: 3px solid var(--border); padding: 0 0 1.5rem 1.5rem; position: relative; margin-left: .5rem; }
+    .cl-entry::before { content: ''; position: absolute; left: -6px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); }
+    .cl-version { font-size: 1.05rem; font-weight: 700; margin-bottom: .25rem; }
+    .cl-date { font-size: 0.8rem; color: var(--muted); margin-bottom: .6rem; }
+    /* New / Fixes sub-sections */
+    .cl-label-new, .cl-label-fix { margin: .6rem 0 .2rem; }
+    .cl-item-label { display: inline-block; font-weight: 700; font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; padding: 1px 8px; border-radius: 4px; margin-bottom: .3rem; }
+    .cl-label-new .cl-item-label { background: #dcfce7; color: #15803d; }
+    .cl-label-fix .cl-item-label { background: #fef3c7; color: #92400e; }
+    .cl-label-new ul, .cl-label-fix ul { margin: .25rem 0 .5rem; padding-left: 1.3em; }
+    .cl-label-new li, .cl-label-fix li { font-size: .88rem; margin: .2rem 0; }
+    .cl-empty { font-size: .88rem; color: var(--muted); font-style: italic; }
+
+    /* ─── Roadmap ────────────────────────────────────────────────── */
+    .rm-phase { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.4rem; margin: 1rem 0; }
+    .rm-phase h3 { display: flex; align-items: center; gap: .5rem; margin: 0 0 .6rem; font-size: 1rem; }
+
+    /* ─── Steps ──────────────────────────────────────────────────── */
+    .steps { counter-reset: step; }
+    .steps li { counter-increment: step; list-style: none; padding-left: 2.2em; position: relative; margin-bottom: .5rem; }
+    .steps li::before { content: counter(step); position: absolute; left: 0; top: 0; background: var(--primary); color: #fff; width: 1.5em; height: 1.5em; border-radius: 50%; font-size: .8em; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+    /* ─── TOC jump ───────────────────────────────────────────────── */
+    .back-top { display: inline-block; font-size: .8rem; color: var(--muted); margin-top: .5rem; }
+
+    /* ─── Keyboard shortcut ──────────────────────────────────────── */
+    kbd { background: #f1f5f9; border: 1px solid #cbd5e1; border-bottom: 2px solid #94a3b8; border-radius: 4px; padding: 1px 6px; font-size: .82em; font-family: inherit; }
+
+    /* ─── Responsive ─────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      #sidebar { transform: translateX(-100%); }
+      #sidebar.open { transform: translateX(0); }
+      #main { margin-left: 0; padding: 1.2rem 1rem; }
+      #menu-toggle { display: block; }
+      #top-header nav { display: none; }
+    }
+    @media print {
+      #top-header, #sidebar, #menu-toggle { display: none; }
+      #main { margin: 0; padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════  TOP HEADER  ═════════ -->
+<header id="top-header">
+  <div class="brand">
+    🏨 W3 Hotel PMS
+    <span>Knowledge Base <!-- KB_VERSION -->v2.1.0</span>
+  </div>
+  <nav>
+    <a href="#documentation">Docs</a>
+    <a href="#help">Help</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#changelog">Changelog</a>
+  </nav>
+  <button id="menu-toggle" onclick="toggleSidebar()" aria-label="Toggle menu">☰</button>
+</header>
+
+<!-- ═══════════════════════════════════════  SIDEBAR  ════════════ -->
+<div id="layout">
+<nav id="sidebar">
+
+  <div class="section-label">Getting Started</div>
+  <a href="#overview">Overview</a>
+  <a href="#quick-start">Quick Start</a>
+  <a href="#roles">User Roles &amp; Permissions</a>
+
+  <div class="section-label">Operations</div>
+  <a href="#dashboard">Dashboard</a>
+  <a href="#front-office">Front Office</a>
+  <a href="#floor-plan">Floor Plan</a>
+  <a href="#housekeeping">Housekeeping</a>
+  <a href="#night-audit">Night Audit</a>
+
+  <div class="section-label">Guest Services</div>
+  <a href="#crm">Guest Relations (CRM)</a>
+  <a href="#extra-services">Extra Services</a>
+  <a href="#booking-engine">Booking Engine</a>
+
+  <div class="section-label">Food &amp; Beverage</div>
+  <a href="#fnb">F&amp;B / POS</a>
+  <a href="#kitchen">Kitchen Operations</a>
+
+  <div class="section-label">Revenue &amp; Channels</div>
+  <a href="#revenue-management">Revenue Management</a>
+  <a href="#channel-manager">Channel Manager</a>
+
+  <div class="section-label">Finance</div>
+  <a href="#finance">Finance Module</a>
+  <a href="#invoice-center">Invoice Center</a>
+  <a href="#master-folio">Master Folio</a>
+
+  <div class="section-label">Supply Chain</div>
+  <a href="#inventory">Inventory</a>
+  <a href="#suppliers">Suppliers</a>
+  <a href="#procurement">Procurement</a>
+
+  <div class="section-label">HR &amp; Admin</div>
+  <a href="#hr">Human Resources</a>
+  <a href="#user-management">User Management</a>
+  <a href="#construction">Construction &amp; Maintenance</a>
+
+  <div class="section-label">Intelligence</div>
+  <a href="#analytics">Analytics</a>
+  <a href="#ai-hub">AI Intelligence Hub</a>
+  <a href="#reports">Reports</a>
+  <a href="#forecasting">Forecasting</a>
+
+  <div class="section-label">System</div>
+  <a href="#settings">Settings</a>
+  <a href="#notifications">Notifications</a>
+
+  <div class="section-label">Reference</div>
+  <a href="#help">Help &amp; FAQ</a>
+  <a href="#roadmap">Roadmap</a>
+  <a href="#changelog">Changelog</a>
+</nav>
+
+<!-- ═══════════════════════════════════════  MAIN CONTENT  ═══════ -->
+<main id="main">
+
+<!-- ══════════════════════  DOCUMENTATION  ══════════════════════════ -->
+<div id="documentation">
+
+<!-- ─────────────────────  OVERVIEW  ────────────────────────────── -->
+<section class="doc-section" id="overview">
+  <h2>🏨 W3 Hotel PMS — Overview</h2>
+  <p>
+    <strong>W3 Hotel PMS</strong> is a comprehensive, cloud-hosted Property Management System designed
+    for hotels of all sizes. It covers the full guest journey — from online booking through check-in,
+    stay operations, housekeeping, food &amp; beverage, procurement, finance, and check-out — with
+    AI-powered insights layered on top.
+  </p>
+  <div class="card-grid">
+    <div class="card"><strong>🖥 Front Office</strong><br>Reservations, check-in/out, folios, guest invoices.</div>
+    <div class="card"><strong>🧹 Housekeeping</strong><br>Room status, task assignment, linen tracking.</div>
+    <div class="card"><strong>🍽 F&amp;B / POS</strong><br>Full restaurant POS, menu management, kitchen orders.</div>
+    <div class="card"><strong>📊 Finance</strong><br>Accounts payable/receivable, GL journal, reconciliation.</div>
+    <div class="card"><strong>🛒 Procurement</strong><br>Purchase orders, GRN, invoice matching, supplier management.</div>
+    <div class="card"><strong>🤖 AI Hub</strong><br>Demand forecasting, auto review replies, upsell engine.</div>
+    <div class="card"><strong>📡 Channel Manager</strong><br>Sync rates &amp; availability with OTAs in real time.</div>
+    <div class="card"><strong>👥 CRM</strong><br>Guest profiles, loyalty, complaints, review management.</div>
+  </div>
+</section>
+
+<!-- ─────────────────────  QUICK START  ─────────────────────────── -->
+<section class="doc-section" id="quick-start">
+  <h2>🚀 Quick Start</h2>
+
+  <h3>First Login</h3>
+  <ol class="steps">
+    <li>Navigate to the PMS URL provided by your administrator.</li>
+    <li>Enter your username and temporary password.</li>
+    <li>If prompted, set a new personal password (8+ characters, mixed case + number).</li>
+    <li>The system lands on the <strong>Dashboard</strong>.</li>
+  </ol>
+
+  <h3>Initial Configuration Wizard</h3>
+  <p>First-time setup is guided by the <strong>Configuration Wizard</strong> (Settings → Setup Wizard). It walks you through:</p>
+  <ul>
+    <li><strong>Hotel Profile</strong> — name, address, contact, logo, branding colours.</li>
+    <li><strong>Room Types &amp; Rooms</strong> — define types (Deluxe, Suite…), then individual rooms.</li>
+    <li><strong>Rate Plans</strong> — base rack rate, season-based and promotional rates.</li>
+    <li><strong>Tax &amp; Service Charge</strong> — VAT, tourism levy, service charge %.</li>
+    <li><strong>User Accounts</strong> — create staff logins with appropriate roles.</li>
+  </ul>
+
+  <div class="callout callout-tip">
+    <div class="callout-title">💡 Tip</div>
+    Complete the wizard before taking reservations to ensure all pricing and tax rules are active.
+  </div>
+
+  <h3>Navigation</h3>
+  <p>The left sidebar groups modules by category. On mobile the sidebar collapses; tap the <kbd>☰</kbd> icon to open it. Use the global search bar (top of main area) to jump directly to a guest, reservation, or room.</p>
+</section>
+
+<!-- ─────────────────────  ROLES  ───────────────────────────────── -->
+<section class="doc-section" id="roles">
+  <h2>👤 User Roles &amp; Permissions</h2>
+  <p>Every user is assigned a <em>role</em> which determines which modules and actions they can access.</p>
+  <table>
+    <thead><tr><th>Role</th><th>Key Access</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-red">Super Admin</span></td><td>Full system access, user management, all settings.</td></tr>
+      <tr><td><span class="badge badge-violet">Admin</span></td><td>All operational modules, settings except user provisioning.</td></tr>
+      <tr><td><span class="badge badge-blue">Manager</span></td><td>All operations, analytics, reports; no system settings.</td></tr>
+      <tr><td><span class="badge badge-green">Front Desk</span></td><td>Reservations, check-in/out, folio, guest CRM.</td></tr>
+      <tr><td><span class="badge badge-green">Reservation</span></td><td>Bookings, availability calendar, channel manager.</td></tr>
+      <tr><td><span class="badge badge-amber">Housekeeper</span></td><td>Room status, housekeeping tasks, amenities stock.</td></tr>
+      <tr><td><span class="badge badge-amber">Chef</span></td><td>Kitchen orders, recipes, food inventory.</td></tr>
+      <tr><td><span class="badge badge-amber">Waiter</span></td><td>POS order entry, table management, menu view.</td></tr>
+      <tr><td><span class="badge badge-amber">Engineer</span></td><td>Maintenance requests, construction projects.</td></tr>
+      <tr><td><span class="badge badge-blue">Accountant</span></td><td>Finance, invoices, journal entries, bank reconciliation.</td></tr>
+      <tr><td><span class="badge badge-blue">Accounts</span></td><td>Payables, receivables, payment processing.</td></tr>
+      <tr><td><span class="badge badge-blue">Procurement Manager</span></td><td>POs, GRNs, suppliers, stock.</td></tr>
+      <tr><td><span class="badge badge-blue">Storekeeper</span></td><td>Inventory counts, issues, adjustments.</td></tr>
+      <tr><td><span class="badge badge-slate">HR Staff</span></td><td>Employee records, attendance, leave, payroll.</td></tr>
+      <tr><td><span class="badge badge-slate">Dept. Head</span></td><td>Department dashboard, approve requests.</td></tr>
+      <tr><td><span class="badge badge-slate">User Requester</span></td><td>Submit purchase/leave requests only.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout callout-info">
+    <div class="callout-title">ℹ Fine-grained Permissions</div>
+    Admins can configure per-resource permissions (read / write / approve / delete) for any role via
+    <strong>Settings → User Management → Permissions</strong>.
+  </div>
+</section>
+
+<!-- ─────────────────────  DASHBOARD  ───────────────────────────── -->
+<section class="doc-section" id="dashboard">
+  <h2>📊 Dashboard</h2>
+  <p>The Dashboard provides a real-time snapshot of hotel performance. It is fully customisable per role.</p>
+
+  <h3>Widget Types</h3>
+  <div class="feature-grid">
+    <div class="feature-card"><h4>Occupancy</h4><p>Live occupancy % with trend vs prior period.</p></div>
+    <div class="feature-card"><h4>Revenue Today</h4><p>Day's revenue split by room, F&amp;B, extras.</p></div>
+    <div class="feature-card"><h4>Room Status</h4><p>Visual breakdown: clean, dirty, occupied, OOO.</p></div>
+    <div class="feature-card"><h4>Housekeeping</h4><p>Pending tasks, assigned vs completed count.</p></div>
+    <div class="feature-card"><h4>Arrivals &amp; Departures</h4><p>Today's arrivals, departures, stay-overs.</p></div>
+    <div class="feature-card"><h4>Financial Summary</h4><p>Revenue, expenses, and net for the period.</p></div>
+    <div class="feature-card"><h4>Channel Performance</h4><p>Bookings by OTA channel with revenue split.</p></div>
+    <div class="feature-card"><h4>Pending Approvals</h4><p>Purchase requests, leave, expenses awaiting approval.</p></div>
+    <div class="feature-card"><h4>F&amp;B Performance</h4><p>Orders, revenue, popular items for F&amp;B today.</p></div>
+    <div class="feature-card"><h4>Guest Feedback</h4><p>Recent reviews and overall satisfaction score.</p></div>
+    <div class="feature-card"><h4>Revenue Chart</h4><p>Rolling 30-day revenue bar chart.</p></div>
+    <div class="feature-card"><h4>Occupancy Chart</h4><p>Rolling 30-day occupancy line chart.</p></div>
+    <div class="feature-card"><h4>Low Stock Alerts</h4><p>Inventory items below reorder threshold.</p></div>
+    <div class="feature-card"><h4>Maintenance Status</h4><p>Open maintenance tickets by priority.</p></div>
+    <div class="feature-card"><h4>Period Comparison</h4><p>Current vs prior period key metrics side-by-side.</p></div>
+    <div class="feature-card"><h4>Department Performance</h4><p>KPIs per department for management oversight.</p></div>
+  </div>
+
+  <h3>Customising the Dashboard</h3>
+  <ol class="steps">
+    <li>Click the <strong>⚙ Customise</strong> button (top-right of the Dashboard).</li>
+    <li>Toggle widgets on/off, drag to reorder.</li>
+    <li>Select widget size: <em>Small</em>, <em>Medium</em>, or <em>Large</em>.</li>
+    <li>Click <strong>Save Layout</strong>. Your layout is saved per user.</li>
+  </ol>
+</section>
+
+<!-- ─────────────────────  FRONT OFFICE  ───────────────────────── -->
+<section class="doc-section" id="front-office">
+  <h2>🛎 Front Office</h2>
+  <p>The Front Office module is the heart of the PMS, handling the complete guest journey.</p>
+
+  <h3>Reservation Management</h3>
+  <ul>
+    <li>Create, edit, and cancel reservations with date pickers.</li>
+    <li>Assign specific rooms or let the system auto-assign.</li>
+    <li>Support for <strong>Group Reservations</strong> — one master booking for multiple guests.</li>
+    <li><strong>Availability Calendar</strong> — colour-coded grid view of all rooms.</li>
+    <li>Attach <strong>Rate Plans</strong> (BAR, Package, Corporate, OTA).</li>
+    <li>Capture deposits and pre-payments.</li>
+  </ul>
+
+  <h3>Check-In Process</h3>
+  <ol class="steps">
+    <li>Search for the guest's reservation (by name, ID, or booking number).</li>
+    <li>Verify ID and confirm room assignment.</li>
+    <li>Click <strong>Check In</strong> — room status changes to Occupied.</li>
+    <li>Generate and print a <strong>Registration Card</strong>.</li>
+  </ol>
+
+  <h3>Folio Management</h3>
+  <p>Every reservation has a <strong>Folio</strong> — a running account of all charges:</p>
+  <ul>
+    <li>Room charges (auto-posted nightly).</li>
+    <li>F&amp;B charges posted from POS.</li>
+    <li>Extra services (spa, laundry, minibar).</li>
+    <li>Manual charge posting.</li>
+    <li>Split folio between multiple payers.</li>
+    <li>Adjustments, discounts, and voids.</li>
+  </ul>
+
+  <h3>Check-Out &amp; Guest Invoice</h3>
+  <ol class="steps">
+    <li>Review the folio for completeness.</li>
+    <li>Apply any discounts or adjustments.</li>
+    <li>Process payment (cash, card, city-ledger, multiple methods).</li>
+    <li>Generate <strong>Guest Invoice</strong> (A4 PDF, email, or print).</li>
+    <li>Room status changes to Dirty → triggers Housekeeping task.</li>
+  </ol>
+
+  <h3>Guest Invoice Features</h3>
+  <ul>
+    <li>Multiple invoice types: Guest Folio, Room-Only, F&amp;B-Only, Proforma, Credit Note, Debit Note.</li>
+    <li>Tax breakdowns (VAT, Tourism Levy) auto-calculated.</li>
+    <li>Multi-currency support with live exchange rates.</li>
+    <li>Company/corporate billing with GST number.</li>
+    <li>Digital signature capture.</li>
+  </ul>
+</section>
+
+<!-- ─────────────────────  FLOOR PLAN  ──────────────────────────── -->
+<section class="doc-section" id="floor-plan">
+  <h2>🗺 Floor Plan</h2>
+  <p>The Floor Plan view provides a visual, drag-and-drop hotel map with live room status overlays.</p>
+  <ul>
+    <li>Build multi-floor layouts with rooms, corridors, and amenities.</li>
+    <li>Colour-coded room states: Clean ✅, Dirty 🟡, Occupied 🔵, Out of Order 🔴, Inspected ✨.</li>
+    <li>Click any room to open its detail — current guest, folio balance, housekeeping notes.</li>
+    <li>Drag-and-drop to reassign guest to a different room (with folio transfer).</li>
+  </ul>
+</section>
+
+<!-- ─────────────────────  HOUSEKEEPING  ────────────────────────── -->
+<section class="doc-section" id="housekeeping">
+  <h2>🧹 Housekeeping</h2>
+
+  <h3>Room Status Workflow</h3>
+  <p>Room status flows: <em>Occupied → Departure → Dirty → Cleaning → Inspected → Clean → Occupied</em>.</p>
+
+  <h3>Task Assignment</h3>
+  <ul>
+    <li>Auto-generate daily task list based on departures and stays.</li>
+    <li>Assign rooms to specific housekeepers by floor or section.</li>
+    <li>Set priority (Urgent, High, Normal).</li>
+    <li>Mobile-friendly task view for staff using phones/tablets.</li>
+  </ul>
+
+  <h3>Amenities &amp; Linen Tracking</h3>
+  <ul>
+    <li>Track minibar consumption per room per stay.</li>
+    <li>Record linen usage and losses.</li>
+    <li>Low-stock alerts trigger procurement requests.</li>
+  </ul>
+
+  <h3>Lost &amp; Found</h3>
+  <p>Log found items with description, location, date, and staff name. Link to guest for return.</p>
+
+  <h3>Batch Operations</h3>
+  <p>Select multiple rooms and update status, assign housekeeper, or mark inspected in one action.</p>
+</section>
+
+<!-- ─────────────────────  NIGHT AUDIT  ─────────────────────────── -->
+<section class="doc-section" id="night-audit">
+  <h2>🌙 Night Audit</h2>
+  <p>Night Audit closes the business day and posts room charges to all in-house folios.</p>
+  <ol class="steps">
+    <li>Verify all check-ins and check-outs are complete.</li>
+    <li>Review the <strong>Audit Checklist</strong> — flags any discrepancies.</li>
+    <li>Run <strong>Room Charge Posting</strong> — posts rate × nights to every occupied folio.</li>
+    <li>Generate the <strong>Daily Report</strong> — occupancy, revenue, departures for next day.</li>
+    <li>Confirm audit to advance the system date.</li>
+  </ol>
+  <div class="callout callout-warn">
+    <div class="callout-title">⚠ Important</div>
+    Night audit cannot be undone. Ensure all transactions are finalised before confirming.
+  </div>
+</section>
+
+<!-- ─────────────────────  CRM  ─────────────────────────────────── -->
+<section class="doc-section" id="crm">
+  <h2>👥 Guest Relations (CRM)</h2>
+
+  <h3>Guest Profiles</h3>
+  <ul>
+    <li>Searchable guest database with full stay history.</li>
+    <li>ID scans, preferences (room type, floor, pillows, dietary).</li>
+    <li>Blacklist flag with reason.</li>
+    <li>VIP tags and special notes.</li>
+  </ul>
+
+  <h3>Loyalty Programme</h3>
+  <ul>
+    <li>Points earned per LKR spent (configurable rate).</li>
+    <li>Tier levels: Silver, Gold, Platinum with benefits.</li>
+    <li>Redeem points at check-out.</li>
+  </ul>
+
+  <h3>Complaints &amp; Feedback</h3>
+  <ul>
+    <li>Log complaints with category, priority, and assigned staff.</li>
+    <li>Track resolution status and SLA timers.</li>
+    <li>Post-stay feedback survey (email link auto-sent).</li>
+  </ul>
+
+  <h3>Review Management</h3>
+  <ul>
+    <li>Sync reviews from Google, TripAdvisor, Booking.com, Agoda, Airbnb.</li>
+    <li>Aggregated review score across all platforms.</li>
+    <li>Respond to reviews directly from the PMS.</li>
+    <li><strong>AI Review Reply Generator</strong> — one-click polite, branded response drafts.</li>
+    <li><strong>Review Widget</strong> — embeddable review badge/carousel for your website.</li>
+  </ul>
+
+  <h3>CRM Campaigns</h3>
+  <ul>
+    <li>Email campaigns (birthday, anniversary, re-engagement, promotions).</li>
+    <li>Segment guests by stay frequency, spend, source.</li>
+    <li>Campaign analytics: open rate, click rate, conversions.</li>
+  </ul>
+</section>
+
+<!-- ─────────────────────  EXTRA SERVICES  ──────────────────────── -->
+<section class="doc-section" id="extra-services">
+  <h2>✨ Extra Services</h2>
+  <p>Manage all ancillary revenue streams (spa, laundry, transfers, tours, etc.).</p>
+  <ul>
+    <li>Create <strong>Service Categories</strong> (Spa, Transport, Tours, Packages…).</li>
+    <li>Add services with pricing, tax rules, and availability windows.</li>
+    <li>Assign services to a reservation from the folio.</li>
+    <li>Services auto-post to the guest folio — no separate billing needed.</li>
+    <li>Track revenue by category in Analytics.</li>
+  </ul>
+</section>
+
+<!-- ─────────────────────  BOOKING ENGINE  ──────────────────────── -->
+<section class="doc-section" id="booking-engine">
+  <h2>🌐 Booking Engine</h2>
+  <p>The built-in Booking Engine lets guests book directly on your website.</p>
+  <ul>
+    <li>Embeddable widget (<code>&lt;iframe&gt;</code> or JavaScript snippet).</li>
+    <li>Real-time availability check against PMS inventory.</li>
+    <li>Dynamic pricing: applies active promotions and seasonal rates.</li>
+    <li>Multi-language and multi-currency support.</li>
+    <li>Online payment gateway integration.</li>
+    <li>Instant confirmation email to guest.</li>
+    <li>Reservation auto-created in PMS Front Office.</li>
+  </ul>
+  <h3>Admin Configuration</h3>
+  <p>Go to <strong>Booking Engine → Admin</strong> to customise: header image, colour theme, terms &amp; conditions, advance booking window, minimum stay, and promo code rules.</p>
+</section>
+
+<!-- ─────────────────────  FNB  ─────────────────────────────────── -->
+<section class="doc-section" id="fnb">
+  <h2>🍽 Food &amp; Beverage / POS</h2>
+
+  <h3>Menu Management</h3>
+  <ul>
+    <li>Unlimited menu categories and items.</li>
+    <li>Item modifiers (size, preparation, extras).</li>
+    <li>Combo meal deals with auto-pricing.</li>
+    <li>Availability toggle (86'd items).</li>
+    <li>Cost vs sale price margin tracking.</li>
+  </ul>
+
+  <h3>POS Order Flow</h3>
+  <ol class="steps">
+    <li>Select table or counter.</li>
+    <li>Add items to order. Apply modifiers if needed.</li>
+    <li>Send to kitchen — order appears on KDS / kitchen printer.</li>
+    <li>Mark items ready, serve, and settle bill.</li>
+    <li>Accept cash, card, room charge, or split between methods.</li>
+  </ol>
+
+  <h3>Table Management</h3>
+  <ul>
+    <li>Floor-plan view of dining areas.</li>
+    <li>Table status: Available, Occupied, Reserved, Cleaning.</li>
+    <li>Merge tables for large parties.</li>
+    <li>Transfer order between tables.</li>
+  </ul>
+
+  <h3>Waste Tracking</h3>
+  <p>Record food waste with quantity, reason, and cost. Feeds into analytics for spoilage reporting.</p>
+
+  <h3>Shift Settlement</h3>
+  <p>End-of-shift cashier report: sales by type, cash variance, voids summary.</p>
+</section>
+
+<!-- ─────────────────────  KITCHEN  ─────────────────────────────── -->
+<section class="doc-section" id="kitchen">
+  <h2>👨‍🍳 Kitchen Operations</h2>
+  <ul>
+    <li><strong>Kitchen Display System (KDS)</strong> — real-time order board by station.</li>
+    <li><strong>Production Schedules</strong> — plan daily production batches for banquets/events.</li>
+    <li><strong>Recipe Management</strong> — store recipes with costing (ingredients vs sale price).</li>
+    <li><strong>Station Management</strong> — assign tickets to grill, pastry, cold, etc.</li>
+    <li><strong>Kitchen Staff</strong> — manage shift assignments and performance.</li>
+    <li>Order prep-time tracking — flags tickets exceeding target time.</li>
+  </ul>
+</section>
+
+<!-- ─────────────────────  REVENUE MANAGEMENT  ──────────────────── -->
+<section class="doc-section" id="revenue-management">
+  <h2>📈 Revenue Management</h2>
+
+  <h3>Rate Plans</h3>
+  <ul>
+    <li>Multiple rate plans per room type (BAR, Package, Corporate, Promotional).</li>
+    <li>Season-based rate multipliers.</li>
+    <li>Minimum stay, close-to-arrival, and stop-sell restrictions.</li>
+  </ul>
+
+  <h3>Dynamic Pricing</h3>
+  <ul>
+    <li>Rule-based auto-adjustments based on occupancy thresholds.</li>
+    <li><strong>AI Pricing Recommendations</strong> — machine-learning suggestions per room type based on demand, seasonality, and historical data.</li>
+    <li>Override with manual rate locks.</li>
+  </ul>
+
+  <h3>Rate Calendar</h3>
+  <p>30 / 60 / 90-day view of rates per room type. Click any cell to edit or apply bulk changes.</p>
+
+  <h3>Revenue Trends</h3>
+  <p>Rolling revenue charts by day, week, and month with segment breakdown (rooms, F&amp;B, extras, other).</p>
+
+  <h3>RevPAR &amp; KPIs</h3>
+  <p>Auto-calculated KPIs: Occupancy %, ADR, RevPAR, TRevPAR, GOP margin — displayed daily and rolling 30-day.</p>
+</section>
+
+<!-- ─────────────────────  CHANNEL MANAGER  ─────────────────────── -->
+<section class="doc-section" id="channel-manager">
+  <h2>📡 Channel Manager</h2>
+  <p>Connect the PMS to OTAs for seamless two-way sync of rates, availability, and reservations.</p>
+
+  <h3>Supported Channels</h3>
+  <div class="card-grid">
+    <div class="card">🌐 <strong>Booking.com</strong></div>
+    <div class="card">✈ <strong>Agoda</strong></div>
+    <div class="card">🏠 <strong>Airbnb</strong></div>
+    <div class="card">📍 <strong>Expedia / Hotels.com</strong></div>
+    <div class="card">🔗 <strong>Custom XML / API</strong></div>
+  </div>
+
+  <h3>Two-Way Sync</h3>
+  <ul>
+    <li><strong>Inventory push</strong> — changes to availability in PMS immediately update all channels.</li>
+    <li><strong>Rate push</strong> — rate plan changes sync to all connected OTAs.</li>
+    <li><strong>Reservation pull</strong> — OTA bookings auto-create reservations in Front Office.</li>
+  </ul>
+
+  <h3>Dashboard</h3>
+  <p>Monitor last-sync time, connection status, recent bookings by channel, and revenue per channel.</p>
+
+  <h3>Channel Configuration</h3>
+  <ol class="steps">
+    <li>Go to Channel Manager → Connections.</li>
+    <li>Select the channel and enter API credentials (provided by the OTA extranet).</li>
+    <li>Map PMS room types to OTA room categories.</li>
+    <li>Map PMS rate plans to OTA rate codes.</li>
+    <li>Run initial inventory sync.</li>
+  </ol>
+</section>
+
+<!-- ─────────────────────  FINANCE  ─────────────────────────────── -->
+<section class="doc-section" id="finance">
+  <h2>💰 Finance Module</h2>
+
+  <h3>Chart of Accounts</h3>
+  <ul>
+    <li>Standard hospitality COA (Revenue, COGS, Operating Expenses, Assets, Liabilities).</li>
+    <li>Add custom accounts and cost centres.</li>
+  </ul>
+
+  <h3>Journal Entries</h3>
+  <ul>
+    <li>Manual journal entries with debit/credit lines.</li>
+    <li>Auto-postings from Night Audit, POS, and Procurement.</li>
+    <li>Recurring journal templates.</li>
+  </ul>
+
+  <h3>Accounts Receivable (AR)</h3>
+  <ul>
+    <li>City-ledger for corporate accounts.</li>
+    <li>AR aging report (30 / 60 / 90 / 120+ days).</li>
+    <li>Statement of accounts, credit limits.</li>
+  </ul>
+
+  <h3>Accounts Payable (AP)</h3>
+  <ul>
+    <li>Supplier invoices linked to POs and GRNs (3-way match).</li>
+    <li>AP aging report.</li>
+    <li>Batch payment run with bank export (CSV/SWIFT).</li>
+  </ul>
+
+  <h3>Bank Reconciliation</h3>
+  <ul>
+    <li>Import bank statements (CSV/Excel).</li>
+    <li>Auto-match transactions to GL entries.</li>
+    <li>Flag and resolve unmatched items.</li>
+  </ul>
+
+  <h3>Financial Reports</h3>
+  <ul>
+    <li>Trial Balance, Income Statement, Balance Sheet.</li>
+    <li>Departmental P&amp;L.</li>
+    <li>Cash Flow Statement.</li>
+    <li>Budget vs Actual Variance.</li>
+    <li>Export to PDF, Excel, CSV.</li>
+  </ul>
+
+  <h3>Petty Cash</h3>
+  <p>Track petty cash float, disbursements, and replenishment by department.</p>
+</section>
+
+<!-- ─────────────────────  INVOICE CENTER  ──────────────────────── -->
+<section class="doc-section" id="invoice-center">
+  <h2>🧾 Invoice Center</h2>
+  <p>Centralised hub for all supplier invoices with AI-assisted OCR scanning.</p>
+  <ul>
+    <li><strong>Invoice Scanning</strong> — upload a scanned PDF or photo; OCR extracts header and line items automatically.</li>
+    <li><strong>3-Way Matching</strong> — auto-matches invoice against linked PO and GRN; flags variances.</li>
+    <li>Approve, reject, or hold invoices for queries.</li>
+    <li>Batch invoice operations — approve or reject multiple at once.</li>
+    <li>Post approved invoices to AP journal.</li>
+    <li>Download invoices as PDF or CSV.</li>
+  </ul>
+</section>
+
+<!-- ─────────────────────  MASTER FOLIO  ────────────────────────── -->
+<section class="doc-section" id="master-folio">
+  <h2>📋 Master Folio</h2>
+  <p>The Master Folio consolidates charges across multiple reservations or folios — typically used for group bookings, long-stay corporates, or travel agents.</p>
+  <ul>
+    <li>Create a master folio and link individual reservation folios.</li>
+    <li>Define what charges transfer to master (room only, F&amp;B, extras).</li>
+    <li>Single invoice to corporate / travel agent covering all linked stays.</li>
+    <li>Partial payment and credit note handling.</li>
+  </ul>
+</section>
+
+<!-- ─────────────────────  INVENTORY  ───────────────────────────── -->
+<section class="doc-section" id="inventory">
+  <h2>📦 Inventory Management</h2>
+  <ul>
+    <li><strong>Item Catalogue</strong> — create inventory items with UOM, reorder points, and par levels.</li>
+    <li><strong>Goods Receipt</strong> — record received items against GRNs, with batch and expiry tracking.</li>
+    <li><strong>Issue &amp; Transfer</strong> — issue items to departments; inter-department transfers.</li>
+    <li><strong>Stock Take</strong> — periodic physical count with variance reporting.</li>
+    <li><strong>Consumption Log</strong> — track kitchen consumption linked to F&amp;B revenue.</li>
+    <li><strong>Low Stock Alerts</strong> — email or in-app alert when stock drops below reorder level.</li>
+    <li>FIFO / Weighted Average cost methods.</li>
+  </ul>
+</section>
+
+<!-- ─────────────────────  SUPPLIERS  ───────────────────────────── -->
+<section class="doc-section" id="suppliers">
+  <h2>🏭 Supplier Management</h2>
+  <ul>
+    <li>Supplier directory with contact details, payment terms, and bank details.</li>
+    <li>Preferred supplier flags per item category.</li>
+    <li><strong>Supplier Disputes</strong> — log and track pricing or quality disputes.</li>
+    <li>Purchase history and spend analytics per supplier.</li>
+    <li>Supplier performance rating.</li>
+  </ul>
+</section>
+
+<!-- ─────────────────────  PROCUREMENT  ─────────────────────────── -->
+<section class="doc-section" id="procurement">
+  <h2>🛒 Procurement</h2>
+
+  <h3>Purchase Requisitions</h3>
+  <p>Any department can raise a requisition. Approving managers review before PO is generated.</p>
+
+  <h3>Purchase Orders</h3>
+  <ol class="steps">
+    <li>Create PO from approved requisition or ad-hoc.</li>
+    <li>Select supplier; line items auto-pull from item catalogue.</li>
+    <li>Obtain management approval (multi-level based on amount).</li>
+    <li>Send PO to supplier via email (PDF attachment auto-generated).</li>
+  </ol>
+
+  <h3>Goods Received Notes (GRN)</h3>
+  <ul>
+    <li>Create GRN against a PO when goods arrive.</li>
+    <li>Record actual received quantities (partial delivery supported).</li>
+    <li>Goods auto-added to inventory on GRN save.</li>
+  </ul>
+
+  <h3>Three-Way Match</h3>
+  <p>The system automatically compares <strong>PO quantity / price</strong> ↔ <strong>GRN quantity</strong> ↔ <strong>Invoice quantity / price</strong> and flags any variance for review.</p>
+</section>
+
+<!-- ─────────────────────  HR  ──────────────────────────────────── -->
+<section class="doc-section" id="hr">
+  <h2>👨‍💼 Human Resources</h2>
+
+  <h3>Employee Records</h3>
+  <ul>
+    <li>Full employee profile: personal, contact, employment terms, documents.</li>
+    <li>Department and job title assignment.</li>
+    <li>Contract and probation period tracking.</li>
+  </ul>
+
+  <h3>Attendance &amp; Shifts</h3>
+  <ul>
+    <li>Duty roster planning by department and week.</li>
+    <li>Clock-in/out recording (manual or via biometric integration).</li>
+    <li>Overtime detection and approval workflow.</li>
+    <li>Shift swap requests.</li>
+  </ul>
+
+  <h3>Leave Management</h3>
+  <ul>
+    <li>Leave types: Annual, Sick, Casual, Maternity, Unpaid.</li>
+    <li>Employee self-service leave request.</li>
+    <li>Manager approval workflow.</li>
+    <li>Leave balance and entitlement tracking.</li>
+  </ul>
+
+  <h3>Performance Reviews</h3>
+  <ul>
+    <li>Quarterly/annual performance appraisal templates.</li>
+    <li>Goal setting and tracking.</li>
+    <li>Multi-rater (360°) feedback option.</li>
+  </ul>
+
+  <h3>Payroll Integration</h3>
+  <ul>
+    <li>Export salary summary with deductions, EPF/ETF to payroll CSV.</li>
+    <li>Pay slip generation (PDF per employee).</li>
+  </ul>
+</section>
+
+<!-- ─────────────────────  USER MANAGEMENT  ─────────────────────── -->
+<section class="doc-section" id="user-management">
+  <h2>🔐 User Management</h2>
+  <ul>
+    <li>Create users with username, email, role, and department.</li>
+    <li>Set temporary passwords with <strong>Must Change on Next Login</strong> flag.</li>
+    <li>Per-user two-factor authentication (TOTP).</li>
+    <li>Session management — force logout from admin panel.</li>
+    <li><strong>Permission Overrides</strong> — grant or restrict specific resources for a user beyond their role default.</li>
+    <li>Activity log: all user logins, changes, and deletions are audited.</li>
+    <li>Account lock after configurable failed login attempts.</li>
+  </ul>
+</section>
+
+<!-- ─────────────────────  CONSTRUCTION  ────────────────────────── -->
+<section class="doc-section" id="construction">
+  <h2>🏗 Construction &amp; Maintenance</h2>
+  <ul>
+    <li><strong>Maintenance Requests</strong> — log by room/area, type, priority, and assign to engineers.</li>
+    <li><strong>Work Orders</strong> — escalate requests to formal work orders with material cost tracking.</li>
+    <li><strong>Construction Projects</strong> — manage renovation projects: tasks, milestones, budget, and subcontractors.</li>
+    <li><strong>Out-of-Order (OOO)</strong> — block rooms from reservations during maintenance.</li>
+    <li>Maintenance history per room for asset lifecycle tracking.</li>
+  </ul>
+</section>
+
+<!-- ─────────────────────  ANALYTICS  ───────────────────────────── -->
+<section class="doc-section" id="analytics">
+  <h2>📉 Analytics</h2>
+  <p>Powerful interactive dashboards across all areas of hotel operations.</p>
+
+  <h3>Available Analytics Dashboards</h3>
+  <div class="feature-grid">
+    <div class="feature-card"><h4>Revenue Analytics</h4><p>Revenue by segment, channel, room type, and period.</p></div>
+    <div class="feature-card"><h4>Occupancy Analytics</h4><p>Occupancy trends, pace report, lead time analysis.</p></div>
+    <div class="feature-card"><h4>F&amp;B Analytics</h4><p>Menu item popularity, covers, average spend per cover.</p></div>
+    <div class="feature-card"><h4>Guest Analytics</h4><p>Top guests, nationality breakdown, repeat vs new.</p></div>
+    <div class="feature-card"><h4>Channel Analytics</h4><p>Booking source mix, OTA commission cost.</p></div>
+    <div class="feature-card"><h4>Finance Analytics</h4><p>Cost ratios, departmental P&amp;L, expense trends.</p></div>
+    <div class="feature-card"><h4>HR Analytics</h4><p>Headcount, turnover, absenteeism, overtime.</p></div>
+    <div class="feature-card"><h4>Inventory Analytics</h4><p>Stock movement, slow-moving items, wastage cost.</p></div>
+  </div>
+
+  <h3>Date Filters &amp; Comparisons</h3>
+  <p>All analytics dashboards support: Today, This Week, This Month, Custom Range, and a <strong>Period Comparison</strong> (current vs prior period) toggle.</p>
+
+  <h3>Export</h3>
+  <p>Every chart and table can be exported as <strong>PDF</strong>, <strong>Excel (XLSX)</strong>, or <strong>CSV</strong> using the download button next to each section.</p>
+</section>
+
+<!-- ─────────────────────  AI HUB  ──────────────────────────────── -->
+<section class="doc-section" id="ai-hub">
+  <h2>🤖 AI Intelligence Hub</h2>
+  <p>AI-powered features powered by OpenAI (GPT) and Google Gemini, configurable per hotel.</p>
+
+  <h3>Demand Forecasting</h3>
+  <ul>
+    <li>AI analyses historical occupancy, events, seasonality, and macro trends.</li>
+    <li>Produces 30 / 60 / 90-day demand forecasts with confidence intervals.</li>
+    <li>Feeds into Revenue Management pricing recommendations.</li>
+  </ul>
+
+  <h3>AI Pricing Recommendations</h3>
+  <ul>
+    <li>Per-room-type dynamic price suggestions based on demand forecast and competitive data.</li>
+    <li>Recommended rate, expected occupancy, and projected revenue per suggestion.</li>
+    <li>One-click apply to live rate plan.</li>
+  </ul>
+
+  <h3>Review Reply Generator</h3>
+  <ul>
+    <li>AI drafts personalised, brand-voice replies to guest reviews.</li>
+    <li>Supports positive, negative, and mixed review tones.</li>
+    <li>Edit draft before publishing directly from the PMS.</li>
+  </ul>
+
+  <h3>AI Guest Messaging</h3>
+  <ul>
+    <li>AI-drafted pre-arrival, in-stay, and post-stay messages.</li>
+    <li>Personalised with guest name, room details, and stay itinerary.</li>
+    <li>Send via email or SMS (SMS gateway integration required).</li>
+  </ul>
+
+  <h3>AI Upselling Engine</h3>
+  <ul>
+    <li>Identifies upsell opportunities: room upgrade, early check-in, late check-out, extra services.</li>
+    <li>Auto-generates personalised upsell offers per guest segment.</li>
+    <li>Tracks offer acceptance rate and incremental revenue.</li>
+  </ul>
+
+  <h3>AI Configuration</h3>
+  <p>Navigate to <strong>Settings → AI Configuration</strong> to:</p>
+  <ul>
+    <li>Select AI provider (OpenAI / Gemini) and enter API key.</li>
+    <li>Set model version and temperature.</li>
+    <li>Define hotel brand voice and preferred language.</li>
+    <li>Enable/disable individual AI features.</li>
+    <li>Set monthly AI usage budget limit.</li>
+  </ul>
+</section>
+
+<!-- ─────────────────────  REPORTS  ─────────────────────────────── -->
+<section class="doc-section" id="reports">
+  <h2>📄 Reports</h2>
+  <p>The Reports module provides pre-built and custom operational reports.</p>
+
+  <h3>Standard Reports</h3>
+  <table>
+    <thead><tr><th>Report</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>Daily Revenue Report</td><td>Room, F&amp;B, extras revenue for the business day.</td></tr>
+      <tr><td>Arrivals / Departures List</td><td>Guests arriving/departing on a selected date.</td></tr>
+      <tr><td>In-House Guest List</td><td>All currently checked-in guests.</td></tr>
+      <tr><td>Occupancy Report</td><td>Occupancy % and room nights by room type and date range.</td></tr>
+      <tr><td>Reservation Report</td><td>All reservations within a date range with status.</td></tr>
+      <tr><td>Revenue by Department</td><td>Revenue broken down by revenue centre.</td></tr>
+      <tr><td>Housekeeping Report</td><td>Task completion, room status summary.</td></tr>
+      <tr><td>F&amp;B Sales Report</td><td>Sales by menu category, outlet, and shift.</td></tr>
+      <tr><td>AP Aging Report</td><td>Outstanding supplier invoices by age bucket.</td></tr>
+      <tr><td>AR Aging Report</td><td>Outstanding guest/corporate balances.</td></tr>
+      <tr><td>Stock Valuation Report</td><td>Current stock on hand at cost and market value.</td></tr>
+      <tr><td>Payroll Summary</td><td>Salary, deductions, EPF/ETF per employee.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Custom Report Builder</h3>
+  <ul>
+    <li>Drag-and-drop field selector across any data domain.</li>
+    <li>Add filters, groupings, and sorting.</li>
+    <li>Save and name custom reports.</li>
+    <li><strong>Scheduled Reports</strong> — auto-email to recipients daily, weekly, or monthly.</li>
+  </ul>
+</section>
+
+<!-- ─────────────────────  FORECASTING  ─────────────────────────── -->
+<section class="doc-section" id="forecasting">
+  <h2>🔭 Forecasting</h2>
+  <ul>
+    <li><strong>Demand Forecast</strong> — 90-day forward occupancy and revenue projection.</li>
+    <li><strong>Budget vs Forecast</strong> — compare current forecast vs approved annual budget.</li>
+    <li><strong>Event Calendar</strong> — tag public holidays and local events that affect demand.</li>
+    <li><strong>Pickup Report</strong> — bookings received per day showing booking pace.</li>
+    <li>Export forecast data to Excel for board presentations.</li>
+  </ul>
+</section>
+
+<!-- ─────────────────────  SETTINGS  ────────────────────────────── -->
+<section class="doc-section" id="settings">
+  <h2>⚙ Settings</h2>
+
+  <h3>Hotel Profile &amp; Branding</h3>
+  <p>Hotel name, address, logo, brand colours, website, social links, and invoice letterhead.</p>
+
+  <h3>Room Configuration</h3>
+  <p>Room types (amenities, photos, descriptions), individual rooms (number, floor, view), and OOO management.</p>
+
+  <h3>Tax &amp; Service Charge</h3>
+  <p>Multiple tax codes (VAT, Tourism Levy, city tax) with GL account mapping.</p>
+
+  <h3>Currency</h3>
+  <p>Base currency, accepted currencies, and live exchange rate feed.</p>
+
+  <h3>Email &amp; Notifications</h3>
+  <ul>
+    <li>SMTP configuration for outbound email.</li>
+    <li>Email templates: booking confirmation, check-in reminder, invoice, post-stay survey.</li>
+    <li>Template variables (<code>{{guest_name}}</code>, <code>{{check_in_date}}</code>, etc.).</li>
+  </ul>
+
+  <h3>Integrations</h3>
+  <p>API keys for payment gateways, SMS, Google Places, and custom webhooks.</p>
+
+  <h3>Backup &amp; Data</h3>
+  <ul>
+    <li>Automated daily database backups.</li>
+    <li>Manual on-demand backup download.</li>
+    <li>Data export (full property export as JSON).</li>
+    <li>System rollback wizard for disaster recovery.</li>
+  </ul>
+
+  <h3>System Logs</h3>
+  <p>Full audit trail: who changed what and when. Searchable by user, module, and date range.</p>
+</section>
+
+<!-- ─────────────────────  NOTIFICATIONS  ───────────────────────── -->
+<section class="doc-section" id="notifications">
+  <h2>🔔 Notifications</h2>
+  <ul>
+    <li>In-app notification centre with read/unread status.</li>
+    <li>Categories: Reservations, Housekeeping, Approvals, Finance, System Alerts.</li>
+    <li>Configure which events trigger email vs in-app notifications per user.</li>
+    <li>Push notifications (browser/PWA) when enabled.</li>
+  </ul>
+</section>
+
+</div> <!-- end #documentation -->
+
+<!-- ══════════════════════  HELP & FAQ  ══════════════════════════════ -->
+<section class="doc-section" id="help">
+  <h2>❓ Help &amp; FAQ</h2>
+
+  <h3>Common Questions</h3>
+
+  <div class="card">
+    <strong>Q: How do I reset a user's password?</strong>
+    <p>Go to <strong>Settings → User Management</strong>, find the user, click <strong>Edit</strong>, and use the <em>Reset Password</em> button. A temporary password is generated and emailed to the user, who must change it on next login.</p>
+  </div>
+
+  <div class="card">
+    <strong>Q: A room is stuck in "Dirty" status — how do I fix it?</strong>
+    <p>In <strong>Housekeeping</strong>, find the room, click the status badge, and manually update it to <em>Clean</em> or <em>Inspected</em>. You can also do this from the Floor Plan.</p>
+  </div>
+
+  <div class="card">
+    <strong>Q: How do I apply a discount to a guest's folio?</strong>
+    <p>Open the folio from <strong>Front Office</strong>, click on the line item, and choose <em>Adjust</em>. Enter the discount amount or percentage and save. The adjustment posts as a negative charge.</p>
+  </div>
+
+  <div class="card">
+    <strong>Q: Channel Manager is not syncing — what do I check?</strong>
+    <p>Navigate to <strong>Channel Manager → Connections</strong>. Check the last-sync timestamp and connection status. Click <em>Test Connection</em>. If red, verify the API credentials in the OTA extranet have not expired.</p>
+  </div>
+
+  <div class="card">
+    <strong>Q: How do I void a posted journal entry?</strong>
+    <p>In <strong>Finance → Journal Entries</strong>, find the entry and click <em>Reverse</em>. A new reversing entry is posted for the same amounts with opposite signs and today's date.</p>
+  </div>
+
+  <div class="card">
+    <strong>Q: Why is the Night Audit blocked?</strong>
+    <p>The audit checklist highlights open items. Common blockers: unchecked-out departures, unapproved folios, or posted charges with no payment. Resolve each flagged item and re-run the audit.</p>
+  </div>
+
+  <div class="card">
+    <strong>Q: How do I enable the AI features?</strong>
+    <p>Go to <strong>Settings → AI Configuration</strong>, select your provider (OpenAI or Gemini), paste your API key, and toggle the features you want. Save settings. AI features appear in the AI Hub sidebar module.</p>
+  </div>
+
+  <div class="card">
+    <strong>Q: Can I export all my hotel data?</strong>
+    <p>Yes. Go to <strong>Settings → Backup &amp; Data</strong> and click <em>Export Full Data</em>. This generates a JSON archive of all records. Use the <em>Rollback Wizard</em> to restore from a previous backup.</p>
+  </div>
+
+  <div class="card">
+    <strong>Q: How are OTA reservations mapped to rooms?</strong>
+    <p>During Channel Manager setup, you map each OTA room category to a PMS room type. When a booking arrives, the PMS assigns an available room of that type. You can change the specific room assignment in Front Office before check-in.</p>
+  </div>
+
+  <div class="card">
+    <strong>Q: What does RevPAR mean and where is it shown?</strong>
+    <p><strong>Revenue Per Available Room</strong> = ADR × Occupancy %. It is displayed on the Revenue Management dashboard and in the Analytics module under Revenue KPIs.</p>
+  </div>
+
+  <div class="card">
+    <strong>Q: How do I add a new changelog entry when releasing a new version?</strong>
+    <p>Edit <code>CHANGELOG.json</code> at the repository root and add a new object at the top of the <code>versions</code> array with <code>"version"</code>, <code>"date"</code>, <code>"new"</code> (array of new features), and <code>"fixes"</code> (array of bug fixes). Then bump <code>"version"</code> in <code>package.json</code> to match. The next <code>npm run build</code> (or <code>npm run update-docs</code>) automatically injects the new HTML into this page.</p>
+  </div>
+
+  <h3>Keyboard Shortcuts</h3>
+  <table>
+    <thead><tr><th>Shortcut</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td>Open global search</td></tr>
+      <tr><td><kbd>N</kbd></td><td>New reservation (from Front Office)</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>Close active dialog</td></tr>
+      <tr><td><kbd>Enter</kbd></td><td>Confirm/Save dialog</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Show contextual help</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Contact &amp; Support</h3>
+  <div class="card">
+    <p>For technical support, feature requests, or bug reports, contact:</p>
+    <ul>
+      <li>📧 Email: <a href="mailto:support@w3media.lk">support@w3media.lk</a></li>
+      <li>🌐 Website: <a href="https://www.w3media.lk" target="_blank">www.w3media.lk</a></li>
+      <li>📞 Phone: +94 77 000 0000</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══════════════════════  ROADMAP  ═════════════════════════════════ -->
+<section class="doc-section" id="roadmap">
+  <h2>🗺 Product Roadmap</h2>
+  <p>This roadmap outlines planned improvements and new features for W3 Hotel PMS. Items are prioritised based on customer feedback and business value.</p>
+
+  <div class="rm-phase">
+    <h3>
+      <span class="badge badge-green">Q2 2026 — In Progress</span>
+      &nbsp;Stability &amp; Core Enhancements
+    </h3>
+    <ul>
+      <li>✅ TypeScript strict-mode compliance across all modules.</li>
+      <li>✅ Dynamic dashboard widget system per role.</li>
+      <li>✅ AI Hub — demand forecasting, review replies, upselling.</li>
+      <li>🔄 Mobile-first housekeeping app (PWA) for room attendants.</li>
+      <li>🔄 Push notification support (browser Web Push).</li>
+      <li>🔄 Improved offline mode — local-first writes with server sync.</li>
+      <li>🔄 Booking Engine v2 — multi-property support.</li>
+    </ul>
+  </div>
+
+  <div class="rm-phase">
+    <h3>
+      <span class="badge badge-blue">Q3 2026 — Planned</span>
+      &nbsp;Revenue &amp; Distribution
+    </h3>
+    <ul>
+      <li>📌 GDS connectivity (Amadeus, Sabre, Galileo) via switch partner.</li>
+      <li>📌 Corporate rate negotiation workflow with RFP tool.</li>
+      <li>📌 Yield management rules engine with real-time competitive rate scraping.</li>
+      <li>📌 Revenue Manager cockpit — single-screen rate decisions for all channels.</li>
+      <li>📌 Package builder — room + F&amp;B + spa bundles with dynamic costing.</li>
+    </ul>
+  </div>
+
+  <div class="rm-phase">
+    <h3>
+      <span class="badge badge-amber">Q4 2026 — Planned</span>
+      &nbsp;Guest Experience &amp; AI
+    </h3>
+    <ul>
+      <li>📌 Digital check-in / check-out via guest portal (no front desk required).</li>
+      <li>📌 Digital room key (mobile key integration with major lock brands).</li>
+      <li>📌 In-room service request app (guests order F&amp;B, request housekeeping).</li>
+      <li>📌 AI-powered chatbot for instant guest enquiries (website + WhatsApp).</li>
+      <li>📌 Personalisation engine — AI-curated offers per guest profile.</li>
+      <li>📌 Voice assistant integration (Alexa for Hospitality, Google Nest).</li>
+    </ul>
+  </div>
+
+  <div class="rm-phase">
+    <h3>
+      <span class="badge badge-violet">2027 — Future Vision</span>
+      &nbsp;Enterprise &amp; Ecosystem
+    </h3>
+    <ul>
+      <li>🔭 Multi-property management — single login across a hotel group.</li>
+      <li>🔭 Central reservations office (CRO) for hotel chains.</li>
+      <li>🔭 Marketplace of third-party integrations (spa, golf, parking).</li>
+      <li>🔭 IoT integration — energy management, smart minibars, door sensors.</li>
+      <li>🔭 Advanced BI — data warehouse + self-service analytics with custom KPIs.</li>
+      <li>🔭 Open API — public REST API for custom integrations.</li>
+      <li>🔭 Franchise / white-label PMS offering.</li>
+    </ul>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-title">💬 Have a Feature Request?</div>
+    Email us at <a href="mailto:support@w3media.lk">support@w3media.lk</a> with the subject
+    <em>"Feature Request"</em>. Upvoted requests are fast-tracked into the roadmap.
+  </div>
+</section>
+
+<!-- ══════════════════════  CHANGELOG  ═══════════════════════════════ -->
+<section class="doc-section" id="changelog">
+  <h2>📋 Changelog</h2>
+  <p>All notable changes to W3 Hotel PMS. The changelog is automatically generated from
+     <code>CHANGELOG.json</code> during each build — each release is split into
+     <span class="badge badge-green" style="font-size:.75rem;">🆕 New Features</span> and
+     <span class="badge badge-amber" style="font-size:.75rem;">🔧 Bug Fixes</span> sections.</p>
+
+<!-- CHANGELOG_START -->
+  <div class="cl-entry">
+    <div class="cl-version">v2.1.0 <span class="badge badge-green">Latest</span></div>
+    <div class="cl-date">March 2026</div>
+    <div class="cl-label-new">
+      <span class="cl-item-label">🆕 New Features</span>
+      <ul>
+      <li>Full HTML Knowledge Base documentation with sidebar navigation, Help, Roadmap, and Changelog sections</li>
+      <li>Footer links to Knowledge Base, Help &amp; FAQ, Roadmap, and Changelog</li>
+      <li>Dashboard widget customisation system per user role</li>
+      <li>Review Widget embed system (horizontal / vertical / badge layouts)</li>
+      <li>AI Intelligence Hub — demand forecasting, review reply generator, AI guest messaging, upsell engine</li>
+      <li>AI Configuration panel in Settings → AI Configuration (OpenAI + Gemini)</li>
+      <li>super-admin and reservation role dashboard widget presets</li>
+      </ul>
+    </div>
+    <div class="cl-label-fix">
+      <span class="cl-item-label">🔧 Bug Fixes</span>
+      <ul>
+      <li>TypeScript: GuestInvoice.totalAmount → grandTotal in AI Pricing Recommendations</li>
+      <li>TypeScript: Missing InvoiceItem required fields in Invoice Scanning OCR flow</li>
+      <li>TypeScript: Missing role entries in ROLE_PRESETS widget config</li>
+      <li>Server startup: OpenAI and Gemini SDK initialisation guarded by env-var presence to prevent crash when keys absent</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="cl-entry">
+    <div class="cl-version">v2.0.0</div>
+    <div class="cl-date">February 2026</div>
+    <div class="cl-label-new">
+      <span class="cl-item-label">🆕 New Features</span>
+      <ul>
+      <li>Channel Manager with Booking.com, Agoda, Airbnb, and Expedia two-way sync</li>
+      <li>Invoice Center with AI-assisted OCR scanning and 3-way PO/GRN/Invoice matching</li>
+      <li>Master Folio for group and corporate consolidated billing</li>
+      <li>Bank Reconciliation module with CSV import and auto-matching</li>
+      <li>Custom Report Builder with drag-and-drop field selector</li>
+      <li>Scheduled Reports — auto-email daily, weekly, or monthly</li>
+      <li>Guest loyalty programme with tiered points system (Silver, Gold, Platinum)</li>
+      <li>Supplier Dispute Management workflow</li>
+      <li>Construction and Project Management module</li>
+      <li>Booking Engine v1 — embeddable widget for direct bookings</li>
+      <li>Multi-level procurement approval thresholds configurable per department</li>
+      </ul>
+    </div>
+    <div class="cl-label-fix">
+      <span class="cl-item-label">🔧 Bug Fixes</span>
+      <ul>
+      <li>Analytics dashboards redesigned with correct date-range comparison logic</li>
+      <li>Night Audit checklist — more granular checks with auto-resolution suggestions</li>
+      <li>Rate limiting applied to all API endpoints</li>
+      <li>CSP and security headers added to server middleware</li>
+      <li>Password generation using crypto-secure rejection-sampling (no modulo bias)</li>
+      <li>JWT session tokens with 8-hour expiry and refresh flow</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="cl-entry">
+    <div class="cl-version">v1.5.0</div>
+    <div class="cl-date">November 2025</div>
+    <div class="cl-label-new">
+      <span class="cl-item-label">🆕 New Features</span>
+      <ul>
+      <li>Floor Plan visual editor with drag-and-drop room layout and live status overlay</li>
+      <li>Extra Services module (spa, transfers, packages) with folio auto-posting</li>
+      <li>Lost and Found tracking in Housekeeping</li>
+      <li>Waste Tracking for Food and Beverage</li>
+      <li>Petty Cash management per department</li>
+      <li>Budget vs Actual variance reports</li>
+      <li>Email template system with variable substitution</li>
+      </ul>
+    </div>
+    <div class="cl-label-fix">
+      <span class="cl-item-label">🔧 Bug Fixes</span>
+      <ul>
+      <li>Room charge auto-posting missed out-of-category room types</li>
+      <li>AR aging calculation was off by one day on the 30-day bucket</li>
+      <li>POS: order modifier prices were not included in shift settlement totals</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="cl-entry">
+    <div class="cl-version">v1.4.0</div>
+    <div class="cl-date">September 2025</div>
+    <div class="cl-label-new">
+      <span class="cl-item-label">🆕 New Features</span>
+      <ul>
+      <li>HR Module: attendance tracking, shift management, leave management, and performance reviews</li>
+      <li>Payroll export in CSV and EPF/ETF format</li>
+      <li>Duty Roster planning tool with weekly view</li>
+      <li>Multi-currency support with live exchange rate feed</li>
+      <li>Departmental P&amp;L report</li>
+      </ul>
+    </div>
+    <div class="cl-label-fix">
+      <span class="cl-item-label">🔧 Bug Fixes</span>
+      <ul>
+      <li>Overtime hours were not correctly detected when shifts crossed midnight</li>
+      <li>Leave balance showed incorrect entitlement for part-year employees</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="cl-entry">
+    <div class="cl-version">v1.3.0</div>
+    <div class="cl-date">July 2025</div>
+    <div class="cl-label-new">
+      <span class="cl-item-label">🆕 New Features</span>
+      <ul>
+      <li>Food and Beverage POS module with full table management</li>
+      <li>Kitchen Display System (KDS) with real-time order board by station</li>
+      <li>Recipe management with food costing</li>
+      <li>Kitchen Operations dashboard</li>
+      <li>Menu combo deals and modifier groups</li>
+      <li>Shift settlement and cashier end-of-day reports</li>
+      </ul>
+    </div>
+    <div class="cl-label-fix">
+      <span class="cl-item-label">🔧 Bug Fixes</span>
+      <ul>
+      <li>Table merge did not correctly transfer all open order items</li>
+      <li>Menu item availability toggle did not reflect immediately on POS terminals</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="cl-entry">
+    <div class="cl-version">v1.2.0</div>
+    <div class="cl-date">May 2025</div>
+    <div class="cl-label-new">
+      <span class="cl-item-label">🆕 New Features</span>
+      <ul>
+      <li>Procurement module: purchase requisitions, purchase orders, GRNs, and 3-way matching</li>
+      <li>Inventory management with FIFO costing and low-stock alerts</li>
+      <li>Supplier management with purchase history and performance ratings</li>
+      <li>Finance module: GL journal, accounts payable, accounts receivable, bank reconciliation</li>
+      <li>Guest Invoice system (folio, proforma, room-only, credit note, debit note types)</li>
+      </ul>
+    </div>
+    <div class="cl-label-fix">
+      <span class="cl-item-label">🔧 Bug Fixes</span>
+      <ul>
+      <li>Partial GRN delivery did not close PO correctly when all items were eventually received</li>
+      <li>Invoice payment split across multiple methods left folio balance negative</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="cl-entry">
+    <div class="cl-version">v1.1.0</div>
+    <div class="cl-date">March 2025</div>
+    <div class="cl-label-new">
+      <span class="cl-item-label">🆕 New Features</span>
+      <ul>
+      <li>CRM module: guest profiles, loyalty tracking, complaint management, and email campaigns</li>
+      <li>Housekeeping task management with room status workflow and batch operations</li>
+      <li>Night Audit with automated room charge posting and daily report generation</li>
+      <li>Analytics dashboards: revenue, occupancy, and guest segment analysis</li>
+      <li>User Management with role-based access control and per-resource permission overrides</li>
+      </ul>
+    </div>
+    <div class="cl-label-fix">
+      <span class="cl-item-label">🔧 Bug Fixes</span>
+      <ul>
+      <li>Guest search returned duplicate results when same name appeared in multiple booking sources</li>
+      <li>Housekeeping task assignment did not persist after page reload</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="cl-entry">
+    <div class="cl-version">v1.0.0</div>
+    <div class="cl-date">January 2025</div>
+    <div class="cl-label-new">
+      <span class="cl-item-label">🆕 New Features</span>
+      <ul>
+      <li>Front Office module: reservations, check-in, check-out, and folio management</li>
+      <li>Room management with types, individual rooms, and availability calendar</li>
+      <li>Basic rate plans and seasonal pricing with restrictions</li>
+      <li>Real-time dashboard with key KPIs (Occupancy, ADR, RevPAR)</li>
+      <li>Multi-role authentication system with role-based access</li>
+      </ul>
+    </div>
+  </div>
+<!-- CHANGELOG_END -->
+</section>
+
+<!-- ════════════════  BACK TO TOP  ═══════════════════════════════════ -->
+<p style="text-align:center; padding: 2rem 0 1rem;">
+  <a href="#top-header" class="back-top">↑ Back to top</a>
+  &nbsp;·&nbsp;
+  <span style="font-size:.8rem; color:#94a3b8;">© 2026 W3 Media PVT LTD. All rights reserved.</span>
+</p>
+
+</main>
+</div><!-- end #layout -->
+
+<script>
+  /* Mobile sidebar toggle */
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+  /* Close sidebar on link click (mobile) */
+  document.querySelectorAll('#sidebar a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.remove('open');
+      }
+    });
+  });
+
+  /* Active sidebar link on scroll */
+  var sections = document.querySelectorAll('.doc-section');
+  var sidebarLinks = document.querySelectorAll('#sidebar a[href^="#"]');
+
+  function onScroll() {
+    var scrollY = window.scrollY + 80;
+    var current = '';
+    sections.forEach(function(s) {
+      if (s.offsetTop <= scrollY) { current = s.id; }
+    });
+    sidebarLinks.forEach(function(a) {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+
+</body>
+</html>

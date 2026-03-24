@@ -1,0 +1,139 @@
+{
+  "versions": [
+    {
+      "version": "2.1.0",
+      "date": "March 2026",
+      "new": [
+        "Full HTML Knowledge Base documentation with sidebar navigation, Help, Roadmap, and Changelog sections",
+        "Footer links to Knowledge Base, Help & FAQ, Roadmap, and Changelog",
+        "Dashboard widget customisation system per user role",
+        "Review Widget embed system (horizontal / vertical / badge layouts)",
+        "AI Intelligence Hub — demand forecasting, review reply generator, AI guest messaging, upsell engine",
+        "AI Configuration panel in Settings → AI Configuration (OpenAI + Gemini)",
+        "super-admin and reservation role dashboard widget presets"
+      ],
+      "fixes": [
+        "TypeScript: GuestInvoice.totalAmount → grandTotal in AI Pricing Recommendations",
+        "TypeScript: Missing InvoiceItem required fields in Invoice Scanning OCR flow",
+        "TypeScript: Missing role entries in ROLE_PRESETS widget config",
+        "Server startup: OpenAI and Gemini SDK initialisation guarded by env-var presence to prevent crash when keys absent"
+      ]
+    },
+    {
+      "version": "2.0.0",
+      "date": "February 2026",
+      "new": [
+        "Channel Manager with Booking.com, Agoda, Airbnb, and Expedia two-way sync",
+        "Invoice Center with AI-assisted OCR scanning and 3-way PO/GRN/Invoice matching",
+        "Master Folio for group and corporate consolidated billing",
+        "Bank Reconciliation module with CSV import and auto-matching",
+        "Custom Report Builder with drag-and-drop field selector",
+        "Scheduled Reports — auto-email daily, weekly, or monthly",
+        "Guest loyalty programme with tiered points system (Silver, Gold, Platinum)",
+        "Supplier Dispute Management workflow",
+        "Construction and Project Management module",
+        "Booking Engine v1 — embeddable widget for direct bookings",
+        "Multi-level procurement approval thresholds configurable per department"
+      ],
+      "fixes": [
+        "Analytics dashboards redesigned with correct date-range comparison logic",
+        "Night Audit checklist — more granular checks with auto-resolution suggestions",
+        "Rate limiting applied to all API endpoints",
+        "CSP and security headers added to server middleware",
+        "Password generation using crypto-secure rejection-sampling (no modulo bias)",
+        "JWT session tokens with 8-hour expiry and refresh flow"
+      ]
+    },
+    {
+      "version": "1.5.0",
+      "date": "November 2025",
+      "new": [
+        "Floor Plan visual editor with drag-and-drop room layout and live status overlay",
+        "Extra Services module (spa, transfers, packages) with folio auto-posting",
+        "Lost and Found tracking in Housekeeping",
+        "Waste Tracking for Food and Beverage",
+        "Petty Cash management per department",
+        "Budget vs Actual variance reports",
+        "Email template system with variable substitution"
+      ],
+      "fixes": [
+        "Room charge auto-posting missed out-of-category room types",
+        "AR aging calculation was off by one day on the 30-day bucket",
+        "POS: order modifier prices were not included in shift settlement totals"
+      ]
+    },
+    {
+      "version": "1.4.0",
+      "date": "September 2025",
+      "new": [
+        "HR Module: attendance tracking, shift management, leave management, and performance reviews",
+        "Payroll export in CSV and EPF/ETF format",
+        "Duty Roster planning tool with weekly view",
+        "Multi-currency support with live exchange rate feed",
+        "Departmental P&L report"
+      ],
+      "fixes": [
+        "Overtime hours were not correctly detected when shifts crossed midnight",
+        "Leave balance showed incorrect entitlement for part-year employees"
+      ]
+    },
+    {
+      "version": "1.3.0",
+      "date": "July 2025",
+      "new": [
+        "Food and Beverage POS module with full table management",
+        "Kitchen Display System (KDS) with real-time order board by station",
+        "Recipe management with food costing",
+        "Kitchen Operations dashboard",
+        "Menu combo deals and modifier groups",
+        "Shift settlement and cashier end-of-day reports"
+      ],
+      "fixes": [
+        "Table merge did not correctly transfer all open order items",
+        "Menu item availability toggle did not reflect immediately on POS terminals"
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "date": "May 2025",
+      "new": [
+        "Procurement module: purchase requisitions, purchase orders, GRNs, and 3-way matching",
+        "Inventory management with FIFO costing and low-stock alerts",
+        "Supplier management with purchase history and performance ratings",
+        "Finance module: GL journal, accounts payable, accounts receivable, bank reconciliation",
+        "Guest Invoice system (folio, proforma, room-only, credit note, debit note types)"
+      ],
+      "fixes": [
+        "Partial GRN delivery did not close PO correctly when all items were eventually received",
+        "Invoice payment split across multiple methods left folio balance negative"
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "date": "March 2025",
+      "new": [
+        "CRM module: guest profiles, loyalty tracking, complaint management, and email campaigns",
+        "Housekeeping task management with room status workflow and batch operations",
+        "Night Audit with automated room charge posting and daily report generation",
+        "Analytics dashboards: revenue, occupancy, and guest segment analysis",
+        "User Management with role-based access control and per-resource permission overrides"
+      ],
+      "fixes": [
+        "Guest search returned duplicate results when same name appeared in multiple booking sources",
+        "Housekeeping task assignment did not persist after page reload"
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "date": "January 2025",
+      "new": [
+        "Front Office module: reservations, check-in, check-out, and folio management",
+        "Room management with types, individual rooms, and availability calendar",
+        "Basic rate plans and seasonal pricing with restrictions",
+        "Real-time dashboard with key KPIs (Occupancy, ADR, RevPAR)",
+        "Multi-role authentication system with role-based access"
+      ],
+      "fixes": []
+    }
+  ]
+}

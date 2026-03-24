@@ -633,6 +633,100 @@ const ROLE_PRESETS: Record<SystemRole | UserRole, RoleWidgetPreset> = {
         'period-comparison': 'large'
       }
     }
+  },
+
+  'super-admin': {
+    role: 'super-admin',
+    name: 'Super Administrator Dashboard',
+    description: 'Full system overview with all operational, financial, and analytical metrics',
+    defaultWidgets: [
+      'occupancy',
+      'revenue-today',
+      'financial-summary',
+      'department-performance',
+      'pending-approvals',
+      'housekeeping',
+      'room-status',
+      'channel-performance'
+    ],
+    recommendedWidgets: [
+      'revenue-chart',
+      'occupancy-chart',
+      'crm-summary',
+      'fnb-performance',
+      'maintenance-status',
+      'period-comparison'
+    ],
+    layout: {
+      columns: 3,
+      widgetSizes: {
+        'occupancy': 'small',
+        'revenue-today': 'small',
+        'financial-summary': 'large',
+        'department-performance': 'large',
+        'pending-approvals': 'medium',
+        'housekeeping': 'small',
+        'room-status': 'large',
+        'channel-performance': 'large',
+        'revenue-chart': 'large',
+        'occupancy-chart': 'large',
+        'crm-summary': 'medium',
+        'fnb-performance': 'medium',
+        'maintenance-status': 'medium',
+        'amenities-stock': 'small',
+        'food-inventory': 'small',
+        'maintenance-construction': 'small',
+        'low-stock': 'large',
+        'arrivals-departures': 'medium',
+        'guest-feedback': 'medium',
+        'kitchen-operations': 'medium',
+        'period-comparison': 'large'
+      }
+    }
+  },
+
+  reservation: {
+    role: 'reservation',
+    name: 'Reservations Dashboard',
+    description: 'Monitor bookings, arrivals, departures, and room availability',
+    defaultWidgets: [
+      'arrivals-departures',
+      'occupancy',
+      'room-status',
+      'channel-performance',
+      'crm-summary'
+    ],
+    recommendedWidgets: [
+      'housekeeping',
+      'revenue-today',
+      'pending-approvals'
+    ],
+    layout: {
+      columns: 3,
+      widgetSizes: {
+        'arrivals-departures': 'large',
+        'occupancy': 'small',
+        'room-status': 'large',
+        'channel-performance': 'large',
+        'crm-summary': 'medium',
+        'housekeeping': 'small',
+        'revenue-today': 'small',
+        'pending-approvals': 'medium',
+        'fnb-performance': 'medium',
+        'maintenance-status': 'medium',
+        'amenities-stock': 'small',
+        'food-inventory': 'small',
+        'maintenance-construction': 'small',
+        'low-stock': 'large',
+        'revenue-chart': 'large',
+        'occupancy-chart': 'large',
+        'department-performance': 'large',
+        'financial-summary': 'medium',
+        'kitchen-operations': 'medium',
+        'guest-feedback': 'medium',
+        'period-comparison': 'large'
+      }
+    }
   }
 }
 

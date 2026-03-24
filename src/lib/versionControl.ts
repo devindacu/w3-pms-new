@@ -1,8 +1,20 @@
+/** Structured changelog entry used in new versions. */
+export interface ChangelogEntry {
+  /** New features added in this version. */
+  new?: string[]
+  /** Bug fixes included in this version. */
+  fixes?: string[]
+}
+
 export interface SystemVersion {
   version: string
   appliedAt: number
   previousVersion?: string
-  changelog?: string[]
+  /**
+   * Changelog for this version. Accepts either a legacy flat string array
+   * (older records) or a structured { new, fixes } object (v2.1+).
+   */
+  changelog?: string[] | ChangelogEntry
 }
 
 export interface VersionInfo {
@@ -36,7 +48,7 @@ async function kvSet<T>(key: string, value: T): Promise<void> {
 
 export class VersionControl {
   private static VERSION_HISTORY_KEY = 'sys-version-history'
-  private static CURRENT_VERSION = '1.1.0'
+  private static CURRENT_VERSION = '2.1.0'
 
   static async getCurrentVersion(): Promise<string> {
     const info = await this.getVersionInfo()
@@ -51,7 +63,10 @@ export class VersionControl {
     return { current, previous, history }
   }
 
-  static async updateVersion(newVersion: string, changelog: string[] = []): Promise<void> {
+  static async updateVersion(
+    newVersion: string,
+    changelog: string[] | ChangelogEntry = []
+  ): Promise<void> {
     const history = (await kvGet<SystemVersion[]>(this.VERSION_HISTORY_KEY)) || []
     const info = await this.getVersionInfo()
 
@@ -69,11 +84,14 @@ export class VersionControl {
     const history = await kvGet<SystemVersion[]>(this.VERSION_HISTORY_KEY)
 
     if (!history || history.length === 0) {
-      await this.updateVersion(this.CURRENT_VERSION, [
-        'Initial version',
-        'Complete hotel management system',
-        'Multi-module architecture',
-      ])
+      await this.updateVersion(this.CURRENT_VERSION, {
+        new: [
+          'Complete hotel management system',
+          'Multi-module architecture',
+          'Full HTML Knowledge Base documentation',
+        ],
+        fixes: [],
+      })
     }
   }
 
