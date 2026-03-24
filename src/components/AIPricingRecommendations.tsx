@@ -92,7 +92,7 @@ export function AIPricingRecommendations({
     return roomTypes.map(rt => {
       const occupancyRate = Math.min(0.95, recentReservations.length / totalRooms)
       const avgInvoiceRate = invoices.length > 0
-        ? invoices.reduce((s, inv) => s + (inv.totalAmount ?? 0), 0) / invoices.length
+        ? invoices.reduce((s, inv) => s + (inv.grandTotal ?? 0), 0) / invoices.length
         : rt.baseRate
 
       let changePct: number
@@ -156,7 +156,7 @@ export function AIPricingRecommendations({
       const totalRooms = Math.max(roomTypes.length * 5, 1)
       const occupancyPct = Math.round(Math.min(95, (recentReservations.length / totalRooms) * 100))
       const avgInvoiceAmt = invoices.length > 0
-        ? Math.round(invoices.reduce((s, inv) => s + (inv.totalAmount ?? 0), 0) / invoices.length)
+        ? Math.round(invoices.reduce((s, inv) => s + (inv.grandTotal ?? 0), 0) / invoices.length)
         : 0
       const roomSummary = roomTypes.map(rt => ({ id: rt.id, name: rt.name, baseRate: rt.baseRate }))
 

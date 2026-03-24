@@ -127,11 +127,16 @@ export function InvoiceScanning({
     const items = ocrData.items.map((item: any, idx: number) => ({
       id: `item-${Date.now()}-${idx}`,
       itemName: item.itemName,
+      name: item.itemName,
       description: item.description || '',
       quantity: item.quantity,
       unit: item.unit,
       unitPrice: item.unitPrice,
+      subtotal: item.quantity * item.unitPrice,
+      taxRate: 0,   // OCR simulation produces document-level tax only; no per-item breakdown
+      taxAmount: 0, // OCR simulation produces document-level tax only; no per-item breakdown
       total: item.total,
+      inventoryItemId: '', // cannot be derived from OCR; must be matched manually after scanning
       poItemId: linkedPO?.items[idx]?.id,
       grnItemId: linkedGRN?.items[idx]?.id,
     }))
@@ -174,7 +179,13 @@ export function InvoiceScanning({
           total: ocrData.total,
           dueDate: ocrData.dueDate,
         },
-        extractedItems: ocrData.items,
+        extractedItems: ocrData.items.map((item: any) => ({
+          description: item.itemName,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          total: item.total,
+          confidence: ocrData.confidence, // document-level confidence used as per-item fallback
+        })),
         processingTime: 1842,
         processedAt: Date.now(),
       },
