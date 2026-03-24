@@ -72,6 +72,13 @@ src/
 - **Spark KV Store**: Persistent client-side storage via `useKV` hooks
 - **GitHub API**: Optional data backup and sync to GitHub repositories
 
+### AI Integration
+- **openai**: OpenAI API SDK (GPT-4o etc.)
+- **@google/generative-ai**: Google Gemini API SDK
+- AI settings stored in `extra_settings` key `ai-configuration` via DB
+- All `/api/ai/*` routes are placed **before** the 404 catch-all handler
+- KNOWN: Neon HTTP driver returns `null` for empty tables — all AI SELECT queries use `.catch(() => [])` workaround
+
 ### Build & Development
 - **Vite**: Build tool and dev server
 - **TypeScript**: Type checking
@@ -93,6 +100,7 @@ HR: `employees`, `shifts`, `attendances`, `leave_requests`, `duty_rosters`
 System: `system_settings`, `system_versions`, `system_users`, `audit_logs`, `activity_logs`
 Revenue: `rate_calendar`, `channels`
 Kitchen: `recipes`, `recipe_ingredients`
+AI: `ai_logs` (usage tracking), `demand_forecasts` (persisted AI forecasts), `ai_insights` (revenue insights)
 
 ### Version Control & Data Persistence Strategy
 - **Schema Versioning**: `system_versions` table tracks applied migrations

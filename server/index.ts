@@ -3337,14 +3337,6 @@ app.post('/api/reviews/sync-from-url', async (req, res) => {
   }
 });
 
-// 404 handler - must be after all routes
-app.use((req, res) => {
-  res.status(404).json({
-    error: 'Not Found',
-    message: `Route ${req.method} ${req.url} not found`,
-  });
-});
-
 // ─── AI Engine Routes ────────────────────────────────────────────────────────
 
 /** Helper: load AI settings from the extra-settings KV store. */
@@ -3643,7 +3635,8 @@ app.get('/api/ai/insights', async (req, res) => {
       .select()
       .from(schema.aiInsights)
       .orderBy(desc(schema.aiInsights.createdAt))
-      .limit(50);
+      .limit(50)
+      .catch(() => []);
     res.json(insights);
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to fetch insights' });
@@ -3678,7 +3671,8 @@ app.get('/api/ai/forecasts', async (req, res) => {
       .select()
       .from(schema.demandForecasts)
       .orderBy(schema.demandForecasts.forecastDate)
-      .limit(90);
+      .limit(90)
+      .catch(() => []);
     res.json(forecasts);
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to fetch forecasts' });
@@ -3695,7 +3689,8 @@ app.get('/api/ai/usage', async (req, res) => {
       .select()
       .from(schema.aiLogs)
       .orderBy(desc(schema.aiLogs.createdAt))
-      .limit(1000);
+      .limit(1000)
+      .catch(() => []);
 
     const totalRequests = logs.length;
     const totalTokens = logs.reduce((s, l) => s + (l.totalTokens ?? 0), 0);
@@ -3729,6 +3724,14 @@ app.get('/api/ai/usage', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to fetch usage stats' });
   }
+});
+
+// 404 handler - must be after all routes (including AI routes)
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Not Found',
+    message: `Route ${req.method} ${req.url} not found`,
+  });
 });
 
 // Error handling middleware - must be last

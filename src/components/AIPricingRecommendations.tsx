@@ -78,109 +78,140 @@ export function AIPricingRecommendations({
   const [selectedRecommendation, setSelectedRecommendation] = useState<PricingRecommendation | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
+  const buildLocalRecommendations = (): PricingRecommendation[] => {
+    const now = Date.now()
+    const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000
+    const month = new Date().getMonth()
+    const isPeakSeason = month >= 10 || month <= 1
+    const isShoulderSeason = month >= 2 && month <= 4
+    const recentReservations = reservations.filter(
+      r => r.checkInDate && new Date(r.checkInDate).getTime() > thirtyDaysAgo
+    )
+    const totalRooms = Math.max(roomTypes.length * 5, 1)
+
+    return roomTypes.map(rt => {
+      const occupancyRate = Math.min(0.95, recentReservations.length / totalRooms)
+      const avgInvoiceRate = invoices.length > 0
+        ? invoices.reduce((s, inv) => s + (inv.totalAmount ?? 0), 0) / invoices.length
+        : rt.baseRate
+
+      let changePct: number
+      let demand: 'low' | 'medium' | 'high' | 'very-high'
+      let seasonality: 'low' | 'peak' | 'shoulder'
+      let reasoning: string[]
+
+      if (isPeakSeason) {
+        seasonality = 'peak'; demand = occupancyRate > 0.75 ? 'very-high' : 'high'
+        changePct = occupancyRate > 0.75 ? 12 : 8
+        reasoning = ['Peak season demand — rate increase recommended', 'High occupancy rate supports premium pricing', 'Advance bookings trending above historical average']
+      } else if (isShoulderSeason) {
+        seasonality = 'shoulder'; demand = occupancyRate > 0.65 ? 'medium' : 'low'
+        changePct = occupancyRate > 0.65 ? 3 : -3
+        reasoning = ['Shoulder season — moderate adjustment advised', 'Rate parity with OTA channels should be maintained']
+      } else {
+        seasonality = 'low'
+        if (occupancyRate < 0.55) {
+          demand = 'low'; changePct = -5
+          reasoning = ['Below-average booking pace — rate reduction to stimulate demand', 'Low occupancy forecast supports promotional pricing']
+        } else {
+          demand = 'medium'; changePct = 2
+          reasoning = ['Stable occupancy — marginal rate increase feasible', 'Historical data supports conservative rate improvement']
+        }
+      }
+
+      const recommendedRate = Math.round(rt.baseRate * (1 + changePct / 100))
+      const confidence = Math.min(95, Math.round(60 + occupancyRate * 35))
+
+      return {
+        roomTypeId: rt.id, roomTypeName: rt.name,
+        currentRate: rt.baseRate, recommendedRate,
+        changePercent: Math.round(changePct * 10) / 10, confidence, reasoning,
+        expectedRevenue: Math.round(recommendedRate * occupancyRate * 30),
+        expectedOccupancy: Math.round(occupancyRate * 100),
+        marketFactors: { demand, competition: 'medium' as const, seasonality },
+        historicalPerformance: {
+          avgOccupancy: Math.round(occupancyRate * 100),
+          avgRate: Math.round(avgInvoiceRate),
+          revpar: Math.round(rt.baseRate * occupancyRate),
+        },
+      }
+    })
+  }
+
   const generateRecommendations = async () => {
+    if (roomTypes.length === 0) {
+      toast.error('No room types configured')
+      return
+    }
     setIsLoading(true)
-    
+    let usedAI = false
+
     try {
+      // Build real historical context from actual DB data
       const now = Date.now()
       const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000
-      const month = new Date().getMonth()
-      const isPeakSeason = month >= 10 || month <= 1
-      const isShoulderSeason = month >= 2 && month <= 4
+      const recentReservations = reservations.filter(
+        r => r.checkInDate && new Date(r.checkInDate).getTime() > thirtyDaysAgo
+      )
+      const totalRooms = Math.max(roomTypes.length * 5, 1)
+      const occupancyPct = Math.round(Math.min(95, (recentReservations.length / totalRooms) * 100))
+      const avgInvoiceAmt = invoices.length > 0
+        ? Math.round(invoices.reduce((s, inv) => s + (inv.totalAmount ?? 0), 0) / invoices.length)
+        : 0
+      const roomSummary = roomTypes.map(rt => ({ id: rt.id, name: rt.name, baseRate: rt.baseRate }))
 
-      const DEMAND_REASONS = [
-        'Current occupancy trending above historical average for this period',
-        'Increased inbound travel demand observed in the region',
-        'Upcoming local events expected to drive short-term demand',
-        'Lead-time bookings suggest higher future demand',
-        'Weekend premium opportunity to capture higher ADR',
-      ]
-      const CAUTION_REASONS = [
-        'Occupancy slightly below target — moderate rate adjustment advised',
-        'Mid-week softness in bookings suggests competitive pressure',
-        'Rate parity with OTA channels should be maintained',
-        'Historical data shows price sensitivity at this rate bracket',
-        'Extended length-of-stay packages recommended alongside rate increase',
-      ]
-      const REDUCE_REASONS = [
-        'Below-average booking pace — stimulate demand with a rate reduction',
-        'Competitor channels pricing lower; adjustment needed for parity',
-        'Low advance bookings for the next 14 days require demand stimulus',
-        'Occupancy forecast below 60% — yield management recommends drop',
-        'Last-minute market segment responds well to promotional rates',
-      ]
+      const systemPrompt = `You are a hotel revenue manager specialising in dynamic pricing for Sri Lankan hotels.
+Analyse the provided data and return a JSON array of pricing recommendations.
+Each element must have: roomTypeId, roomTypeName, currentRate, recommendedRate, changePercent, confidence (0-100),
+reasoning (array of strings), expectedRevenue (monthly), expectedOccupancy (0-100),
+marketFactors: { demand: "low"|"medium"|"high"|"very-high", competition: "low"|"medium"|"high", seasonality: "low"|"peak"|"shoulder" },
+historicalPerformance: { avgOccupancy (0-100), avgRate, revpar }.
+Return ONLY a valid JSON array, no markdown.`
 
-      await new Promise(resolve => setTimeout(resolve, 800))
+      const userPrompt = `Hotel data:
+- Current month: ${new Date().toLocaleString('default', { month: 'long' })} (month index ${new Date().getMonth()})
+- Overall occupancy last 30 days: ${occupancyPct}%
+- Average invoice amount: LKR ${avgInvoiceAmt}
+- Total recent reservations: ${recentReservations.length}
+- Room types: ${JSON.stringify(roomSummary)}
+Generate pricing recommendations for each room type.`
 
-      const processedRecommendations: PricingRecommendation[] = roomTypes.map(rt => {
-        const rtReservations = reservations.filter(
-          r => r.checkInDate && new Date(r.checkInDate).getTime() > thirtyDaysAgo
-        )
-        const occupancyRate = Math.min(0.95, 0.45 + (rtReservations.length / Math.max(roomTypes.length * 5, 1)) + (Math.random() * 0.2))
-
-        let changePct: number
-        let demand: 'low' | 'medium' | 'high' | 'very-high'
-        let seasonality: 'low' | 'peak' | 'shoulder'
-        let reasoning: string[]
-
-        if (isPeakSeason) {
-          seasonality = 'peak'
-          changePct = 8 + Math.random() * 12
-          demand = occupancyRate > 0.75 ? 'very-high' : 'high'
-          reasoning = DEMAND_REASONS.sort(() => Math.random() - 0.5).slice(0, 4)
-        } else if (isShoulderSeason) {
-          seasonality = 'shoulder'
-          changePct = -2 + Math.random() * 8
-          demand = occupancyRate > 0.65 ? 'medium' : 'low'
-          reasoning = CAUTION_REASONS.sort(() => Math.random() - 0.5).slice(0, 3)
-        } else {
-          seasonality = 'low'
-          if (occupancyRate < 0.55) {
-            changePct = -(2 + Math.random() * 6)
-            demand = 'low'
-            reasoning = REDUCE_REASONS.sort(() => Math.random() - 0.5).slice(0, 3)
-          } else {
-            changePct = Math.random() * 5
-            demand = 'medium'
-            reasoning = CAUTION_REASONS.sort(() => Math.random() - 0.5).slice(0, 3)
-          }
-        }
-
-        changePct = Math.round(changePct * 10) / 10
-        const recommendedRate = Math.round(rt.baseRate * (1 + changePct / 100))
-        const confidence = Math.round(70 + occupancyRate * 25 + Math.random() * 5)
-
-        return {
-          roomTypeId: rt.id,
-          roomTypeName: rt.name,
-          currentRate: rt.baseRate,
-          recommendedRate,
-          changePercent: changePct,
-          confidence,
-          reasoning,
-          expectedRevenue: Math.round(recommendedRate * occupancyRate * 30),
-          expectedOccupancy: Math.round(occupancyRate * 100),
-          marketFactors: {
-            demand,
-            competition: 'medium' as const,
-            seasonality,
-          },
-          historicalPerformance: {
-            avgOccupancy: Math.round((occupancyRate - 0.05 + Math.random() * 0.1) * 100),
-            avgRate: Math.round(rt.baseRate * (0.92 + Math.random() * 0.1)),
-            revpar: Math.round(rt.baseRate * occupancyRate * 0.95),
-          },
-        }
+      const res = await fetch('/api/ai/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: userPrompt, systemPrompt, feature: 'smartPricing', maxTokens: 2048, temperature: 0.3 }),
       })
 
-      setRecommendations(processedRecommendations)
-      toast.success('Pricing recommendations generated')
-    } catch (error) {
-      console.error('Error generating recommendations:', error)
-      toast.error('Failed to generate recommendations')
-    } finally {
-      setIsLoading(false)
+      if (res.ok) {
+        const data = await res.json()
+        try {
+          const jsonMatch = data.text.match(/\[[\s\S]*\]/)
+          if (jsonMatch) {
+            const parsed: PricingRecommendation[] = JSON.parse(jsonMatch[0])
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setRecommendations(parsed)
+              toast.success(`AI pricing recommendations generated using ${data.provider}`)
+              usedAI = true
+            }
+          }
+        } catch { /* fallback to local */ }
+        if (!usedAI) toast.warning('AI response could not be parsed — using local analysis')
+      } else {
+        const err = await res.json().catch(() => ({}))
+        if (!err.error?.includes('not configured') && !err.error?.includes('AI not configured')) {
+          toast.warning('AI unavailable, using local analysis')
+        }
+      }
+    } catch { /* network error — fall through to local */ }
+
+    if (!usedAI) {
+      // Local algorithm fallback — uses real reservation/invoice data, no random values
+      const localRecs = buildLocalRecommendations()
+      setRecommendations(localRecs)
+      toast.info('Pricing analysis complete. Configure AI in Settings → AI Configuration for AI-powered recommendations.')
     }
+
+    setIsLoading(false)
   }
 
   const handleApplyRecommendation = (rec: PricingRecommendation) => {

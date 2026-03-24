@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -107,6 +107,22 @@ export function AIConfigurationSettings() {
     monthlyTokenLimit: config.monthlyTokenLimit,
     features: { ...config.features },
   })
+
+  // Sync form when config loads from DB
+  useEffect(() => {
+    setForm({
+      provider: config.provider,
+      openaiApiKey: config.openaiApiKey ?? '',
+      geminiApiKey: config.geminiApiKey ?? '',
+      openaiModel: config.openaiModel,
+      geminiModel: config.geminiModel,
+      temperature: config.temperature,
+      maxTokens: config.maxTokens,
+      failoverEnabled: config.failoverEnabled,
+      monthlyTokenLimit: config.monthlyTokenLimit,
+      features: { ...config.features },
+    })
+  }, [config])
 
   const handleSave = () => {
     setConfig(prev => ({

@@ -291,17 +291,7 @@ export function ForecastingAnalytics({
       })
     }
     
-    if (history.length === 0) {
-      const daysBack = 30
-      for (let i = daysBack; i > 0; i--) {
-        const variance = (Math.random() - 0.5) * 0.3
-        const quantity = (item.reorderLevel * 0.5) * (1 + variance)
-        history.push({
-          date: Date.now() - (i * 24 * 60 * 60 * 1000),
-          quantity
-        })
-      }
-    }
+    // No history available — return empty so charts show "no data" instead of fake values
     
     return history
   }
