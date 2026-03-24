@@ -45,7 +45,8 @@ import {
   Layout,
   ArrowsOutCardinal,
   Ticket,
-  SignOut
+  SignOut,
+  Brain,
 } from '@phosphor-icons/react'
 import { ServerSyncStatusIndicator } from '@/components/ServerSyncStatusIndicator'
 import { ServerSyncConflictDialog } from '@/components/ServerSyncConflictDialog'
@@ -168,6 +169,7 @@ import { Procurement } from '@/components/Procurement'
 import { FnBPOS } from '@/components/FnBPOS'
 import { KitchenOperations } from '@/components/KitchenOperations'
 import { ForecastingAnalytics } from '@/components/ForecastingAnalytics'
+import { AIHub } from '@/components/AIHub'
 import { NotificationPanel } from '@/components/NotificationPanel'
 import { DashboardAlerts } from '@/components/DashboardAlerts'
 import { generateAllAlerts } from '@/lib/notificationHelpers'
@@ -240,7 +242,7 @@ import type {
   EmailCampaignAnalytics
 } from '@/lib/types'
 
-type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'revenue-management' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio' | 'floor-plan' | 'booking-engine'
+type Module = 'dashboard' | 'front-office' | 'housekeeping' | 'fnb' | 'inventory' | 'procurement' | 'finance' | 'hr' | 'analytics' | 'construction' | 'suppliers' | 'user-management' | 'kitchen' | 'forecasting' | 'notifications' | 'crm' | 'channel-manager' | 'revenue-management' | 'extra-services' | 'invoice-center' | 'settings' | 'revenue-trends' | 'reports' | 'night-audit' | 'master-folio' | 'floor-plan' | 'booking-engine' | 'ai-hub'
 
 function App() {
   // ─── Authentication State ────────────────────────────────────────────────────
@@ -1396,6 +1398,15 @@ function App() {
           </Button>
 
           <Button
+            variant={currentModule === 'ai-hub' ? 'default' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => setCurrentModule('ai-hub')}
+          >
+            <Brain size={18} className="mr-2" />
+            AI Hub
+          </Button>
+
+          <Button
             variant={currentModule === 'reports' ? 'default' : 'ghost'}
             className="w-full justify-start"
             onClick={() => setCurrentModule('reports')}
@@ -1779,6 +1790,12 @@ function App() {
               consumptionLogs={consumptionLogs || []}
               recipes={recipes || []}
               menus={menus || []}
+            />
+          )}
+          {currentModule === 'ai-hub' && (
+            <AIHub
+              reservations={reservations || []}
+              branding={branding}
             />
           )}
           {currentModule === 'crm' && (
