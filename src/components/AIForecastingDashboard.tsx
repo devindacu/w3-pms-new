@@ -66,8 +66,10 @@ const PRIORITY_ICONS: Record<string, React.ReactNode> = {
 
 function buildHistoricalData(reservations: Reservation[]): Array<{ date: string; occupancy: number; adr: number }> {
   const grouped: Record<string, { rooms: Set<string>; totalRevenue: number; count: number }> = {}
+  const baseDate = new Date()
+  baseDate.setHours(0, 0, 0, 0)
   const last90Days = Array.from({ length: 90 }, (_, i) => {
-    const d = new Date()
+    const d = new Date(baseDate)
     d.setDate(d.getDate() - (89 - i))
     return d.toISOString().split('T')[0]
   })
@@ -249,7 +251,7 @@ export function AIForecastingDashboard({ reservations, branding }: AIForecasting
   // Heatmap data: group forecasts by week + day
   const heatmapRows = forecasts.slice(0, Number(forecastDays)).reduce<Record<string, AIDemandForecast[]>>((acc, f) => {
     const d = new Date(f.date)
-    const week = `Week ${Math.ceil(d.getDate() / 7)}, ${d.toLocaleString('default', { month: 'short' })}`
+    const week = `${d.toLocaleString('default', { month: 'short', year: 'numeric' })} – Week ${Math.ceil((d.getDate() + d.getDay()) / 7)}`
     if (!acc[week]) acc[week] = []
     acc[week].push(f)
     return acc

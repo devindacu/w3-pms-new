@@ -22,6 +22,8 @@ export interface AIResponse {
 
 /**
  * Estimate cost in USD per 1K tokens based on model name.
+ * Prices as of 2025-Q1 — update when OpenAI/Google change their pricing.
+ * Source: https://openai.com/pricing and https://ai.google.dev/pricing
  */
 function estimateCostPer1kTokens(model: string): number {
   if (model.includes('gpt-4o-mini')) return 0.00015
@@ -97,6 +99,7 @@ async function callGemini(
 
   // Gemini SDK v0.24 provides usageMetadata
   const usage = (response as any).usageMetadata
+  // Fallback: rough approximation of ~4 chars per token (less accurate for non-English text)
   const promptTokens: number = usage?.promptTokenCount ?? Math.ceil(fullPrompt.length / 4)
   const completionTokens: number = usage?.candidatesTokenCount ?? Math.ceil(text.length / 4)
 

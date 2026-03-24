@@ -3521,7 +3521,7 @@ app.post('/api/ai/forecast-demand', async (req, res) => {
             demandLevel: String(f.demandLevel ?? 'medium'),
             factors: Array.isArray(f.factors) ? f.factors : [],
           });
-        } catch { /* skip duplicates */ }
+        } catch (insertErr) { console.warn('[AI] Skipping forecast row insert:', (insertErr as Error).message) }
       }
     }
 
@@ -3574,7 +3574,7 @@ app.post('/api/ai/revenue-insights', async (req, res) => {
             recommendation: String(ins.recommendation ?? ''),
             potentialImpact: ins.potentialImpact ? String(ins.potentialImpact) : null,
           });
-        } catch { /* skip */ }
+        } catch (insertErr) { console.warn('[AI] Skipping insight row insert:', (insertErr as Error).message) }
       }
     }
 

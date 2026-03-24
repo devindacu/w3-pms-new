@@ -136,7 +136,7 @@ export function AIConfigurationSettings() {
     try {
       // Save current form first so the server can use the keys
       handleSave()
-      await new Promise(resolve => setTimeout(resolve, 300)) // wait for save debounce
+      await new Promise(resolve => setTimeout(resolve, 500)) // wait for useSettingState debounce (500ms) to flush to the server
 
       const res = await fetch('/api/ai/request', {
         method: 'POST',
