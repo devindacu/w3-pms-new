@@ -13,6 +13,7 @@ import { GoogleAnalyticsSettings } from '@/components/GoogleAnalyticsSettings'
 import { SyncTestingPanel } from '@/components/SyncTestingPanel'
 import { CurrencyManagement } from '@/components/CurrencyManagement'
 import { EmailSMTPSettings } from '@/components/EmailSMTPSettings'
+import { AIConfigurationSettings } from '@/components/AIConfigurationSettings'
 import type { 
   HotelBranding, 
   TaxConfiguration, 
@@ -33,6 +34,7 @@ import {
   ArrowsClockwise,
   CurrencyDollar,
   WifiHigh,
+  Brain,
 } from '@phosphor-icons/react'
 
 interface SettingsProps {
@@ -125,6 +127,10 @@ export function Settings({
             <ArrowsClockwise size={18} />
             <span className="hidden sm:inline">Sync Testing</span>
           </TabsTrigger>
+          <TabsTrigger value="ai-configuration" className="gap-2">
+            <Brain size={18} />
+            <span className="hidden sm:inline">AI Configuration</span>
+          </TabsTrigger>
           <TabsTrigger value="preferences" className="gap-2">
             <User size={18} />
             <span className="hidden sm:inline">Preferences</span>
@@ -209,6 +215,10 @@ export function Settings({
 
         <TabsContent value="sync-testing" className="mt-6">
           <SyncTestingPanel />
+        </TabsContent>
+
+        <TabsContent value="ai-configuration" className="mt-6">
+          <AIConfigurationSettings />
         </TabsContent>
 
         <TabsContent value="preferences" className="mt-6">

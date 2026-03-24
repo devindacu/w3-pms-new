@@ -4841,3 +4841,127 @@ export interface ReviewWidgetConfig {
   createdAt: number
   updatedAt: number
 }
+
+// ─── AI Engine Types ─────────────────────────────────────────────────────────
+
+export type AIProvider = 'openai' | 'gemini' | 'auto'
+export type AIModel =
+  | 'gpt-4o'
+  | 'gpt-4o-mini'
+  | 'gpt-4-turbo'
+  | 'gemini-1.5-pro'
+  | 'gemini-1.5-flash'
+  | 'gemini-2.0-flash'
+
+export type AIFeatureKey =
+  | 'guestMessaging'
+  | 'reviewReplies'
+  | 'bookingAssistant'
+  | 'demandForecasting'
+  | 'revenueInsights'
+  | 'upsellingEngine'
+  | 'smartPricing'
+  | 'autoTranslation'
+
+export interface AIConfiguration {
+  id: string
+  provider: AIProvider
+  openaiApiKey?: string
+  geminiApiKey?: string
+  openaiModel: AIModel
+  geminiModel: AIModel
+  temperature: number
+  maxTokens: number
+  features: Record<AIFeatureKey, boolean>
+  failoverEnabled: boolean
+  monthlyTokenLimit: number
+  currentMonthTokens: number
+  isActive: boolean
+  createdAt: number
+  updatedAt: number
+}
+
+export interface AILog {
+  id: string
+  provider: AIProvider
+  model: AIModel
+  feature: AIFeatureKey
+  promptTokens: number
+  completionTokens: number
+  totalTokens: number
+  cost: number
+  success: boolean
+  errorMessage?: string
+  latencyMs: number
+  createdAt: number
+}
+
+export interface AIDemandForecast {
+  id: string
+  date: string
+  predictedOccupancy: number
+  predictedADR: number
+  predictedRevenue: number
+  confidence: number
+  demandLevel: 'low' | 'medium' | 'high' | 'very-high'
+  factors: string[]
+  generatedAt: number
+}
+
+export interface AIInsight {
+  id: string
+  type: 'pricing' | 'occupancy' | 'revenue' | 'promotion' | 'risk' | 'upsell'
+  priority: 'low' | 'medium' | 'high' | 'critical'
+  title: string
+  description: string
+  recommendation: string
+  potentialImpact?: string
+  isRead: boolean
+  isDismissed: boolean
+  expiresAt?: number
+  createdAt: number
+}
+
+export interface AIUsageStats {
+  totalRequests: number
+  totalTokens: number
+  totalCost: number
+  requestsByProvider: Record<string, number>
+  requestsByFeature: Record<string, number>
+  avgLatencyMs: number
+  successRate: number
+  currentMonthCost: number
+}
+
+export interface ReviewReplyRequest {
+  reviewText: string
+  rating: number
+  guestName: string
+  platform: string
+  tone: 'friendly' | 'professional' | 'apologetic'
+  hotelName: string
+}
+
+export interface GuestMessageRequest {
+  guestName: string
+  guestMessage: string
+  language?: string
+  context?: string
+}
+
+export interface UpsellSuggestion {
+  id: string
+  guestId: string
+  guestName: string
+  roomType: string
+  checkInDate: string
+  checkOutDate: string
+  suggestions: Array<{
+    type: 'room-upgrade' | 'spa' | 'dining' | 'transport' | 'activity'
+    title: string
+    description: string
+    price: number
+    confidence: number
+  }>
+  generatedAt: number
+}

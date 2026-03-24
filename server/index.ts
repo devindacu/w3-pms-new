@@ -3,6 +3,15 @@ import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import {
+  sendAIRequest,
+  calculateCost,
+  buildReviewReplyPrompt,
+  buildGuestMessagePrompt,
+  buildUpsellPrompt,
+  buildForecastPrompt,
+  buildRevenueInsightsPrompt,
+} from './services/aiService';
 import { db } from './db';
 import * as schema from '../shared/schema';
 import { eq, and, lte, gte, ne, sql, desc } from 'drizzle-orm';
@@ -3286,6 +3295,392 @@ app.use((req, res) => {
     error: 'Not Found',
     message: `Route ${req.method} ${req.url} not found`,
   });
+});
+
+// ─── AI Engine Routes ────────────────────────────────────────────────────────
+
+/** Helper: load AI settings from the extra-settings KV store. */
+async function loadAISettings() {
+  try {
+    const rows = await db
+      .select()
+      .from(schema.extraSettings)
+      .where(eq(schema.extraSettings.key, 'ai-configuration'));
+    if (rows.length > 0 && rows[0].value) return rows[0].value as Record<string, unknown>;
+  } catch { /* ignore */ }
+  return null;
+}
+
+/** Helper: append an AI log entry. */
+async function logAIUsage(entry: {
+  provider: string; model: string; feature: string;
+  promptTokens: number; completionTokens: number; totalTokens: number;
+  costUsd: number; success: boolean; errorMessage?: string; latencyMs: number;
+}) {
+  try {
+    await db.insert(schema.aiLogs).values({
+      provider: entry.provider,
+      model: entry.model,
+      feature: entry.feature,
+      promptTokens: entry.promptTokens,
+      completionTokens: entry.completionTokens,
+      totalTokens: entry.totalTokens,
+      costUsd: String(entry.costUsd),
+      success: entry.success,
+      errorMessage: entry.errorMessage,
+      latencyMs: entry.latencyMs,
+    });
+  } catch { /* ignore logging errors */ }
+}
+
+/**
+ * POST /api/ai/request
+ * General-purpose AI request: guest messaging, review replies, etc.
+ */
+app.post('/api/ai/request', async (req, res) => {
+  try {
+    const { prompt, systemPrompt, feature, provider, model, temperature, maxTokens } = req.body;
+    if (!prompt) return res.status(400).json({ error: 'prompt is required' });
+
+    const settings = await loadAISettings() as Record<string, unknown> | null;
+    if (!settings) return res.status(400).json({ error: 'AI not configured. Please set API keys in Settings → AI Configuration.' });
+
+    const response = await sendAIRequest(prompt, {
+      systemPrompt,
+      feature: feature ?? 'general',
+      provider: (provider ?? settings.provider ?? 'auto') as 'openai' | 'gemini' | 'auto',
+      model: model ?? undefined,
+      temperature: temperature ?? Number(settings.temperature ?? 0.7),
+      maxTokens: maxTokens ?? Number(settings.maxTokens ?? 1024),
+      openaiApiKey: settings.openaiApiKey as string | undefined,
+      geminiApiKey: settings.geminiApiKey as string | undefined,
+      failoverEnabled: (settings.failoverEnabled as boolean | undefined) ?? true,
+    });
+
+    await logAIUsage({
+      provider: response.provider,
+      model: response.model,
+      feature: feature ?? 'general',
+      promptTokens: response.promptTokens,
+      completionTokens: response.completionTokens,
+      totalTokens: response.totalTokens,
+      costUsd: calculateCost(response.totalTokens, response.model),
+      success: true,
+      latencyMs: response.latencyMs,
+    });
+
+    res.json({ text: response.text, provider: response.provider, model: response.model, usage: { promptTokens: response.promptTokens, completionTokens: response.completionTokens, totalTokens: response.totalTokens } });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'AI request failed';
+    await logAIUsage({ provider: 'unknown', model: 'unknown', feature: req.body.feature ?? 'general', promptTokens: 0, completionTokens: 0, totalTokens: 0, costUsd: 0, success: false, errorMessage: message, latencyMs: 0 });
+    res.status(500).json({ error: message });
+  }
+});
+
+/**
+ * POST /api/ai/review-reply
+ * Generate a reply to a guest review.
+ */
+app.post('/api/ai/review-reply', async (req, res) => {
+  try {
+    const { reviewText, rating, guestName, platform, tone, hotelName } = req.body;
+    if (!reviewText) return res.status(400).json({ error: 'reviewText is required' });
+
+    const settings = await loadAISettings() as Record<string, unknown> | null;
+    if (!settings) return res.status(400).json({ error: 'AI not configured.' });
+
+    const { systemPrompt, userPrompt } = buildReviewReplyPrompt({ reviewText, rating: Number(rating) || 4, guestName: guestName ?? 'Guest', platform: platform ?? 'Review Platform', tone: tone ?? 'professional', hotelName: hotelName ?? 'Our Hotel' });
+
+    const response = await sendAIRequest(userPrompt, {
+      systemPrompt,
+      feature: 'reviewReplies',
+      provider: (settings.provider ?? 'auto') as 'openai' | 'gemini' | 'auto',
+      temperature: 0.7,
+      maxTokens: 512,
+      openaiApiKey: settings.openaiApiKey as string | undefined,
+      geminiApiKey: settings.geminiApiKey as string | undefined,
+      failoverEnabled: (settings.failoverEnabled as boolean | undefined) ?? true,
+    });
+
+    await logAIUsage({ provider: response.provider, model: response.model, feature: 'reviewReplies', promptTokens: response.promptTokens, completionTokens: response.completionTokens, totalTokens: response.totalTokens, costUsd: calculateCost(response.totalTokens, response.model), success: true, latencyMs: response.latencyMs });
+    res.json({ reply: response.text, provider: response.provider, model: response.model });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to generate review reply' });
+  }
+});
+
+/**
+ * POST /api/ai/guest-message
+ * Auto-reply to a guest inquiry.
+ */
+app.post('/api/ai/guest-message', async (req, res) => {
+  try {
+    const { guestName, guestMessage, language, context, hotelName } = req.body;
+    if (!guestMessage) return res.status(400).json({ error: 'guestMessage is required' });
+
+    const settings = await loadAISettings() as Record<string, unknown> | null;
+    if (!settings) return res.status(400).json({ error: 'AI not configured.' });
+
+    const { systemPrompt, userPrompt } = buildGuestMessagePrompt({ guestName: guestName ?? 'Guest', guestMessage, language, context, hotelName: hotelName ?? 'Our Hotel' });
+
+    const response = await sendAIRequest(userPrompt, {
+      systemPrompt,
+      feature: 'guestMessaging',
+      provider: (settings.provider ?? 'auto') as 'openai' | 'gemini' | 'auto',
+      temperature: 0.7,
+      maxTokens: 512,
+      openaiApiKey: settings.openaiApiKey as string | undefined,
+      geminiApiKey: settings.geminiApiKey as string | undefined,
+      failoverEnabled: (settings.failoverEnabled as boolean | undefined) ?? true,
+    });
+
+    await logAIUsage({ provider: response.provider, model: response.model, feature: 'guestMessaging', promptTokens: response.promptTokens, completionTokens: response.completionTokens, totalTokens: response.totalTokens, costUsd: calculateCost(response.totalTokens, response.model), success: true, latencyMs: response.latencyMs });
+    res.json({ reply: response.text, provider: response.provider, model: response.model });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to generate guest message reply' });
+  }
+});
+
+/**
+ * POST /api/ai/upsell-suggestions
+ * Generate upselling suggestions for a guest.
+ */
+app.post('/api/ai/upsell-suggestions', async (req, res) => {
+  try {
+    const { guestName, roomType, checkInDate, checkOutDate, hotelName, availableServices } = req.body;
+
+    const settings = await loadAISettings() as Record<string, unknown> | null;
+    if (!settings) return res.status(400).json({ error: 'AI not configured.' });
+
+    const { systemPrompt, userPrompt } = buildUpsellPrompt({ guestName: guestName ?? 'Guest', roomType: roomType ?? 'Standard Room', checkInDate: checkInDate ?? 'N/A', checkOutDate: checkOutDate ?? 'N/A', hotelName: hotelName ?? 'Our Hotel', availableServices: availableServices ?? ['Spa', 'Airport Transfer', 'Room Upgrade', 'Restaurant'] });
+
+    const response = await sendAIRequest(userPrompt, {
+      systemPrompt,
+      feature: 'upsellingEngine',
+      provider: (settings.provider ?? 'auto') as 'openai' | 'gemini' | 'auto',
+      temperature: 0.6,
+      maxTokens: 1024,
+      openaiApiKey: settings.openaiApiKey as string | undefined,
+      geminiApiKey: settings.geminiApiKey as string | undefined,
+      failoverEnabled: (settings.failoverEnabled as boolean | undefined) ?? true,
+    });
+
+    let suggestions: unknown[] = [];
+    try {
+      const jsonMatch = response.text.match(/\[[\s\S]*\]/);
+      if (jsonMatch) suggestions = JSON.parse(jsonMatch[0]);
+    } catch { /* return raw text if JSON parse fails */ }
+
+    await logAIUsage({ provider: response.provider, model: response.model, feature: 'upsellingEngine', promptTokens: response.promptTokens, completionTokens: response.completionTokens, totalTokens: response.totalTokens, costUsd: calculateCost(response.totalTokens, response.model), success: true, latencyMs: response.latencyMs });
+    res.json({ suggestions, rawText: response.text, provider: response.provider, model: response.model });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to generate upsell suggestions' });
+  }
+});
+
+/**
+ * POST /api/ai/forecast-demand
+ * Generate demand forecast for the next N days.
+ */
+app.post('/api/ai/forecast-demand', async (req, res) => {
+  try {
+    const { historicalOccupancy, forecastDays, hotelName } = req.body;
+
+    const settings = await loadAISettings() as Record<string, unknown> | null;
+    if (!settings) return res.status(400).json({ error: 'AI not configured.' });
+
+    const { systemPrompt, userPrompt } = buildForecastPrompt({ historicalOccupancy: historicalOccupancy ?? [], forecastDays: Number(forecastDays) || 30, hotelName: hotelName ?? 'Our Hotel' });
+
+    const response = await sendAIRequest(userPrompt, {
+      systemPrompt,
+      feature: 'demandForecasting',
+      provider: (settings.provider ?? 'auto') as 'openai' | 'gemini' | 'auto',
+      temperature: 0.3,
+      maxTokens: 2048,
+      openaiApiKey: settings.openaiApiKey as string | undefined,
+      geminiApiKey: settings.geminiApiKey as string | undefined,
+      failoverEnabled: (settings.failoverEnabled as boolean | undefined) ?? true,
+    });
+
+    let forecasts: unknown[] = [];
+    try {
+      const jsonMatch = response.text.match(/\[[\s\S]*\]/);
+      if (jsonMatch) forecasts = JSON.parse(jsonMatch[0]);
+    } catch { /* fallback */ }
+
+    // Persist forecasts to DB
+    if (Array.isArray(forecasts) && forecasts.length > 0) {
+      for (const f of forecasts as Array<Record<string, unknown>>) {
+        try {
+          await db.insert(schema.demandForecasts).values({
+            forecastDate: String(f.date ?? ''),
+            predictedOccupancy: String(f.predictedOccupancy ?? 0),
+            predictedADR: String(f.predictedADR ?? 0),
+            predictedRevenue: String(f.predictedRevenue ?? 0),
+            confidence: String(f.confidence ?? 0),
+            demandLevel: String(f.demandLevel ?? 'medium'),
+            factors: Array.isArray(f.factors) ? f.factors : [],
+          });
+        } catch { /* skip duplicates */ }
+      }
+    }
+
+    await logAIUsage({ provider: response.provider, model: response.model, feature: 'demandForecasting', promptTokens: response.promptTokens, completionTokens: response.completionTokens, totalTokens: response.totalTokens, costUsd: calculateCost(response.totalTokens, response.model), success: true, latencyMs: response.latencyMs });
+    res.json({ forecasts, rawText: response.text, provider: response.provider, model: response.model });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to generate demand forecast' });
+  }
+});
+
+/**
+ * POST /api/ai/revenue-insights
+ * Generate revenue management insights.
+ */
+app.post('/api/ai/revenue-insights', async (req, res) => {
+  try {
+    const { occupancy, adr, revpar, trend, hotelName } = req.body;
+
+    const settings = await loadAISettings() as Record<string, unknown> | null;
+    if (!settings) return res.status(400).json({ error: 'AI not configured.' });
+
+    const { systemPrompt, userPrompt } = buildRevenueInsightsPrompt({ occupancy: Number(occupancy) || 0, adr: Number(adr) || 0, revpar: Number(revpar) || 0, trend: trend ?? 'stable', hotelName: hotelName ?? 'Our Hotel' });
+
+    const response = await sendAIRequest(userPrompt, {
+      systemPrompt,
+      feature: 'revenueInsights',
+      provider: (settings.provider ?? 'auto') as 'openai' | 'gemini' | 'auto',
+      temperature: 0.5,
+      maxTokens: 1536,
+      openaiApiKey: settings.openaiApiKey as string | undefined,
+      geminiApiKey: settings.geminiApiKey as string | undefined,
+      failoverEnabled: (settings.failoverEnabled as boolean | undefined) ?? true,
+    });
+
+    let insights: unknown[] = [];
+    try {
+      const jsonMatch = response.text.match(/\[[\s\S]*\]/);
+      if (jsonMatch) insights = JSON.parse(jsonMatch[0]);
+    } catch { /* fallback */ }
+
+    // Persist insights
+    if (Array.isArray(insights) && insights.length > 0) {
+      for (const ins of insights as Array<Record<string, unknown>>) {
+        try {
+          await db.insert(schema.aiInsights).values({
+            type: String(ins.type ?? 'revenue'),
+            priority: String(ins.priority ?? 'medium'),
+            title: String(ins.title ?? 'AI Insight'),
+            description: String(ins.description ?? ''),
+            recommendation: String(ins.recommendation ?? ''),
+            potentialImpact: ins.potentialImpact ? String(ins.potentialImpact) : null,
+          });
+        } catch { /* skip */ }
+      }
+    }
+
+    await logAIUsage({ provider: response.provider, model: response.model, feature: 'revenueInsights', promptTokens: response.promptTokens, completionTokens: response.completionTokens, totalTokens: response.totalTokens, costUsd: calculateCost(response.totalTokens, response.model), success: true, latencyMs: response.latencyMs });
+    res.json({ insights, rawText: response.text, provider: response.provider, model: response.model });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to generate revenue insights' });
+  }
+});
+
+/**
+ * GET /api/ai/insights
+ * Retrieve persisted AI insights (unread/undismissed).
+ */
+app.get('/api/ai/insights', async (req, res) => {
+  try {
+    const insights = await db
+      .select()
+      .from(schema.aiInsights)
+      .orderBy(desc(schema.aiInsights.createdAt))
+      .limit(50);
+    res.json(insights);
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to fetch insights' });
+  }
+});
+
+/**
+ * PATCH /api/ai/insights/:id
+ * Mark an insight as read or dismissed.
+ */
+app.patch('/api/ai/insights/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { isRead, isDismissed } = req.body;
+    const update: Record<string, unknown> = {};
+    if (isRead !== undefined) update.isRead = Boolean(isRead);
+    if (isDismissed !== undefined) update.isDismissed = Boolean(isDismissed);
+    await db.update(schema.aiInsights).set(update).where(eq(schema.aiInsights.id, id));
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to update insight' });
+  }
+});
+
+/**
+ * GET /api/ai/forecasts
+ * Retrieve persisted demand forecasts.
+ */
+app.get('/api/ai/forecasts', async (req, res) => {
+  try {
+    const forecasts = await db
+      .select()
+      .from(schema.demandForecasts)
+      .orderBy(schema.demandForecasts.forecastDate)
+      .limit(90);
+    res.json(forecasts);
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to fetch forecasts' });
+  }
+});
+
+/**
+ * GET /api/ai/usage
+ * Aggregate AI usage stats.
+ */
+app.get('/api/ai/usage', async (req, res) => {
+  try {
+    const logs = await db
+      .select()
+      .from(schema.aiLogs)
+      .orderBy(desc(schema.aiLogs.createdAt))
+      .limit(1000);
+
+    const totalRequests = logs.length;
+    const totalTokens = logs.reduce((s, l) => s + (l.totalTokens ?? 0), 0);
+    const totalCost = logs.reduce((s, l) => s + parseFloat(String(l.costUsd ?? 0)), 0);
+    const successLogs = logs.filter(l => l.success);
+    const avgLatencyMs = logs.length > 0 ? logs.reduce((s, l) => s + (l.latencyMs ?? 0), 0) / logs.length : 0;
+
+    const requestsByProvider: Record<string, number> = {};
+    const requestsByFeature: Record<string, number> = {};
+    for (const l of logs) {
+      requestsByProvider[l.provider] = (requestsByProvider[l.provider] ?? 0) + 1;
+      requestsByFeature[l.feature] = (requestsByFeature[l.feature] ?? 0) + 1;
+    }
+
+    // Current month cost
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthLogs = logs.filter(l => l.createdAt && new Date(l.createdAt) >= monthStart);
+    const currentMonthCost = monthLogs.reduce((s, l) => s + parseFloat(String(l.costUsd ?? 0)), 0);
+
+    res.json({
+      totalRequests,
+      totalTokens,
+      totalCost: Number(totalCost.toFixed(6)),
+      requestsByProvider,
+      requestsByFeature,
+      avgLatencyMs: Math.round(avgLatencyMs),
+      successRate: totalRequests > 0 ? (successLogs.length / totalRequests) * 100 : 0,
+      currentMonthCost: Number(currentMonthCost.toFixed(6)),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to fetch usage stats' });
+  }
 });
 
 // Error handling middleware - must be last
