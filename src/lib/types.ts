@@ -1501,7 +1501,7 @@ export interface DashboardMetrics {
   }
 }
 
-export type SystemRole = 'super-admin' | 'admin' | 'procurement-manager' | 'department-head' | 'storekeeper' | 'accounts' | 'user-requester'
+export type SystemRole = 'super-admin' | 'admin' | 'procurement-manager' | 'department-head' | 'storekeeper' | 'accounts' | 'user-requester' | 'reservation'
 
 export interface SystemUser {
   id: string
@@ -1515,6 +1515,10 @@ export interface SystemUser {
   department?: Department
   permissions: UserPermission[]
   isActive: boolean
+  /** If true, user must change password on next login */
+  mustChangePassword?: boolean
+  /** Hashed password (stored server-side only; kept in KV for offline use) */
+  passwordHash?: string
   lastLogin?: number
   createdAt: number
   updatedAt: number
@@ -1522,7 +1526,27 @@ export interface SystemUser {
 }
 
 export type PermissionAction = 'create' | 'read' | 'update' | 'delete' | 'approve' | 'issue' | 'receive' | 'manage'
-export type PermissionResource = 'users' | 'suppliers' | 'food-items' | 'amenities' | 'construction-materials' | 'general-products' | 'purchase-orders' | 'requisitions' | 'stock' | 'invoices' | 'payments' | 'projects' | 'reports' | 'system-settings'
+export type PermissionResource =
+  | 'users'
+  | 'suppliers'
+  | 'food-items'
+  | 'amenities'
+  | 'construction-materials'
+  | 'general-products'
+  | 'purchase-orders'
+  | 'requisitions'
+  | 'stock'
+  | 'invoices'
+  | 'payments'
+  | 'projects'
+  | 'reports'
+  | 'system-settings'
+  // PMS front-office modules (used by reservation role)
+  | 'reservations'
+  | 'booking-calendar'
+  | 'channel-manager'
+  | 'crm'
+  | 'availability-rates'
 
 export interface UserPermission {
   resource: PermissionResource

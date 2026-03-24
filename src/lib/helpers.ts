@@ -797,7 +797,12 @@ export function getRolePermissions(role: SystemRole): UserPermission[] {
       { resource: 'payments', actions: ['create', 'read', 'update', 'delete', 'manage'] },
       { resource: 'projects', actions: ['create', 'read', 'update', 'delete', 'manage'] },
       { resource: 'reports', actions: ['read', 'manage'] },
-      { resource: 'system-settings', actions: ['read', 'update', 'manage'] }
+      { resource: 'system-settings', actions: ['read', 'update', 'manage'] },
+      { resource: 'reservations', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+      { resource: 'booking-calendar', actions: ['read', 'manage'] },
+      { resource: 'channel-manager', actions: ['read', 'update', 'manage'] },
+      { resource: 'crm', actions: ['create', 'read', 'update', 'delete', 'manage'] },
+      { resource: 'availability-rates', actions: ['read', 'update', 'manage'] },
     ],
     'procurement-manager': [
       { resource: 'suppliers', actions: ['create', 'read', 'update'] },
@@ -844,6 +849,15 @@ export function getRolePermissions(role: SystemRole): UserPermission[] {
       { resource: 'general-products', actions: ['read'] },
       { resource: 'requisitions', actions: ['create', 'read', 'update'] },
       { resource: 'stock', actions: ['read'] }
+    ],
+    // Reservation role: focused on bookings + guest relations
+    'reservation': [
+      { resource: 'reservations', actions: ['create', 'read', 'update', 'delete'] },
+      { resource: 'booking-calendar', actions: ['read'] },
+      { resource: 'channel-manager', actions: ['read', 'update'] },
+      { resource: 'crm', actions: ['create', 'read', 'update'] },
+      { resource: 'availability-rates', actions: ['read', 'update'] },
+      { resource: 'reports', actions: ['read'] }
     ]
   }
   
@@ -873,7 +887,12 @@ export function canAccessModule(user: SystemUser, module: string): boolean {
     'general-products': 'general-products',
     'procurement': 'purchase-orders',
     'inventory': 'stock',
-    'finance': 'invoices'
+    'finance': 'invoices',
+    'reservations': 'reservations',
+    'booking-calendar': 'booking-calendar',
+    'channel-manager': 'channel-manager',
+    'crm': 'crm',
+    'availability-rates': 'availability-rates',
   }
   
   const resource = moduleResourceMap[module]
@@ -890,7 +909,8 @@ export function getRoleColor(role: SystemRole): string {
     'department-head': 'bg-accent/10 text-accent border-accent/20',
     'storekeeper': 'bg-success/10 text-success border-success/20',
     'accounts': 'bg-secondary/10 text-secondary border-secondary/20',
-    'user-requester': 'bg-muted text-muted-foreground border-border'
+    'user-requester': 'bg-muted text-muted-foreground border-border',
+    'reservation': 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300',
   }
   return colors[role] || 'bg-muted text-muted-foreground'
 }
@@ -903,7 +923,8 @@ export function getRoleLabel(role: SystemRole): string {
     'department-head': 'Department Head',
     'storekeeper': 'Storekeeper',
     'accounts': 'Accounts',
-    'user-requester': 'User/Requester'
+    'user-requester': 'User/Requester',
+    'reservation': 'Reservation',
   }
   return labels[role] || role
 }
