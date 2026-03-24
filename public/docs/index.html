@@ -133,6 +133,14 @@
     .cl-entry::before { content: ''; position: absolute; left: -6px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); }
     .cl-version { font-size: 1.05rem; font-weight: 700; margin-bottom: .25rem; }
     .cl-date { font-size: 0.8rem; color: var(--muted); margin-bottom: .6rem; }
+    /* New / Fixes sub-sections */
+    .cl-label-new, .cl-label-fix { margin: .6rem 0 .2rem; }
+    .cl-item-label { display: inline-block; font-weight: 700; font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; padding: 1px 8px; border-radius: 4px; margin-bottom: .3rem; }
+    .cl-label-new .cl-item-label { background: #dcfce7; color: #15803d; }
+    .cl-label-fix .cl-item-label { background: #fef3c7; color: #92400e; }
+    .cl-label-new ul, .cl-label-fix ul { margin: .25rem 0 .5rem; padding-left: 1.3em; }
+    .cl-label-new li, .cl-label-fix li { font-size: .88rem; margin: .2rem 0; }
+    .cl-empty { font-size: .88rem; color: var(--muted); font-style: italic; }
 
     /* ─── Roadmap ────────────────────────────────────────────────── */
     .rm-phase { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.4rem; margin: 1rem 0; }
@@ -169,7 +177,7 @@
 <header id="top-header">
   <div class="brand">
     🏨 W3 Hotel PMS
-    <span>Knowledge Base v2.0</span>
+    <span>Knowledge Base <!-- KB_VERSION -->v2.1.0</span>
   </div>
   <nav>
     <a href="#documentation">Docs</a>
@@ -1083,6 +1091,11 @@
     <p><strong>Revenue Per Available Room</strong> = ADR × Occupancy %. It is displayed on the Revenue Management dashboard and in the Analytics module under Revenue KPIs.</p>
   </div>
 
+  <div class="card">
+    <strong>Q: How do I add a new changelog entry when releasing a new version?</strong>
+    <p>Edit <code>CHANGELOG.json</code> at the repository root and add a new object at the top of the <code>versions</code> array with <code>"version"</code>, <code>"date"</code>, <code>"new"</code> (array of new features), and <code>"fixes"</code> (array of bug fixes). Then bump <code>"version"</code> in <code>package.json</code> to match. The next <code>npm run build</code> (or <code>npm run update-docs</code>) automatically injects the new HTML into this page.</p>
+  </div>
+
   <h3>Keyboard Shortcuts</h3>
   <table>
     <thead><tr><th>Shortcut</th><th>Action</th></tr></thead>
@@ -1182,145 +1195,199 @@
 <!-- ══════════════════════  CHANGELOG  ═══════════════════════════════ -->
 <section class="doc-section" id="changelog">
   <h2>📋 Changelog</h2>
-  <p>All notable changes to W3 Hotel PMS are documented here following <a href="https://keepachangelog.com" target="_blank">Keep a Changelog</a> conventions.</p>
+  <p>All notable changes to W3 Hotel PMS. The changelog is automatically generated from
+     <code>CHANGELOG.json</code> during each build — each release is split into
+     <span class="badge badge-green" style="font-size:.75rem;">🆕 New Features</span> and
+     <span class="badge badge-amber" style="font-size:.75rem;">🔧 Bug Fixes</span> sections.</p>
 
+<!-- CHANGELOG_START -->
   <div class="cl-entry">
     <div class="cl-version">v2.1.0 <span class="badge badge-green">Latest</span></div>
     <div class="cl-date">March 2026</div>
-    <strong>Added</strong>
-    <ul>
-      <li>Full HTML Knowledge Base documentation with footer link.</li>
-      <li>Dashboard widget customisation per user role.</li>
-      <li>Review Widget embed system (horizontal / vertical / badge layouts).</li>
-      <li>AI Intelligence Hub — demand forecasting, review reply generator, guest messaging, upsell engine.</li>
-      <li>AI Configuration panel (Settings → AI Configuration).</li>
-      <li><code>super-admin</code> and <code>reservation</code> role widget presets.</li>
-    </ul>
-    <strong>Fixed</strong>
-    <ul>
-      <li>TypeScript: <code>GuestInvoice.totalAmount</code> → <code>grandTotal</code> in AI Pricing Recommendations.</li>
-      <li>TypeScript: Missing <code>InvoiceItem</code> required fields in Invoice Scanning OCR flow.</li>
-      <li>TypeScript: Missing role entries in <code>ROLE_PRESETS</code> widget config.</li>
-      <li>Server startup: OpenAI &amp; Gemini SDK initialisation guarded by env-var presence.</li>
-    </ul>
+    <div class="cl-label-new">
+      <span class="cl-item-label">🆕 New Features</span>
+      <ul>
+      <li>Full HTML Knowledge Base documentation with sidebar navigation, Help, Roadmap, and Changelog sections</li>
+      <li>Footer links to Knowledge Base, Help &amp; FAQ, Roadmap, and Changelog</li>
+      <li>Dashboard widget customisation system per user role</li>
+      <li>Review Widget embed system (horizontal / vertical / badge layouts)</li>
+      <li>AI Intelligence Hub — demand forecasting, review reply generator, AI guest messaging, upsell engine</li>
+      <li>AI Configuration panel in Settings → AI Configuration (OpenAI + Gemini)</li>
+      <li>super-admin and reservation role dashboard widget presets</li>
+      </ul>
+    </div>
+    <div class="cl-label-fix">
+      <span class="cl-item-label">🔧 Bug Fixes</span>
+      <ul>
+      <li>TypeScript: GuestInvoice.totalAmount → grandTotal in AI Pricing Recommendations</li>
+      <li>TypeScript: Missing InvoiceItem required fields in Invoice Scanning OCR flow</li>
+      <li>TypeScript: Missing role entries in ROLE_PRESETS widget config</li>
+      <li>Server startup: OpenAI and Gemini SDK initialisation guarded by env-var presence to prevent crash when keys absent</li>
+      </ul>
+    </div>
   </div>
 
   <div class="cl-entry">
     <div class="cl-version">v2.0.0</div>
     <div class="cl-date">February 2026</div>
-    <strong>Added</strong>
-    <ul>
-      <li>Channel Manager with Booking.com, Agoda, Airbnb, and Expedia connectivity.</li>
-      <li>Invoice Center with AI-assisted OCR scanning and 3-way matching.</li>
-      <li>Master Folio for group/corporate consolidated billing.</li>
-      <li>Bank Reconciliation module with CSV import and auto-matching.</li>
-      <li>Custom Report Builder with drag-and-drop field selector.</li>
-      <li>Scheduled Reports — auto-email daily/weekly/monthly.</li>
-      <li>Guest loyalty programme with tiered points system.</li>
-      <li>Supplier Dispute Management workflow.</li>
-      <li>Construction &amp; Project Management module.</li>
-      <li>Booking Engine v1 — embeddable widget for direct bookings.</li>
-    </ul>
-    <strong>Improved</strong>
-    <ul>
-      <li>Analytics dashboards redesigned with date-range comparison.</li>
-      <li>Night Audit — more granular checklist with auto-resolution suggestions.</li>
-      <li>Procurement — multi-level approval thresholds configurable per department.</li>
-    </ul>
-    <strong>Security</strong>
-    <ul>
-      <li>Rate limiting on all API endpoints.</li>
-      <li>CSP and security headers middleware.</li>
-      <li>Password generation using crypto-secure rejection-sampling (no modulo bias).</li>
-      <li>JWT session tokens with 8-hour expiry and refresh flow.</li>
-    </ul>
+    <div class="cl-label-new">
+      <span class="cl-item-label">🆕 New Features</span>
+      <ul>
+      <li>Channel Manager with Booking.com, Agoda, Airbnb, and Expedia two-way sync</li>
+      <li>Invoice Center with AI-assisted OCR scanning and 3-way PO/GRN/Invoice matching</li>
+      <li>Master Folio for group and corporate consolidated billing</li>
+      <li>Bank Reconciliation module with CSV import and auto-matching</li>
+      <li>Custom Report Builder with drag-and-drop field selector</li>
+      <li>Scheduled Reports — auto-email daily, weekly, or monthly</li>
+      <li>Guest loyalty programme with tiered points system (Silver, Gold, Platinum)</li>
+      <li>Supplier Dispute Management workflow</li>
+      <li>Construction and Project Management module</li>
+      <li>Booking Engine v1 — embeddable widget for direct bookings</li>
+      <li>Multi-level procurement approval thresholds configurable per department</li>
+      </ul>
+    </div>
+    <div class="cl-label-fix">
+      <span class="cl-item-label">🔧 Bug Fixes</span>
+      <ul>
+      <li>Analytics dashboards redesigned with correct date-range comparison logic</li>
+      <li>Night Audit checklist — more granular checks with auto-resolution suggestions</li>
+      <li>Rate limiting applied to all API endpoints</li>
+      <li>CSP and security headers added to server middleware</li>
+      <li>Password generation using crypto-secure rejection-sampling (no modulo bias)</li>
+      <li>JWT session tokens with 8-hour expiry and refresh flow</li>
+      </ul>
+    </div>
   </div>
 
   <div class="cl-entry">
     <div class="cl-version">v1.5.0</div>
     <div class="cl-date">November 2025</div>
-    <strong>Added</strong>
-    <ul>
-      <li>Floor Plan visual editor with drag-and-drop room layout.</li>
-      <li>Extra Services module (spa, transfers, packages).</li>
-      <li>Lost &amp; Found tracking in Housekeeping.</li>
-      <li>Waste Tracking for F&amp;B.</li>
-      <li>Petty Cash management per department.</li>
-      <li>Budget vs Actual variance reports.</li>
-      <li>Email template system with variable substitution.</li>
-    </ul>
-    <strong>Fixed</strong>
-    <ul>
-      <li>Room charge auto-posting missed out-of-category room types.</li>
-      <li>AR aging calculation off by one day on 30-day bucket.</li>
-      <li>POS: order modifier prices not included in shift settlement.</li>
-    </ul>
+    <div class="cl-label-new">
+      <span class="cl-item-label">🆕 New Features</span>
+      <ul>
+      <li>Floor Plan visual editor with drag-and-drop room layout and live status overlay</li>
+      <li>Extra Services module (spa, transfers, packages) with folio auto-posting</li>
+      <li>Lost and Found tracking in Housekeeping</li>
+      <li>Waste Tracking for Food and Beverage</li>
+      <li>Petty Cash management per department</li>
+      <li>Budget vs Actual variance reports</li>
+      <li>Email template system with variable substitution</li>
+      </ul>
+    </div>
+    <div class="cl-label-fix">
+      <span class="cl-item-label">🔧 Bug Fixes</span>
+      <ul>
+      <li>Room charge auto-posting missed out-of-category room types</li>
+      <li>AR aging calculation was off by one day on the 30-day bucket</li>
+      <li>POS: order modifier prices were not included in shift settlement totals</li>
+      </ul>
+    </div>
   </div>
 
   <div class="cl-entry">
     <div class="cl-version">v1.4.0</div>
     <div class="cl-date">September 2025</div>
-    <strong>Added</strong>
-    <ul>
-      <li>HR Module: attendance, shifts, leave management, performance reviews.</li>
-      <li>Payroll export (CSV, EPF/ETF format).</li>
-      <li>Duty Roster planning tool.</li>
-      <li>Multi-currency with live exchange rates.</li>
-      <li>Departmental P&amp;L report.</li>
-    </ul>
+    <div class="cl-label-new">
+      <span class="cl-item-label">🆕 New Features</span>
+      <ul>
+      <li>HR Module: attendance tracking, shift management, leave management, and performance reviews</li>
+      <li>Payroll export in CSV and EPF/ETF format</li>
+      <li>Duty Roster planning tool with weekly view</li>
+      <li>Multi-currency support with live exchange rate feed</li>
+      <li>Departmental P&amp;L report</li>
+      </ul>
+    </div>
+    <div class="cl-label-fix">
+      <span class="cl-item-label">🔧 Bug Fixes</span>
+      <ul>
+      <li>Overtime hours were not correctly detected when shifts crossed midnight</li>
+      <li>Leave balance showed incorrect entitlement for part-year employees</li>
+      </ul>
+    </div>
   </div>
 
   <div class="cl-entry">
     <div class="cl-version">v1.3.0</div>
     <div class="cl-date">July 2025</div>
-    <strong>Added</strong>
-    <ul>
-      <li>F&amp;B / POS module with kitchen display system.</li>
-      <li>Recipe management and food costing.</li>
-      <li>Kitchen Operations dashboard.</li>
-      <li>Menu combos and modifier groups.</li>
-      <li>Shift settlement and cashier reports.</li>
-    </ul>
+    <div class="cl-label-new">
+      <span class="cl-item-label">🆕 New Features</span>
+      <ul>
+      <li>Food and Beverage POS module with full table management</li>
+      <li>Kitchen Display System (KDS) with real-time order board by station</li>
+      <li>Recipe management with food costing</li>
+      <li>Kitchen Operations dashboard</li>
+      <li>Menu combo deals and modifier groups</li>
+      <li>Shift settlement and cashier end-of-day reports</li>
+      </ul>
+    </div>
+    <div class="cl-label-fix">
+      <span class="cl-item-label">🔧 Bug Fixes</span>
+      <ul>
+      <li>Table merge did not correctly transfer all open order items</li>
+      <li>Menu item availability toggle did not reflect immediately on POS terminals</li>
+      </ul>
+    </div>
   </div>
 
   <div class="cl-entry">
     <div class="cl-version">v1.2.0</div>
     <div class="cl-date">May 2025</div>
-    <strong>Added</strong>
-    <ul>
-      <li>Procurement module: requisitions, POs, GRNs, 3-way match.</li>
-      <li>Inventory management with FIFO costing.</li>
-      <li>Supplier management and purchase history.</li>
-      <li>Finance module: GL journal, AP/AR, bank reconciliation.</li>
-      <li>Guest Invoice system (multiple types: folio, proforma, credit note).</li>
-    </ul>
+    <div class="cl-label-new">
+      <span class="cl-item-label">🆕 New Features</span>
+      <ul>
+      <li>Procurement module: purchase requisitions, purchase orders, GRNs, and 3-way matching</li>
+      <li>Inventory management with FIFO costing and low-stock alerts</li>
+      <li>Supplier management with purchase history and performance ratings</li>
+      <li>Finance module: GL journal, accounts payable, accounts receivable, bank reconciliation</li>
+      <li>Guest Invoice system (folio, proforma, room-only, credit note, debit note types)</li>
+      </ul>
+    </div>
+    <div class="cl-label-fix">
+      <span class="cl-item-label">🔧 Bug Fixes</span>
+      <ul>
+      <li>Partial GRN delivery did not close PO correctly when all items were eventually received</li>
+      <li>Invoice payment split across multiple methods left folio balance negative</li>
+      </ul>
+    </div>
   </div>
 
   <div class="cl-entry">
     <div class="cl-version">v1.1.0</div>
     <div class="cl-date">March 2025</div>
-    <strong>Added</strong>
-    <ul>
-      <li>CRM module: guest profiles, loyalty, complaints, campaigns.</li>
-      <li>Housekeeping task management and room status workflow.</li>
-      <li>Night Audit with automated room charge posting.</li>
-      <li>Analytics dashboards (revenue, occupancy, guest).</li>
-      <li>User Management with role-based access control.</li>
-    </ul>
+    <div class="cl-label-new">
+      <span class="cl-item-label">🆕 New Features</span>
+      <ul>
+      <li>CRM module: guest profiles, loyalty tracking, complaint management, and email campaigns</li>
+      <li>Housekeeping task management with room status workflow and batch operations</li>
+      <li>Night Audit with automated room charge posting and daily report generation</li>
+      <li>Analytics dashboards: revenue, occupancy, and guest segment analysis</li>
+      <li>User Management with role-based access control and per-resource permission overrides</li>
+      </ul>
+    </div>
+    <div class="cl-label-fix">
+      <span class="cl-item-label">🔧 Bug Fixes</span>
+      <ul>
+      <li>Guest search returned duplicate results when same name appeared in multiple booking sources</li>
+      <li>Housekeeping task assignment did not persist after page reload</li>
+      </ul>
+    </div>
   </div>
 
   <div class="cl-entry">
     <div class="cl-version">v1.0.0</div>
     <div class="cl-date">January 2025</div>
-    <strong>Initial Release</strong>
-    <ul>
-      <li>Front Office: reservations, check-in, check-out, folio management.</li>
-      <li>Room management with types, status, and availability calendar.</li>
-      <li>Basic rate plans and seasonal pricing.</li>
-      <li>Dashboard with key KPIs.</li>
-      <li>Multi-role authentication system.</li>
-    </ul>
+    <div class="cl-label-new">
+      <span class="cl-item-label">🆕 New Features</span>
+      <ul>
+      <li>Front Office module: reservations, check-in, check-out, and folio management</li>
+      <li>Room management with types, individual rooms, and availability calendar</li>
+      <li>Basic rate plans and seasonal pricing with restrictions</li>
+      <li>Real-time dashboard with key KPIs (Occupancy, ADR, RevPAR)</li>
+      <li>Multi-role authentication system with role-based access</li>
+      </ul>
+    </div>
   </div>
+<!-- CHANGELOG_END -->
 </section>
 
 <!-- ════════════════  BACK TO TOP  ═══════════════════════════════════ -->
